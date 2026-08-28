@@ -20,6 +20,7 @@ from __future__ import annotations
 import html
 import math
 from collections import defaultdict
+from dataclasses import replace
 
 from PySide6.QtCore import QPointF, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter, QPainterPath, QPen, QPolygonF
@@ -254,6 +255,12 @@ def _detail_html(obj, currency: str = ""):
     known = getattr(obj, "orientations", None)
     if known:
         lines.append(f"Known in: {html.escape(', '.join(known))}")
+    # ⚠ Narrowing is recorded on the SHEET (p.127), so an owned narrowed aspect has to
+    # say so somewhere — it is bought at half price and reads as an ordinary aspect
+    # otherwise. The panel is where this port puts a row's facts; the tree label would
+    # go stale on a purchase, since nothing rebuilds it.
+    if getattr(obj, "narrowed", False):
+        lines.append("Narrowed — a further-limited aspect at half cost (p.127)")
     parts = [f"<b>{name}</b>"]
     if lines:
         # Light grey on the dark detail panel — the web-page mid-grey is invisible.
@@ -791,6 +798,25 @@ class CharmsPage(QWidget):
         self._orientation_btn.setVisible(False)
         self._orientation_btn.clicked.connect(self._add_orientation)
         act_row.addWidget(self._orientation_btn)
+        # Narrowing an Art's aspect — Summoning alone (p.127). Chosen BEFORE the buy
+        # and stored on the purchase (`ArtSpecialty.narrowed`), so it is a checkbox
+        # beside the button rather than anything applied afterwards.
+        self._narrow_check = QCheckBox("narrow")
+        self._narrow_offered = False
+        self._narrow_check.setVisible(False)
+        self._narrow_check.setToolTip(
+            "Further limit this aspect (e.g. 'War Gods') for half cost, noted on the "
+            "sheet (p.127).")
+        self._narrow_check.toggled.connect(
+            lambda _=False: (self._show_thaum_detail(), self._update_action()))
+        act_row.addWidget(self._narrow_check)
+        # Sciences step DOWN as well as up before the lock — the same usability escape
+        # hatch Crafts and Colleges have. `action_btn` says Raise, so this is its own.
+        self._lower_btn = QPushButton("Lower")
+        self._lower_btn.setVisible(False)
+        self._lower_btn.setToolTip("Step this Science back down (chargen only)")
+        self._lower_btn.clicked.connect(self._lower_science)
+        act_row.addWidget(self._lower_btn)
         dp.addLayout(act_row)
         # The Path rating dot track — visible only while a Path is selected on the
         # Paths page (which binds the track). Hidden on every other selection.
@@ -904,6 +930,9 @@ class CharmsPage(QWidget):
         char = self._char()
         self._orientation_combo.setVisible(False)      # a ritual/formula buy re-shows it
         self._orientation_btn.setVisible(False)
+        self._narrow_check.setVisible(False)
+        self._narrow_offered = False
+        self._lower_btn.setVisible(False)
         # ⚠ Hidden HERE, not on each branch: _update_action has a dozen early returns
         # and a button left visible from the previous selection offers "Add another"
         # against whatever is selected now. The submodule panel is torn down for the
@@ -993,10 +1022,30 @@ class CharmsPage(QWidget):
                 else:
                     self.action_btn.setText(f"{row.name} at max")
                 self.action_btn.setEnabled(bool(row.can_raise))
+                # ⚠ Chargen only. `lower_thaum_science` does not check the lock — it
+                # is the free-setter half of the pre-lock dot track, and after the
+                # lock a rating comes back through the XP ledger's undo, not here.
+                self._lower_btn.setVisible(bool(row.rating)
+                                           and not char.chargen_locked)
             elif kind == "art_specialty":
-                spec = self._selected_thaum[2]
+                art, spec = self._selected_thaum[1], self._selected_thaum[2]
+                # Narrowing is Summoning's alone, is chosen before the purchase, and
+                # cannot change after it — so the box is offered only on an unowned
+                # PRINTED aspect of an Art that allows it.
+                offer_narrow = (art.allows_narrowing and not spec.owned
+                                and spec.printed)
+                # ⚠ Remembered as a FLAG, never read back off the widget with
+                # `isVisible()`: a widget on a page that was never shown reports
+                # invisible whatever it was set to, so the purchase would silently
+                # stop narrowing in every headless test and in any not-yet-shown tab.
+                self._narrow_offered = offer_narrow
+                self._narrow_check.setVisible(offer_narrow)
+                if not offer_narrow:
+                    self._narrow_check.setChecked(False)
+                price = (spec.narrowed_price if offer_narrow
+                         and self._narrow_check.isChecked() else spec.price)
                 label = f"Drop {spec.name}" if spec.owned else \
-                    f"Learn {spec.name} — {spec.price} {currency}"
+                    f"Learn {spec.name} — {price} {currency}"
                 self.action_btn.setText(label)
                 self.action_btn.setEnabled(True)
             else:
@@ -1145,6 +1194,52 @@ class CharmsPage(QWidget):
         self._notify(msg, "info")
         self._refresh_current_tree()
 
+    def _lower_science(self) -> None:
+        """Step the selected Science back down a dot — the chargen escape hatch."""
+        if self._selected_thaum is None or self._selected_thaum[0] != "science":
+            return
+        row = self._selected_thaum[1]
+        try:
+            msg = thaum_actions.lower_thaum_science(self._ruleset, self._char(), row.id)
+        except advancement.AdvancementError as ex:
+            self._notify(str(ex), "warning")
+            return
+        self._notify(msg, "info")
+        self._refresh_current_tree()
+
+    def _add_custom_specialty(self, name: str) -> None:
+        """Invent a specialty for the selected Art — p.126 invites it in as many words,
+        and it is the same purchase at the same rate as a printed aspect.
+
+        ⚠ Never narrowed: narrowing further limits a PRINTED aspect (p.127), and one
+        you wrote is already as narrow as you made it.
+        """
+        art = self._selected_art()
+        if art is None:
+            self._notify("Select an Art first.", "warning")
+            return
+        try:
+            msg = thaum_actions.buy_thaum_specialty(self._ruleset, self._char(),
+                                                    art.id, name)
+        except advancement.AdvancementError as ex:
+            self._notify(str(ex), "warning")
+            return
+        self._notify(msg, "info")
+        # A new row in the tree, which only a rebuilt page has — the same reason
+        # `_add_custom_ritual` reloads rather than refreshing the selection.
+        self.reload()
+        self._update_readout()
+
+    def _selected_art(self):
+        """The Art the selection is in: the Art itself, or the parent of a selected
+        specialty. None when the selection is neither."""
+        if self._selected_thaum is None:
+            return None
+        kind = self._selected_thaum[0]
+        if kind in ("art", "art_specialty"):
+            return self._selected_thaum[1]
+        return None
+
     def _add_custom_ritual(self, name: str, level: int) -> None:
         """Author a ritual for THIS character alone — the inline `RitualEntry` path
         (p.148: the chapter prints five and expects more).
@@ -1182,7 +1277,9 @@ class CharmsPage(QWidget):
                 msg = (thaum_actions.drop_thaum_specialty(char, art.id, spec.name)
                        if spec.owned
                        else thaum_actions.buy_thaum_specialty(
-                           ruleset, char, art.id, spec.name))
+                           ruleset, char, art.id, spec.name,
+                           narrowed=self._narrow_offered
+                           and self._narrow_check.isChecked()))
             elif kind == "science":
                 row = rest[0]
                 msg = thaum_actions.raise_thaum_science(ruleset, char, row.id)
@@ -1383,12 +1480,39 @@ class CharmsPage(QWidget):
             fresh = next((r for r in rows if r.key == self._selected_thaum[1].key), None)
             self._selected_thaum = (kind, fresh) if fresh else None
         # ⚠ The DETAIL text is stale too, not just the button. It was written from the
-        # pre-purchase row, and a ritual's panel now carries a line that moves when you
-        # buy — "Known in: Realm" after adding the Northern version.
-        if self._selected_thaum is not None:
-            self.detail.setHtml(_detail_html(self._selected_thaum[-1],
-                                             self._thaum_currency()))
+        # pre-purchase row, and the panel now carries lines that move when you buy —
+        # "Known in: Realm" after adding a version, "Narrowed" after a half-price buy.
+        self._show_thaum_detail()
         self._update_action()
+
+    def _show_thaum_detail(self) -> None:
+        """Render the selected Thaumaturgy row into the detail panel.
+
+        ⚠ ONE renderer for three call sites (the Arts tree, the entry lists, and the
+        post-purchase refresh). The last of them was missing for as long as the panel
+        held nothing that could change on a purchase, and that stopped being true the
+        moment it grew "Known in:".
+
+        The row is the LAST member of the selection tuple either way: ("art", row),
+        ("science", row), ("ritual", row) — and ("art_specialty", art, spec), where
+        the specialty is what the panel is about.
+        """
+        if self._selected_thaum is None:
+            return
+        row = self._selected_thaum[-1]
+        # ⚠ The panel's Cost line has to agree with the button. With "narrow" ticked
+        # the button offers the half price (p.127) and the panel went on printing the
+        # full one — two numbers for one purchase, on one screen.
+        #
+        # ⚠ Derived from the ROW here, not from `_narrow_offered`: that flag is set by
+        # `_update_action`, which runs AFTER this on a selection change, so reading it
+        # would price the new row against the old row's eligibility.
+        if self._selected_thaum[0] == "art_specialty":
+            art = self._selected_thaum[1]
+            if (art.allows_narrowing and not row.owned and row.printed
+                    and self._narrow_check.isChecked()):
+                row = replace(row, price=row.narrowed_price)
+        self.detail.setHtml(_detail_html(row, self._thaum_currency()))
 
     def _update_readout(self) -> None:
         """Redraw this tab's budget line AND tell the shell its own bar moved.
@@ -1758,7 +1882,7 @@ class CharmsPage(QWidget):
                 art_item.addChild(spec_item)
         arts_tree.itemSelectionChanged.connect(lambda: self._art_selected(arts_tree))
         arts_tree.expandAll()
-        inner.addTab(arts_tree, "Arts")
+        inner.addTab(self._arts_tab(arts_tree), "Arts")
         for label, kind, rows in (
                 ("Sciences", "science", picker.sciences),
                 ("Rituals", "ritual", picker.rituals),
@@ -1779,6 +1903,31 @@ class CharmsPage(QWidget):
             inner.addTab(self._rituals_tab(entries), label)
         lay = QVBoxLayout(page)
         lay.addWidget(inner)
+        return page
+
+    def _arts_tab(self, tree) -> QWidget:
+        """The Arts tree with an authoring row under it — "Player-invented specialties
+        are explicitly invited" (p.126), and they are the same purchase at the same
+        rate as a printed aspect.
+
+        The row acts on whatever Art the selection is in, so it needs no Art picker of
+        its own; with nothing selected it says so rather than guessing."""
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.addWidget(tree, 1)
+        row = QHBoxLayout()
+        name = QLineEdit()
+        name.setObjectName("thaum.custom_specialty.name")
+        name.setPlaceholderText("Own specialty, e.g. Local Fair Folk…")
+        row.addWidget(name, 1)
+        add = QPushButton("Add specialty")
+        add.setObjectName("thaum.custom_specialty.add")
+        add.setToolTip("Buy a specialty you invented, in the selected Art (p.126)")
+        add.clicked.connect(
+            lambda: (self._add_custom_specialty(name.text()), name.clear()))
+        row.addWidget(add)
+        lay.addLayout(row)
         return page
 
     def _rituals_tab(self, entries) -> QWidget:
@@ -2797,9 +2946,7 @@ class CharmsPage(QWidget):
             self._update_action()
             return
         self._selected_thaum = item.data(0, Qt.UserRole)
-        kind = self._selected_thaum[0]
-        obj = self._selected_thaum[2] if kind == "art_specialty" else self._selected_thaum[1]
-        self.detail.setHtml(_detail_html(obj, self._thaum_currency()))
+        self._show_thaum_detail()
         self._update_action()
 
     def _thaum_currency(self) -> str:
@@ -2830,7 +2977,7 @@ class CharmsPage(QWidget):
             kind, row = obj
             self._selected_thaum = (kind, row)
             self._selected_spell = None
-            self.detail.setHtml(_detail_html(row, self._thaum_currency()))
+            self._show_thaum_detail()
         else:
             self._selected_thaum = None
             # A Spell carries a circle; a Thaumaturgy entry does not — that is how

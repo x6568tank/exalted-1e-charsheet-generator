@@ -1688,3 +1688,27 @@ both shells but is disabled in one, a panel that renders fewer lines, a differen
 way *and the other two defects in the same code* (a stale detail panel, a combo defaulting
 to North where the webapp defaults to Realm) were found only by fixing them and looking at
 the render. **Eight for eight: the list was a lower bound again.**
+
+### The second pass, on a different axis — three more (2026-08-28)
+
+The audit above compared `view`/`engine` NAMES by shell and said in writing what it could
+not see. Asked for a final check, the second pass compared **handler functions per tab
+pair** — `ui/<tab>.py`'s nested `def`s against the Qt page's methods — and found three
+more, every one of them in the Thaumaturgy picker again: an aspect could not be bought
+narrowed (p.127), a specialty of your own could not be written (p.126), and a Science
+could not be stepped back down. `docs/status/thaumaturgy.md` has all three.
+
+**Nine for nine, and the shape of the result is the finding.** All six webapp→Qt gaps
+found across both passes are in ONE panel — the Thaumaturgy page, which is where the port
+compressed hardest (a four-column NiceGUI page became a tree, three lists and one shared
+detail pane). ⚠ **When a port collapses a surface's SHAPE, that surface is where its
+missing controls will be** — not spread evenly across the tabs, which is what the gap
+lists kept assuming.
+
+Everything else chased back to parity: submodules (Qt has Remove pre-lock, deliberately no
+post-lock refund), the foreign-splat picker, the Form Library, Paths, augments, the
+Panoply, health-level editing, the p.259 downtime calculator (in `main_window`, not
+`editor`), hearthstones, passions, fetters, magical materials, dice pools, adversary
+reset, and combo/array member removal. One cosmetic difference is left and is **not** a
+gap by the human's call: the webapp's catalogue dialog takes per-row `icons`, and
+`qt/catalogue.py` has no such parameter.

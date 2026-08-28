@@ -161,11 +161,15 @@ Each is written up in full where it happened; these are the reusable one-liners.
   it had supported the repeatable case all along, cap check and page citation included.
   Both shells go through the dispatcher, so nothing could reach it. **When you write a
   broad refusal, check what the layer below already handles more precisely.**
-- **A cross-shell parity audit can only see a name going unreferenced.** Scoring every
-  `view.py`/`engine/` name by which shell uses it found three real holes; it is blind to
-  a control that exists in both but is disabled in one, to a panel with fewer lines, and
-  to a different default. Both of those turned up in the SAME code, by fixing the found
-  ones and looking at the render.
+- **A cross-shell parity audit needs TWO axes, and the answer's SHAPE is the finding.**
+  Scoring every `view.py`/`engine/` name by which shell uses it found three holes;
+  comparing handler functions per tab pair found three more, and all six were in ONE
+  panel — the one where the port collapsed a four-column page into a tree plus a shared
+  detail pane. **When a port compresses a surface's shape, that surface is where its
+  missing controls are.** Both axes are blind to a control that exists in both shells
+  but is disabled in one, to a panel with fewer lines, and to a different default —
+  three more defects turned up in the same code, found only by fixing the others and
+  looking at the render.
 - **A test's SUBJECT can quietly become the wrong subject.** The Qt "Add another" tests
   used a Charm that later turned out to be a variant menu, not a generic repeatable.
   They were green throughout and proved nothing about the case they named. When a
@@ -398,8 +402,8 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**3,054 passing, 1 skipped** (2026-08-28, main PC, the `qt-port` branch after the dark
-document surfaces and the ritual library — includes the Qt-port tests in `tests/test_qt_*.py`,
+**3,061 passing, 1 skipped** (2026-08-28, main PC, the `qt-port` branch after the dark
+document surfaces, the ritual library and the picker parity fixes — includes the Qt-port tests in `tests/test_qt_*.py`,
 `tests/test_charm_actions.py`, `tests/test_gear_actions.py` and
 `tests/test_variant_purchases.py`).
 

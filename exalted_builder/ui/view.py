@@ -1344,6 +1344,12 @@ class ThaumSpecialtyRow:
     available: bool
     reason: str
     price: int
+    # What it would cost bought NARROWED — Summoning's option alone (p.127), where
+    # further limiting an aspect halves the price. ⚠ A separate field rather than
+    # re-pricing `price`, because narrowing is chosen at the moment of purchase and
+    # the shell has to be able to show BOTH numbers; and computed here rather than in
+    # a shell, because a price is `engine.costs`' answer, never a widget's.
+    narrowed_price: int = 0
 
 
 @dataclass
@@ -1492,7 +1498,8 @@ def build_elemental_power_picker(ruleset: RuleSet, character: Character) -> Elem
 
 
 def _thaum_specialty_rows(ruleset: RuleSet, character: Character, art,
-                          state, price: int) -> list[ThaumSpecialtyRow]:
+                          state, price: int,
+                          narrowed_price: int = 0) -> list[ThaumSpecialtyRow]:
     """Every printed aspect of `art`, then any player-invented specialty the
     character already holds in it. Held ones are matched case-insensitively against
     the printed list so a specialty typed as "ghosts" does not show up twice."""
@@ -1506,7 +1513,8 @@ def _thaum_specialty_rows(ruleset: RuleSet, character: Character, art,
             art_id=art.id, name=aspect.name, description=aspect.description,
             min_occult=aspect.min_occult, printed=True, owned=owned is not None,
             narrowed=bool(owned and owned.narrowed),
-            available=not reason, reason=reason, price=price))
+            available=not reason, reason=reason, price=price,
+            narrowed_price=narrowed_price))
     printed = {a.name.casefold() for a in art.aspects}
     for spec in state.art_specialties:
         if spec.art_id != art.id or spec.name.casefold() in printed:
@@ -1514,7 +1522,8 @@ def _thaum_specialty_rows(ruleset: RuleSet, character: Character, art,
         rows.append(ThaumSpecialtyRow(
             art_id=art.id, name=spec.name, description="", min_occult=0,
             printed=False, owned=True, narrowed=spec.narrowed,
-            available=True, reason="", price=price))
+            available=True, reason="", price=price,
+            narrowed_price=narrowed_price))
     return rows
 
 
@@ -1550,6 +1559,9 @@ def build_thaum_picker(ruleset: RuleSet, character: Character) -> ThaumPickerVie
                  else costs.thaum_art_bp(ruleset, character))
     spec_price = (costs.thaum_specialty_xp(ruleset, character) if in_play
                   else costs.thaum_specialty_bp(ruleset, character))
+    spec_narrowed = (costs.thaum_specialty_xp(ruleset, character, narrowed=True)
+                     if in_play
+                     else costs.thaum_specialty_bp(ruleset, character, narrowed=True))
     orient_price = (costs.thaum_orientation_xp(ruleset, character) if in_play
                     else costs.thaum_orientation_bp(ruleset, character))
 
@@ -1561,7 +1573,8 @@ def build_thaum_picker(ruleset: RuleSet, character: Character) -> ThaumPickerVie
             cost_text=art.cost, description=art.description,
             owned=art.id in state.arts, available=not reason, reason=reason,
             price=art_price, allows_narrowing=art.aspect_narrowing,
-            specialties=_thaum_specialty_rows(ruleset, character, art, state, spec_price),
+            specialties=_thaum_specialty_rows(ruleset, character, art, state,
+                                              spec_price, spec_narrowed),
         ))
 
     sciences: list[ThaumScienceRow] = []

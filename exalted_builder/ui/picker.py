@@ -1360,9 +1360,17 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                                 .props(f"dense color={pal.button}").tooltip(
                                 "Further limit this aspect (e.g. 'War Gods') for half "
                                 "cost, noted on the sheet (p.127).")
+                        # ⚠ The price on the button follows the narrow checkbox.
+                        # Ticking it halved what was CHARGED (p.127) and left the
+                        # button saying the full price — the two disagreed until
+                        # `narrowed_price` existed (2026-08-28).
+                        will_narrow = bool(state["thaum_narrow"].get(
+                            f"{spec.art_id}:{spec.name}")) and not spec.owned
                         _thaum_buy_button(
                             owned=spec.owned, available=spec.available,
-                            reason=spec.reason, price=spec.price, currency=v.currency,
+                            reason=spec.reason,
+                            price=spec.narrowed_price if will_narrow else spec.price,
+                            currency=v.currency,
                             on_add=lambda s=spec: toggle_thaum_specialty(s),
                             on_drop=lambda s=spec: toggle_thaum_specialty(s))
                 # Player-invented specialties are explicitly invited (p.126).

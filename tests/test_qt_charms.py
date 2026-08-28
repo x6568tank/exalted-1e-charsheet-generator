@@ -305,6 +305,152 @@ def test_a_custom_ritual_can_be_written_for_this_character(qtbot, ruleset):
     assert written.owned and written.custom
 
 
+def _summoning(ruleset, char):
+    """The one Art that allows narrowing (p.127), and its first unowned aspect."""
+    art = next(a for a in build_thaum_picker(ruleset, char).arts if a.allows_narrowing)
+    return art, next(s for s in art.specialties if not s.owned and s.printed)
+
+
+def test_an_aspect_can_be_bought_narrowed(qtbot, ruleset):
+    """p.127, Summoning alone: further limiting an aspect halves the cost and is
+    recorded on the sheet. `narrowed` had no Qt writer at all — every purchase here
+    was full price, whatever the player meant."""
+    char = _learnable_char()
+    char.abilities[AbilityName.OCCULT] = 5
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    art, spec = _summoning(ruleset, char)
+    page._selected_thaum = ("art_specialty", art, spec)
+    page._update_action()
+    assert page._narrow_check.isVisibleTo(page)
+    assert f"{spec.price} " in page.action_btn.text()
+    page._narrow_check.setChecked(True)
+    assert f"{spec.narrowed_price} " in page.action_btn.text()   # the price follows
+    page._toggle_thaum("art_specialty", art, spec)
+    bought = next(s for s in char.thaumaturgy.art_specialties if s.name == spec.name)
+    assert bought.narrowed
+
+
+def test_narrowing_is_offered_only_where_the_book_offers_it(qtbot, ruleset):
+    """The negative control, three ways: not on an Art that does not allow it, not on
+    an aspect already owned (the flag cannot change after the purchase), and not on a
+    specialty you wrote yourself — one you invented is as narrow as you made it."""
+    char = _learnable_char()
+    char.abilities[AbilityName.OCCULT] = 5
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    picker = build_thaum_picker(ruleset, char)
+    other = next(a for a in picker.arts if not a.allows_narrowing and a.specialties)
+    page._selected_thaum = ("art_specialty", other, other.specialties[0])
+    page._update_action()
+    assert not page._narrow_offered
+
+    art, spec = _summoning(ruleset, char)
+    page._selected_thaum = ("art_specialty", art, spec)
+    page._update_action()
+    page._toggle_thaum("art_specialty", art, spec)          # now owned
+    owned = next(s for s in _summoning_art(ruleset, char).specialties
+                 if s.name == spec.name)
+    page._selected_thaum = ("art_specialty", art, owned)
+    page._update_action()
+    assert not page._narrow_offered
+
+
+def _summoning_art(ruleset, char):
+    return next(a for a in build_thaum_picker(ruleset, char).arts
+                if a.allows_narrowing)
+
+
+def test_a_narrowed_aspect_says_so_in_the_panel(qtbot, ruleset):
+    """It costs half and reads as an ordinary aspect otherwise, so the sheet-recorded
+    fact has to appear somewhere the player looks."""
+    char = _learnable_char()
+    char.abilities[AbilityName.OCCULT] = 5
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    art, spec = _summoning(ruleset, char)
+    page._selected_thaum = ("art_specialty", art, spec)
+    page._update_action()
+    page._narrow_check.setChecked(True)
+    page._toggle_thaum("art_specialty", art, spec)
+    owned = next(s for s in _summoning_art(ruleset, char).specialties
+                 if s.name == spec.name)
+    page._selected_thaum = ("art_specialty", art, owned)
+    page._show_thaum_detail()
+    assert "Narrowed" in page.detail.toPlainText()
+
+
+def test_a_specialty_of_your_own_can_be_bought(qtbot, ruleset):
+    """p.126 invites player-invented specialties in as many words. The Qt picker
+    offered only the printed aspects."""
+    char = _learnable_char()
+    char.abilities[AbilityName.OCCULT] = 5
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    art = build_thaum_picker(ruleset, char).arts[0]
+    page._selected_thaum = ("art", art)
+    name = page.findChild(QLineEdit, "thaum.custom_specialty.name")
+    add = page.findChild(QPushButton, "thaum.custom_specialty.add")
+    assert name is not None and add is not None
+    name.setText("Local Fair Folk")
+    add.click()
+    bought = char.thaumaturgy.art_specialties
+    assert [(s.art_id, s.name, s.narrowed) for s in bought] == [
+        (art.id, "Local Fair Folk", False)]
+    assert name.text() == ""
+
+
+def test_writing_a_specialty_with_no_art_selected_is_refused(qtbot, ruleset):
+    """⚠ The row acts on the SELECTION and has no Art picker of its own, so "nothing
+    selected" must say so rather than land the specialty on an arbitrary Art."""
+    said = []
+    char = _learnable_char()
+    page = CharmsPage(ruleset, {"char": char},
+                      notify=lambda text, kind="info": said.append((kind, text)))
+    qtbot.addWidget(page)
+    page._selected_thaum = None
+    page._add_custom_specialty("Homeless")
+    assert char.thaumaturgy is None or not char.thaumaturgy.art_specialties
+    assert said and said[-1][0] == "warning"
+
+
+def test_a_science_can_be_stepped_back_down_in_chargen(qtbot, ruleset):
+    """The usability escape hatch Crafts and Colleges have. `lower_thaum_science` had
+    no Qt caller, so a mis-click was unfixable without editing the save."""
+    char = _learnable_char()
+    char.abilities[AbilityName.OCCULT] = 5
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    science = next(s for s in build_thaum_picker(ruleset, char).sciences if s.can_raise)
+    page._selected_thaum = ("science", science)
+    page._toggle_thaum("science", science)
+    assert page._selected_thaum[1].rating == 1
+    assert page._lower_btn.isVisibleTo(page)
+    page._lower_science()
+    assert page._selected_thaum[1].rating == 0
+    # ⚠ A 0-dot Science is not held at all — the engine drops the row entirely.
+    assert not [s for s in char.thaumaturgy.sciences if s.science_id == science.id]
+
+
+def test_a_locked_character_gets_no_lower_button(qtbot, ruleset):
+    """The negative control. After the lock a rating comes back through the XP
+    ledger's undo, not through a free setter that would leave the ledger lying."""
+    char = _learnable_char()
+    char.abilities[AbilityName.OCCULT] = 5
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    science = next(s for s in build_thaum_picker(ruleset, char).sciences if s.can_raise)
+    page._selected_thaum = ("science", science)
+    page._toggle_thaum("science", science)
+    lifecycle.lock_chargen(char, ruleset)
+    advancement.add_xp(char, 50)
+    page.reload()
+    page._selected_thaum = ("science", next(
+        s for s in build_thaum_picker(ruleset, char).sciences if s.id == science.id))
+    page._update_action()
+    assert not page._lower_btn.isVisibleTo(page)
+
+
 def test_the_rituals_tab_carries_the_authoring_row(qtbot, ruleset):
     """⚠ Drives the real WIDGETS, by name. `_add_custom_ritual` being right proves
     nothing about whether anything on screen calls it — the control is the half that

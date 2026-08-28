@@ -2,7 +2,7 @@
 
 # 👉 YOU ARE HERE
 
-Last FULL green suite: **3,054 passed, 1 skipped** (main PC, `qt-port`, 8m18s), run after
+Last FULL green suite: **3,061 passed, 1 skipped** (main PC, `qt-port`, 7m13s), run after
 the last code change. The tree is clean and nothing is half-finished.
 
 Three things since the Party window: the app is **packaged as a native binary**
@@ -40,13 +40,26 @@ mechanically: every public `ui/view.py` name and every public `engine/` function
 by which shell references it. **Four real holes, three of them ours.** Method, findings
 and the method's blind spot: `docs/plans/qt-port.md`'s last section.
 
-**Three Qt Thaumaturgy holes, all fixed** (`docs/status/thaumaturgy.md`): owned regional
+⚠ **It took TWO passes on two different axes, and the second found as many as the
+first.** Names-by-shell found three; handler-functions-per-tab-pair found three more.
+**All six are in ONE panel** — the Thaumaturgy picker, where the port compressed a
+four-column page into a tree, three lists and one detail pane. That is the transferable
+finding: when a port collapses a surface's SHAPE, that surface is where its missing
+controls are.
+
+**Six Qt Thaumaturgy holes, all fixed** (`docs/status/thaumaturgy.md`): owned regional
 orientations were never shown; a SECOND regional version was unbuyable, because the combo
 vanished once a row was owned and `add_thaum_orientation` had no Qt caller; and no custom
-ritual could be written at all. Fixing them turned up two more that no list had —
+ritual could be written at all; an aspect could not be bought NARROWED (p.127, Summoning
+alone, half price and recorded on the sheet); a specialty of your own could not be written
+(p.126 invites them in as many words); and a Science could not be stepped back DOWN, so a
+chargen mis-click was unfixable without editing the save. Fixing them turned up three more
+that no list had —
 `_refresh_thaum_selection` left the detail panel stale (always wrong, invisible until a
-line in it moved on a purchase), and the Qt combo defaulted to **North** where the webapp
-has always defaulted to **Realm**.
+line in it moved on a purchase); the Qt combo defaulted to **North** where the webapp has
+always defaulted to **Realm**; and — in the WEBAPP — ticking "narrow" halved what was
+charged while the button went on printing the full price. `ThaumSpecialtyRow.narrowed_price`
+is the second number, computed in `view.py` from `engine.costs` and read by both shells.
 
 **Rituals became a custom-library kind, on both shells** — the human's call when the
 webapp-only hole came up: `custom/rituals.json`, authored on the Custom tab's new Rituals
