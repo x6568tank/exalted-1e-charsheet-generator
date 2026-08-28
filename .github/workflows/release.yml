@@ -20,7 +20,7 @@ jobs:
   # ⚠ Until 2026-08-28 this matrix had only the two ExaltedBuilder rows, so a tag
   # published a release that LOOKED complete — two green assets — with no native app
   # on it at all. The Qt spec had existed since the packaging commit and nothing in CI
-  # referenced it; `linux.sh` / `windows.bat` were its only callers.
+  # referenced it; the by-hand build scripts were its only callers.
   build:
     name: ${{ matrix.asset }}
     strategy:

@@ -1,5 +1,5 @@
 @echo off
-REM Build the NiceGUI webapp as a standalone executable -> dist\ExaltedBuilder.exe
+REM Build the native PySide6 app as a standalone executable -> dist\ExaltedBuilderQt.exe
 REM
 REM TWO PRODUCTS build from this tree, one script each:
 REM   linux.sh        linux-qt.sh         (Linux/macOS)
@@ -13,6 +13,6 @@ setlocal
 cd /d "%~dp0"
 
 py -m venv .venv || exit /b 1
-.venv\Scripts\python -m pip install -e ".[ui,desktop]" || exit /b 1
-.venv\Scripts\python -m PyInstaller pack\exalted-builder.spec || exit /b 1
-echo Build complete: dist\ExaltedBuilder.exe
+.venv\Scripts\python -m pip install -e ".[qt,desktop]" || exit /b 1
+.venv\Scripts\python -m PyInstaller pack\exalted-builder-qt.spec || exit /b 1
+echo Build complete: dist\ExaltedBuilderQt.exe

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the NiceGUI webapp as a standalone executable -> dist/ExaltedBuilder
+# Build the native PySide6 app as a standalone executable -> dist/ExaltedBuilderQt
 #
 # TWO PRODUCTS build from this tree, one script each:
 #   ./linux.sh      ./linux-qt.sh       (Linux/macOS)
@@ -9,6 +9,6 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 python3 -m venv .venv
-.venv/bin/python -m pip install -e ".[ui,desktop]"
-.venv/bin/python -m PyInstaller pack/exalted-builder.spec
-echo "Build complete: dist/ExaltedBuilder"
+.venv/bin/python -m pip install -e ".[qt,desktop]"
+.venv/bin/python -m PyInstaller pack/exalted-builder-qt.spec
+echo "Build complete: dist/ExaltedBuilderQt"

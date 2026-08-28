@@ -48,7 +48,7 @@ specs.
 
 ⚠ **Until 2026-08-28 the matrix had only the two webapp rows**, months after the native
 spec landed. A tag would have published a release that looked complete — two green
-assets, no failures — with no native app on it. `linux.sh` and `windows.bat` were the
+assets, no failures — with no native app on it. The build scripts were the
 Qt spec's only callers. **A build that is not in the matrix does not exist to a tag.**
 
 ⚠ A headless runner builds a GUI app fine: PyInstaller only *collects* the Qt platform
@@ -66,9 +66,9 @@ in one command:
 
 ```
 ./linux.sh           # Linux/macOS — the webapp build
-./linux.sh qt        # Linux/macOS — the native Qt build
+./linux-qt.sh        # Linux/macOS — the native Qt build
 windows.bat          # Windows — the webapp build
-windows.bat qt       # Windows — the native Qt build
+windows-qt.bat       # Windows — the native Qt build
 ```
 
 They are line-for-line equivalents; keep them in step when either changes. The
@@ -96,7 +96,7 @@ browser, `ExaltedBuilderQt` opens a native window. Distribute that single file;
 recipients need nothing else installed.
 
 ## Windows quick recipe
-On a Windows machine with Python installed, run `windows.bat` from the repo root —
+On a Windows machine with Python installed, run `windows.bat` (or `windows-qt.bat`) from the repo root —
 or, by hand, from a terminal there:
 ```
 py -m venv .venv
