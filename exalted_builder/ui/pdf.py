@@ -450,6 +450,17 @@ def _header(view: SheetView, width: float, st, accent) -> Table:
         left.append(Paragraph(_esc(line), st["subtitle"]))
     if view.player:
         left.append(Paragraph(f"Player: {_esc(view.player)}", st["meta"]))
+    # Free-fill biography (the Qt Identity tab's block): appearance fields on one
+    # line, then Description/Backstory/Notes as wrapped paragraphs.
+    if view.biography:
+        short = [f"{label}: {_esc(value)}" for label, value in view.biography
+                 if label not in ("Description", "Backstory", "Notes")]
+        if short:
+            left.append(Paragraph(" · ".join(short), st["meta"]))
+        for label in ("Description", "Backstory", "Notes"):
+            value = next((v for l, v in view.biography if l == label), "")
+            if value:
+                left.append(Paragraph(f"<b>{label}:</b> {_esc(value)}", st["meta"]))
 
     right = []
     for label, value in (("Concept", view.concept), ("Nature", view.nature)):

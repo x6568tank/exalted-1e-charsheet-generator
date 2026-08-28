@@ -588,6 +588,7 @@ def _load_custom_layer(
     charms: dict[str, Charm],
     spells: dict[str, Spell],
     gear_catalogs: dict | None = None,
+    rituals: dict[str, ThaumaturgicRitual] | None = None,
 ) -> list[str]:
     """Merge the user's custom library over the book data, in place.
 
@@ -604,6 +605,11 @@ def _load_custom_layer(
         another that required it;
       * a custom spell whose circle no Charm grants is dropped, the same check the
         book data gets — such a spell could never legally be learned.
+
+    Rituals (2026-08-28) need only the first of those: the sole purchase gate is
+    Occult ≥ level (p.148), which `validate.thaum_ritual_locked_reason` applies to
+    book and library rows alike, and the model already bounds the level at 1-5. There
+    is no link to dangle, so there is nothing to drop.
     """
     problems: list[str] = []
 
@@ -655,6 +661,20 @@ def _load_custom_layer(
                 f"that circle, so it could never be learned; dropped")
         else:
             spells[sp.id] = sp.model_copy(update={"custom": True})
+
+    if rituals is not None:
+        for raw in custom_content.library_rituals(custom_dir):
+            try:
+                entry = ThaumaturgicRitual(**raw)
+            except ValidationError as ex:
+                problems.append(f"custom ritual {raw.get('id', '?')!r}: {ex}")
+                continue
+            if entry.id in rituals:
+                problems.append(
+                    f"custom ritual {entry.id!r} shadows a ritual from the rulebook; "
+                    f"ignored")
+            else:
+                rituals[entry.id] = entry.model_copy(update={"custom": True})
 
     if gear_catalogs:
         _merge_custom_gear(custom_dir, gear_catalogs, problems)
@@ -780,7 +800,8 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
         custom_problems = _load_custom_layer(
             Path(custom_dir), charms, spells,
             {"weapons": (weapons, WeaponType), "armor": (armor, ArmorType),
-             "gear": (gear, GearType), "artifacts": (artifacts, ArtifactType)})
+             "gear": (gear, GearType), "artifacts": (artifacts, ArtifactType)},
+            thaum_rituals)
 
     return RuleSet(
         exalts=exalts,
@@ -833,10 +854,31 @@ def reload_custom_layer(ruleset: RuleSet, custom_dir: str | Path | None = None) 
         del ruleset.charms[cid]
     for sid in [sid for sid, sp in ruleset.spells.items() if sp.custom]:
         del ruleset.spells[sid]
+    for rid in [rid for rid, r in ruleset.thaum_rituals.items() if r.custom]:
+        del ruleset.thaum_rituals[rid]
+
+    # ⚠ The GEAR half was missing here until 2026-08-27, while `load_ruleset` merged it
+    # from the start — so a library weapon appeared in Buy only after an app RESTART,
+    # and anything reading the catalogues after a reload saw the row as unloaded. The
+    # gap was invisible because `library_gear` had exactly one caller (the loader);
+    # nothing surfaced the list until the Custom tab grew one.
+    #
+    # ⚠ Custom gear is identified by its TAG, not a `custom` field: `WeaponType` and
+    # friends are frozen and shared with the book data (`_merge_custom_gear`).
+    gear_catalogs = {
+        "weapons": (ruleset.weapon_catalog, WeaponType),
+        "armor": (ruleset.armor_catalog, ArmorType),
+        "gear": (ruleset.gear_catalog, GearType),
+        "artifacts": (ruleset.artifact_catalog, ArtifactType),
+    }
+    for catalog, _model in gear_catalogs.values():
+        for row_id in [i for i, row in catalog.items() if "custom" in row.tags]:
+            del catalog[row_id]
 
     target = Path(custom_dir) if custom_dir is not None else custom_content.custom_data_dir()
-    problems = _load_custom_layer(target, ruleset.charms, ruleset.spells) \
-        if target.is_dir() else []
+    problems = _load_custom_layer(target, ruleset.charms, ruleset.spells,
+                                  gear_catalogs,
+                                  ruleset.thaum_rituals) if target.is_dir() else []
     ruleset.custom_problems = problems
     return problems
 

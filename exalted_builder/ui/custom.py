@@ -69,7 +69,7 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
     # content; recomputed on each save because the custom half of ruleset.charms
     # changes underneath us.
     def _reserved() -> set[str]:
-        pool = ruleset.charms if state["kind"] == "charm" else ruleset.spells
+        pool = getattr(ruleset, viewmod.CUSTOM_KINDS[state["kind"]].pool)
         return {i for i, row in pool.items() if not row.custom}
 
     def _form() -> dict:
@@ -81,12 +81,18 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
         json_pane.refresh()
 
     def _new() -> None:
-        _set_form(viewmod.custom_charm_form() if state["kind"] == "charm"
-                  else viewmod.custom_spell_form())
+        _set_form(viewmod.CUSTOM_KINDS[state["kind"]].form())
 
     def _switch_kind(kind: str) -> None:
+        """⚠ The LIBRARY has to be refreshed as well as the form. It filters on
+        `state["kind"]` at render time, so without this the left column kept the rows
+        of the kind you switched AWAY from — the Spells tab listing Charms under a
+        heading that said so. Found 2026-08-28 by the first test to switch tabs and
+        then look at the list; the form alone had always repainted, which is what hid
+        it."""
         state["kind"] = kind
         _new()
+        library.refresh()
 
     def _reload() -> None:
         """Re-merge the library into the live rule set, then repaint everything that
@@ -107,15 +113,10 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
         # reference it, so an edit must never change it.
         if not state["editing"]:
             form["id"] = custom_content.make_id(form.get("name", ""))
+        kind = viewmod.CUSTOM_KINDS[state["kind"]]
         try:
-            if state["kind"] == "charm":
-                saved = custom_content.save_charm(
-                    viewmod.custom_charm_payload(form),
-                    custom_dir=root, reserved_ids=_reserved())
-            else:
-                saved = custom_content.save_spell(
-                    viewmod.custom_spell_payload(form),
-                    custom_dir=root, reserved_ids=_reserved())
+            saved = kind.save(kind.payload(form), custom_dir=root,
+                              reserved_ids=_reserved())
         except CustomContentError as exc:
             ui.notify(str(exc), type="negative")
             return
@@ -123,7 +124,7 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
         # Saving does not clear the form: the row is now on disk and in the rule set,
         # and staying on it is what makes "save, look at the tree, adjust" work.
         _set_form(_form(), editing=saved.id)
-        if saved.id not in (ruleset.charms if state["kind"] == "charm" else ruleset.spells):
+        if saved.id not in getattr(ruleset, kind.pool):
             ui.notify(f"Saved {saved.name}, but it did not load — see the list",
                       type="warning")
         else:
@@ -131,11 +132,9 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
 
     def _edit(row: viewmod.CustomRow) -> None:
         state["kind"] = row.kind
-        rows = (custom_content.library_charms(root) if row.kind == "charm"
-                else custom_content.library_spells(root))
-        raw = next((r for r in rows if r.get("id") == row.id), {})
-        _set_form(viewmod.custom_charm_form(raw) if row.kind == "charm"
-                  else viewmod.custom_spell_form(raw), editing=row.id)
+        kind = viewmod.CUSTOM_KINDS[row.kind]
+        raw = next((r for r in kind.library(root) if r.get("id") == row.id), {})
+        _set_form(kind.form(raw), editing=row.id)
 
     def _delete(row: viewmod.CustomRow) -> None:
         with ui.dialog() as dialog, ui.card().classes(f"w-[30rem] p-4 gap-2 {pal.card_solid}"):
@@ -146,9 +145,8 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
 
                 def confirm() -> None:
                     dialog.close()
-                    gone = (custom_content.delete_charm(row.id, custom_dir=root)
-                            if row.kind == "charm"
-                            else custom_content.delete_spell(row.id, custom_dir=root))
+                    gone = viewmod.CUSTOM_KINDS[row.kind].delete(
+                        row.id, custom_dir=root)
                     _reload()
                     if state["editing"] == row.id:
                         _new()
@@ -165,12 +163,10 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
         of a single Charm is an edit rather than a blind write; several are a bulk
         import and are reported as a count."""
         saved, failed = 0, []
+        saver = viewmod.CUSTOM_KINDS[state["kind"]].save
         for row in rows:
             try:
-                if state["kind"] == "charm":
-                    custom_content.save_charm(row, custom_dir=root, reserved_ids=_reserved())
-                else:
-                    custom_content.save_spell(row, custom_dir=root, reserved_ids=_reserved())
+                saver(row, custom_dir=root, reserved_ids=_reserved())
                 saved += 1
             except CustomContentError as exc:
                 failed.append(f"{row.get('name') or row.get('id') or '?'}: {exc}")
@@ -184,8 +180,7 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
 
     def _edit_by_id(row: dict) -> None:
         rid = custom_content.normalize_id(str(row.get("id", "")))
-        _set_form(viewmod.custom_charm_form(row) if state["kind"] == "charm"
-                  else viewmod.custom_spell_form(row), editing=rid)
+        _set_form(viewmod.CUSTOM_KINDS[state["kind"]].form(row), editing=rid)
 
     def _paste(text: str) -> None:
         try:
@@ -231,6 +226,7 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
     with ui.tabs(value="charm").classes("w-full") as kind_tabs:
         ui.tab("charm", label="Charms", icon="auto_awesome")
         ui.tab("spell", label="Spells", icon="menu_book")
+        ui.tab("ritual", label="Rituals", icon="local_fire_department")
     kind_tabs.on_value_change(lambda e: _switch_kind(e.value))
 
     with ui.row().classes("w-full gap-2 items-start no-wrap"):
@@ -240,7 +236,8 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
         def library() -> None:
             rows = [r for r in viewmod.build_custom_library(
                 ruleset, custom_content.library_charms(root),
-                custom_content.library_spells(root)) if r.kind == state["kind"]]
+                custom_content.library_spells(root),
+                custom_content.library_rituals(root)) if r.kind == state["kind"]]
             with ui.card().classes(f"w-96 p-3 gap-1 {pal.card}"):
                 ui.label(f"YOUR {state['kind'].upper()}S ({len(rows)})").classes(
                     "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
@@ -287,8 +284,10 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
 
                 if state["kind"] == "charm":
                     _charm_fields(form, bind, ruleset, pal, editor.refresh)
-                else:
+                elif state["kind"] == "spell":
                     _spell_fields(form, bind)
+                else:
+                    _ritual_fields(form, bind)
 
                 ui.textarea("Description", value=form["description"],
                             on_change=bind("description")).classes("w-full").props("rows=4")
@@ -550,6 +549,24 @@ def _spell_fields(form: dict, bind) -> None:
                   on_change=bind("willpower")).classes("w-20")
     ui.input("Cost override (variable costs)", value=form["cost_raw"],
              on_change=bind("cost_raw")).classes("w-full").props("dense")
+
+
+def _ritual_fields(form: dict, bind) -> None:
+    """⚠ Cost, Roll and Resources are free TEXT. A ritual prints no stat block — the
+    heading is its name with a dot rating and the rest is prose — so a cost reads
+    "1 mote or one Willpower" (p.148-150)."""
+    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+        ui.number("Level", value=form["level"], min=1, max=5, format="%d",
+                  on_change=bind("level")).classes("w-24").props("dense").tooltip(
+            "A thaumaturge needs Occult equal to the ritual's level (p.148); the "
+            "level is also what it costs to buy.")
+        ui.input("Cost", value=form["cost"], on_change=bind("cost")).classes(
+            "flex-1").props("dense")
+    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+        ui.input("Roll", value=form["roll"], on_change=bind("roll")).classes(
+            "flex-1").props("dense")
+        ui.input("Resources", value=form["resources"],
+                 on_change=bind("resources")).classes("flex-1").props("dense")
 
 
 def load() -> RuleSet:

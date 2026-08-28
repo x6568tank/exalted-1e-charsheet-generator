@@ -280,6 +280,7 @@
       "page": 72
     },
     "repeatable_cap_ability": "resistance",
+    "variants_unique": true,
     "variants": [
       {
         "key": "extreme_heat",

@@ -9,7 +9,9 @@ import exalted_builder
 from exalted_builder import persistence, rules_db
 from exalted_builder.models.character import Character, Combo, HealthLevel, XpEntry
 from exalted_builder.models.rules import (
-    AbilityName, CasteDefinition, Charm, CharmType, RuleSet, VirtueName)
+    AbilityName, AttributeName, CasteDefinition, Charm, CharmType, RuleSet,
+    VirtueName)
+from exalted_builder.engine import charm_actions, validate
 from exalted_builder.ui import view as viewmod
 
 DATA_DIR = Path(exalted_builder.__file__).parent / "data"
@@ -308,3 +310,147 @@ def test_augmentation_view_empty_for_non_alchemical():
     solar = persistence.load_character(EXAMPLE)
     assert viewmod.augmentation_category(rs, solar) is None
     assert viewmod.build_augmentation_view(rs, solar) == []
+
+
+# --- the M&F presenters both shells share ----------------------------------- #
+
+def test_default_merit_tier_skips_a_tier_this_splat_may_not_choose():
+    """The Prodigy trap: its menu leads with `favored`, which a Solar is barred from.
+    Opening a fresh row on the first AUTHORED tier hands the player a row that flags
+    itself immediately, so the default is the first AVAILABLE one."""
+    rs = _rs()
+    prodigy = rs.merits_flaws["mf.prodigy"]
+    assert next(iter(prodigy.cost_options)) == "favored"      # the trap is still live
+    assert viewmod.default_merit_tier(prodigy, "Solar", "dawn") == "aptitude"
+
+
+def test_default_merit_tier_is_blank_without_a_tier_menu():
+    rs = _rs()
+    flat = next(m for m in rs.merits_flaws.values() if not m.cost_options)
+    assert viewmod.default_merit_tier(flat, "Solar", "dawn") == ""
+    assert viewmod.default_merit_tier(None, "Solar", "dawn") == ""
+
+
+def test_merit_option_label_signs_the_price_by_side():
+    """A Flaw PAYS, so its label reads +N; a Merit charges, so −N. A variable-cost
+    entry shows the range rather than one number."""
+    rs = _rs()
+    merit = next(m for m in rs.merits_flaws.values()
+                 if m.kind == "merit" and not m.cost_options)
+    flaw = next(m for m in rs.merits_flaws.values()
+                if m.kind == "flaw" and not m.cost_options)
+    assert viewmod.merit_option_label(merit).startswith(f"{merit.name}  (−{merit.cost}")
+    assert viewmod.merit_option_label(flaw).startswith(f"{flaw.name}  (+{flaw.cost}")
+    ranged = rs.merits_flaws["mf.prodigy"]
+    lo, hi = min(ranged.cost_options.values()), max(ranged.cost_options.values())
+    assert f"({'−' if ranged.kind == 'merit' else '+'}{lo}-{hi}" in \
+        viewmod.merit_option_label(ranged)
+
+
+def test_merit_tier_label_renders_both_key_shapes():
+    assert viewmod.merit_tier_label("4") == "4"
+    assert viewmod.merit_tier_label("favored_aptitude") == "Favored + Aptitude"
+
+
+# ---- Variant-menu packages (Ox-Body, Deadly Beastman Gifts) ---------------- #
+
+def _ox_char():
+    """A Solar with Endurance 3 — the Ox-Body cap is once per dot, so a 0 there means
+    a menu that can never be bought from."""
+    char = Character(id="c.ox")
+    char.abilities[AbilityName.ENDURANCE] = 3
+    return char
+
+
+def _gift_char():
+    """A Lunar with Essence 3 — Deadly Beastman Transformation caps on Essence."""
+    char = Character(id="c.lunar", exalt_type="Lunar", caste="full-moon")
+    char.essence_rating = 3
+    return char
+
+
+def test_package_menu_is_none_for_an_ordinary_charm():
+    rs = _rs()
+    char = _ox_char()
+    ordinary = next(cid for cid in rs.charms if cid.startswith("solar.melee."))
+    assert viewmod.package_menu_kind(rs, char, ordinary) == ""
+    assert viewmod.build_package_menu(rs, char, ordinary) is None
+
+
+def test_ox_body_menu_names_its_variants_and_its_own_cap_trait():
+    rs = _rs()
+    char = _ox_char()
+    menu = viewmod.build_package_menu(rs, char, validate.ox_body_charm_id(rs, char))
+    assert menu.kind == "ox_body"
+    assert menu.needed == 1
+    assert (menu.bought, menu.cap) == (0, 3)
+    assert (menu.cap_trait, menu.cap_unit) == ("Endurance", "dot")
+    assert len(menu.picks) > 1 and all(p.reason == "" for p in menu.picks)
+
+
+def test_lunar_ox_body_caps_on_stamina_not_endurance():
+    # The trait is per-splat DATA (The Lunars p.132) — a menu that hardcoded
+    # "Endurance" would read wrong here and cap at the wrong number.
+    rs = _rs()
+    char = Character(id="c.lunar", exalt_type="Lunar", caste="full-moon")
+    char.attributes[AttributeName.STAMINA] = 2
+    menu = viewmod.build_package_menu(rs, char, validate.ox_body_charm_id(rs, char))
+    assert (menu.cap_trait, menu.cap) == ("Stamina", 2)
+
+
+def test_a_bought_ox_body_variant_stays_pickable():
+    # ⚠ CharmVariant.max_purchases is 1 for every Ox-Body variant and means NOTHING
+    # here: a repeat purchase picks a variant again, same or different. Applying the
+    # Gifts' taken/max rule to Ox-Body would grey out the whole menu after one buy.
+    rs = _rs()
+    char = _ox_char()
+    oid = validate.ox_body_charm_id(rs, char)
+    charm_actions.add_ox_body(rs, char, viewmod.build_package_menu(rs, char, oid).picks[0].key)
+    menu = viewmod.build_package_menu(rs, char, oid)
+    assert menu.bought == 1
+    assert all(p.reason == "" for p in menu.picks)
+    assert menu.held[0].label == menu.picks[0].label
+
+
+def test_gift_menu_reports_the_prerequisite_chain():
+    rs = _rs()
+    char = _gift_char()
+    gid = validate.gift_charm_id(rs, char)
+    menu = viewmod.build_package_menu(rs, char, gid)
+    assert menu.kind == "gift" and menu.needed == 2      # 2 on the first purchase, p.124
+    spider = next(p for p in menu.picks if p.key == "spider-foot-climbing")
+    assert spider.reason.startswith("Requires ")
+    assert "Bestial Reflexes" in spider.reason           # the LABEL, not the key
+
+
+def test_a_gift_selected_in_the_same_purchase_satisfies_a_prerequisite():
+    # p.124: the two Gifts of one purchase may form a chain.
+    rs = _rs()
+    char = _gift_char()
+    gid = validate.gift_charm_id(rs, char)
+    menu = viewmod.build_package_menu(rs, char, gid, ["bestial-reflexes"])
+    spider = next(p for p in menu.picks if p.key == "spider-foot-climbing")
+    assert spider.reason == ""
+
+
+def test_pruning_drops_a_selected_gift_whose_root_was_unchecked():
+    rs = _rs()
+    char = _gift_char()
+    gid = validate.gift_charm_id(rs, char)
+    chain = ["bestial-reflexes", "spider-foot-climbing"]
+    assert viewmod.prune_package_selection(rs, char, gid, chain) == chain
+    assert viewmod.prune_package_selection(rs, char, gid,
+                                           ["spider-foot-climbing"]) == []
+
+
+def test_a_gift_already_held_is_reported_as_taken():
+    rs = _rs()
+    char = _gift_char()
+    gid = validate.gift_charm_id(rs, char)
+    charm_actions.add_gift_purchase(rs, char, ["bestial-reflexes", "lightning-speed"])
+    menu = viewmod.build_package_menu(rs, char, gid)
+    assert menu.bought == 1
+    assert menu.needed == 1                              # 1 per purchase after the first
+    speed = next(p for p in menu.picks if p.key == "lightning-speed")
+    assert speed.reason == "Already taken"
+    assert "Bestial Reflexes" in menu.held[0].label

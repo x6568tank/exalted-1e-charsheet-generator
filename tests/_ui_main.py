@@ -684,6 +684,12 @@ CUSTOM_DIR = Path(tempfile.mkdtemp(prefix="exalted-ui-custom-"))
     {"id": "custom.orphan", "name": "Orphan Charm", "category": "melee",
      "type": "Supplemental", "prerequisites": [["no-such-charm"]]},
 ]))
+# One library ritual too (2026-08-28): the Rituals sub-tab has a row to list, and the
+# Thaumaturgy picker has a custom entry to offer.
+(CUSTOM_DIR / "rituals.json").write_text(json.dumps([
+    {"id": "custom.salt-road-whisper", "name": "Salt Road Whisper", "level": 2,
+     "cost": "1 mote", "description": "A homebrew ritual."},
+]))
 RS_CUSTOM = rules_db.load_ruleset(Path("exalted_builder/data"), custom_dir=CUSTOM_DIR)
 
 @ui.page('/custom-content')

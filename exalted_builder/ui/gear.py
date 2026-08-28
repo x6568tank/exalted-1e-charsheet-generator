@@ -27,9 +27,9 @@ from pathlib import Path
 
 from nicegui import ui
 
-from .. import custom_content as customs, persistence
-from ..engine import artifacts as artifactsmod, derive, merits as meritsmod, validate
-from ..models.character import (Armor, ArtifactEntry, Character, GearEntry, Weapon)
+from .. import custom_content as customs, persistence, rules_db
+from ..engine import artifacts as artifactsmod, derive, gear_actions, validate
+from ..models.character import Character
 from ..models.rules import RuleSet
 from . import catalogue as cataloguemod
 from . import theme
@@ -53,105 +53,33 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
         body.refresh()
         changed()
 
-    # ---- mutators (moved with the panels they serve) ----------------------- #
+    # ---- mutators — thin refresh wrappers over `engine.gear_actions` -------- #
+    # ⚠ The rules moved OUT of this file on 2026-08-21 (the Qt port's milestone-4 prep):
+    # what a re-pick carries across, what an artifact grants, and which channel stamps a
+    # purchase are decisions two shells now make, so they live in one place.
     def add_item(field: str) -> None:
-        factory = {"armor": lambda: Armor(name=""), "weapons": lambda: Weapon(name=""),
-                   "gear": lambda: GearEntry(name="")}[field]
-        getattr(character, field).append(factory())
+        gear_actions.add_row(character, field)
         body.refresh(); changed()
 
     def remove_item(field: str, idx: int) -> None:
-        del getattr(character, field)[idx]
+        gear_actions.remove_row(character, field, idx)
         body.refresh(); changed()
 
     def set_armor(idx: int, name: str) -> None:
-        entry = next((a for a in rs.armor_catalog.values() if a.name == name), None)
-        if entry:
-            character.armor[idx] = Armor(
-                name=entry.name, soak_lethal=entry.soak_lethal,
-                soak_bashing=entry.soak_bashing,
-                mobility_penalty=entry.mobility_penalty, fatigue=entry.fatigue,
-                artifact_rating=entry.artifact_rating, attunement=entry.attunement,
-                resources_cost=entry.resources_cost,
-                # Carried across for the same reason as the weapon row below.
-                from_artifact=character.armor[idx].from_artifact)
-        else:
-            character.armor[idx].name = name or ""
+        gear_actions.set_armor(rs, character, idx, name)
         body.refresh(); changed()
 
     def set_weapon(idx: int, name: str) -> None:
-        e = next((w for w in rs.weapon_catalog.values() if w.name == name), None)
-        # The row is REPLACED by the catalogue copy, so anything not in the copy is
-        # lost. `quantity` is the player's, not the catalogue's — carry it across, and
-        # `from_artifact` with it: that link is what stops the artifact this row belongs
-        # to being counted twice, and re-picking the same daiklave from the dropdown
-        # would otherwise drop it silently and charge the budget again.
-        quantity = character.weapons[idx].quantity
-        from_artifact = character.weapons[idx].from_artifact
-        if e:
-            character.weapons[idx] = Weapon(
-                quantity=quantity, from_artifact=from_artifact,
-                name=e.name, speed=e.speed, accuracy=e.accuracy, damage=e.damage,
-                damage_type=e.damage_type, defense=e.defense, rate=e.rate, range=e.range,
-                min_strength=e.min_strength, min_dexterity=e.min_dexterity,
-                min_martial_arts=e.min_martial_arts, max_strength=e.max_strength,
-                artifact_rating=e.artifact_rating, attunement=e.attunement,
-                resources_cost=e.resources_cost, notes=e.notes)
-        else:
-            character.weapons[idx].name = name or ""
+        gear_actions.set_weapon(rs, character, idx, name)
         body.refresh(); changed()
 
     def add_artifact() -> None:
-        character.artifacts.append(ArtifactEntry(name="", rating=1))
+        gear_actions.add_artifact(rs, character)
         refresh_all()
 
     def remove_artifact(idx: int) -> None:
-        # The gear row this artifact granted is deliberately LEFT BEHIND. It may have
-        # been edited, and deleting a player's equipment to tidy up a link is not this
-        # panel's business; the orphaned row simply counts as an artifact in its own
-        # right again (see `artifacts.artifact_items`), which is visible rather than
-        # free. Deleting the weapon is one click and theirs to make.
-        del character.artifacts[idx]
+        gear_actions.remove_artifact(character, idx)
         refresh_all()
-
-    def grant_gear(art_name: str) -> None:
-        """Give a newly picked artifact its stat line on the equipment surface.
-
-        ⚠ Owning "Daiklave" as an artifact and separately adding a "Daiklave" weapon to
-        swing it counts the same object twice, which the corebook one-artifact rule
-        turns into a false error (human's call, 2026-08-13). So the artifact grants the
-        row and stamps `from_artifact` on it, and the budget counts the pair once.
-
-        Silent when the artifact has no gear half (the large majority do not), and when
-        the row is already there — picking the same artifact twice must not breed
-        daiklaves.
-        """
-        found = artifactsmod.gear_stat_line(rs, art_name)
-        if found is None:
-            return
-        source, entry = found
-        key = artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, art_name)
-        rows = (character.weapons if source == artifactsmod.SOURCE_WEAPON
-                else character.armor)
-        if any(row.from_artifact == key for row in rows):
-            return
-        if source == artifactsmod.SOURCE_WEAPON:
-            rows.append(Weapon(
-                name=entry.name, speed=entry.speed, accuracy=entry.accuracy,
-                damage=entry.damage, damage_type=entry.damage_type,
-                defense=entry.defense, rate=entry.rate, range=entry.range,
-                min_strength=entry.min_strength, min_dexterity=entry.min_dexterity,
-                min_martial_arts=entry.min_martial_arts,
-                max_strength=entry.max_strength, artifact_rating=entry.artifact_rating,
-                attunement=entry.attunement, resources_cost=entry.resources_cost,
-                notes=entry.notes, from_artifact=key))
-        else:
-            rows.append(Armor(
-                name=entry.name, soak_lethal=entry.soak_lethal,
-                soak_bashing=entry.soak_bashing,
-                mobility_penalty=entry.mobility_penalty, fatigue=entry.fatigue,
-                artifact_rating=entry.artifact_rating, attunement=entry.attunement,
-                resources_cost=entry.resources_cost, from_artifact=key))
 
 
     # ⚠ These helpers are at build_gear scope, NOT inside body(). The row editors
@@ -212,62 +140,15 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
         (5→4→5) was silently lost, the stored rating desynced from the number on
         screen, and the two-flagships warning never came back. The header and the
         readout are the only things a rating edit moves."""
-        # The BUDGET's items, not everything owned: a purchased artifact is charged
-        # to nothing, so counting it here would print a number the validator does
-        # not agree with — the header and the rule must tell the same story.
-        items = artifactsmod.budgeted_items(character)
-        bought = artifactsmod.purchased_items(character)
-        rule = artifactsmod.artifact_rule(validate.effective_budgets(rs, character))
-        budgeted = rule is not None and bool(rule.budget_tiers)
-        header = "Artifacts"
-        rating = sum(bg.rating for bg in character.backgrounds
-                     if bg.name.strip().lower() == artifactsmod.ARTIFACT_BACKGROUND)
-        if artifactsmod.uses_corebook_rule(rule):
-            # The corebook rule (ruling 2026-08-13) governs most splats, and until
-            # it was enforced this header said the bare word "Artifacts" — so the
-            # first a player heard of the one-artifact limit was a validation error
-            # after they had picked two. The line states the rule whether or not
-            # they are over it.
-            #
-            # ONE PER ROW: a character may hold the Artifact Background more than
-            # once, and two Artifact •• rows are two artifacts (see
-            # `validate.background_rows`). The header counts rows, not their sum —
-            # printing "/1" beside two rows is what made the browser read the
-            # validator's error as arbitrary.
-            rows = sorted((r for r in validate.background_rows(
-                character.backgrounds, artifactsmod.ARTIFACT_BACKGROUND) if r > 0),
-                reverse=True)
-            if rows:
-                allowance = " + ".join(f"up to {r}" for r in rows)
-                header = (f"Artifacts ({len(items)}/{len(rows)} — Artifact "
-                          f"{'+'.join(str(r) for r in rows)}, {allowance})")
-            else:
-                header = f"Artifacts ({len(items)} — no Artifact Background)"
-        elif budgeted:
-            tier = artifactsmod.budget_tier(
-                validate.effective_budgets(rs, character), rating)
-            combined = sum(i.rating for i in items)
-            if tier is not None:
-                # The row name is optional — the Cult of the Illuminated's table
-                # (p.96) prints bare dot rows where the Abyssal's names each one,
-                # and a blank left a trailing comma inside the parenthesis.
-                named = f", {tier.name}" if tier.name else ""
-                header = (f"Artifacts ({combined}/{tier.combined_max} combined — "
-                          f"Artifact {rating}{named})")
-            else:
-                header = f"Artifacts ({combined} combined — no Artifact Background)"
-
         with ui.row().classes("w-full items-baseline gap-2"):
-            ui.label(header).classes(
+            ui.label(viewmod.artifacts_header(rs, character)).classes(
                 "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
             ui.label("bought with the Artifact Background").classes(
                 "text-xs text-gray-500")
-            if bought:
-                # Said out loud, because the alternative is a header whose count is
-                # lower than the visible list for no stated reason.
-                ui.label(f"+ {len(bought)} bought with Resources, not charged to "
-                         f"the Background").classes("text-xs text-gray-500"
-                                                    ).props('data-testid="art-bought"')
+            note = viewmod.artifacts_bought_note(character)
+            if note:
+                ui.label(note).classes("text-xs text-gray-500"
+                                       ).props('data-testid="art-bought"')
 
     # The artifact catalogue, shared by the row editor and the panel's picker — hoisted
     # so both can close over it. ⚠ A closure over a name defined in a function it no
@@ -326,9 +207,11 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                            artifactsmod.ACQUIRED_PURCHASED: "Bought",
                            artifactsmod.ACQUIRED_LEGENDARY: "Merit"},
                           value=art.acquired, label="Acquired",
-                          on_change=lambda e, art=art: (
-                              setattr(art, "acquired",
-                                      e.value or artifactsmod.ACQUIRED_BACKGROUND),
+                          # ⚠ Through the engine, never setattr: changing the channel
+                          # must re-stamp any stat line this artifact granted, or the
+                          # two drift and the orphan is charged to the wrong budget.
+                          on_change=lambda e, idx=idx: (
+                              gear_actions.set_acquired(character, idx, e.value),
                               _artifacts_header.refresh(), changed())
                           ).props("dense").classes("w-32").mark("art-acquired")
             _library_button("artifacts", art)
@@ -351,27 +234,15 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
             desc.set_text(text)
             desc.set_visibility(bool(text))
 
-        def _on_art(e, art=art, number=number, sync=_sync):
-            # A catalogue pick sets name + autofills rating; any other
-            # value is free text and only renames, preserving the rating.
-            entry = next((a for a in art_catalog
-                          if a.name == (e.value or "")), None)
-            if entry is not None:
-                art.name, art.rating = entry.name, entry.rating
-                # A merit-gated artifact is charged to no budget: the Merit was its
-                # price. Stamped from the CATALOGUE at pick time rather than chosen,
-                # so the player never has to know the channel exists.
-                if entry.requires_merit:
-                    art.acquired = artifactsmod.ACQUIRED_LEGENDARY
+        def _on_art(e, idx=idx, art=art, number=number, sync=_sync):
+            # A catalogue pick sets name + autofills rating (and stamps the channel and
+            # grants the stat line); any other value is free text and only renames,
+            # preserving the rating. All of that is `gear_actions.set_artifact`.
+            if gear_actions.set_artifact(rs, character, idx, e.value or ""):
                 # Keep the on-screen control in sync: the header refresh
                 # recomputes the total but must NOT rebuild the body (see
                 # the header docstring), so the number is pushed directly.
-                number.value = entry.rating
-                # Choosing a catalogue artifact HERE is the same act as
-                # choosing one in the dialog, so it grants the same stat line.
-                grant_gear(entry.name)
-            else:
-                art.name = e.value or ""
+                number.value = art.rating
             sync()
             _artifacts_header.refresh()
             changed()
@@ -416,12 +287,9 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
             # Artifact weapons and armour count against the same budget but are edited
             # on the equipment surface. Listed read-only so the combined total above is
             # accounted for rather than looking wrong.
-            gear = [i for i in artifactsmod.artifact_items(character)
-                    if i.source != artifactsmod.SOURCE_ARTIFACT]
-            if gear:
-                ui.label("Also counted, from equipment: "
-                         + ", ".join(f"{i.name} ({i.rating})" for i in gear)
-                         ).classes("text-xs italic opacity-70")
+            also = viewmod.artifacts_also_counted(character)
+            if also:
+                ui.label(also).classes("text-xs italic opacity-70")
 
             # The catalogue picker replaces the blind "Add artifact": browse the
             # catalogue (name + rating + description), pick one — name AND rating
@@ -439,80 +307,27 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                                               icons=icons)
 
             def _pick_artifact(name) -> None:
-                if name is None:
-                    add_artifact()
-                    return
-                entry = next((a for a in _art_catalog() if a.name == name), None)
-                if entry is not None:
-                    character.artifacts.append(ArtifactEntry(
-                        name=entry.name, rating=entry.rating,
-                        acquired=(artifactsmod.ACQUIRED_LEGENDARY
-                                  if entry.requires_merit
-                                  else artifactsmod.ACQUIRED_BACKGROUND)))
-                    grant_gear(entry.name)
-                else:
-                    character.artifacts.append(ArtifactEntry(name=name, rating=1))
+                gear_actions.add_artifact(rs, character, name)
                 refresh_all()
 
             ui.button("Add artifact", icon="add", on_click=_open_artifact_catalogue
                       ).props("flat dense")
 
     # ---- the custom library ------------------------------------------------ #
-    def _library_payload(kind: str, item) -> dict:
-        """One owned row, as a library row of the shape `data/` uses.
-
-        The four kinds have four models, so this is four small mappings rather than a
-        generic dump — a `Weapon` is not a `WeaponType` (the character's copy has
-        `quantity` and `from_artifact`, which are facts about ownership, not about the
-        design) and shipping the difference into the library would put ownership state
-        in a catalogue.
-        """
-        base = {"id": customs.make_id(item.name), "name": item.name}
-        if kind == "weapons":
-            return base | {
-                "speed": item.speed, "accuracy": item.accuracy, "damage": item.damage,
-                "damage_type": item.damage_type, "defense": item.defense,
-                "rate": item.rate, "range": item.range,
-                "min_strength": item.min_strength, "min_dexterity": item.min_dexterity,
-                "min_martial_arts": item.min_martial_arts,
-                "max_strength": item.max_strength,
-                "artifact_rating": item.artifact_rating,
-                "attunement": item.attunement, "resources_cost": item.resources_cost,
-                "notes": item.notes}
-        if kind == "armor":
-            return base | {
-                # ⚠ `weight` is REQUIRED by ArmorType and a character's armour row does
-                # not carry one, so it is defaulted and SAID OUT LOUD in the notify
-                # rather than guessed silently. The player edits the library file if it
-                # matters; nothing in the engine reads armour weight today.
-                "weight": "Light",
-                "soak_lethal": item.soak_lethal, "soak_bashing": item.soak_bashing,
-                "mobility_penalty": item.mobility_penalty, "fatigue": item.fatigue,
-                "artifact_rating": item.artifact_rating,
-                "attunement": item.attunement, "resources_cost": item.resources_cost}
-        if kind == "gear":
-            return base | {"kind": "goods", "category": "Your library",
-                           "resources_cost": item.resources_cost, "notes": item.note}
-        return base | {"rating": item.rating, "description": item.note}
-
     def _save_to_library(kind: str, item) -> None:
         """Put this row in the user's library so every future character can buy it."""
         try:
-            payload = _library_payload(kind, item)
-            customs.save_gear_row(kind, payload, reserved_ids=_reserved_ids())
+            customs.save_gear_row(kind, gear_actions.library_payload(kind, item),
+                                  reserved_ids=gear_actions.reserved_ids(rs))
         except customs.CustomContentError as ex:
             ui.notify(str(ex), type="warning")
             return
         extra = " (armour weight defaults to Light)" if kind == "armor" else ""
-        ui.notify(f"Saved {item.name} to your library{extra}. It will appear in Buy "
-                  f"the next time the app loads its rules.", type="positive")
-
-    def _reserved_ids() -> set[str]:
-        """Every id the BOOK uses, so a library row can never shadow printed content —
-        the same rule `_load_custom_layer` enforces on load, checked here so the user
-        hears about it while they can still rename the thing."""
-        return (set(rs.weapon_catalog) | set(rs.armor_catalog)
-                | set(rs.gear_catalog) | set(rs.artifact_catalog))
+        # ⚠ Re-merge NOW — see the same comment in qt/gear.py. The restart this used to
+        # ask for was `reload_custom_layer` skipping the gear catalogues.
+        rules_db.reload_custom_layer(rs)
+        ui.notify(f"Saved {item.name} to your library{extra}. It is in Buy now, and on "
+                  f"the Custom tab's Gear list.", type="positive")
 
     def _library_button(kind: str, item) -> None:
         ui.button(icon="bookmark_add",
@@ -662,18 +477,8 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
         def _inventory() -> None:
             rows = viewmod.inventory_rows(ruleset, character)
             counts = viewmod.inventory_counts(rows)
-            # The heading names the ACTIVE filter, not just the total. Without it the
-            # only evidence of a filter click is rows disappearing, which reads as loss
-            # rather than as a view — and a test has nothing new to wait for either.
-            # ⚠ EVERY state names its filter, including "all". A heading that reads
-            # "Inventory (6)" when unfiltered is a strict PREFIX of the filtered one,
-            # so anything matching on it — a test's `should_see`, a player's glance —
-            # cannot tell the two apart.
             active = inv_filter["kind"]
-            shown = "Everything" if active == "all" else active.capitalize()
-            heading = (f"Inventory ({len(rows)}) · showing {shown} "
-                       f"({counts.get(active, 0)})")
-            with panel(heading):
+            with panel(viewmod.inventory_heading(rows, counts, active)):
                 if not rows:
                     ui.label("Nothing owned yet — add weapons, armour or goods below."
                              ).classes("text-xs text-gray-500")
@@ -683,8 +488,7 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                         n = counts.get(kind, 0)
                         if kind != "all" and not n:
                             continue        # an empty filter is noise, not a choice
-                        label = ("Everything" if kind == "all"
-                                 else kind.capitalize()) + f" ({n})"
+                        label = viewmod.inventory_filter_label(kind, n)
                         ui.button(label, on_click=lambda k=kind: (
                                       inv_filter.__setitem__("kind", k),
                                       _inventory.refresh())
@@ -718,23 +522,7 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                                 "text-xs opacity-70 shrink-0")
                         ui.label(row.detail).classes(
                             "text-xs opacity-70 flex-1 min-w-0 truncate")
-                        for kind in row.kinds:
-                            if kind == "artifact":
-                                # A plot device has no rating to print — its dots are a
-                                # placeholder the model's 1-5 bound demands and its page
-                                # prints "(ARTIFACT N/A)". Showing "Artifact •••••" here
-                                # would be the one place in the build that states the
-                                # fiction as a fact.
-                                if row.acquired == artifactsmod.ACQUIRED_LEGENDARY:
-                                    tag = "Artifact N/A · by Merit"
-                                else:
-                                    tag = ("Artifact " + "•" * row.artifact_rating
-                                           + (" · bought"
-                                              if row.acquired == "purchased" else ""))
-                            elif kind in ("weapon", "armor", "ammunition"):
-                                continue    # the stat line already says which it is
-                            else:
-                                tag = kind.capitalize()
+                        for tag in viewmod.inventory_row_tags(row):
                             ui.label(tag).classes(
                                 "text-xs px-1 rounded shrink-0"
                                 f" bg-{pal.fam}-900/10")
@@ -768,104 +556,28 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
         # a suit of armour or a bolt of silk. The per-panel Add buttons keep that job —
         # they are the typed affordance, this is the priced one.
         def _open_shop() -> None:
-            rows, unaffordable, icons, group_of = [], set(), {}, {}
-
-            def _add(key, name, kind, cost, summary, full=None, icon="", tags=()):
-                afford = validate.gear_affordability(rs, character, cost)
-                note = cataloguemod.gear_cost_note(cost, afford)
-                bits = [kind] + [x for x in (summary, note) if x]
-                # Your own library rows sit in the same list as the books', because
-                # that is the point of a library — but they say which they are. The
-                # loader tags them (`_merge_custom_gear`); nothing here decides it.
-                if "custom" in tags:
-                    bits.insert(0, "★ yours")
-                rows.append((key, name, " · ".join(bits), full))
-                icons[key] = icon
-                group_of[key] = kind
-                if afford == "unaffordable":
-                    unaffordable.add(key)
-
-            for w in sorted(rs.weapon_catalog.values(), key=lambda x: x.name):
-                _add(f"weapon:{w.name}", w.name, "Weapon", w.resources_cost,
-                     cataloguemod.catalog_weapon_summary(w),
-                     icon=cataloguemod.icon_for(w.tags, "sym_o_swords"), tags=w.tags)
-            for a in sorted(rs.armor_catalog.values(), key=lambda x: x.name):
-                _add(f"armor:{a.name}", a.name, "Armour", a.resources_cost,
-                     cataloguemod.catalog_armor_summary(a),
-                     icon=cataloguemod.icon_for(a.tags, "security"), tags=a.tags)
-            for g in sorted(rs.gear_catalog.values(), key=lambda x: x.name):
-                if g.kind != "goods":
-                    continue          # services are a price list, never bought (ruling)
-                _add(f"goods:{g.id}", g.name, "Goods", g.resources_cost, g.category,
-                     g.notes or None, icon=cataloguemod.icon_for(g.tags, "inventory_2"),
-                     tags=g.tags)
-            # Artifacts are sold ONLY post-lock, and only the ones a book prices —
-            # decision 0017: the Artifact Background is the pre-game channel ("to start
-            # the game owning", core p.342) and cash is the in-play one. A shop that
-            # offered them at chargen would be the hole that decision closes.
-            if character.chargen_locked:
-                for art in sorted(artifactsmod.purchasable_with_artifact(
-                        rs.artifact_catalog), key=lambda x: x.name):
-                    if not art.resources_cost:
-                        continue
-                    # ⚠ The GROUP is the bare word "Artifact": `kind` doubles as the
-                    # filter chip, and folding the rating into it ("Artifact •••")
-                    # would make one chip per rating.
-                    _add(f"artifact:{art.name}", art.name, "Artifact",
-                         art.resources_cost, "•" * art.rating, art.description,
-                         icon="auto_awesome", tags=art.tags)
-
-            # Making a thing and buying a thing are ONE surface: the custom rows create
-            # a blank item of the kind you name, which is what let the per-panel Add
-            # buttons be deleted. Artifacts are absent from the custom list at chargen
-            # for the same reason they are absent from the shop — decision 0017.
-            kinds = {"weapons": "Custom weapon", "armor": "Custom armour",
-                     "gear": "Custom goods"}
-            if character.chargen_locked:
-                kinds["artifacts"] = "Custom artifact"
+            # The rows, their groups and their prices come from `view.shop_rows`; the
+            # ICONS stay here, because they are Material Icon names and the Qt shell
+            # draws from a different set.
+            _default_icon = {"Weapon": "sym_o_swords", "Armour": "security",
+                             "Goods": "inventory_2", "Artifact": "auto_awesome"}
+            shop = viewmod.shop_rows(rs, character)
+            rows = [(r.key, r.name, r.summary, r.full) for r in shop]
+            icons = {r.key: cataloguemod.icon_for(
+                r.tags, _default_icon.get(r.group, "")) for r in shop}
+            group_of = {r.key: r.group for r in shop}
+            dimmed = {r.key for r in shop if r.affordability == "unaffordable"}
             cataloguemod.catalogue_dialog(
                 pal, "Buy", rows, _buy,
                 subtitle=("Everything a book prices, against your Resources, plus your "
                           "own library. Nothing is deducted — the cost is a hint "
                           "(core p.325)."),
-                dimmed=unaffordable, icons=icons, group_of=group_of,
-                custom_kinds=kinds)
+                dimmed=dimmed, icons=icons, group_of=group_of,
+                custom_kinds=viewmod.shop_custom_kinds(character))
 
         def _buy(key) -> None:
-            if not key:
-                return
-            kind, _, name = key.partition(":")
-            if kind == "custom":
-                # "Custom <kind>" — a blank row of that kind, for a player entering
-                # something the catalogue does not hold.
-                if name == "artifacts":
-                    add_artifact()
-                else:
-                    add_item(name)
-                return
-            if kind == "weapon":
-                add_item("weapons")
-                set_weapon(len(character.weapons) - 1, name)
-            elif kind == "armor":
-                add_item("armor")
-                set_armor(len(character.armor) - 1, name)
-            elif kind == "goods":
-                entry = rs.gear_catalog.get(name)
-                character.gear.append(GearEntry(
-                    name=entry.name, resources_cost=entry.resources_cost)
-                    if entry is not None else GearEntry(name=""))
-                refresh_all()
-            elif kind == "artifact":
-                entry = next((a for a in rs.artifact_catalog.values()
-                              if a.name == name), None)
-                if entry is None:
-                    return
-                # Bought with cash, so it is NOT charged to the Artifact Background.
-                character.artifacts.append(ArtifactEntry(
-                    name=entry.name, rating=entry.rating,
-                    acquired=artifactsmod.ACQUIRED_PURCHASED))
-                grant_gear(entry.name)
-                refresh_all()
+            gear_actions.buy(rs, character, key)
+            refresh_all()
 
         _inventory()
         with ui.row().classes("w-full items-center gap-2"):
@@ -885,8 +597,7 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
             # is a PRICE list showing no prices — the house bug. What makes a reference
             # panel worth its space is the information you cannot get anywhere else.
             with panel("Prices — services & upkeep").classes("flex-1"):
-                services = [g for g in ruleset.gear_catalog.values()
-                            if g.kind == "service"]
+                services = viewmod.service_rows(ruleset, character)
                 if services:
                     ui.label("Reference only — not owned, and nothing here is tracked. "
                              "Jade and silver are the printed equivalents (M&C p.123); "
@@ -901,26 +612,23 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                     # see them in the DOM — while the browser shows an empty panel.
                     with ui.scroll_area().classes("w-full").style("height:16rem"):
                         last_category = ""
-                        for g in sorted(services, key=lambda g: (g.category, g.name)):
-                            if g.category != last_category:
-                                last_category = g.category
-                                ui.label(g.category).classes(
+                        for category, name, dots, cash, notes, afford in services:
+                            if category != last_category:
+                                last_category = category
+                                ui.label(category).classes(
                                     "text-xs font-bold tracking-wide pt-2"
                                     ).style(f"color:{pal.accent}")
-                            afford = validate.gear_affordability(ruleset, character,
-                                                                 g.resources_cost)
-                            faded = " opacity-50" if afford == "unaffordable" else ""
+                            faded = "" if afford else " opacity-50"
                             with ui.row().classes(
                                     "w-full items-baseline gap-2 no-wrap" + faded):
-                                ui.label("•" * g.resources_cost).classes(
-                                    "text-xs w-14 shrink-0")
-                                ui.label(g.name).classes(
+                                ui.label("•" * dots).classes("text-xs w-14 shrink-0")
+                                ui.label(name).classes(
                                     "text-xs leading-tight flex-1 min-w-0")
-                                if g.cash:
-                                    ui.label(g.cash).classes(
+                                if cash:
+                                    ui.label(cash).classes(
                                         "text-xs opacity-70 shrink-0 text-right")
-                            if g.notes:
-                                ui.label(g.notes).classes(
+                            if notes:
+                                ui.label(notes).classes(
                                     "text-xs italic opacity-60 pl-14 leading-tight")
 
         _artifacts_panel()

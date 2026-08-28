@@ -31,3 +31,4 @@ status log says so rather than guessing.
 | [0015](0015-exalt-tier-hierarchy.md) | The Exalt tiers are a ranked hierarchy, not a flat label | Accepted |
 | [0016](0016-base-dice-pools-are-in-scope.md) | Base dice pools are in scope; resolution is not (amends 0008's boundary) | Accepted |
 | [0017](0017-two-acquisition-channels-for-artifacts.md) | Artifacts have two acquisition channels — the Background is pre-game, cash is in-play; only the first is budgeted | Accepted |
+| [0018](0018-qt-port-committed.md) | The Qt port is committed — a PySide6 native app alongside the NiceGUI webapp | Accepted |

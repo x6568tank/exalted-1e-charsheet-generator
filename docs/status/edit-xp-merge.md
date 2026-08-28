@@ -134,6 +134,13 @@ either, so the downward dialog greys its curse branch for them. That one is fine
       Charm, Combo, spell, specialty or thaumaturgy buy would have been stranded. It names
       the row it will reverse, because "Undo" alone is a guess. Click-through tested: the
       label appears, the click reverses, the label goes.
+      * ⚠ **Amended 2026-08-22: a CHARM buy now has a downward gesture of its own too.**
+        The Charms tab's "Remove" is enabled when the selected Charm IS the most recent
+        XP entry, and reverses it (`charm_actions.undo_charm` / `undo_charm_reason`);
+        otherwise it is disabled and says why. This does NOT replace "Undo last" — the
+        log is LIFO, so only one Charm is ever reachable that way, and Combos, spells
+        and thaumaturgy still have no gesture of their own. The reason above stands;
+        only "a Charm buy would have been stranded" is now out of date.
 * [x] **Rehomed the four things that lived ONLY on the XP tab**, before deleting anything
       — the order matters, since deleting first would have silently removed Death's
       Taint's whole play-time mechanic:
@@ -281,3 +288,60 @@ words, because two of them contradict what the code assumed.
 3. **Nature freezes at the lock**, with the other chargen choices. No XP effect, but it
    is True Paragon's prerequisite, so a Nature changed in play would invalidate a held
    Merit after the fact.
+
+---
+
+## The Qt Edit surface — specialties move under their Abilities (2026-08-22)
+
+**Not browser-verified.** Suite at the time: **2,776 passed, 1 skipped** (main PC,
+`qt-port`). The webapp's Specialties panel is UNCHANGED; this is the native shell only.
+
+`qt/editor.py` no longer has a Specialties panel. A specialty is a child row under its
+own Ability's dot row, and every Ability row carries a `+`.
+
+* Pre-lock: `+` appends an instance to THAT Ability; the name is editable in place, `✕`
+  drops one instance.
+* Post-lock: `+` opens a named-and-priced buy for that Ability
+  (`advancement.add_specialty`); existing rows go read-only, as the Charms rows do.
+* `view.specialty_groups(character, ability)` is the derived shape — `[(name, count)]`
+  in first-seen order. It lives in the presenter so the webapp can adopt the same
+  display without a second grouping implementation.
+
+**⚠ The GROUP is the specialty.** Two rows named "Swords" are one specialty taken
+twice, so a rename renames every instance in the group and `✕` drops exactly one. This
+is the ruling above rendered honestly: the count IS the stacking.
+
+**⚠ The cap is still not enforced on the add, and the REASON CHANGED.** It used to be
+"the row is appended on Melee and retargeted, so blocking the add blocks the wrong
+Ability". There is no retarget any more — the `+` knows its Ability. The reason now is
+simply that chargen writes the list straight and `validate.check_specialties` reports
+the over-cap, which is also what covers a save arriving over it; enforcing in a widget
+would invent a rule the engine does not ask for. **The old reason is no longer true and
+was rewritten in place** — a stale rationale reads exactly like a live one.
+
+### What this removed
+
+The blank-row-on-Melee-then-retarget dance, and with it the stale-validation trap it
+created. That flow put a transient `specialty-cap` error on screen mid-edit, which then
+needed a re-validation hook on the retarget or three Melee plus three Dodge read back as
+"Melee has 4". Position now carries the Ability, so neither the transient error nor the
+hook exists.
+
+### What it turned up on the way
+
+* **The new `+` and `✕` shipped INVISIBLE.** The Qt stylesheet gives every
+  `QPushButton` `background:CARD`, and these sit on a `_Panel` — which is CARD. Every
+  test passed; only the offscreen grab showed it. Same "an ancestor stylesheet beats a
+  set palette" rule already recorded for `QTextEdit` inside a `_Panel`, third instance.
+  Fixed with an inline `_TINY_BUTTON` style.
+* **Two tests were nearly lost with the panel.** `_combo`'s enum-degradation control was
+  written against the Specialties Ability dropdown. Deleting it alongside that dropdown
+  would have retired a LIVE trap — the Virtue Flaw and camp selects still pass enum
+  keys. Rebuilt on a synthetic subject so the next surface to move cannot take it down,
+  and it immediately caught a wrong assertion: `currentData()` is still the degraded
+  copy, which is the entire reason `_combo` resolves the key by index.
+
+### No open rules questions
+
+Nothing here needed a rules call. The instance-not-rating ruling above is the one it
+rests on, and it was already recorded.

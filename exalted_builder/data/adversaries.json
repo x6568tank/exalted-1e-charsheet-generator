@@ -2,7 +2,9 @@
   {
     "id": "adv.extra_weak",
     "name": "Weak Opponent",
-    "category": "Extra",
+    "categories": [
+      "Extra"
+    ],
     "notes": "Militia, hired thugs, city watch. Extras have only three health levels and die instantly if knocked below Incapacitated by lethal damage. Damage is not rolled against them: every three dice remaining after soak deals one automatic health level (nine or more dice incapacitates outright), and any remainder of one or two dice is rolled normally. Extras do not count 10s as two successes. Exalted p.241.",
     "base_initiative": 4,
     "combat_pool": 4,
@@ -19,7 +21,9 @@
   {
     "id": "adv.extra_competent",
     "name": "Competent Opponent",
-    "category": "Extra",
+    "categories": [
+      "Extra"
+    ],
     "notes": "Trained troops, professional legbreakers, city guard. Three health levels only; damage is not rolled against extras (three dice past soak = one automatic health level) and they do not count 10s as two successes. Exalted p.241.",
     "base_initiative": 5,
     "combat_pool": 5,
@@ -36,7 +40,9 @@
   {
     "id": "adv.extra_elite",
     "name": "Elite Opponent",
-    "category": "Extra",
+    "categories": [
+      "Extra"
+    ],
     "notes": "Crack troops, professional assassins, praetorian guard. Three health levels only; damage is not rolled against extras (three dice past soak = one automatic health level) and they do not count 10s as two successes. Exalted p.241.",
     "base_initiative": 6,
     "combat_pool": 6,
@@ -53,7 +59,9 @@
   {
     "id": "adv.typical_citizen",
     "name": "Typical Citizen",
-    "category": "Mortal",
+    "categories": [
+      "Mortal"
+    ],
     "notes": "Almost always an extra. Exalted p.276.",
     "attributes": {
       "strength": 2,
@@ -139,7 +147,9 @@
   {
     "id": "adv.heretic",
     "name": "Heretic",
-    "category": "Mortal",
+    "categories": [
+      "Mortal"
+    ],
     "notes": "Almost always an extra. A religious outcast. Wears a buff jacket. Exalted p.277.",
     "attributes": {
       "strength": 2,
@@ -259,7 +269,9 @@
   {
     "id": "adv.partisan",
     "name": "Partisan",
-    "category": "Mortal",
+    "categories": [
+      "Mortal"
+    ],
     "notes": "Almost always an extra. A political outcast fighting a guerilla war. Wears a buff jacket. Exalted p.277.",
     "attributes": {
       "strength": 2,
@@ -385,7 +397,9 @@
   {
     "id": "adv.bandit",
     "name": "Bandit",
-    "category": "Mortal",
+    "categories": [
+      "Mortal"
+    ],
     "notes": "Almost always an extra. As a criminal, but working the countryside rather than a city. Wears a buff jacket. Exalted p.277.",
     "attributes": {
       "strength": 2,
@@ -511,7 +525,9 @@
   {
     "id": "adv.criminal",
     "name": "Criminal",
-    "category": "Mortal",
+    "categories": [
+      "Mortal"
+    ],
     "notes": "Almost always an extra. A social outcast profiting from the current situation. Wears a buff jacket. Criminals have no Archery Ability, so the self bow line does not apply to them. Exalted p.277.",
     "attributes": {
       "strength": 2,
@@ -615,7 +631,9 @@
   {
     "id": "adv.militia",
     "name": "Militia",
-    "category": "Soldier",
+    "categories": [
+      "Soldier"
+    ],
     "notes": "Almost always an extra. The average militiaman: patrols streets and markets and makes up the bulk of conscript armies. Wears a buff jacket. Exalted p.278.",
     "attributes": {
       "strength": 2,
@@ -742,7 +760,9 @@
   {
     "id": "adv.infantry",
     "name": "Infantry",
-    "category": "Soldier",
+    "categories": [
+      "Soldier"
+    ],
     "notes": "Trained for battle rather than police duty. Wears a reinforced buff jacket and carries a target shield, which together give -3 mobility and +1 difficulty to attack them. Exalted p.278.",
     "attributes": {
       "strength": 3,
@@ -886,7 +906,9 @@
   {
     "id": "adv.elite_troops",
     "name": "Elite Troops",
-    "category": "Soldier",
+    "categories": [
+      "Soldier"
+    ],
     "notes": "Often an extra. Career soldiers, often raised from childhood for military service. Wears lamellar armour and carries a target shield, which together give -3 mobility and +1 difficulty to attack them. Exalted p.278.",
     "attributes": {
       "strength": 3,
@@ -1023,7 +1045,9 @@
   {
     "id": "adv.merchant_prince",
     "name": "Merchant Prince",
-    "category": "Guild",
+    "categories": [
+      "Guild"
+    ],
     "nature": "",
     "notes": "A Guild syndic's delegate in a caravan. Wears a reinforced buff jacket. Exalted p.279.",
     "attributes": {
@@ -1163,7 +1187,9 @@
   {
     "id": "adv.wyld_barbarian",
     "name": "Wyld Barbarian",
-    "category": "Wyld",
+    "categories": [
+      "Wyld"
+    ],
     "notes": "Usually an extra. Wears pangolin scale armour (a buff jacket) and carries a target shield, together -2 mobility and +1 difficulty to attack. Exalted p.281-282.",
     "attributes": {
       "strength": 3,
@@ -1302,7 +1328,9 @@
   {
     "id": "adv.wyld_shaman",
     "name": "Wyld Shaman",
-    "category": "Wyld",
+    "categories": [
+      "Wyld"
+    ],
     "notes": "Often an extra. Generally quite mad; usually has at least one affliction and two poxes. Printed soak is 4L/8B, which includes scars and tattoos worth 4L/4B — there is no catalogue armour for those, so the whole figure is recorded as natural soak. Exalted p.282-283.",
     "attributes": {
       "strength": 2,
@@ -1431,7 +1459,9 @@
   {
     "id": "adv.wolfman",
     "name": "Wolfman",
-    "category": "Wyld",
+    "categories": [
+      "Wyld"
+    ],
     "notes": "Usually an extra. A commonly occurring beastman of the Northeast, with the afflictions Fangs and the poxes Fur, Eye Color (wolf-like, can see in the dark), Hair Color (red wolf-pelt), Acute Smell and Large. Printed soak is 6L/10B from a battered chain hauberk (-3 mobility penalty); recorded here as natural soak because the battered version is not the catalogue item. Exalted p.283.",
     "attributes": {
       "strength": 4,
@@ -1571,7 +1601,9 @@
   {
     "id": "adv.buck_ogre",
     "name": "Buck-Ogre",
-    "category": "Wyld",
+    "categories": [
+      "Wyld"
+    ],
     "notes": "Probably not an extra. A two-headed scourge of the northeast Threshold, with the poxes Eye Color (+2 on visual Awareness rolls) and Hair Color (Elk Pelt), the afflictions Huge and Tusks/Horns, and the blights Armored Hide, Beast Form and Multiple Heads. Wields a great axe in each hand and must split its dice pool normally to act twice. Printed soak is 9L/14B, hide plus salvaged armour equal to a reinforced buff jacket (5L/6B, -2 mobility); recorded whole as natural soak. Exalted p.284-285.",
     "attributes": {
       "strength": 7,
@@ -1698,7 +1730,9 @@
   {
     "id": "adv.common_zombie",
     "name": "Common Zombie",
-    "category": "Undead",
+    "categories": [
+      "Undead"
+    ],
     "notes": "Wounds inflicted by a zombie are extraordinarily likely to become infected: the difficulty of the Stamina + Resistance roll to resist infection from a zombie-inflicted wound is increased by 2. Characters fighting zombies hand-to-hand must succeed at a Stamina + Resistance roll at difficulty 2 each turn or suffer -2 on all dice pools that turn from nausea; the stench loses its impact after several encounters. Virtues are not applicable — a zombie never fails Valor rolls and never succeeds at any other rolls. Exalted p.299.",
     "attributes": {
       "strength": 5,
@@ -1798,7 +1832,9 @@
   {
     "id": "adv.spine_chain",
     "name": "Spine Chain",
-    "category": "Undead",
+    "categories": [
+      "Undead"
+    ],
     "notes": "Several dozen corpses cleaved at the midriff and sewn into a long chain. Health levels are per link: one each of -0, -1 and -2 for every link, so the track here is one link only — add three boxes per additional link. When the first link is damaged or the spine is severed, the closest link pulls the stitching loose from the damaged portion, discards it and assumes control. Breaking apart and joining with other spine chains takes too much time to occur in combat. Virtues are not applicable — never fails Valor rolls, never succeeds at any other rolls. Exalted p.300.",
     "attributes": {
       "strength": 4,
@@ -1883,7 +1919,9 @@
   {
     "id": "adv.hungry_ghost",
     "name": "Hungry Ghost",
-    "category": "Undead",
+    "categories": [
+      "Undead"
+    ],
     "notes": "Often an extra. Naturally material, rising from its corpse at nightfall and dematerialising at sunrise (at no Essence cost) to sleep in its body. A hungry ghost must be at its body by sunrise or the sun's rays will blast it to ash, and it cannot cross an unbroken line of salt or germinated grain. Exalted p.300-301.",
     "attributes": {
       "strength": 4,
@@ -1963,7 +2001,9 @@
   {
     "id": "adv.war_ghost",
     "name": "War Ghost",
-    "category": "Undead",
+    "categories": [
+      "Undead"
+    ],
     "notes": "Usually an extra. Wears field soldier's armour of black iron and carries a shield (chain hauberk, -3 mobility penalty, +1 difficulty to attack). For less violent ghosts use the Typical Citizen, save that one of their Virtues is 3 and they have an Essence Pool of 41. Exalted p.301.",
     "attributes": {
       "strength": 3,
@@ -2094,7 +2134,9 @@
   {
     "id": "adv.nemissary",
     "name": "Nemissary",
-    "category": "Undead",
+    "categories": [
+      "Undead"
+    ],
     "notes": "Usually an extra. A ghost that possesses and animates corpses other than its own, riding them for several days at a stretch. Its attacks are infectious like a zombie's, adding +2 to the difficulty of the Stamina + Resistance roll to resist infection. Wears a breastplate (-1 mobility penalty). Exalted p.301.",
     "attributes": {
       "strength": 4,
@@ -2227,7 +2269,9 @@
   {
     "id": "adv.zephyr",
     "name": "Zephyr",
-    "category": "Elemental",
+    "categories": [
+      "Elemental"
+    ],
     "notes": "An air elemental: elusive, whimsical, and an excellent scout, messenger or assassin. Its natural state is the physical one, so it pays to DEmaterialize rather than to materialize. Printed soak 5L/7B includes an air barrier worth 4L/4B. Exalted p.298.",
     "attributes": {
       "strength": 2,
@@ -2330,7 +2374,9 @@
   {
     "id": "adv.beast_austrech",
     "name": "Austrech",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). A flightless runner some seven feet tall, with a bone-cracking hooked beak. Known to eat its own eggs and offspring. Exalted p.316-317.",
     "attributes": {
       "strength": 4,
@@ -2395,7 +2441,9 @@
   {
     "id": "adv.beast_bear",
     "name": "Bear",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). No dodge is printed for the bear. Their strongest sense is smell; their weakest is sight. Exalted p.316-317.",
     "attributes": {
       "strength": 7,
@@ -2462,7 +2510,9 @@
   {
     "id": "adv.beast_boar",
     "name": "Boar",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). A surly woodland hog, fierce and short-tempered. Exalted p.316-317.",
     "attributes": {
       "strength": 4,
@@ -2520,7 +2570,9 @@
   {
     "id": "adv.beast_camel",
     "name": "Camel",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). A foul-tempered herbivore and a common mount in the South. Exalted p.316-317.",
     "attributes": {
       "strength": 3,
@@ -2581,7 +2633,9 @@
   {
     "id": "adv.beast_coral_snake",
     "name": "Coral Snake",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Nocturnal, up to five feet long, red, white and black banded. Sought after by assassins for its venom. Exalted p.316-317.",
     "attributes": {
       "strength": 1,
@@ -2635,7 +2689,9 @@
   {
     "id": "adv.beast_dog_war",
     "name": "Dog (War)",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Keen senses of smell and hearing make them excellent hunters and trackers. Exalted p.316-317.",
     "attributes": {
       "strength": 3,
@@ -2701,7 +2757,9 @@
   {
     "id": "adv.beast_giant_wolf_spider",
     "name": "Giant Wolf Spider",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Two feet high and five feet long, hiding in trees or deep jungle burrows. Not poisonous. Exalted p.316-317.",
     "attributes": {
       "strength": 3,
@@ -2762,7 +2820,9 @@
   {
     "id": "adv.beast_great_cat",
     "name": "Great Cat",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Superb hunters, up to five feet at the shoulder. Difficult to train, but they can be domesticated. Exalted p.316-317.",
     "attributes": {
       "strength": 6,
@@ -2835,7 +2895,9 @@
   {
     "id": "adv.beast_horse",
     "name": "Horse",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). The riding animal of mortal society, with many subspecies bred for purity, speed and loyalty. Exalted p.316-317.",
     "attributes": {
       "strength": 4,
@@ -2896,7 +2958,9 @@
   {
     "id": "adv.beast_horse_war",
     "name": "Horse (War)",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Exalted p.316-317.",
     "attributes": {
       "strength": 6,
@@ -2958,7 +3022,9 @@
   {
     "id": "adv.beast_hybroc",
     "name": "Hybroc",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). A scaled bird with a 50-75 foot wingspan, able to carry off a horse. Hybrocs are control rating 5 to ride; attempts to domesticate them have failed so far. Exalted p.316-317.",
     "attributes": {
       "strength": 12,
@@ -3024,7 +3090,9 @@
   {
     "id": "adv.beast_ichneumon_hunter",
     "name": "Ichneumon Hunter",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). A giant wasp a metre long, whose ovipositor deposits eggs into a host. Emerging larvae inflict one level of lethal damage per day, no soak allowed; the larvae may be killed through herbal remedies. Exalted p.316-317.",
     "attributes": {
       "strength": 1,
@@ -3072,7 +3140,9 @@
   {
     "id": "adv.beast_mammoth",
     "name": "Mammoth",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Fourteen feet at the shoulder. Guild caravans use mammoths for transport; hunters seek them for meat and ivory. Exalted p.316-317.",
     "attributes": {
       "strength": 14,
@@ -3136,7 +3206,9 @@
   {
     "id": "adv.beast_mospid",
     "name": "Mospid",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). A small scaled bird favoured by nobility as a sport hunter, capable of quick, tight aerial manoeuvres. Exalted p.316-317.",
     "attributes": {
       "strength": 2,
@@ -3190,7 +3262,9 @@
   {
     "id": "adv.beast_omen_dogs",
     "name": "Omen Dogs",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Exalted p.316-317.",
     "attributes": {
       "strength": 5,
@@ -3248,7 +3322,9 @@
   {
     "id": "adv.beast_raiton",
     "name": "Raiton",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Printed as \"Athletic 3\" in the table; read as Athletics. Exalted p.316-317.",
     "attributes": {
       "strength": 2,
@@ -3307,7 +3383,9 @@
   {
     "id": "adv.beast_river_dragon",
     "name": "River Dragon",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Exalted p.316-317.",
     "attributes": {
       "strength": 14,
@@ -3372,7 +3450,9 @@
   {
     "id": "adv.beast_sand_swimmers",
     "name": "Sand Swimmers",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). No Dodge/Soak figures are printed for this row. Exalted p.316-317.",
     "attributes": {
       "strength": 3,
@@ -3422,7 +3502,9 @@
   {
     "id": "adv.beast_siaka",
     "name": "Siaka",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Exalted p.316-317.",
     "attributes": {
       "strength": 12,
@@ -3491,7 +3573,9 @@
   {
     "id": "adv.beast_strix",
     "name": "Strix",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Exalted p.316-317.",
     "attributes": {
       "strength": 8,
@@ -3556,7 +3640,9 @@
   {
     "id": "adv.beast_squid",
     "name": "Squid",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Exalted p.316-317.",
     "attributes": {
       "strength": 10,
@@ -3618,7 +3704,9 @@
   {
     "id": "adv.beast_tyrant_lizard",
     "name": "Tyrant Lizard",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). Exalted p.316-317.",
     "attributes": {
       "strength": 14,
@@ -3672,7 +3760,9 @@
   {
     "id": "adv.beast_yeddim",
     "name": "Yeddim",
-    "category": "Beast",
+    "categories": [
+      "Beast"
+    ],
     "notes": "Unless otherwise stated, beasts have Intelligence 1, Perception 2 and Wits 3, and their Attack value is used for both attacks and parries (Exalted p.317). A giant pack mammal; Guild caravans use them to draw their Conestogas. Its Trample attack has no printed statistics — see the attack's own note. Exalted p.316-317.",
     "attributes": {
       "strength": 14,
@@ -3718,7 +3808,9 @@
   {
     "id": "adv.dynasty_noble",
     "name": "Dynasty Noble",
-    "category": "Exalt",
+    "categories": [
+      "Exalt"
+    ],
     "caste": "Wood",
     "nature": "Hedonist",
     "notes": "A Dragon-Blooded lord of the Realm's vice trade — a Dynast who has fallen far from the warrior ideal and rules through money, blackmail and favours. Attack: Charms only. Relies on a retinue of guards equivalent to elite troops. Terrestrial Exalted are never extras. Exalted p.306-307.",
@@ -3839,7 +3931,9 @@
   {
     "id": "adv.ambitious_young_officer",
     "name": "Ambitious Young Officer",
-    "category": "Exalt",
+    "categories": [
+      "Exalt"
+    ],
     "caste": "Fire",
     "nature": "Architect",
     "notes": "The book's own words: \"could be any ambitious young Dragon-Blooded warrior. Such foes typically travel in groups of two to six, usually leading detachments of elite troops. Terrestrial Exalted are never extras.\" Carries a jade reaver daiklave. Wears articulated plate with a target shield. Exalted p.307-308.",
@@ -4016,7 +4110,9 @@
   {
     "id": "adv.bronze_faction_functionary",
     "name": "Bronze Faction Functionary",
-    "category": "Exalt",
+    "categories": [
+      "Exalt"
+    ],
     "caste": "Favored of Saturn",
     "nature": "Bravo",
     "notes": "A Sidereal agent of the Bronze Faction: assassin and executioner first, administrator second, charged with observing events, manipulating local politics and carrying out the Solar Purge. Fights in the most efficient fashion available and prefers to slay her targets in single combat, but puts her mission first. Exalted p.311-312.",
@@ -4208,7 +4304,9 @@
   {
     "id": "adv.deathknight",
     "name": "Deathknight",
-    "category": "Exalt",
+    "categories": [
+      "Exalt"
+    ],
     "caste": "Day",
     "nature": "Thrillseeker",
     "notes": "An Abyssal Exalted in a Deathlord's service, sent to study the cities of the living and report on their weaknesses. A Melee specialist. Printed soak is 7L/10B from a reinforced buff jacket (5L/6B, -2 mobility penalty), but he always has the Abyssal equivalent of Front-Line Warrior's Stamina active and so suffers NO mobility penalty and no fatigue from his armour — which is why the armour is recorded as natural soak here and the dodge pool is left unreduced. Exalted p.314-315.",
@@ -4395,7 +4493,9 @@
   {
     "id": "adv.mountain_folk_hruggha",
     "name": "Hruggha",
-    "category": "Darkbrood",
+    "categories": [
+      "Darkbrood"
+    ],
     "notes": "Hruggha are squat, filthy Darkbrood raiders of the deep Demesnes, attacking in swarms and taking prisoners back to their spawning pits to infect. Their foul stone and crystal weapons add 2 to the difficulty of resisting infection. (CH6 pp.284-285)",
     "base_initiative": 4,
     "combat_pool": 3,
@@ -4419,7 +4519,9 @@
   {
     "id": "adv.mountain_folk_cephalid",
     "name": "Cephalid",
-    "category": "Darkbrood",
+    "categories": [
+      "Darkbrood"
+    ],
     "notes": "Cephalids are the elite Darkbrood warriors of the deep warrens — fast, inky-skinned horrors with a deadly bite and grasping tentacles. The second attack block is their awakened/defensive mode. (CH6 pp.286-288)",
     "base_initiative": 10,
     "combat_pool": 8,
@@ -4447,7 +4549,9 @@
   {
     "id": "adv.mountain_folk_vodak",
     "name": "Vodak",
-    "category": "Labyrinthine",
+    "categories": [
+      "Labyrinthine"
+    ],
     "notes": "The Vodak is a Labyrinthine horror, a colossal shapeless mass of protean flesh with pseudopods that crush for 30L. It has a body of 200 -0 health levels and no dodge pool. (CH6 pp.289-292)",
     "base_initiative": 6,
     "combat_pool": 0,

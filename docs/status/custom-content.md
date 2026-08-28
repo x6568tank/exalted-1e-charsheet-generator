@@ -4,6 +4,10 @@
 the reasoning behind each decision are in `docs/plans/custom-content.md`; this file
 is the map of what exists.
 
+⚠ **One ruling in this file was REVERSED on 2026-08-27** — "no authoring form was
+needed" for gear (the 2026-08-13 section). The reversal, and why, is at the bottom
+under **"Gear joined the Custom tab"**. Read that before citing the older line.
+
 A Storyteller can author their own Charms, styles and spells in the built app, keep
 them across characters, and hand a character to another player without the recipient
 losing them.
@@ -17,9 +21,10 @@ losing them.
 | Library paths, read/write, id rules, embed/absorb | `exalted_builder/custom_content.py` |
 | Merging the library over the book data | `rules_db._load_custom_layer`, `load_app_ruleset`, `reload_custom_layer` |
 | The authoring page | `exalted_builder/ui/custom.py` (route `/custom`, and the builder's **Custom** tab) |
+| The NATIVE authoring page | `exalted_builder/qt/custom.py` (the Qt shell's **Custom** tab) |
 | Form ⇄ payload shuffling, the library list | `ui/view.py` — the `custom_*` presenters and `CustomRow` |
 | What a character carries | `Character.custom_definitions` |
-| Tests | `tests/test_custom_content.py` (pure), `tests/test_custom_ui.py` (render) |
+| Tests | `tests/test_custom_content.py` (pure), `tests/test_custom_ui.py` (render), `tests/test_qt_custom.py` (native) |
 
 Library location (`custom_content.custom_data_dir`): `$EXALTED_CUSTOM_DIR`, else
 `custom/` beside the saves — next to the executable in a packaged build. Gitignored.
@@ -124,3 +129,173 @@ the SAME layer, with the same three contracts: **the book always wins an id coll
 * ⚠ **`ArmorType.weight` is required and a character's armour row has none**, so a saved
   armour defaults to Light and the notify SAYS SO. Nothing in the engine reads armour
   weight today; the player edits the file if it matters.
+
+
+## The Qt Custom tab — 2026-08-27
+
+`qt/custom.py`, the last rail placeholder in the port. Human-clicked the day it shipped.
+The settled collection layout: toolbar (New · Delete… · JSON… · Import…) · a sub-tab per
+kind · a sortable table · a splitter with the authoring form in the detail pane.
+
+⚠ **The webapp's third column became a toolbar DIALOG, not a nested tab.**
+`ui/custom.py` puts library / form / JSON side by side; the collection layout has one
+detail pane, and JSON in-and-out is an *action* on the row rather than a property of it.
+
+⚠ **This is the ONE collection whose detail pane is not a projection of a selected row.**
+It also holds an UNSAVED new row, because the form is where authoring happens. So
+`_fill_tables` must never fall back to selecting row 0 — every other collection does
+exactly that, and here it would throw away a half-written Charm on every rebuild.
+`_editing == ""` is the new-row state. There is a test, negative-controlled.
+
+⚠ **`reload()` is deliberately NOT called in the constructor.** This is the one tab whose
+refresh reads the FILESYSTEM, and the shell builds all nine pages up front — calling it
+there re-scans the user's homebrew library on every window and in all 300-odd Qt tests.
+The shell calls `reload()` when the tab is shown. Also negative-controlled.
+
+## Gear joined the Custom tab — 2026-08-27
+
+**Two changes, and the second REVERSES a ruling.**
+
+### 1. The list (a gap): gear was WRITE-ONLY
+
+`library_gear` had **exactly one caller** — the loader — and there was **no
+`delete_gear` at all**. So a row saved through "Save to my library" could be neither
+seen nor removed except by hand-editing `custom/weapons.json`. Charms and spells had
+list + edit + delete; gear had none of it. A third **Gear** sub-tab now lists all four
+catalogues with a **Kind** column (they are one concept on screen — things you own — so
+they share a list rather than splitting into four more sub-tabs).
+
+⚠ **The gear delete warning is a DIFFERENT sentence from the Charm one, and a test pins
+that they differ.** Deleting a library Charm orphans an id on every sheet that owns it;
+deleting library gear orphans nothing, because saves carry inline COPIES of gear
+(decision 0007). Reusing the Charm warning would frighten the user about something that
+cannot happen.
+
+### 2. The form (a REVERSAL): gear is authorable here now
+
+⚠ **This reverses "No authoring form was needed: you tweak an item on a character and
+click once" (2026-08-13, above).** The human reopened it on 2026-08-27. The reason:
+the old flow made you **give a character an item in order to invent one** — Buy →
+"Custom weapon" → a blank row on somebody's sheet → edit → save → delete the row you
+never wanted.
+
+**BOTH entry points stay** (the human's call). The Gear-tab button is retroactive ("I
+tweaked this and want to keep it"); the Custom form is deliberate ("I want to design
+one"). They cannot drift: both write through `custom_content.save_gear_row`.
+
+The form is GENERATED from the models — `view.CUSTOM_GEAR_FIELDS` is a spec per kind and
+`view.custom_gear_form` reads defaults straight off `WeaponType` / `ArmorType` /
+`GearType` / `ArtifactType`. ⚠ Those models are **frozen** and shared with the book data,
+so there is no instance to `setattr` down the way `qt/gear.py`'s owned-row editors do:
+it is a flat dict validated on save, the Charm form's pattern.
+
+**Three fields are deliberately absent from every form:**
+
+* `id` — follows the name on first save, frozen after (characters reference it).
+* `tags` — the loader stamps `custom` itself, and `["shield"]` on an `ArmorType` is the
+  only other meaningful one. Rare enough for the JSON pane.
+* ⚠ `requires_merit` (ArtifactType) — **decision 0011: no module outside
+  `engine/merits.py` may name a Merit id**, and a Merit dropdown would put one in UI
+  code. A test greps for exactly that.
+
+⚠ **`source` is not uniform and was NOT made uniform.** `GearType` carries a `Source`
+model, `ArtifactType` a bare string, and `WeaponType`/`ArmorType` have no source field at
+all. Inventing one for the two that lack it writes a key the model rejects.
+
+**What the form fixed on the way:**
+
+* ⚠ **`ArmorType.weight` is REQUIRED** and the Gear-tab path cannot know it — a
+  character's armour row carries no weight, so that path defaults to Light and
+  apologises in its notify. The form asks.
+* ⚠ **`GearType.kind` decides whether a thing is ownable at all.** `view.shop_rows`
+  filters out anything that is not `"goods"`, so a row saved as a service silently never
+  appears in Buy. The dropdown now says so in words.
+* ⚠ **Required-with-no-default fields.** `soak_lethal` / `soak_bashing` have no default,
+  so dropping them as "empty" makes the row unloadable; `ArtifactType.rating` is `ge=1`,
+  so zero is not a legal blank either. `view._GEAR_REQUIRED` holds both the field list
+  and what a blank form starts them at. There is a test that saves a blank form of all
+  four kinds.
+* `mobility_penalty` gets a signed box (floor −20): it is stored NEGATIVE, and a
+  0-floored field makes a penalty impossible to enter.
+
+Import stays disabled on the Gear sub-tab: `parse_rows` yields bare rows and a gear row
+does not name WHICH of the four catalogues it belongs to. `New`'s Kind picker is what
+supplies that, and it freezes once the row is saved.
+
+## The bug underneath both — `reload_custom_layer` skipped gear
+
+⚠ **`rules_db.reload_custom_layer` re-merged Charms and spells and silently skipped the
+four gear catalogues, while `load_ruleset` merged them from the start.** So a library
+weapon reached Buy only after an app **RESTART** — which is exactly what the save notify
+said out loud: *"It will appear in Buy the next time the app loads its rules."* That
+sentence was accurate, and had been for two weeks.
+
+It was invisible because `library_gear` had one caller. **Building the list is what
+exposed it**: the new Detail column fell back to the bare name instead of a stat line,
+because the row was not in the catalogue. Fixed in `reload_custom_layer` (drop
+`"custom"`-tagged rows, then re-merge), both gear pages now re-merge on save, and **the
+two stale notify strings went with the fix** — that prose *was* the blocker's
+description.
+
+Two tests in `test_custom_content.py` pin both halves: a saved row appears, and a
+deleted one goes. ⚠ A reload that only ADDS leaves a deleted row in the catalogue
+forever, which is the shape that makes a delete look like it failed.
+
+## Rituals joined the library — 2026-08-28
+
+**A third id-referenced kind, and the first to arrive with its predecessors' lessons
+already written down.** The chapter prints five thaumaturgic rituals and says outright
+that more should be written (p.148), so the catalogue is a seed — the same argument gear
+was given a day earlier. `custom/rituals.json`, `custom_content.{library,save,delete}_ritual`,
+merged into `RuleSet.thaum_rituals` by `_load_custom_layer`, flagged with a new
+`ThaumaturgicRitual.custom` field (a *field*, not a tag — unlike gear, this model is
+ours and not shared with a frozen catalogue shape).
+
+⚠ **A ritual now has TWO custom shapes and they are not interchangeable.**
+
+| | Library row | Inline entry |
+|---|---|---|
+| What | `ThaumaturgicRitual` in the RuleSet | `RitualEntry` with `ritual_id == ""` |
+| Where authored | Custom tab → Rituals | the Thaumaturgy picker's "Add ritual" row |
+| Who can learn it | every character, by id, priced by level | the one character it was written on |
+| Travels | inside `custom_definitions["rituals"]` | it *is* the save |
+
+**Both entry points stay** (the human's ruling, 2026-08-28 — the same answer gear got the
+day before, for the same reason: one is deliberate design, the other is "I need a ritual
+mid-session").
+
+### Three things the predecessors taught, applied without being re-learned
+
+* **The reload path, not just the load path.** `reload_custom_layer` purges
+  `custom`-flagged rituals before re-merging. The test for it was written first and
+  caught the omission immediately — this is gear's bug, and it did try to happen again.
+* **A write path needs a read path.** The library list, the form, and Delete all shipped
+  in the same change as the saver; gear was write-only for two weeks because they did not.
+* **It travels.** A library ritual is referenced BY ID, so `collect/embed/absorb_definitions`
+  carry it exactly as they carry a Charm — `referenced_ritual_ids` is the walker. ⚠ Gear
+  is exempt from that layer and rituals are NOT, and the difference is decision 0007: a
+  save carries an inline copy of a weapon, and only an *id* for a ritual.
+
+### `view.CUSTOM_KINDS` — one table, both shells
+
+The two Custom pages each carried a `charm if kind == "charm" else spell` ternary at a
+dozen sites. That shape treats "not a Charm" as a spell, so a third kind was a dozen
+chances to be silently wrong. `view.CUSTOM_KINDS` is now the single table (form, payload,
+saver, deleter, library reader, RuleSet attribute) and both shells index it; a missing key
+raises where the ternary guessed. ⚠ **Gear is deliberately not in it** — its four
+catalogues need a second key, and every `if kind == "gear"` branch in a shell is that
+difference.
+
+### A webapp bug the first tab-switching test found
+
+⚠ **`ui/custom.py::_switch_kind` repainted the FORM and not the LIBRARY.** The list
+filters on the active kind at render time, so switching to Spells kept the Charm rows —
+under a heading that said "YOUR SPELLS". Every test until now had authored and read
+within one kind. `library.refresh()` is the fix, and the ritual render test is its guard.
+
+### Qt: address a sub-tab by NAME
+
+`CustomPage.show_kind(kind)` exists because the tests reached for `tabs.setCurrentIndex(2)`
+and Rituals went in at index 2. Three tests pointed at the wrong kind and stayed green
+until an assertion happened to disagree. **The one-line lesson the project already had,
+in its own file.**

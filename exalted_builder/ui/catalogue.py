@@ -34,34 +34,14 @@ from . import view as viewmod
 # character; the dialog is pre-pick and character-independent).
 # --------------------------------------------------------------------------- #
 
-def catalog_weapon_summary(wt: WeaponType) -> str:
-    """One-line stat summary for a catalogue weapon — the SAME line the equipment row
-    shows, minus the material tag (that needs a wielder; the dialog is pre-pick)."""
-    return viewmod.weapon_stat_line(wt)
-
-
-def catalog_armor_summary(at: ArmorType) -> str:
-    """One-line stat summary for a catalogue armour — see `catalog_weapon_summary`."""
-    return viewmod.armor_stat_line(at)
-
-
-# Core p.325 prices gear in Resources dots rather than money, so the dialog says what a
-# row would COST this character before she picks it. Presentation only: the three cases
-# come from `validate.gear_affordability`, which owns the rule.
-_AFFORDABILITY_NOTE = {
-    "easy": "within your means",
-    "serious": "a serious expense (buying it drops Resources by 1)",
-    "unaffordable": "beyond your Resources",
-}
-
-
-def gear_cost_note(resources_cost: int, affordability: str) -> str:
-    """The Resources clause appended to a gear row's summary, e.g.
-    "Resources ●●● — beyond your Resources". Empty for gear with no printed cost."""
-    if not resources_cost or not affordability:
-        return ""
-    return (f"Resources {'●' * resources_cost}"
-            f" — {_AFFORDABILITY_NOTE.get(affordability, '')}".rstrip(" —"))
+# ⚠ These three moved to `view.py` on 2026-08-21 and are RE-EXPORTED here, because the
+# Qt shell needs them and must not import this module — `ui/catalogue.py` imports
+# nicegui, and "nothing outside ui/ imports nicegui" is the invariant the whole port
+# rests on. Callers and tests keep working; the definitions live in one place.
+catalog_weapon_summary = viewmod.catalog_weapon_summary
+catalog_armor_summary = viewmod.catalog_armor_summary
+gear_cost_note = viewmod.gear_cost_note
+_AFFORDABILITY_NOTE = viewmod._AFFORDABILITY_NOTE
 
 
 # --------------------------------------------------------------------------- #

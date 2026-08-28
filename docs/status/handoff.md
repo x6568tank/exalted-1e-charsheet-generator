@@ -1,144 +1,163 @@
-# Session handoff — 2026-08-20 (the comment pass finished, and the `ui/` audit)
+# Session handoff — 2026-08-28 (the dark document surfaces, then a shell-parity sweep)
 
 # 👉 YOU ARE HERE
 
-**GREEN — 2,455 passed, 1 skipped, 1 warning** (this machine, 2026-08-20).
+Last FULL green suite: **3,065 passed, 1 skipped** (main PC, `qt-port`, 7m26s), run after
+the last code change. The tree is clean and nothing is half-finished.
 
-```
-.venv/bin/python -m pytest -q     # expect: 2,455 passed, 1 skipped, 1 warning
-```
+Three things since the Party window: the app is **packaged as a native binary**
+(`dist/ExaltedBuilderQt`, commit 728365c — the spec, the traps and the silent-windowed-
+crash defect it surfaced are all in that commit message and `pack/BUILD.md`); the **two
+document surfaces went dark**, the last piece of theme drift in the port; and a
+**shell-parity sweep** closed four holes and grew a new custom-library kind.
 
-**State: one commit (`ea0df0e`) pushed; a second batch of prose edits is UNCOMMITTED in
-the working tree** — 17 source files plus `tests/test_merits_flaws.py`. See "What is
-uncommitted" below before you commit or discard.
+## 👉 NEXT: still the Party window click-through
 
-⚠ The 1 SKIP is conditional and healthy:
-`test_buy_merit_prices_the_tier_against_the_characters_own_menu` skips when no tier
-exists that is generic-but-not-Solar. A guard against a bug shape, not a disabled test.
+**It remains the only owed work**, unchanged from the last handoff except that its first
+finding is fixed. Scope it to what only a real display can answer:
 
-⚠ **The 71-entry M&F deferral WARNING is expected** and is not a failure — the
-Godblooded chapter markdown is not present on this machine. CLAUDE.md says neither
-outcome of `test_every_description_matches_the_source_text` is a regression. **Not
-something to fix.**
+1. **Open the Party window from the builder toolbar, add the open character, click a
+   health box, then go back and spend XP in the builder.** The card must redraw.
+2. **"Builder" on a card, edit something, come back.** One builder, retargeted, same
+   object. Does that read right in use, with two windows open?
+3. **The Adversaries tab as a COLLECTION rather than cards** — add a template, duplicate
+   it twice, damage one. Does the Damage column carry what the card stack used to?
+4. **Close the builder.** The party window must go with it.
 
-## What happened: the comment pass now covers the whole build
+Add two glances now, both rendered offscreen and looked at but not used: **the Sheet tab
+and the Reference tab**, dark for the first time; and **the Thaumaturgy → Rituals tab**,
+which grew an authoring row, an Add-version button and a "Known in:" line — plus the
+**Custom tab's Rituals sub-tab** beside it.
 
-The 2026-08-17 standard (docstring = input, output, mechanism; page citations and ⚠
-traps stay; narration goes to the commit log) has been applied to everything. Last
-session did `engine/validate/`; this session did the rest.
+⚠ **The binary is built from a working tree, and `dist/` is gitignored** — the one on
+disk is from 2026-08-27 and does NOT have any of this session's work in it. Rebuild
+before showing the app to anyone from the binary.
 
-| Area | Prose lines | Share |
-|---|---|---|
-| `models/` | 2,622 | 61.7% → 61.3% |
-| `engine/` outside validate | 2,492 | 38.2% → 38.0% |
-| `ui/` | ~3,650 | 24.8% |
+## The release workflow now ships the native app — 2026-08-28
 
-⚠ **Judge it by what the prose IS, not by line count** — the percentages barely moved,
-which is the same outcome validate's 35%→34% had and is correct. Most of what came out
-was narration with a live trap buried in it, and the trap came back as an explicit ⚠.
+⚠ **It did not, and a tag would have looked fine.** `.github/workflows/release.yml`
+built one product per OS (`pack/exalted-builder.spec`), so `v1.1` would have published
+two green assets, no failures, and **no native app on the page at all** — the Qt spec
+had shipped in the packaging commit and nothing in CI referenced it. The matrix is now
+2 OSes x 2 products, extras per row (`[desktop]` vs `[desktop,qt]` — PySide6 is ~650 MB
+and the webapp build excludes it), one tag shipping all four (the human's call).
+**A build that is not in the matrix does not exist to a tag.** `pack/BUILD.md`.
 
-`tools/prose_guard.py` is the method and it earned itself twice more: it caught a
-dropped `PG pp.120-122` citation in `models/rules.py`, and it flagged every file where a
-string literal changed (see below) instead of letting them pass as prose.
+⚠ **NOT yet exercised.** No tag has been cut and no `workflow_dispatch` run has been
+made since the change — the YAML parses and every spec, extra and binary path in it was
+checked against the tree, which is not the same as a green runner. **Dispatch it by hand
+before tagging**: that path uploads the artifacts and skips the release step, so a
+broken row cannot leave a half-populated public release behind.
 
-## The `ui/` audit — the part worth reading
+## What shipped this session — part two: the shell-parity sweep
 
-`ui/` was first swept by grepping for dated narration markers. That was **not enough**,
-and the line-by-line audit afterwards is where the real findings were. The dangerous
-class is **prose that is calmly wrong in the present tense** — it reads exactly like
-correct prose and no marker sweep sees it.
+Asked whether either shell was missing anything the other had, and answered
+mechanically: every public `ui/view.py` name and every public `engine/` function, scored
+by which shell references it. **Four real holes, three of them ours.** Method, findings
+and the method's blind spot: `docs/plans/qt-port.md`'s last section.
 
-### Five user-facing strings pointed players at a tab that does not exist
+⚠ **It took THREE passes on three different axes, and every axis found more.**
+Names-by-shell found three; handler-functions-per-tab-pair found three more; and printed
+page citations per tab pair — a probe aimed squarely at what the first two declared they
+could not see — found the seventh. **The first six are in ONE panel** (the Thaumaturgy
+picker, where the port compressed a four-column page into a tree, three lists and one
+detail pane), which is a real finding about where a port loses controls; **the seventh is
+the correction to it**, and sat on the Traits tab.
 
-Decision 0013 deleted the XP tab. Fourteen references survived it; nine were comments,
-**five were on-screen text**:
+⚠ **A mortal at the human Essence ceiling was told nothing** — PG p.114's "mortals that
+exceed Essence 3 become gods", printed beside the webapp's track since Mortals shipped
+and absent from Qt's, where the dots just stopped at 3. Display only; the cap was always
+enforced. ⚠ Its negative control named a SOLAR first and passed against the defect — a
+Solar has no `essence_cap_override` at all, so deleting the splat check changed nothing.
+The real subject is **God-Blooded** (printed cap 1, so Essence Mastery raises it to 3
+exactly as for a mortal). `docs/status/mortals.md`.
 
-| Where | Said | Truth |
-|---|---|---|
-| `storyteller.py` | "Use Unlock on the XP tab" | Unlock is on the **top bar** |
-| `play.py` | shed permanent Resonance "on the XP tab" | the **Edit** tab |
-| `combos.py`, `picker.py` ×3 | "Undo a purchase on the XP tab" | Edit tab's **Experience card** |
+⚠ **Open, and NOT ours to invent: a God-Blooded stopped at that same raised cap gets no
+explanation in either shell.** No printed clause covers it and writing one would be
+authoring from memory. The human's call, not a gap to close.
 
-### `picker.py` claimed Cytoscape loads from a CDN
+**Six Qt Thaumaturgy holes, all fixed** (`docs/status/thaumaturgy.md`): owned regional
+orientations were never shown; a SECOND regional version was unbuyable, because the combo
+vanished once a row was owned and `add_thaum_orientation` had no Qt caller; and no custom
+ritual could be written at all; an aspect could not be bought NARROWED (p.127, Summoning
+alone, half price and recorded on the sheet); a specialty of your own could not be written
+(p.126 invites them in as many words); and a Science could not be stepped back DOWN, so a
+chargen mis-click was unfixable without editing the save. Fixing them turned up three more
+that no list had —
+`_refresh_thaum_selection` left the detail panel stale (always wrong, invisible until a
+line in it moved on a purchase); the Qt combo defaulted to **North** where the webapp has
+always defaulted to **Realm**; and — in the WEBAPP — ticking "narrow" halved what was
+charged while the button went on printing the full price. `ThaumSpecialtyRow.narrowed_price`
+is the second number, computed in `view.py` from `engine.costs` and read by both shells.
 
-> "Cytoscape is loaded from a CDN, so the browser needs network access."
+**Rituals became a custom-library kind, on both shells** — the human's call when the
+webapp-only hole came up: `custom/rituals.json`, authored on the Custom tab's new Rituals
+sub-tab, merged into `ruleset.thaum_rituals`, bought by id like a printed ritual.
+⚠ **Both entry points stay**, so a ritual now has two custom shapes that are not
+interchangeable — a library row, and an inline `RitualEntry` for one character. The table
+that tells them apart is in `docs/status/custom-content.md`; read it before touching
+either.
 
-It is **vendored** — `ui/vendor/cytoscape.min.js` (373 KB), inlined by
-`ui/assets.py`, whose own docstring says "no CDN dependency" so the packaged build works
-offline. The two files contradicted each other outright, and the user-facing failure
-message blamed the network too. Both corrected. ⚠ **Never reintroduce a CDN here.**
+Three things that fell out, each a lesson the project already had:
 
-### Thirteen stale counts, all checked against live data
+* ⚠ **`ui/custom.py::_switch_kind` repainted the form and not the LIBRARY** — the Spells
+  tab listed Charms, under a heading that said "YOUR SPELLS". Every test until now
+  authored and read within one kind.
+* ⚠ **`reload_custom_layer` needed the ritual purge**, exactly as it had needed the gear
+  one. The test was written first and caught it the same hour.
+* ⚠ **A library ritual TRAVELS** (`custom_definitions["rituals"]`), because it is
+  referenced by id. Gear does not, because a save carries an inline copy — decision 0007
+  is the whole difference.
 
-Mostly rotted when the 1.0 catalogue sweep grew the data underneath them:
+**The webapp's Custom page gained the gear half** it never had, which was the one thing
+Qt had and it did not.
 
-`222 artifacts → 330` · `twenty dual-catalogue names → 31` · `1,470 Charms → 1,861` ·
-`52 health-cost Charms → 54` · `36 of 78 Mountain Folk → 50 of 94` · `56 Arcanoi → 127` ·
-`six ghost paths → 14` · `19 Gifts → 22` · `79 of 80 spirit Charms → 89 of 90` ·
-`99 M&F → 170` · `56 of 122 gear rows → 68 of 140` · `46 of 232 untiered MA Charms → 6` ·
-`eight of 19 untiered styles → 0 of 21`
+## What shipped this session — part one
 
-⚠ Each was replaced with **the invariant it was illustrating**, not a fresh number.
-They rotted once and would rot again. Do not re-add inventory counts to prose.
+**The document surfaces are dark on screen and paper in print.** The Sheet tab and the
+Party window's Reference tab were the only light surfaces left, and tabbing into a white
+page from the dark shell is a flashbang; the Reference tab had the treatment only because
+it copied the Sheet tab's one-line stylesheet. `qt/sheet.py::SheetColors` is now a frozen
+colour set with two constructors — `print_colors` (unchanged greys) and `screen_colors`
+(the dark base, accent lightened as every widget's is) — and every HTML helper takes the
+set rather than a bare accent. **One document, two palettes**, which is what keeps the
+print path honest: `sheet_html(view)` still defaults to paper.
 
-### Two smaller classes
+Three traps, all written up in `docs/plans/qt-port.md`'s last section:
 
-* **An orphaned comment.** `play.py` carried the two-column layout note above
-  `def tracker()`, 180 lines from the row it describes (an accurate copy already sat in
-  the right place). Found by sweeping for near-duplicate comment blocks; it was the only
-  one in the package.
-* **Stale forward-looking references.** "the picker is the next slice" (shipped as
-  `ui/picker.py`), "arrive here in P3" (already there), "Phase 2 has not reached the
-  eighteen styles" (**one** remains, deliberately), "Phase 5 owns the rest",
-  "(later phase)" for Half-Caste Charm access (implemented).
+* ⚠ **`ink` and `paper` are the two colours the HTML does not carry** — a QTextBrowser
+  takes its page shade from the WIDGET stylesheet, and the shell QSS hands every
+  QTextBrowser the card shade. The ancestor-stylesheet trap in its fourth disguise.
+* ⚠ **A document's colours are baked into its HTML**, so `qtheme.apply` does not reach
+  them; `ReferencePage.apply_colors` re-renders and `PartyWindow.apply_chrome` calls it.
+* ⚠ **`test_print_pdf_writes_a_real_file` had been ABORTING the interpreter** whenever
+  its file was run alone — laying a document out for the printer hits QFontDatabase with
+  no QApplication, which is a C-level abort, not a failure. It looked exactly like a Qt
+  font regression on the machine. It takes `qapp` now.
 
-### What the audit ruled OUT
+The guard is a RENDER, next to the other invisible-QSS tests:
+`test_no_document_surface_is_a_white_page_on_the_dark_app` measures each page's mean
+brightness and fails above 120/255. **Negative-controlled on both halves** — restoring
+either surface's `#fffdf7` fails it.
 
-* Every backticked identifier in `ui/` prose resolves — no stale renames.
-* No other duplicated or orphaned comment blocks.
-* `view.py`'s note that "every style in the catalogue now has a tier, so there is no real
-  subject left to point a render test at" is **accurate** — a negative control correctly
-  documented as having gone subject-less.
+## Not clicked, not blocking
 
-## ⚠ I broke two tests and fixed them — read this
+Group 4's five per-splat **Charm surfaces** and the POST-lock half of the variant chooser;
+each was rendered offscreen and each has test coverage. ⚠ `ui/picker.py::variant_menu_detail`
+— the WEBAPP's variant panel — has still never been rendered at all.
 
-`test_advantages_tab_offers_merit_gain_and_loss_in_play` and
-`test_play_tracker_shows_the_shortened_renamed_resonance_track` pinned the exact
-on-screen strings corrected above. I updated both assertions to the corrected text; the
-tests' subject (that the readout says where undo lives; that permanent Resonance is
-read-only on the tracker) is unchanged.
+## A webapp bug found and deliberately NOT fixed
 
-**The process failure is worth more than the fix:** I checked for pinned strings first,
-piped the grep through `head`, and reported "no test pins these strings" on truncated
-output. The two `should_see` lines were below the cut. **Never conclude an absence from
-a truncated search.**
+⚠ **`ui/gm.py`'s card ignores `PlayView.single_pool`**, so a merged-pool character's card
+draws a Personal box at a permanent 0/0 (p.41). The Qt card honours it. Still its own
+one-line change in a surface nobody asked to touch.
 
-## What is uncommitted
+## No open rules questions
 
-17 source files + `tests/test_merits_flaws.py`. Verified three ways:
-
-* `prose_guard.py` clean on every file (code byte-identical, no citation or ⚠ lost);
-* the five files it flags as CODE CHANGED were proven, by AST comparison with all string
-  constants normalised, to differ **only in string literals** — the user-facing text above;
-* full suite green.
-
-The one earlier structural change — deleting `_BackgroundBudgetTierMoved`, a dead
-grep-marker class in `models/rules.py` — is already in `ea0df0e`.
-
-## Corrected: the martial-arts absences are ONE, not three
-
-`docs/status/handoff.md` used to say the deferred absences were `snake`,
-`hungry-ghost` and `enlightenment`. **`snake` and `hungry-ghost` have authored styles**;
-only `martial_arts:enlightenment` has none, and it is the Dragon-Path initiation tree
-rather than a style. CLAUDE.md:290 was already correct ("21 of 22 authored") — this file
-was the one that drifted.
-
-## Known remainder (small, and yours to take or leave)
-
-Two stale counts survive in **test comments** (not assertions, so nothing fails):
-`tests/test_merits_flaws.py:3348,3376` say "99 entries" and `tests/test_ghost.py:199`
-says "the 56 Arcanoi". Same class as the thirteen above; left alone because the audit's
-scope was `ui/`.
+Nothing here introduced a rules interpretation. The three printed rules the new
+controls encode — Occult ≥ the ritual's level (p.148), a flat point per extra regional
+version (p.124), and "the chapter prints five and expects more" (p.148) — were all
+already in the engine and are carried, not invented.
 
 ## Still deferred, still NOT gaps
 

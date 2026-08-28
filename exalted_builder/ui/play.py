@@ -23,7 +23,7 @@ from nicegui import ui
 from .. import persistence, rules_db
 # `merits` is imported for its LIMIT_MAX constant only. Reading a constant is not
 # branching on a Merit id, which is what decision 0011 forbids.
-from ..engine import derive, merits
+from ..engine import derive, merits, play as engineplay
 from ..models.character import Character, Damage, PlayState
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import theme
@@ -33,8 +33,6 @@ _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
 _EXAMPLE = _PKG.parent / "examples" / "ashes-of-dawn.character.json"
 
-# The cycle a health box steps through on each click: empty → / → x → * → empty.
-_MARK_CYCLE: list[Damage | None] = [None, Damage.BASHING, Damage.LETHAL, Damage.AGGRAVATED]
 # Filled boxes are gold; the damage type is read from the symbol, tinted per type.
 _GOLD = "#c9a227"
 _WHITE = "#ffffff"
@@ -55,47 +53,19 @@ _MARK_COLOR = {
 # nothing here knows which page it is drawing on, and none of it is game logic.
 # --------------------------------------------------------------------------- #
 
-def play_state(character: Character) -> PlayState:
-    """The character's play-state, created on first edit so a never-played
-    character keeps a clean save until the tracker is actually used."""
-    if character.play is None:
-        character.play = PlayState()
-    return character.play
-
-
-def normalize_health(character: Character, n: int) -> list[Damage | None]:
-    """Pad/trim the stored marks to the current health-track length (Ox-Body or a
-    curse bought later changes the box count). Returns the live list."""
-    h = play_state(character).health
-    if len(h) < n:
-        h += [None] * (n - len(h))
-    elif len(h) > n:
-        del h[n:]
-    return h
-
-
-def cycle_mark(character: Character, i: int, n: int) -> None:
-    """Step health box `i` to the next mark: empty → / → x → * → empty."""
-    h = normalize_health(character, n)
-    h[i] = _MARK_CYCLE[(_MARK_CYCLE.index(h[i]) + 1) % len(_MARK_CYCLE)]
-
-
-def set_motes(character: Character, field: str, value, cap: int) -> None:
-    """Set a motes-spent field, clamped to 0..cap."""
-    setattr(play_state(character), field, max(0, min(cap, int(value or 0))))
-
-
-def set_fatigue(character: Character, value) -> None:
-    """Set the accumulated armour-fatigue points (p.332). No upper clamp: the rule
-    prints no maximum, and the penalty keeps accruing on every failed roll."""
-    play_state(character).fatigue = max(0, int(value or 0))
-
-
-def set_count(character: Character, field: str, clicked: int, cap: int) -> None:
-    """Dot-track click: clicking the top filled box clears it, else fill up to it."""
-    cur = getattr(play_state(character), field)
-    setattr(play_state(character), field,
-            max(0, min(cap, clicked - 1 if clicked == cur else clicked)))
+# ⚠ The mutators moved to `engine/play.py` on 2026-08-22 and are RE-EXPORTED here: two
+# shells drive them now, and `ui/gm.py` imports several by name off this module. The
+# engine copy carries decision 0006's isolation rule.
+play_state = engineplay.play_state
+normalize_health = engineplay.normalize_health
+cycle_mark = engineplay.cycle_mark
+set_motes = engineplay.set_motes
+set_fatigue = engineplay.set_fatigue
+set_count = engineplay.set_count
+_MARK_CYCLE = engineplay.MARK_CYCLE
+# ⚠ Also re-exported: `worst_penalty` moved to `view.py` (it only ever read a PlayView)
+# and `ui/gm.py` reaches it through this module by name.
+worst_penalty = viewmod.worst_penalty
 
 
 # Boxes are clickable <div>s (not q-btns) so the white/gold background applies
@@ -121,18 +91,6 @@ def count_box(character: Character, i: int, filled: bool, field: str, cap: int,
     box.style(f"width:1.5rem;height:1.5rem;border-radius:4px;border:1px solid {_BORDER};"
               f"background:{_GOLD if filled else _WHITE};")
     box.on("click", lambda: (set_count(character, field, i + 1, cap), on_change()))
-
-
-def worst_penalty(pv: "viewmod.PlayView", marks: list) -> str:
-    """The label of the deepest marked health box — a convenience read of the marks
-    (it does not enforce fill order). 'none' when undamaged."""
-    deepest = None
-    for box, mark in zip(pv.health_boxes, marks):
-        if mark is not None:
-            deepest = box
-    if deepest is None:
-        return "none"
-    return "Incapacitated" if deepest.incapacitated else deepest.label
 
 
 def new_pool_state(ruleset: RuleSet) -> dict:
@@ -353,15 +311,11 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
 
     # ---- mutations -------------------------------------------------------- #
     def clear_damage() -> None:
-        play_state(character).health = []
+        engineplay.clear_damage(character)
         body.refresh()
 
     def clear_motes() -> None:
-        # Motes only — Willpower, health, and Limit recover on their own terms (ST
-        # discretion), so the tracker does not bulk-reset them.
-        p = play_state(character)
-        p.motes_personal_spent = 0
-        p.motes_peripheral_spent = 0
+        engineplay.clear_motes(character)
         body.refresh()
         ui.notify("Motes spent cleared.", type="positive")
 

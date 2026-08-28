@@ -33,49 +33,21 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..models.character import Character, HouseRules
+from ..engine.house_rule_actions import house_rules, set_rule
+from ..models.character import Character
 from ..models.rules import RuleSet
 from . import theme
 from . import view as viewmod
+
+# Re-exported: the writes moved to `engine.house_rule_actions` when the native shell
+# needed them (it must not import nicegui to set a toggle). Callers keep the old path.
+__all__ = ["house_rules", "set_rule", "build_storyteller", "load", "main"]
 
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
 _EXAMPLE = _PKG.parent / "examples" / "ashes-of-dawn.character.json"
 
-_SCOPE_LABEL = {
-    "table": ("Table-wide", "Applies to the whole game — every character at this "
-                            "table should have it set the same way."),
-    "character": ("This character", "A permission granted to this one character."),
-}
-
-
-def house_rules(character: Character) -> HouseRules:
-    """The character's HouseRules, created on first edit so a character whose table
-    uses no optional rules keeps a clean save."""
-    if character.house_rules is None:
-        character.house_rules = HouseRules()
-    return character.house_rules
-
-
-def set_rule(character: Character, field: str,
-             value: bool | str | int | None) -> None:
-    """Set one house rule. Pure state; the caller refreshes. Guarded against unknown
-    field names so a renamed field fails loudly here rather than silently writing an
-    attribute nothing reads.
-
-    The stored type varies by control: a checkbox sends a bool, the M&F-method select
-    sends the option's stored string (NOT bool(value) — that would turn "backgrounds"
-    into True), and the Inheritance-rating select sends an option key ("per-character"
-    or "1".."5") that lands on the model as None or an int."""
-    if field not in HouseRules.model_fields:
-        raise KeyError(f"{field!r} is not a HouseRules field")
-    target = house_rules(character)
-    if field == "mf_change_method":
-        setattr(target, field, value)
-    elif field == "godblooded_inheritance_rating":
-        setattr(target, field, None if value == "per-character" else int(value))
-    else:
-        setattr(target, field, bool(value))
+_SCOPE_LABEL = viewmod.HOUSE_RULE_SCOPES
 
 
 def build_storyteller(ruleset: RuleSet, character: Character, save_path: Path,

@@ -455,6 +455,13 @@ class Charm(BaseModel):
     # purchase grants 2 Gifts, every purchase after grants 1.
     variant_picks_first_purchase: int = 1
     variant_picks_per_purchase: int = 1
+    # Each variant may be taken AT MOST ONCE, so the purchase cap is additionally
+    # bounded by how many variants there are. Environmental Hazard-Resisting
+    # Meditation (Caste Book: Zenith p.72-73) prints exactly this — "until she has
+    # purchased all four versions", alongside the separate Resistance-dots cap — and
+    # is the only Charm with it today. False for Ox-Body, whose whole point is taking
+    # the same health-level package again.
+    variants_unique: bool = False
     # AND-of-ORs: the character must satisfy every inner group; a group is
     # satisfied if ANY of its ids is known. A flat list of single-id groups is
     # the common "all of these required" case.
@@ -1076,6 +1083,11 @@ class ThaumaturgicRitual(BaseModel):
     resources: str = ""                     # display, e.g. "Resources 2" for components
     description: str = ""
     source: Source = Field(default_factory=Source)
+    # Stamped by the loader on a row that came from the user's library, exactly as
+    # `Charm.custom` and `Spell.custom` are. ⚠ Rituals are the ONE catalogue with a
+    # second custom shape beside this one: a ritual authored for a single character
+    # is an inline `RitualEntry` with no `ritual_id`, and never becomes a row here.
+    custom: bool = False
 
 
 class ThaumaturgicFormula(BaseModel):

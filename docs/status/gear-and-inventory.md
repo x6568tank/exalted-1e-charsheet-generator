@@ -185,6 +185,68 @@ a source-level guard, since CSS is invisible to the harness.
   a row carries `artifact_rating` and the budget counts it either way. A test probing
   with "Grand Daiklave" asserted nothing; use the Dragon Tear Tiara.
 
+## The rules left this file's widget on 2026-08-21 (the Qt port, milestone 4)
+
+`engine/gear_actions.py` now owns every mutation the tab makes, and `ui/view.py` every
+line of text it prints. `ui/gear.py` is 947 → 650 lines of layout. The reason is the
+port — two shells drive these edits now — but the split is the one decision 0002 asks
+for regardless. What moved:
+
+| To | What |
+|---|---|
+| `engine/gear_actions.py` | `add_row`/`remove_row`/`remove_artifact`, `set_weapon`/`set_armor`, `grant_gear`, `add_artifact`/`set_artifact`, `acquisition_for`, `buy` (the shop key dispatch), `library_payload`/`reserved_ids` |
+| `ui/view.py` | `artifacts_header` + `artifacts_bought_note` + `artifacts_also_counted`, `inventory_heading`/`inventory_filter_label`/`inventory_row_tags`, `shop_rows` + `ShopRow` + `shop_custom_kinds`, `service_rows`, and `catalog_weapon_summary`/`catalog_armor_summary`/`gear_cost_note` lifted out of `ui/catalogue.py` (which re-exports them) |
+
+⚠ The `ui/catalogue.py` → `view.py` lift is not tidying. `qt/` must never import
+`ui/catalogue.py` because it imports nicegui, and "nothing outside `ui/` imports nicegui"
+is the invariant the whole port rests on.
+
+### ⚠ The bug the extraction found — `from_artifact`'s sibling
+
+`set_weapon`/`set_armor` REPLACE the row with a catalogue copy, so anything not in the
+copy is lost. The hand-written carry-across list held `from_artifact` — because the
+comment three lines above it warned about exactly that — and **never knew `acquired`
+existed**. `artifacts.budgeted_items` reads `acquired`, so re-picking a cash-bought
+artifact weapon's own name from its own dropdown turned it back into a Background-funded
+one and charged the p.131 budget for something Resources had paid for:
+
+```
+budgeted before re-pick: []
+budgeted after  re-pick: ['Daiklave']
+```
+
+The fix is **not** "add `acquired` to the list". `_owned_fields` is the complement of
+`_catalogue_stats`, both derived from the two pydantic models, so the fields a copy
+leaves out cannot be the fields nobody thought of. **When code copies one model into
+another field by field, derive the field set from the models.**
+
+Both halves are tested in `tests/test_gear_actions.py`, armour included — ⚠ the armour
+half of this merge went untested once before, because every test written for it had used
+a weapon.
+
+### The same defect had two more routes, found by checking rather than by report
+
+`acquired` is the artifact's ACQUISITION CHANNEL (decision 0017), and three separate
+places could lose it. All three are closed:
+
+1. **The catalogue re-pick** — above.
+2. **`grant_gear` did not copy it onto the stat line it created.** Invisible while the
+   pair is linked, because `artifact_items` merges them and reads the ARTIFACT's channel.
+   It surfaces when the link breaks: deleting an artifact deliberately leaves its stat
+   line behind, and an orphan defaulting to `background` charged the budget for something
+   Resources or a Merit had paid for. The granted row now inherits the channel — the stat
+   line IS that artifact, so it was acquired the same way.
+3. **Switching the channel after the grant** left the stat line on the old one, since
+   granting copies it once. `gear_actions.set_acquired` is now the only way either shell
+   writes the field, and it re-stamps every row linked to that artifact.
+
+⚠ **The negative control matters more than the fixes here.** A change that made every
+orphan uncharged would pass (2) and (3) and silently break the documented ruling that a
+genuinely Background-funded orphan **is** still charged — "visible rather than free".
+`test_a_background_funded_orphan_is_still_charged` is that control, and
+`test_the_merged_pair_is_unaffected_by_the_channel_stamp` guards the common case the
+whole merge exists for.
+
 ## Open questions for the human
 
 None outstanding. The three rulings this work needed — services as reference, no sell

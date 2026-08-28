@@ -20,7 +20,8 @@ from typing import Optional
 from ..models.character import (
     Array, ArtSpecialty, BeastmanGiftPurchase, Character, CollegeRating, Combo, CraftRating,
     FetterEntry, FormulaEntry, MeritFlawPurchase, OxBodyPurchase, PassionEntry, PathRating,
-    RitualEntry, ScienceRating, Specialty, SubmodulePurchase, ThaumaturgyState, XpEntry)
+    RitualEntry, ScienceRating, Specialty, SubmodulePurchase, ThaumaturgyState,
+    VariantPurchase, XpEntry)
 from ..models.rules import AbilityName, AttributeName, Orientation, RuleSet, VirtueName
 from . import costs, derive, elder, merits, paths, validate
 
@@ -1162,6 +1163,47 @@ def learn_gift(ruleset: RuleSet, character: Character, gift_keys: list[str]) -> 
     return entry
 
 
+def learn_variant_purchase(ruleset: RuleSet, character: Character,
+                           charm_id: str, variant_keys: list[str]) -> XpEntry:
+    """Buy one more purchase of a generic variant-menu Charm post-lock (Environmental
+    Hazard-Resisting Meditation, Zenith p.72-73). Priced as a normal new Charm.
+
+    Gated by the Charm's min essence, its purchase cap, and — when it marks its
+    variants unique — the versions already taken."""
+    _ensure_locked(character)
+    charm = ruleset.charms.get(charm_id)
+    if charm is None:
+        raise AdvancementError(f"Unknown Charm {charm_id!r}.")
+    if not validate.is_variant_menu_charm(ruleset, character, charm):
+        raise AdvancementError(f"{charm.name} is not a variant-menu Charm.")
+    if character.essence_rating < charm.min_essence:
+        raise AdvancementError(f"{charm.name} requires Essence {charm.min_essence}.")
+    held = validate.variant_purchases_for(character, charm_id)
+    cap = validate.variant_purchase_cap(ruleset, character, charm)
+    if len(held) >= cap:
+        raise AdvancementError(
+            f"{charm.name}: already bought {cap} times — its maximum.")
+    expected = validate.gifts_per_purchase(charm, len(held))
+    if len(variant_keys) != expected:
+        raise AdvancementError(
+            f"This purchase of {charm.name} grants {expected} version(s); "
+            f"{len(variant_keys)} were chosen.")
+    by_key = {v.key: v for v in charm.variants}
+    known = validate.known_variant_keys(character, charm_id)
+    for key in variant_keys:
+        if key not in by_key:
+            raise AdvancementError(f"Unknown version {key!r}.")
+        if charm.variants_unique and key in known:
+            raise AdvancementError(
+                f"{by_key[key].label} has already been taken.")
+    cost = costs.variant_purchase_cost(ruleset, character, charm)
+    entry = _commit(character, "variant_purchases",
+                    f"{charm_id}:{'|'.join(variant_keys)}", None, None, cost)
+    character.variant_purchases.append(
+        VariantPurchase(charm_id=charm_id, variants=list(variant_keys)))
+    return entry
+
+
 def add_specialty(ruleset: RuleSet, character: Character, ability: AbilityName,
                   name: str) -> XpEntry:
     """Buy one specialty. Always worth 1 — a specialty is not a rated trait.
@@ -1516,6 +1558,15 @@ def undo_last(ruleset: RuleSet, character: Character) -> XpEntry:
             if "|".join(character.beastman_gifts[i].gifts) == entry.detail:
                 del character.beastman_gifts[i]
                 break
+    elif domain == "variant_purchases":
+        # detail is "<charm_id>:<key|key>"; a charm id holds no colon, so partition
+        # from the left. LIFO: drop the most recent purchase that matches exactly.
+        cid, _, keys = entry.detail.partition(":")
+        for i in range(len(character.variant_purchases) - 1, -1, -1):
+            vp = character.variant_purchases[i]
+            if vp.charm_id == cid and "|".join(vp.variants) == keys:
+                del character.variant_purchases[i]
+                break
     elif domain == "submodules":
         for i in range(len(character.submodules) - 1, -1, -1):
             s = character.submodules[i]
@@ -1646,6 +1697,9 @@ def _expected_cost(ruleset: RuleSet, character: Character, entry: XpEntry) -> in
         return costs.martial_arts_charm_cost(ruleset, character)
     if domain == "beastman_gifts":
         return costs.gift_cost(ruleset, character)
+    if domain == "variant_purchases":
+        cid, _, _keys = entry.detail.partition(":")
+        return costs.variant_purchase_cost(ruleset, character, ruleset.charms.get(cid))
     if domain == "submodules":
         cid, _, k = entry.detail.partition(":")
         definition = validate.submodule_def(ruleset, cid, k)
@@ -1909,6 +1963,35 @@ def gain_flaw(ruleset: RuleSet, character: Character, merit_id: str,
                           points=points,
                           taken_as=taken_as if definition.kind == "either" else ""))
     return entry
+
+
+def gain_merit_or_flaw(ruleset: RuleSet, character: Character, merit_id: str,
+                       *, tier: str = "", detail: str = "", arena: str = "",
+                       taken_as: str = "", points: int = 0) -> XpEntry:
+    """Take on one catalogue entry in play, whichever side of the transaction it is.
+
+    Input: the entry's id plus whatever the row records (tier, points, detail, arena,
+    and `taken_as` for a two-sided entry). Output: the `XpEntry` `buy_merit` or
+    `gain_flaw` logged. Mechanism: the ENTRY decides the direction — a Flaw pays the
+    character, a Merit charges her — so the side is read off the definition and only a
+    `kind: "either"` entry consults `taken_as`.
+
+    ⚠ Every shell needs this branch, and it is a rules decision, not layout: which of
+    the two engine calls runs is what makes the XP positive or negative. Both refusals
+    (no entry, and a two-sided entry with no side picked) are raised here so no widget
+    has to restate them."""
+    definition = ruleset.merits_flaws.get(merit_id)
+    if definition is None:
+        raise AdvancementError("Pick a Merit or Flaw first.")
+    side = definition.kind
+    if side == "either":
+        side = taken_as
+        if side not in ("merit", "flaw"):
+            raise AdvancementError(
+                f"{definition.name} is a Merit OR a Flaw — pick which side.")
+    call = gain_flaw if side == "flaw" else buy_merit
+    return call(ruleset, character, merit_id, tier=tier, detail=detail, arena=arena,
+                taken_as=taken_as, points=points)
 
 
 def drop_merit(ruleset: RuleSet, character: Character, index: int) -> XpEntry | None:

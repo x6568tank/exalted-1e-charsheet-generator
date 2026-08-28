@@ -17,11 +17,12 @@ MAIN = "tests/_ui_main.py"
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
-async def test_page_renders_with_both_tabs(user: User) -> None:
+async def test_page_renders_with_every_kind_tab(user: User) -> None:
     await user.open('/custom-content')
     await user.should_see("Custom content")
     await user.should_see("Charms")
     await user.should_see("Spells")
+    await user.should_see("Rituals")
 
 
 @pytest.mark.asyncio
@@ -90,3 +91,24 @@ async def test_the_sheet_badges_custom_content_and_flags_a_missing_row(user: Use
     await user.should_see("✎")                     # homebrew marker
     await user.should_see("custom.gone-missing")   # the dead spell id, still shown
     await user.should_see("⚠")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_ritual_library_lists_and_forms(user: User) -> None:
+    """The Rituals kind (2026-08-28). ⚠ Its fields are TEXT, not numbers — a ritual
+    prints no stat block, so a cost reads "1 mote or one Willpower" (p.148-150).
+
+    ⚠ This is also the guard for the LIBRARY refresh on a kind switch. The list
+    filters on the active kind at render time and `_switch_kind` repainted only the
+    form, so the column kept the previous kind's rows — seeing the ritual here is
+    what proves the left column moved with the tab."""
+    from nicegui import ui as _ui
+
+    await user.open('/custom-content')
+    tabs = next(e for e in user.client.elements.values() if isinstance(e, _ui.tabs))
+    tabs.set_value("ritual")
+    await user.should_see("Salt Road Whisper")
+    await user.should_see("Level")
+    await user.should_see("Roll")
+    await user.should_see("Resources")

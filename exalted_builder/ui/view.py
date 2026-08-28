@@ -13,7 +13,7 @@ imports NO UI toolkit, so it is unit-testable on its own and the NiceGUI layer
 from __future__ import annotations
 
 from dataclasses import dataclass, field, field as dc_field
-from typing import Optional, Sequence
+from typing import Callable, Optional, Sequence
 
 from .. import custom_content
 from ..engine import (advancement, adversaries as advmod,
@@ -21,9 +21,10 @@ from ..engine import (advancement, adversaries as advmod,
                       merits as meritsmod, paths as engine_paths, validate)
 from ..models.adversary import Adversary
 from ..models.character import Armor, Character, HouseRules, Weapon, XpEntry
-from ..models.rules import (DAMAGE_LABELS, AbilityName, AttributeName, BackgroundType,
-                            CharmCost, Damage, PoolKind, RuleSet, SpellCircle,
-                            TRACK_CIRCLES, VirtueName, circle_kind)
+from ..models.rules import (DAMAGE_LABELS, AbilityName, ArmorType, ArmorWeight,
+                            ArtifactType, AttributeName, BackgroundType, CharmCost,
+                            Damage, GearType, PoolKind, RuleSet, SpellCircle,
+                            TRACK_CIRCLES, VirtueName, WeaponType, circle_kind)
 
 
 @dataclass
@@ -314,6 +315,257 @@ def inventory_counts(rows: list[InventoryRow]) -> dict[str, int]:
     see that a tab is empty before clicking it. Sums to MORE than the row count when
     anything overlaps, which is correct and is why the filters are not a partition."""
     return {k: len(filter_inventory(rows, k)) for k in INVENTORY_FILTERS}
+
+
+def inventory_filter_label(kind: str, count: int) -> str:
+    """One filter chip's caption. `"all"` is spelled "Everything" — a chip reading
+    "All (6)" beside a heading reading "Inventory (6)" says the same thing twice."""
+    return ("Everything" if kind == "all" else kind.capitalize()) + f" ({count})"
+
+
+def inventory_heading(rows: list[InventoryRow], counts: dict[str, int],
+                      active: str) -> str:
+    """The inventory panel's title, naming the ACTIVE filter as well as the total.
+
+    ⚠ EVERY state names its filter, including "all". Without it the only evidence of a
+    filter click is rows disappearing, which reads as loss rather than as a view — and a
+    heading reading "Inventory (6)" when unfiltered is a strict PREFIX of the filtered
+    one, so nothing matching on it, a test or a player's glance, can tell the two apart.
+    """
+    shown = "Everything" if active == "all" else active.capitalize()
+    return f"Inventory ({len(rows)}) · showing {shown} ({counts.get(active, 0)})"
+
+
+def inventory_row_tags(row: InventoryRow) -> list[str]:
+    """The little kind chips beside one inventory row.
+
+    Weapon/armour/ammunition are dropped — the stat line beside them already says which
+    it is, so the chip is noise.
+
+    ⚠ A plot device has NO rating to print. Its dots are a placeholder the model's 1-5
+    bound demands and its page prints "(ARTIFACT N/A)"; showing "Artifact •••••" here
+    would be the one place in the build that states the fiction as a fact.
+    """
+    tags = []
+    for kind in row.kinds:
+        if kind in ("weapon", "armor", "ammunition"):
+            continue
+        if kind != "artifact":
+            tags.append(kind.capitalize())
+        elif row.acquired == artifactsmod.ACQUIRED_LEGENDARY:
+            tags.append("Artifact N/A · by Merit")
+        else:
+            tags.append("Artifact " + "•" * row.artifact_rating
+                        + (" · bought" if row.acquired == artifactsmod.ACQUIRED_PURCHASED
+                           else ""))
+    return tags
+
+
+# --------------------------------------------------------------------------- #
+# The artifacts budget header
+# --------------------------------------------------------------------------- #
+
+def artifacts_header(ruleset: RuleSet, character: Character) -> str:
+    """The artifacts panel's title, stating the budget rule and where this character
+    stands against it.
+
+    ⚠ It counts the BUDGET's items, not everything owned: a purchased artifact is
+    charged to nothing, so counting it here would print a number the validator does not
+    agree with — the header and the rule must tell the same story. What is left out is
+    said out loud by `artifacts_bought_note`.
+    """
+    items = artifactsmod.budgeted_items(character)
+    rule = artifactsmod.artifact_rule(validate.effective_budgets(ruleset, character))
+    rating = sum(bg.rating for bg in character.backgrounds
+                 if bg.name.strip().lower() == artifactsmod.ARTIFACT_BACKGROUND)
+    if artifactsmod.uses_corebook_rule(rule):
+        # The corebook rule (ruling 2026-08-13) governs most splats, and until it was
+        # enforced this header said the bare word "Artifacts" — so the first a player
+        # heard of the one-artifact limit was a validation error after they had picked
+        # two. The line states the rule whether or not they are over it.
+        #
+        # ONE PER ROW: a character may hold the Artifact Background more than once, and
+        # two Artifact •• rows are two artifacts (`validate.background_rows`). The
+        # header counts ROWS, not their sum — printing "/1" beside two rows is what made
+        # the browser read the validator's error as arbitrary.
+        rows = sorted((r for r in validate.background_rows(
+            character.backgrounds, artifactsmod.ARTIFACT_BACKGROUND) if r > 0),
+            reverse=True)
+        if not rows:
+            return f"Artifacts ({len(items)} — no Artifact Background)"
+        allowance = " + ".join(f"up to {r}" for r in rows)
+        return (f"Artifacts ({len(items)}/{len(rows)} — Artifact "
+                f"{'+'.join(str(r) for r in rows)}, {allowance})")
+    if rule is not None and rule.budget_tiers:
+        tier = artifactsmod.budget_tier(
+            validate.effective_budgets(ruleset, character), rating)
+        combined = sum(i.rating for i in items)
+        if tier is None:
+            return f"Artifacts ({combined} combined — no Artifact Background)"
+        # The row name is optional — the Cult of the Illuminated's table (p.96) prints
+        # bare dot rows where the Abyssal's names each one, and a blank left a trailing
+        # comma inside the parenthesis.
+        named = f", {tier.name}" if tier.name else ""
+        return (f"Artifacts ({combined}/{tier.combined_max} combined — "
+                f"Artifact {rating}{named})")
+    return "Artifacts"
+
+
+def artifacts_bought_note(character: Character) -> str:
+    """The cash-bought artifacts the header above deliberately does not count, or "".
+
+    Said out loud, because the alternative is a header whose count is lower than the
+    visible list for no stated reason.
+    """
+    bought = artifactsmod.purchased_items(character)
+    if not bought:
+        return ""
+    return (f"+ {len(bought)} bought with Resources, not charged to the Background")
+
+
+def artifacts_also_counted(character: Character) -> str:
+    """The artifact weapons and armour that count against the same budget but are
+    edited as equipment, or "". Listed so the combined total above is accounted for
+    rather than looking wrong."""
+    gear = [i for i in artifactsmod.artifact_items(character)
+            if i.source != artifactsmod.SOURCE_ARTIFACT]
+    if not gear:
+        return ""
+    return ("Also counted, from equipment: "
+            + ", ".join(f"{i.name} ({i.rating})" for i in gear))
+
+
+# --------------------------------------------------------------------------- #
+# The Buy shop — one priced list over four catalogues
+# --------------------------------------------------------------------------- #
+
+def catalog_weapon_summary(weapon_type) -> str:
+    """One-line stat summary for a catalogue weapon — the SAME line the equipment row
+    shows, minus the material tag (that needs a wielder; the dialog is pre-pick)."""
+    return weapon_stat_line(weapon_type)
+
+
+def catalog_armor_summary(armor_type) -> str:
+    """One-line stat summary for a catalogue armour — see `catalog_weapon_summary`."""
+    return armor_stat_line(armor_type)
+
+
+# Core p.325 prices gear in Resources dots rather than money, so the shop says what a
+# row would COST this character before she picks it. Presentation only: the three cases
+# come from `validate.gear_affordability`, which owns the rule.
+_AFFORDABILITY_NOTE = {
+    "easy": "within your means",
+    "serious": "a serious expense (buying it drops Resources by 1)",
+    "unaffordable": "beyond your Resources",
+}
+
+
+def gear_cost_note(resources_cost: int, affordability: str) -> str:
+    """The Resources clause appended to a gear row's summary, e.g.
+    "Resources ●●● — beyond your Resources". Empty for gear with no printed cost."""
+    if not resources_cost or not affordability:
+        return ""
+    return (f"Resources {'●' * resources_cost}"
+            f" — {_AFFORDABILITY_NOTE.get(affordability, '')}".rstrip(" —"))
+
+
+@dataclass(frozen=True)
+class ShopRow:
+    """One buyable thing, as the Buy dialog shows it.
+
+    ⚠ `key` carries the KIND (`weapon:` / `armor:` / `goods:` / `artifact:`) so one
+    dialog can append to four differently typed lists — `engine.gear_actions.buy` reads
+    it back. `group` is the filter chip and is the bare kind word: folding the rating
+    into it ("Artifact •••") would make one chip per rating.
+
+    `tags` rides along rather than an icon, because the two shells draw from different
+    icon sets. Whether a row is dimmed comes from `affordability`, not from a flag —
+    the shop states a price, it never refuses a purchase (core p.325).
+    """
+    key: str
+    name: str
+    group: str
+    summary: str
+    full: Optional[str]
+    tags: tuple[str, ...]
+    affordability: str
+
+
+def shop_rows(ruleset: RuleSet, character: Character) -> list[ShopRow]:
+    """Everything a book prices for this character, plus their own library.
+
+    ⚠ Services are NEVER offered — they are a reference price list, not inventory
+    (human's ruling 2026-08-13), and the ruling holds at the OFFER, not just in the data.
+
+    ⚠ Artifacts appear only POST-LOCK (decision 0017): the Artifact Background is the
+    pre-game channel ("to start the game owning", core p.342) and cash is the in-play
+    one. A shop that offered them at chargen would be the hole that decision closes.
+    """
+    rows: list[ShopRow] = []
+
+    def add(key, name, group, cost, summary, full=None, tags=()):
+        afford = validate.gear_affordability(ruleset, character, cost)
+        note = gear_cost_note(cost, afford)
+        bits = [group] + [x for x in (summary, note) if x]
+        # Your own library rows sit in the same list as the books', because that is the
+        # point of a library — but they say which they are. The loader tags them
+        # (`rules_db._merge_custom_gear`); nothing here decides it.
+        if "custom" in tags:
+            bits.insert(0, "★ yours")
+        rows.append(ShopRow(key=key, name=name, group=group, summary=" · ".join(bits),
+                            full=full, tags=tuple(tags), affordability=afford))
+
+    for w in sorted(ruleset.weapon_catalog.values(), key=lambda x: x.name):
+        add(f"weapon:{w.name}", w.name, "Weapon", w.resources_cost,
+            catalog_weapon_summary(w), tags=w.tags)
+    for a in sorted(ruleset.armor_catalog.values(), key=lambda x: x.name):
+        add(f"armor:{a.name}", a.name, "Armour", a.resources_cost,
+            catalog_armor_summary(a), tags=a.tags)
+    for g in sorted(ruleset.gear_catalog.values(), key=lambda x: x.name):
+        if g.kind != "goods":
+            continue
+        add(f"goods:{g.id}", g.name, "Goods", g.resources_cost, g.category,
+            g.notes or None, tags=g.tags)
+    if character.chargen_locked:
+        for art in sorted(artifactsmod.purchasable_with_artifact(
+                ruleset.artifact_catalog), key=lambda x: x.name):
+            if not art.resources_cost:
+                continue
+            add(f"artifact:{art.name}", art.name, "Artifact", art.resources_cost,
+                "•" * art.rating, art.description, tags=art.tags)
+    return rows
+
+
+def shop_custom_kinds(character: Character) -> dict[str, str]:
+    """The "Custom …" rows the shop offers, keyed by the list a blank row lands in.
+
+    Making a thing and buying a thing are ONE surface: these are what let the four
+    per-panel Add buttons be deleted, because a shop CAN know which list a blank row
+    belongs in once you say which kind you are making. Artifacts are absent at chargen
+    for the same reason they are absent from the shop above — decision 0017.
+    """
+    kinds = {"weapons": "Custom weapon", "armor": "Custom armour",
+             "gear": "Custom goods"}
+    if character.chargen_locked:
+        kinds["artifacts"] = "Custom artifact"
+    return kinds
+
+
+def service_rows(ruleset: RuleSet, character: Character) -> list[tuple]:
+    """The services price list, as `(category, name, dots, cash, notes, affordable)`
+    ordered by category then name.
+
+    ⚠ `GearType.cash` — the printed jade and silver equivalents — is the whole point of
+    this panel and its only read site. A name and a dot column alone is a PRICE list
+    showing no prices, which is the house bug; what makes a reference panel worth its
+    space is the information you cannot get anywhere else. Nothing computes from it:
+    M&C p.122 says outright the Resources ladder is not linear.
+    """
+    services = [g for g in ruleset.gear_catalog.values() if g.kind == "service"]
+    return [(g.category, g.name, g.resources_cost, g.cash, g.notes,
+             validate.gear_affordability(ruleset, character, g.resources_cost)
+             != "unaffordable")
+            for g in sorted(services, key=lambda g: (g.category, g.name))]
 
 
 def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) -> Optional[CharmDetail]:
@@ -711,6 +963,198 @@ def has_combos_tab(ruleset: RuleSet, character: Character) -> bool:
             or uses_arrays(ruleset, character))
 
 
+_TABS = ("Edit", "Gear", "Advantages", "Charms", "Combos", "Play", "ST",
+         "Custom", "Sheet")
+
+
+def visible_tabs(locked: bool, *, combos: bool = True) -> tuple[str, ...]:
+    """The tabs for a character at this stage of its life.
+
+    **Edit is on the bar on BOTH sides of the lock** (decision 0013), as are Charms,
+    Combos and Advantages. The dot tracks change MODE rather than being replaced: free
+    setters pre-lock, steppers that spend XP post-lock.
+
+    ⚠ There is no XP tab, and splitting one back out is how these traits come to be
+    implemented twice and disagree — a hardcoded trait ceiling on a separate XP surface
+    makes Legendary Attribute unbuyable there while chargen honours it. Everything an
+    XP tab would hold lives beside the thing it acts on: traits on the dot tracks, the
+    ledger and Adjust XP in Edit's sticky column, permanent Resonance and the
+    withheld-Charm note beside their traits, Crafts/Colleges/Specialties/equipment on
+    the panels that already exist here.
+
+    Play is locked-only. The tracker overlays spent motes, marked health and Willpower
+    onto capacities derived from the finished character, and every one of those moves
+    while chargen is still open — a half-built character's track is a set of boxes that
+    change under the player. It is also the tab most likely to mislead: play-state is
+    validation-isolated (decision 0006) and never enters chargen, so marks made before
+    the lock silently mean nothing to the point accounting.
+    """
+    hidden = {"Play"} if not locked else set()
+    # A splat that may never learn Combos and builds no Arrays either (ghosts, E:Ab
+    # p.234) loses the tab rather than being given an empty one that refuses every
+    # attempt. Asked of `view.has_combos_tab` by the caller, so the rule lives with
+    # the engine and this stays a pure function of two booleans.
+    if not combos:
+        hidden.add("Combos")
+    return tuple(t for t in _TABS if t not in hidden)
+
+
+def resolve_tab(name: str, locked: bool, *, combos: bool = True) -> str:
+    """`name`, or a sensible landing tab when locking/unlocking just hid it.
+
+    Edit survives the lock now, so it is the answer in both directions — a player who
+    locks while editing traits stays where they were, looking at the same dots, which
+    is the point of the merge.
+    """
+    if name in visible_tabs(locked, combos=combos):
+        return name
+    return "Edit"
+
+
+# Presentation-only: intra-splat chargen origins to offer per Exalt type, and their
+# display labels. The origin *value* drives ruleset.budgets_for (keyed "<exalt>" for
+# the first/default origin and "<exalt>:<origin>" for the rest); all the budget
+# numbers live in chargen_budgets.json — this map is just which choices to show.
+_SPLAT_ORIGINS: dict[str, dict[str, str]] = {
+    # A Solar trained by the Cult of the Illuminated has a different initiation
+    # entirely (p.89): 30 Abilities, 9 Backgrounds, 8 Charms, Essence 3, plus a
+    # training camp and a Calling. "standard" has no `Solar:standard` budget row, so
+    # it falls back to the plain "Solar" row — the same trick "dynastic" and "loyal"
+    # use below.
+    "Solar": {"standard": "Standard", "illuminated": "Cult of the Illuminated"},
+    # The Outcaste book adds four Dragon-Blooded origins on top of the core two. Each
+    # varies by UPBRINGING as well — see _ORIGIN_UPBRINGINGS below, which is the second
+    # dropdown; the origin decides Backgrounds/Charms/Virtues, the upbringing decides
+    # the Ability budget and its minimums.
+    "Dragon-Blooded": {
+        "dynastic": "Dynastic", "outcaste": "Outcaste",
+        "lookshy": "Lookshy (Seventh Legion)",
+        "forest-witch": "Forest Witch",
+        "lost-egg": "Lost Egg",
+        "pirate": "Pirate (Eos and Ossissa)",
+        # Cult p.96: a Dragon-Blooded trained by the Cult of the Illuminated is
+        # generated as a standard outcaste with four exceptions (30 Abilities, 7
+        # Backgrounds, the Cult's Backgrounds, and a training camp). Unlike the
+        # Solar Cult origin there is no Calling — the page never gives them one.
+        "illuminated": "Cult of the Illuminated",
+    },
+    # Abyssal Backgrounds depend on standing with the Deathlord: 13 dots for a loyal
+    # deathknight, 5 for a fugitive/renegade (p.122). First key is the default
+    # (plain "Abyssal" budget row); "fugitive" maps to "Abyssal:fugitive".
+    "Abyssal": {"loyal": "Loyal Deathknight", "fugitive": "Fugitive"},
+    # Unlike the above two, Lunar "casteless" is coupled to the Caste field itself,
+    # not independent of it (engine.validate.check_lunar_casteless_consistency) — the
+    # editor doesn't yet auto-sync the Caste dropdown when this is picked, so choosing
+    # "Casteless" here also requires setting Caste to Casteless, or validation flags it.
+    "Lunar": {"society": "Society (Silver Pact)", "casteless": "Casteless"},
+    # A ronin Sidereal evaded the Celestial Hierarchy entirely (p.100): 25 abilities,
+    # 7 backgrounds from a fixed list, 8 Charms with no Sidereal Martial Arts, no
+    # Colleges and no Ability minimums. Independent of the Caste field (a ronin still
+    # has a Caste), unlike Lunar's casteless.
+    "Sidereal": {"hierarchy": "Celestial Hierarchy", "ronin": "Ronin"},
+    # Core p.103 draws one line through the mortal rules: a heroic mortal gets 6/4/3
+    # Attributes and 22 Ability dots, an ordinary one 4/3/3 and 16. Everything else on
+    # the page (5 Backgrounds, no Charms, Essence 1, 21 bonus points) is shared, which
+    # is why this is an origin and not two splats. "heroic" is the default and so has
+    # no `Mortal:heroic` row — it falls back to the plain "Mortal" row, the same trick
+    # "dynastic" and "loyal" use above.
+    "Mortal": {"heroic": "Heroic Mortal", "ordinary": "Ordinary Mortal"},
+    # E:Ab p.126 and its "THE MUNDANE DEAD" sidebar: the heroic dead get 6/4/3
+    # Attributes, 22 Ability dots, six Arcanoi and 21 bonus points; the mundane dead
+    # 4/3/3, 16, two and 15. Everything else (Virtues, Essence 2, Fetters, the Essence
+    # pool) is shared, which is why this is an origin and not two splats — the same
+    # shape the mortal line above takes.
+    #
+    # Unlike every origin above it, "heroic" is NOT a bare default: ghosts also carry
+    # an UPBRINGING, and `_keyed_row` only consults the ":origin:upbringing" key when
+    # the origin is non-empty. See _ORIGIN_UPBRINGINGS.
+    "Ghost": {"heroic": "Heroic Dead", "mundane": "Mundane Dead"},
+    # The God-Blooded Half-Caste heritage (p.47): "learn the Charms of their parents",
+    # where the parent's Exalt type IS the origin. Only the Half-Caste heritage uses it —
+    # the origin select is gated on heritage_traits.charm_access_parent, so a Ghost-
+    # Blooded never sees these. The values are the Exalt type strings themselves, so
+    # validate.heritage_charm_access returns character.origin directly.
+    # The God-Blooded have no entry HERE — their origin is HERITAGE-keyed
+    # (`GodbloodedHeritage.origin_options`: the Half-Caste's five parents, the
+    # Fae-Blooded's Noble/Commoner), read by `_origin_options` from the data.
+    # The Dragon-Kings (PG p.159-160): two origins with different budgets, Path pools,
+    # Backgrounds and mandatory abilities. "modern" has no `Dragon-Kings:modern` budget
+    # row, so it falls back to the plain "Dragon-Kings" row — the dynastic trick.
+    "Dragon-Kings": {"modern": "Modern", "ancient": "Ancient"},
+    # The Mountain Folk (CH6 pp.230-231): Enlightenment is the origin axis, and it
+    # rewrites nearly every chargen number — 16/13/10 vs 8/4/3 Attributes, a two-pool
+    # Ability budget, per-caste Background dots, trait ceilings, Essence and
+    # Willpower caps. "enlightened" HAS a `Mountain-Folk:enlightened` row (unlike the
+    # dynastic trick above), so it is the default explicitly.
+    "Mountain-Folk": {"enlightened": "Enlightened", "unenlightened": "Unenlightened"},
+}
+
+# The second axis, keyed by "<exalt_type>:<origin>". Only origins that HAVE variants
+# appear here, and the first key of each is the origin's own default (it has no
+# ":<upbringing>" budget row, so it falls back to the origin row — the same trick the
+# origins above use against the splat row). The Outcaste book is the only source of
+# these so far; every other splat has no entry and so gets no second dropdown.
+_ORIGIN_UPBRINGINGS: dict[str, dict[str, str]] = {
+    # p.68: a Lookshy Terrestrial who was not raised there trades the 35 Ability dots
+    # and the Lookshy minimums for 25/10, but keeps the 13 Backgrounds and 6 Charms.
+    "Dragon-Blooded:lookshy": {
+        "": "Born in Lookshy", "foreign": "Raised elsewhere"},
+    # p.132: an ex-Dynast keeps the Realm schooling; other outcastes get 25 dots; one
+    # raised by Oreithyia also buys Virtues and Essence cheaper (p.133).
+    "Dragon-Blooded:forest-witch": {
+        "": "Ex-Dynast", "outcaste": "Outcaste", "oreithyia": "Raised by Oreithyia"},
+    # p.159: three Realm cases plus the Threshold, which is the only one that drops
+    # the Aspect/Favored minimum to 10.
+    "Dragon-Blooded:lost-egg": {
+        "": "Realm, lower-class birth",
+        "graduate": "Pasiap's Stair / Cloister of Wisdom",
+        "patrician": "Patrician-born",
+        "threshold": "Threshold outcaste"},
+    # p.96: Dynast or born outcaste; both need Sail.
+    "Dragon-Blooded:pirate": {"": "Dynast", "outcaste": "Born outcaste"},
+    # E:Ab p.126: where the ghost is FROM decides the Background pool — "Ghosts from
+    # areas that uphold the Immaculate Philosophy have five (5) dots to spend on
+    # Backgrounds, while those from areas with active ancestor worship have eight (8)",
+    # and an Immaculate-region ghost may not buy Ancestor Cult or Grave Goods above •.
+    # Independent of heroic/mundane, so both origins carry it.
+    "Ghost:heroic": {"": "Ancestor-worshipping region",
+                     "immaculate": "Immaculate-dominated region"},
+    "Ghost:mundane": {"": "Ancestor-worshipping region",
+                      "immaculate": "Immaculate-dominated region"},
+}
+
+
+def _heritage_uses_origin(ruleset: RuleSet, character) -> bool:
+    """Whether the character's heritage keys off the origin axis. Two God-Blooded
+    heritages do: the Half-Caste's parent Exalt type (p.47) and the Fae-Blooded's
+    Noble/Commoner (p.73-79). `GodbloodedHeritage.origin_options` is the single source
+    — the editor renders the Origin dropdown from it."""
+    cd = ruleset.castes.get(character.caste)
+    return bool(cd is not None and cd.heritage_traits is not None
+                and cd.heritage_traits.origin_options)
+
+
+def _origin_options(ruleset: RuleSet, character) -> dict[str, str]:
+    """The Origin dropdown options for this character: the splat's origins, EXCEPT
+    the God-Blooded, whose origin is their HERITAGE's own axis — the Half-Caste's
+    parent Exalt type, the Fae-Blooded's Noble/Commoner — and appears only for that
+    heritage (a Ghost-Blooded never sees a meaningless Solar origin). Every other
+    splat's origins are unconditional, so they render exactly as before."""
+    if character.exalt_type == "God-Blooded":
+        cd = ruleset.castes.get(character.caste)
+        opts = cd.heritage_traits.origin_options if (
+            cd is not None and cd.heritage_traits is not None) else []
+        return {o: o for o in opts} if opts else {}
+    return _SPLAT_ORIGINS.get(character.exalt_type, {})
+
+
+def upbringing_options(exalt_type: str, origin: str) -> dict[str, str]:
+    """The upbringing choices for this splat/origin, or {} when it has none (which is
+    every splat but the Outcaste-book Dragon-Blooded). The UI renders the second
+    dropdown only when this is non-empty, so no other splat grows a control."""
+    return _ORIGIN_UPBRINGINGS.get(f"{exalt_type}:{origin}", {})
+
+
 @dataclass
 class XpLogRow:
     index: int           # position in character.xp_log
@@ -763,6 +1207,15 @@ def _xp_entry_label(ruleset: RuleSet, character: Character, entry: XpEntry) -> s
         # advancement.learn_gift logs the purchase's Gift keys joined by '|'
         gifts = ", ".join(labels.get(k, k) for k in entry.detail.split("|") if k)
         return f"{charm.name if charm else 'Beastman Gifts'}: {gifts}"
+    if domain == "variant_purchases":
+        # detail is "<charm_id>:<key|key>" — advancement.learn_variant_purchase logs
+        # the Charm and the versions this purchase took.
+        cid, _, keys = entry.detail.partition(":")
+        charm = ruleset.charms.get(cid)
+        labels = {v.key: v.label for v in (charm.variants if charm else [])}
+        taken = ", ".join(labels.get(k, k) for k in keys.split("|") if k)
+        name = charm.name if charm else cid
+        return f"{name}: {taken}" if taken else f"Charm: {name}"
     # Thaumaturgy (Player's Guide CH3). Names are resolved from the catalogue where
     # there is one and fall back to the logged id, so a custom ritual — or a stale id
     # whose catalogue entry has since gone — still reads as itself rather than
@@ -891,6 +1344,12 @@ class ThaumSpecialtyRow:
     available: bool
     reason: str
     price: int
+    # What it would cost bought NARROWED — Summoning's option alone (p.127), where
+    # further limiting an aspect halves the price. ⚠ A separate field rather than
+    # re-pricing `price`, because narrowing is chosen at the moment of purchase and
+    # the shell has to be able to show BOTH numbers; and computed here rather than in
+    # a shell, because a price is `engine.costs`' answer, never a widget's.
+    narrowed_price: int = 0
 
 
 @dataclass
@@ -1039,7 +1498,8 @@ def build_elemental_power_picker(ruleset: RuleSet, character: Character) -> Elem
 
 
 def _thaum_specialty_rows(ruleset: RuleSet, character: Character, art,
-                          state, price: int) -> list[ThaumSpecialtyRow]:
+                          state, price: int,
+                          narrowed_price: int = 0) -> list[ThaumSpecialtyRow]:
     """Every printed aspect of `art`, then any player-invented specialty the
     character already holds in it. Held ones are matched case-insensitively against
     the printed list so a specialty typed as "ghosts" does not show up twice."""
@@ -1053,7 +1513,8 @@ def _thaum_specialty_rows(ruleset: RuleSet, character: Character, art,
             art_id=art.id, name=aspect.name, description=aspect.description,
             min_occult=aspect.min_occult, printed=True, owned=owned is not None,
             narrowed=bool(owned and owned.narrowed),
-            available=not reason, reason=reason, price=price))
+            available=not reason, reason=reason, price=price,
+            narrowed_price=narrowed_price))
     printed = {a.name.casefold() for a in art.aspects}
     for spec in state.art_specialties:
         if spec.art_id != art.id or spec.name.casefold() in printed:
@@ -1061,7 +1522,8 @@ def _thaum_specialty_rows(ruleset: RuleSet, character: Character, art,
         rows.append(ThaumSpecialtyRow(
             art_id=art.id, name=spec.name, description="", min_occult=0,
             printed=False, owned=True, narrowed=spec.narrowed,
-            available=True, reason="", price=price))
+            available=True, reason="", price=price,
+            narrowed_price=narrowed_price))
     return rows
 
 
@@ -1097,6 +1559,9 @@ def build_thaum_picker(ruleset: RuleSet, character: Character) -> ThaumPickerVie
                  else costs.thaum_art_bp(ruleset, character))
     spec_price = (costs.thaum_specialty_xp(ruleset, character) if in_play
                   else costs.thaum_specialty_bp(ruleset, character))
+    spec_narrowed = (costs.thaum_specialty_xp(ruleset, character, narrowed=True)
+                     if in_play
+                     else costs.thaum_specialty_bp(ruleset, character, narrowed=True))
     orient_price = (costs.thaum_orientation_xp(ruleset, character) if in_play
                     else costs.thaum_orientation_bp(ruleset, character))
 
@@ -1108,7 +1573,8 @@ def build_thaum_picker(ruleset: RuleSet, character: Character) -> ThaumPickerVie
             cost_text=art.cost, description=art.description,
             owned=art.id in state.arts, available=not reason, reason=reason,
             price=art_price, allows_narrowing=art.aspect_narrowing,
-            specialties=_thaum_specialty_rows(ruleset, character, art, state, spec_price),
+            specialties=_thaum_specialty_rows(ruleset, character, art, state,
+                                              spec_price, spec_narrowed),
         ))
 
     sciences: list[ThaumScienceRow] = []
@@ -1154,7 +1620,11 @@ def build_thaum_picker(ruleset: RuleSet, character: Character) -> ThaumPickerVie
                 ruleset, character, obj.level, chargen=chargen)
                 if kind == "ritual" else "")
             rows.append(ThaumEntryRow(
-                key=obj.id, name=obj.name, kind=kind, level=obj.level, custom=False,
+                # ⚠ `custom` means "not printed in a book", and a ritual now has TWO
+                # ways of being that: a library row the loader stamped (here) or an
+                # inline one on the character (below). Both wear the same mark.
+                key=obj.id, name=obj.name, kind=kind, level=obj.level,
+                custom=getattr(obj, "custom", False),
                 owned=entry is not None, available=not reason, reason=reason,
                 price=price, orientation_price=orient_price,
                 orientations=[o.value for o in entry.orientations] if entry else [],
@@ -1231,6 +1701,12 @@ class HouseRuleRow:
     value: bool | str | int | None
     options: dict[str, str] = dc_field(default_factory=dict)
     note: str = ""          # why it currently does nothing, when it doesn't
+    # True when the rule CANNOT bite for this character as she stands — a wrong splat,
+    # a wrong caste, a threshold not yet reached, or a gate the lock has already
+    # closed. The row is still offered (an ST hunting for a toggle must find it), so
+    # this is what lets a renderer dim it. ⚠ Derived HERE and not by reading `note`
+    # for a prefix: the note is prose and rewording it would silently un-dim rows.
+    inert: bool = False
 
 
 # (field, label, scope, citation, description) — ordered as the tab renders them.
@@ -1313,6 +1789,28 @@ _HOUSE_RULE_OPTIONS: dict[str, dict[str, str]] = {
 }
 
 
+# `HouseRuleRow.scope` -> (heading, what the scope means). ONE copy: both shells group
+# the rules by scope, and a party-wide "apply to all" control may only touch 'table'
+# (models.character.HouseRules says so), so the two must not word it differently.
+HOUSE_RULE_SCOPES: dict[str, tuple[str, str]] = {
+    "table": ("Table-wide", "Applies to the whole game — every character at this "
+                            "table should have it set the same way."),
+    "character": ("This character", "A permission granted to this one character."),
+}
+
+
+def house_rule_setting_label(row: HouseRuleRow) -> str:
+    """A house rule's current setting, short enough for a table cell.
+
+    A boolean toggle reads On/Off. A multiple-choice rule reads its option label with
+    the explanatory tail cut at the em dash — the full label belongs beside the control
+    in a detail pane, not in a column."""
+    if not row.options:
+        return "On" if row.value else "Off"
+    label = row.options.get(str(row.value), str(row.value))
+    return label.split(" — ")[0].strip()
+
+
 def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleRow]:
     """The Storyteller-options rows for this character, with any that cannot bite
     annotated rather than hidden — an ST looking for a toggle should find it and be
@@ -1320,19 +1818,25 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
     rules = character.house_rules or HouseRules()
     rows: list[HouseRuleRow] = []
     for fld, label, scope, citation, description in _HOUSE_RULES:
-        note = ""
+        note, inert = "", False
         if fld == "st_foreign_charms":
             if validate.foreign_charms_caste(ruleset, character) is None:
+                inert = True
+                # The printed caste NAME, not the id — `Character.caste` stores "dawn"
+                # and the sentence read "and dawn is not one".
+                caste = ruleset.castes.get(character.caste)
                 note = (f"No effect: only a caste with the generalist privilege "
                         f"(Eclipse, Moonshadow) can learn foreign Charms, and "
-                        f"{character.caste or 'this caste'} is not one.")
+                        f"{caste.label if caste else 'this caste'} is not one.")
             elif character.chargen_locked:
+                inert = True
                 note = ("No longer applies: chargen is locked, so a willing tutor "
                         "is the only remaining gate.")
         elif fld == "mortal_favored_ability":
             b = ruleset.budgets_for(character.exalt_type, character.origin,
                                     character.upbringing)
             if not b.optional_favored_ability:
+                inert = True
                 note = ("No effect: core p.103 offers this to HEROIC mortals only, "
                         f"and this character is {character.exalt_type}"
                         f"{'/' + character.origin if character.origin else ''}.")
@@ -1340,22 +1844,28 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
                 note = "Granting 1 Favored Ability, which must stay the highest-rated."
         elif fld == "st_celestial_manse_over_three":
             if character.exalt_type != "Sidereal":
+                inert = True
                 note = (f"No effect: the Celestial Manse ≤3 ceiling is a Sidereal rule "
                         f"(Sidereals p.106), and this character is {character.exalt_type}.")
             elif getattr(rules, fld):
                 note = "Permission granted: this Sidereal may hold Celestial Manse above 3 dots."
         elif fld == "st_mortal_artifact_manse":
             if character.exalt_type != "Mortal":
+                inert = True
                 note = (f"No effect: core p.103 bars MORTALS from Artifact and Manse, "
                         f"and this character is {character.exalt_type}.")
             elif getattr(rules, fld):
                 note = "Permission granted: this mortal may take Artifact and Manse Backgrounds."
         elif fld == "terrestrial_essence_transcendence":
             if ruleset.exalt_for(character.exalt_type).tier != "Terrestrial":
+                inert = True
                 note = (f"No effect: the Essence 7 ceiling is a Terrestrial rule, and "
                         f"{ruleset.exalt_for(character.exalt_type).label} are not "
                         f"Terrestrial.")
             elif character.essence_rating < 7:
+                # Inert for NOW rather than never — the toggle starts biting the moment
+                # Essence reaches 7, and the note says so.
+                inert = True
                 note = ("Nothing to lift yet: Essence is below the Terrestrial "
                         "ceiling of 7. The toggle matters once it reaches 7.")
         elif fld == "all_backgrounds_available":
@@ -1373,12 +1883,14 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
                         f"print; {everything - own} more exist in other splats' books.")
         elif fld == "magic_for_everyone" and getattr(rules, fld):
             grant = validate.magic_for_everyone_grant(ruleset, character)
+            inert = not grant
             note = (f"Currently granting {grant} free purchase(s)." if grant else
                     "Granting nothing yet: the allowance is Occult ÷ 2, rounded down.")
         elif fld == "godblooded_inheritance_rating":
             b = ruleset.budgets_for(character.exalt_type, character.origin,
                                     character.upbringing)
             if not b.inheritance_bonus_points:
+                inert = True
                 note = (f"No effect: Inheritance bonus points are a God-Blooded rule, "
                         f"and this character is {character.exalt_type}.")
             elif getattr(rules, fld) is not None:
@@ -1399,7 +1911,7 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
                                  citation=citation, description=description,
                                  value=value,
                                  options=dict(_HOUSE_RULE_OPTIONS.get(fld, {})),
-                                 note=note))
+                                 note=note, inert=inert))
     return rows
 
 
@@ -1414,6 +1926,8 @@ class SheetView:
     concept: str
     nature: str
     anima: str
+    # free-fill biography (human 2026-08-21) — (label, value) pairs, empty ones dropped
+    biography: list[tuple[str, str]]
     # Lunar Form Library (narrative only — see models.character.AnimalForm)
     totem: str
     animal_forms: list[tuple[str, str]]               # (animal, notes)
@@ -1527,9 +2041,8 @@ class SheetView:
         return f"{base}  ·  {self.essence_free} without a Willpower roll"
 
 
-def _label(value: str) -> str:
-    """'martial_arts' -> 'Martial Arts'."""
-    return value.replace("_", " ").title()
+# One copy, in the engine — see the re-export block above.
+from ..engine.labels import _label  # noqa: E402,F401
 
 
 # The DEFAULT Ability grouping, for splats whose Abilities are not divided along
@@ -1561,12 +2074,17 @@ def repeatable_cap_trait(charm) -> tuple[str, str]:
     Lunar (The Lunars p.132, "once per dot of human-form Stamina"), and Deadly
     Beastman Transformation caps on Essence (p.124), which is neither an Ability nor
     an Attribute. This mirrors engine.validate._repeatable_purchase_cap, which
-    resolves the same field to the actual number."""
+    resolves the same field to the actual number.
+
+    The UNIT comes from engine.validate.repeatable_cap_unit — engine.charm_actions
+    words the same "once per <unit> of <trait>" refusal, and the pair had been derived
+    in two places. Only the trait LABEL is local, so it gets `_label`'s display
+    formatting rather than the engine's plainer one."""
     name = getattr(charm, "repeatable_cap_ability", "") if charm else ""
     if not name:
         return ("", "")
-    # Essence is rated in points; Abilities and Attributes in dots.
-    return ("Essence", "point") if name == "essence" else (_label(name), "dot")
+    unit = validate.repeatable_cap_unit(charm)
+    return ("Essence", unit) if name == "essence" else (_label(name), unit)
 
 
 def merit_rows(ruleset: RuleSet, character: Character
@@ -1600,6 +2118,37 @@ def merit_rows(ruleset: RuleSet, character: Character
     return rows
 
 
+def merit_tier_label(tier: str) -> str:
+    """A tier key rendered readably. A key is either a bare point value ("4") or a
+    semantic name ("favored_aptitude"); both come back as display text."""
+    return tier.replace("_", " + ").title() if not tier.isdigit() else tier.title()
+
+
+def merit_option_label(definition) -> str:
+    """One catalogue entry as a menu line — "Name  (−4 supernatural)". The sign says
+    which way the transaction runs (a Flaw PAYS), and a variable-cost entry shows its
+    range rather than a single number."""
+    if definition.cost_options:
+        lo, hi = min(definition.cost_options.values()), max(definition.cost_options.values())
+        price = f"{lo}-{hi}"
+    else:
+        price = str(definition.cost)
+    sign = "−" if definition.kind == "merit" else "+"
+    return f"{definition.name}  ({sign}{price} {definition.category or definition.kind})"
+
+
+def default_merit_tier(definition, exalt_type: str, caste: str) -> str:
+    """The tier a fresh row of `definition` should open on: the first this SPLAT may
+    choose, not merely the first authored. "" for an entry with no tier menu.
+
+    ⚠ Prodigy's menu leads with `favored`, which four splats are barred from, so
+    opening on the first authored tier hands a Solar a row that flags itself
+    immediately."""
+    if definition is None or not definition.cost_options:
+        return ""
+    return next(iter(validate.merit_tiers_available(definition, exalt_type, caste)), "")
+
+
 def ability_group_defs(ruleset: RuleSet, exalt_type: str) -> list[tuple[str, list[AbilityName]]]:
     """How to lay the Ability roster out in columns, for the sheet and the editor.
 
@@ -1622,229 +2171,16 @@ def ability_group_defs(ruleset: RuleSet, exalt_type: str) -> list[tuple[str, lis
     return [(label, list(abilities)) for label, abilities in DEFAULT_ABILITY_GROUPS]
 
 
-@dataclass(frozen=True)
-class CampChoiceOption:
-    """One option within a camp's grant choice.
-
-    `available` is False when the option cannot actually be taken — which for this book
-    means a martial-arts style the page offers but whose Charms `data/` cannot yet
-    supply `pick` of. All four of the Tabernacle's styles are authored as of 2026-07-25,
-    so nothing trips this today; it stays because the next book to offer a style before
-    its Charms exist will. Such an option is still LISTED, because the rulebook offers
-    it and hiding it would misrepresent the page — but the UI must refuse to select it
-    rather than assign nothing and silently blank the control."""
-    key: str
-    label: str
-    charm_ids: list[str]
-    available: bool = True
-    reason: str = ""
-
-
-@dataclass(frozen=True)
-class CampCharmOption:
-    """One Charm selectable inside an already-chosen category option.
-
-    The Tabernacle's package is "two Charms from ONE of four martial arts" (p.90) —
-    choosing the STYLE is only half the choice, and the player picks WHICH Charms.
-    `meets_minimums` is False when the character does not yet meet the Charm's own trait
-    minimums; the page requires those ("must meet the minimum requirements", p.90) and
-    `validate.granted_charm_issues` raises `granted-charm-minimum` for a violation, so
-    the option is still offered but flagged. Charm PREREQUISITES are deliberately not
-    considered — the package hands out Charms whose tree the character has not climbed."""
-    charm_id: str
-    label: str
-    meets_minimums: bool = True
-    reason: str = ""
-
-
-@dataclass(frozen=True)
-class CampChoiceView:
-    """One player choice inside a training camp's free-Charm package, flattened for the
-    UI. For a fixed-set choice each option is a whole printed pair; for a category choice
-    each option is one style and `pick` says how many Charms to take from it.
-
-    A category choice is TWO controls, not one: `options`/`chosen_key` pick the style,
-    then `charm_options`/`chosen_charm_ids` pick which `pick` of that style's Charms are
-    granted. `charm_options` is empty until a style is chosen, and always empty for a
-    fixed-set choice (there the printed pair IS the grant — no sub-choice).
-
-    A flat-pool choice (GrantedCharmChoice.pool_categories/pool_charms) is the mirror
-    image: `options` is EMPTY and `charm_options` holds the whole pool from the start,
-    so the editor renders one control instead of two."""
-    label: str
-    pick: int
-    is_category_choice: bool
-    options: list[CampChoiceOption]
-    chosen_key: str = ""
-    charm_options: list[CampCharmOption] = field(default_factory=list)
-    chosen_charm_ids: list[str] = field(default_factory=list)
-
-
-@dataclass(frozen=True)
-class CampView:
-    """Everything the editor needs to render the camp/Calling panel. Empty/None for
-    every character whose origin has no camps, which is how the panel stays hidden."""
-    camp_options: list[tuple[str, str]]          # (id, label)
-    camp_id: str
-    camp_label: str
-    camp_description: str
-    minimums: list[str]                          # e.g. "Melee 2", "Archery or Brawl 1"
-    granted_fixed: list[tuple[str, str]]         # (charm id, name) — always received
-    choices: list[CampChoiceView]
-    calling_options: list[tuple[str, str]]       # (id, label) for the CHOSEN camp
-    calling_id: str
-    calling_label: str
-    calling_description: str
-    calling_abilities: list[str]                 # display labels, ★-marked by the UI
-    calling_charms: list[tuple[str, str]]        # (charm id, name)
-
-
-def requires_camp(ruleset: RuleSet, character: Character) -> bool:
-    """Whether this character's origin uses training camps (Cult of the Illuminated).
-    Budget-driven, so no splat or origin is named in the UI."""
-    b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
-    return b.requires_camp or b.requires_calling
-
-
-def build_camp_view(ruleset: RuleSet, character: Character) -> Optional[CampView]:
-    """The camp/Calling panel, or None when the origin has no camps."""
-    if not requires_camp(ruleset, character):
-        return None
-
-    camps = ruleset.camps_for(character.exalt_type, character.origin)
-    camp = validate.camp_for(ruleset, character)
-    calling = validate.calling_for(ruleset, character)
-    # `camp_for` resolves the stored id against the WHOLE camp table, so a camp
-    # belonging to another splat's Cult resolves fine and would be handed to the
-    # select as a value that is not one of its options — which `ui.select` raises on
-    # at BUILD time, taking the rest of the tab down with it. Clamp to something
-    # offered; the engine still reports `camp-wrong-origin` in the issue panel, which
-    # is where a mismatch belongs. Unreachable until Cult Dragon-Blooded shipped
-    # (2026-08-12) — with one splat owning every camp, the value was always an option.
-    # Only a MISMATCH is clamped. A character with no camp chosen yet keeps the empty
-    # select it has always had — filling it in here would show a camp the character
-    # does not actually hold.
-    if camps and character.camp and camp not in camps:
-        camp = camps[0]
-    if calling is not None and camp is not None and \
-            calling not in ruleset.callings_for(camp.id):
-        calling = None
-
-    minimums: list[str] = []
-    granted_fixed: list[tuple[str, str]] = []
-    choices: list[CampChoiceView] = []
-    if camp is not None:
-        for req in camp.required_min_abilities:
-            names = " or ".join(_label(a.value) for a in req.abilities)
-            minimums.append(f"{names} {req.rating}")
-        granted_fixed = [(cid, _charm_name(ruleset, cid)) for cid in camp.granted_charms]
-
-        held = set(character.granted_charms)
-        for choice in camp.granted_charm_choices:
-            options: list[CampChoiceOption] = []
-            chosen = ""
-            if choice.fixed_sets:
-                for group in choice.fixed_sets:
-                    key = "|".join(group)
-                    label = " + ".join(_charm_name(ruleset, c) for c in group)
-                    missing = [c for c in group if c not in ruleset.charms]
-                    options.append(CampChoiceOption(
-                        key=key, label=label, charm_ids=list(group),
-                        available=not missing,
-                        reason="" if not missing else "Charm not in data"))
-                    if all(c in held for c in group):
-                        chosen = key
-            else:
-                for cat in choice.from_categories:
-                    ids = [c.id for c in ruleset.charms.values() if c.category == cat]
-                    ok = len(ids) >= choice.pick
-                    if ok:
-                        reason = ""
-                    elif not ids:
-                        reason = "no Charms authored yet"
-                    else:
-                        reason = f"only {len(ids)} Charm(s) authored, needs {choice.pick}"
-                    options.append(CampChoiceOption(
-                        key=cat, label=_style_label(cat, ruleset), charm_ids=ids,
-                        available=ok, reason=reason))
-                    if ids and any(c in held for c in ids):
-                        chosen = cat
-            # A flat-pool choice reaches here with `options` still empty, and that is
-            # what tells the editor to render only the Charm multi-select: the shape
-            # has no style step, and a select over nothing would be an empty dropdown
-            # the player can neither use nor dismiss.
-            #
-            # Choosing the style is only half a category choice — the page grants
-            # "two Charms from ONE of four martial arts" (p.90), so the player also
-            # picks WHICH. Offer the chosen style's whole roster, flagging any Charm
-            # whose own trait minimums the character does not meet (still selectable:
-            # validate.granted_charm_issues reports it as granted-charm-minimum, and
-            # raising the trait later clears it).
-            charm_options: list[CampCharmOption] = []
-            chosen_charm_ids: list[str] = []
-            pool: list[str] = []
-            if chosen and choice.from_categories:
-                pool = next((o.charm_ids for o in options if o.key == chosen), [])
-            elif not choice.fixed_sets and not choice.from_categories:
-                # The flat pool is offered whole and immediately — there is no style
-                # to choose first, so this control is the entire choice.
-                pool = choice.pool_charm_ids(ruleset.charms)
-            if pool:
-                for cid in sorted(pool, key=lambda i: _charm_name(ruleset, i)):
-                    charm = ruleset.charms.get(cid)
-                    short = validate.charm_ability_shortfalls(character, charm) if charm else []
-                    reason = ("needs " + ", ".join(f"{_label(t)} {req}"
-                                                   for t, req, _ in short)
-                              if short else "")
-                    charm_options.append(CampCharmOption(
-                        charm_id=cid, label=_charm_name(ruleset, cid),
-                        meets_minimums=not short, reason=reason))
-                chosen_charm_ids = [c for c in pool if c in held]
-
-            choices.append(CampChoiceView(
-                label=choice.label, pick=choice.pick,
-                is_category_choice=bool(choice.from_categories),
-                options=options, chosen_key=chosen,
-                charm_options=charm_options, chosen_charm_ids=chosen_charm_ids))
-
-    return CampView(
-        camp_options=[(c.id, c.label) for c in camps],
-        camp_id=camp.id if camp else "",
-        camp_label=camp.label if camp else "",
-        camp_description=camp.description if camp else "",
-        minimums=minimums,
-        granted_fixed=granted_fixed,
-        choices=choices,
-        calling_options=[(c.id, c.label) for c in ruleset.callings_for(camp.id)] if camp else [],
-        calling_id=calling.id if calling else "",
-        calling_label=calling.label if calling else "",
-        calling_description=calling.description if calling else "",
-        calling_abilities=[_label(a.value) for a in calling.abilities] if calling else [],
-        calling_charms=[(cid, _charm_name(ruleset, cid)) for cid in calling.charms]
-                       if calling else [],
-    )
-
-
-def _charm_name(ruleset: RuleSet, charm_id: str) -> str:
-    charm = ruleset.charms.get(charm_id)
-    return charm.name if charm is not None else charm_id
-
-
-def _style_label(category: str, ruleset=None) -> str:
-    """"martial_arts:ebon-shadow" -> "Ebon Shadow Style".
-
-    The AUTHORED name wins when the style catalogue has one, because the slug is
-    not always the printed name: `martial_arts:praying-mantis` is printed "Mantis
-    Style" (Caste Book: Eclipse p.73). Without this the same style is called two
-    things on two surfaces. The slug remains the fallback — homebrew styles are
-    minted at runtime and have no catalogue entry (decision 0012).
-    """
-    if ruleset is not None:
-        for style in getattr(ruleset, "martial_arts_styles", {}).values():
-            if style.category == category:
-                return style.name
-    slug = category.split(":", 1)[-1]
-    return " ".join(w.capitalize() for w in slug.replace("_", "-").split("-")) + " Style"
+# The camp/Calling view model and the two label helpers moved to the engine on
+# 2026-08-22 so `engine/camp_actions.py` could use them — the engine may not import
+# from `ui/`. Re-exported here because `viewmod.build_camp_view`, `viewmod.CampView`
+# and `viewmod._style_label` are the names every existing caller and test uses, and
+# `ui/picker.py` deferring to `view._style_label` is asserted by
+# `test_no_second_style_label_generator_disagrees_with_the_authored_name`.
+from ..engine.camp import (CampCharmOption, CampChoiceOption,  # noqa: E402,F401
+                           CampChoiceView, CampView, build_camp_view, requires_camp)
+from ..engine.labels import _style_label  # noqa: E402,F401
+from ..engine.validate import _charm_name  # noqa: E402,F401
 
 
 @dataclass
@@ -1897,6 +2233,26 @@ def style_for_category(ruleset: RuleSet, category: str) -> Optional[StyleView]:
         return StyleView(name=style.name, tier=style.tier, preamble=style.preamble,
                          mechanics=list(style.mechanics), source_label=label)
     return None
+
+
+def specialty_groups(character: Character,
+                     ability: AbilityName) -> list[tuple[str, int]]:
+    """One Ability's specialties as [(name, how many times taken)], first-seen order.
+
+    ⚠ A specialty is an INSTANCE, not a rated trait (human, 2026-07-31): "you don't
+    raise specialties, you just take the same one multiple times". So the COUNT is the
+    stacking, and a group of two is two `Specialty` rows on the character — never one
+    row rated 2. A renderer showing "Swords ×2" is describing two instances; anything
+    that writes back must add or drop whole instances.
+
+    Unnamed rows are kept (they group under ""), because chargen appends a blank row and
+    the player names it afterwards — dropping them here would make a fresh row vanish.
+    """
+    counts: dict[str, int] = {}
+    for sp in character.specialties:
+        if sp.ability == ability:
+            counts[sp.name] = counts.get(sp.name, 0) + 1
+    return list(counts.items())
 
 
 def calling_ability_marks(ruleset: RuleSet, character: Character) -> set:
@@ -1981,6 +2337,209 @@ def charm_slot_budget(ruleset: RuleSet, character: Character) -> Optional[SlotBu
     installed, noncf, motes = validate.charm_slot_usage(ruleset, character)
     personal, _peripheral = derive.essence_pools(ruleset, character)
     return SlotBudget(g, d, installed, noncf, motes, personal)
+
+
+# --- Variant-menu packages (Ox-Body, Deadly Beastman Transformation) -------- #
+# Both Charms are bought as a PACKAGE into their own character field rather than by
+# appending an id to `character.charms` — `engine.charm_actions.variant_menu_reason`
+# refuses the ordinary toggle, and this is what a shell shows instead. One presenter
+# for both, because the two shells' choosers had already drifted once (the web
+# picker's chooser was the only one there was).
+
+@dataclass
+class PackagePick:
+    """One selectable entry on a package menu: an Ox-Body health-level variant, or
+    one Deadly Beastman Gift."""
+    key: str
+    label: str
+    description: str
+    max_purchases: int      # >1 for a Gift the book lets you take twice
+    taken: int              # copies already held (Gifts only; always 0 for Ox-Body)
+    reason: str             # why it can't be picked right now; "" when it can
+
+
+@dataclass
+class PackageHeld:
+    """One package already bought, by its position in the character's list."""
+    index: int
+    label: str              # the labels of that package's picks, joined
+
+
+@dataclass
+class PackageMenu:
+    """Everything a shell needs to draw one variant-menu Charm's chooser."""
+    kind: str               # "ox_body" | "gift" | "variant"
+    charm_id: str
+    name: str
+    description: str
+    bought: int
+    cap: int
+    cap_trait: str          # per-splat DATA — Endurance, Stamina or Essence
+    cap_unit: str           # "dot" | "point"
+    needed: int             # picks this purchase grants (Gifts: 2 first, then 1)
+    price: int              # XP each post-lock; 0 in chargen
+    held: list[PackageHeld]
+    picks: list[PackagePick]
+    note: str               # book rider, when the page prints one
+    # Each version may be taken at most once (rules.Charm.variants_unique).
+    unique_versions: bool = False
+
+    @property
+    def cap_phrase(self) -> str:
+        """What actually limits the purchases, as a phrase.
+
+        ⚠ Not always the trait. A menu whose versions are unique runs out of VERSIONS
+        first whenever the version count is the tighter bound — Environmental
+        Hazard-Resisting Meditation needs Resistance 5 to learn at all, so its four
+        versions always bind and "once per dot of Resistance" is simply untrue there.
+        Composed here so no shell reassembles it from `cap_trait`/`cap_unit`."""
+        if self.unique_versions and self.cap >= len(self.picks):
+            return f"one of each of its {len(self.picks)} versions"
+        if not self.cap_trait:
+            return "its maximum"
+        return f"once per {self.cap_unit} of {self.cap_trait}"
+
+
+def package_menu_kind(ruleset: RuleSet, character: Character, charm_id: str) -> str:
+    """"ox_body", "gift", "variant", or "" when `charm_id` is an ordinary toggleable
+    Charm.
+
+    ⚠ The discriminator is the character's OWN package-Charm ids and the Charm's
+    `variants` list, not the name or the category: which Charm fills the Ox-Body and
+    Gift roles is per-splat data (a heritage points at its parent's copy), and no
+    widget can edit any of it.
+
+    "variant" is the generic case — every other Charm carrying variants, stored on
+    `character.variant_purchases` keyed by charm_id."""
+    if not charm_id:
+        return ""
+    if charm_id == validate.ox_body_charm_id(ruleset, character):
+        return "ox_body"
+    if charm_id == validate.gift_charm_id(ruleset, character):
+        return "gift"
+    if validate.is_variant_menu_charm(ruleset, character, ruleset.charms.get(charm_id)):
+        return "variant"
+    return ""
+
+
+def _gift_pick_reason(labels: dict[str, str], taken: dict[str, int],
+                      held: set[str], variant) -> str:
+    """Why Gift `variant` can't be picked given `held` as the Gifts in hand; "" when
+    it can. `held` includes the pending selection, because a Gift chosen in the SAME
+    purchase satisfies a prerequisite (p.124)."""
+    if variant.max_purchases - taken.get(variant.key, 0) <= 0:
+        return ("Already taken" if variant.max_purchases == 1
+                else f"Taken {taken.get(variant.key, 0)}/{variant.max_purchases}")
+    for group in variant.prerequisites:
+        if not any(g in held for g in group):
+            return "Requires " + " or ".join(labels.get(g, g) for g in group)
+    return ""
+
+
+def build_package_menu(ruleset: RuleSet, character: Character, charm_id: str,
+                       selection: Sequence[str] = ()) -> Optional[PackageMenu]:
+    """The chooser for one variant-menu Charm, or None when `charm_id` is not one (or
+    its Charm is missing from the rule set).
+
+    `selection` is the picks staged in the shell but not yet bought: each Gift row's
+    `reason` is computed against the held Gifts PLUS that selection, so a chain can be
+    assembled inside one purchase. A staged pick is judged WITHOUT itself, or it would
+    read as its own prerequisite.
+
+    ⚠ Ox-Body's `max_purchases` is 1 and means nothing here — a repeat purchase picks
+    a variant again, same or different (`CharmVariant`), so the taken/max rule is
+    applied to Gifts ONLY."""
+    kind = package_menu_kind(ruleset, character, charm_id)
+    if not kind:
+        return None
+    is_gift = kind == "gift"
+    charm = (validate.gift_charm(ruleset, character) if is_gift
+             else ruleset.charms.get(charm_id) if kind == "variant"
+             else validate.ox_body_charm(ruleset, character))
+    if charm is None:
+        return None
+    labels = {v.key: v.label for v in charm.variants}
+    cap_trait, cap_unit = repeatable_cap_trait(charm)
+    if is_gift:
+        purchases = character.beastman_gifts
+        held = [PackageHeld(i, ", ".join(labels.get(k, k) for k in p.gifts))
+                for i, p in enumerate(purchases)]
+        cap = validate.gift_purchase_cap(ruleset, character)
+        needed = validate.gifts_per_purchase(charm, len(purchases))
+        price = costs.gift_cost(ruleset, character) if character.chargen_locked else 0
+        known = validate.known_gift_keys(character)
+        taken: dict[str, int] = {}
+        for k in known:
+            taken[k] = taken.get(k, 0) + 1
+        in_hand = set(known) | set(selection)
+        picks = [
+            PackagePick(v.key, v.label, v.description, v.max_purchases,
+                        taken.get(v.key, 0),
+                        _gift_pick_reason(labels, taken,
+                                          in_hand - ({v.key} if v.key in selection else set()),
+                                          v))
+            for v in charm.variants]
+        # p.126 heads the list "Sample Gifts … these are not the only possible gifts":
+        # the roster is illustrative and anything else is a Storyteller call, so say
+        # so rather than implying the listed ones are the whole rule.
+        note = ("Sample Gifts (p.126-127) — the book's list is not exhaustive; "
+                "anything else is a Storyteller call.")
+    elif kind == "variant":
+        # The generic menu. Its versions may be marked unique (`variants_unique`), in
+        # which case one already taken is offered with a reason rather than hidden —
+        # the player should see the whole printed list and why a row is closed.
+        purchases = validate.variant_purchases_for(character, charm_id)
+        held = [PackageHeld(i, ", ".join(labels.get(k, k) for k in p.variants))
+                for i, p in enumerate(purchases)]
+        cap = validate.variant_purchase_cap(ruleset, character, charm)
+        needed = validate.gifts_per_purchase(charm, len(purchases))
+        price = (costs.variant_purchase_cost(ruleset, character, charm)
+                 if character.chargen_locked else 0)
+        known = set(validate.known_variant_keys(character, charm_id))
+        picks = [PackagePick(v.key, v.label, v.description, v.max_purchases,
+                             1 if v.key in known else 0,
+                             "Already taken" if charm.variants_unique
+                             and v.key in known else "")
+                 for v in charm.variants]
+        note = ""
+    else:
+        purchases = character.ox_body
+        held = [PackageHeld(i, labels.get(p.variant, p.variant))
+                for i, p in enumerate(purchases)]
+        cap = validate.ox_body_cap(ruleset, character)
+        needed = 1
+        price = costs.ox_body_cost(ruleset, character) if character.chargen_locked else 0
+        picks = [PackagePick(v.key, v.label, v.description, v.max_purchases, 0, "")
+                 for v in charm.variants]
+        note = ""
+    return PackageMenu(
+        kind=kind, charm_id=charm_id, name=charm.name, description=charm.description,
+        bought=len(purchases), cap=cap, cap_trait=cap_trait, cap_unit=cap_unit,
+        needed=needed, price=price, held=held, picks=picks, note=note,
+        unique_versions=charm.variants_unique)
+
+
+def prune_package_selection(ruleset: RuleSet, character: Character, charm_id: str,
+                            selection: Sequence[str]) -> list[str]:
+    """`selection` with every pick whose prerequisites it no longer satisfies dropped,
+    repeatedly until it settles.
+
+    Unchecking a Gift must drop anything selected that depended on it — otherwise the
+    chooser could confirm a chain whose root is gone. Order is preserved, so the
+    cascade is stable."""
+    kept = list(selection)
+    changed = True
+    while changed:
+        changed = False
+        menu = build_package_menu(ruleset, character, charm_id, kept)
+        if menu is None:
+            return kept
+        blocked = {p.key for p in menu.picks if p.reason}
+        for key in list(kept):
+            if key in blocked:
+                kept.remove(key)
+                changed = True
+    return kept
 
 
 # --- Augmentation grouping (Alchemical) ------------------------------------- #
@@ -2361,6 +2920,13 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
         concept=character.concept,
         nature=character.nature,
         anima=character.anima,
+        biography=[(label, value) for label, value in (
+            ("Sex", character.sex), ("Age", character.age),
+            ("Eyes", character.eye_color), ("Hair", character.hair_color),
+            ("Skin", character.skin_color), ("Height", character.height),
+            ("Weight", character.weight), ("Description", character.description),
+            ("Backstory", character.backstory), ("Notes", character.notes))
+            if value],
         totem=character.totem,
         animal_forms=[(f.name, f.notes) for f in character.animal_forms],
         essence_rating=character.essence_rating,
@@ -2457,6 +3023,18 @@ class PlayView:
     # is not a dice-pool term, so it is reference text beside the counter, never a
     # line in a pool.
     fatigue_difficulties: list[str] = dc_field(default_factory=list)
+
+
+def worst_penalty(play: PlayView, marks: list) -> str:
+    """The label of the deepest marked health box — a convenience read of the marks
+    (it does not enforce fill order). 'none' when undamaged."""
+    deepest = None
+    for box, mark in zip(play.health_boxes, marks):
+        if mark is not None:
+            deepest = box
+    if deepest is None:
+        return "none"
+    return "Incapacitated" if deepest.incapacitated else deepest.label
 
 
 def build_play_view(ruleset: RuleSet, character: Character) -> PlayView:
@@ -2874,10 +3452,15 @@ class CustomRow:
     """One row in the library list on the left of the authoring page."""
     id: str
     name: str
-    kind: str                  # "charm" | "spell"
+    kind: str                  # "charm" | "spell" | "gear" | "ritual"
     detail: str                # category/circle, for the list's second line
     valid: bool                # False = in the library but rejected by the loader
     problem: str = ""          # why it was rejected, when it was
+    # Which gear catalogue a `kind == "gear"` row lives in ("weapons" / "armor" /
+    # "gear" / "artifacts"). Empty for Charms and spells. The four are ONE concept on
+    # screen — things you own — so they share a list and this is the column that tells
+    # them apart; it is also what `custom_content.delete_gear` needs.
+    subkind: str = ""
 
 
 # Sentinel category: the page swaps in a style-name box and writes
@@ -3100,8 +3683,85 @@ def custom_spell_payload(form: dict) -> dict:
     return payload
 
 
+@dataclass(frozen=True)
+class CustomKind:
+    """One authorable library kind, as everything a shell needs to hold it: the form
+    round-trip, the three `custom_content` calls, and the RuleSet dict the loader
+    merges it into.
+
+    ⚠ ONE table, read by both shells. The two Custom pages each carried their own
+    `charm if kind == "charm" else spell` ternary at a dozen sites — a shape that
+    treats "not a Charm" as a spell, so adding the third kind was a dozen chances to
+    forget one silently. A missing key raises here instead.
+
+    ⚠ GEAR is deliberately absent. Its four catalogues need a second key (which
+    catalogue), its models are frozen and tagged rather than flagged, and it has no
+    neutral blank row — `CUSTOM_GEAR_KINDS` and `build_custom_gear_library` are its
+    equivalents, and every `if kind == "gear"` branch in a shell is that difference.
+    """
+    key: str
+    label: str                 # plural: the sub-tab caption
+    noun: str                  # singular: "New <noun>"
+    form: Callable             # raw row -> form dict
+    payload: Callable          # form dict -> raw row
+    save: Callable             # custom_content saver
+    delete: Callable           # custom_content deleter
+    library: Callable          # custom_content reader: every row on disk
+    pool: str                  # the RuleSet attribute it merges into
+
+
+def custom_ritual_form(row: Optional[dict] = None) -> dict:
+    """The authoring form for a library ritual (p.148: the chapter prints five and
+    expects more). ⚠ `cost`, `roll` and `resources` are free TEXT, not numbers — a
+    printed ritual has no stat block, and its cost reads "1 mote or one Willpower"."""
+    row = row or {}
+    source = row.get("source") or {}
+    return {
+        "id": row.get("id", ""),
+        "name": row.get("name", ""),
+        "level": row.get("level", 1),
+        "cost": row.get("cost", ""),
+        "roll": row.get("roll", ""),
+        "resources": row.get("resources", ""),
+        "description": row.get("description", ""),
+        "book": source.get("book", "Homebrew"),
+        "page": source.get("page") or None,
+    }
+
+
+def custom_ritual_payload(form: dict) -> dict:
+    return {
+        "id": form.get("id") or "",
+        "name": (form.get("name") or "").strip(),
+        "level": int(form.get("level") or 1),
+        "cost": (form.get("cost") or "").strip(),
+        "roll": (form.get("roll") or "").strip(),
+        "resources": (form.get("resources") or "").strip(),
+        "description": (form.get("description") or "").strip(),
+        "source": {"book": (form.get("book") or "Homebrew").strip(),
+                   "page": form.get("page") or None},
+    }
+
+
+CUSTOM_KINDS: dict[str, CustomKind] = {
+    "charm": CustomKind("charm", "Charms", "Charm", custom_charm_form,
+                        custom_charm_payload, custom_content.save_charm,
+                        custom_content.delete_charm, custom_content.library_charms,
+                        "charms"),
+    "spell": CustomKind("spell", "Spells", "spell", custom_spell_form,
+                        custom_spell_payload, custom_content.save_spell,
+                        custom_content.delete_spell, custom_content.library_spells,
+                        "spells"),
+    "ritual": CustomKind("ritual", "Rituals", "ritual", custom_ritual_form,
+                         custom_ritual_payload, custom_content.save_ritual,
+                         custom_content.delete_ritual, custom_content.library_rituals,
+                         "thaum_rituals"),
+}
+
+
 def build_custom_library(ruleset: RuleSet, charm_rows: list[dict],
-                         spell_rows: list[dict]) -> list[CustomRow]:
+                         spell_rows: list[dict],
+                         ritual_rows: Optional[list[dict]] = None) -> list[CustomRow]:
     """The library list: every row ON DISK, whether or not it loaded.
 
     Taking the rows as arguments keeps this pure — the page reads the disk. A row
@@ -3133,6 +3793,229 @@ def build_custom_library(ruleset: RuleSet, charm_rows: list[dict],
             detail=f"{loaded.circle.value} Circle" if loaded else row.get("circle", "?"),
             valid=loaded is not None and loaded.custom,
             problem=_problem_for(rid)))
+    for row in ritual_rows or []:
+        rid = row.get("id", "")
+        loaded = ruleset.thaum_rituals.get(rid)
+        out.append(CustomRow(
+            id=rid, name=row.get("name") or rid, kind="ritual",
+            detail=f"level {loaded.level if loaded else row.get('level', '?')}",
+            valid=loaded is not None and loaded.custom,
+            problem=_problem_for(rid)))
+    return out
+
+
+# The four gear catalogues the custom library can hold, in the order the list shows
+# them, mapped to the RuleSet attribute each merges into and the label for the Kind
+# column. Keys are `custom_content.GEAR_FILES`' keys — `delete_gear` takes one.
+CUSTOM_GEAR_KINDS: dict[str, tuple[str, str]] = {
+    "weapons": ("weapon_catalog", "Weapon"),
+    "armor": ("armor_catalog", "Armour"),
+    "gear": ("gear_catalog", "Goods"),
+    "artifacts": ("artifact_catalog", "Artifact"),
+}
+
+
+def custom_gear_summary(kind: str, entry) -> str:
+    """One line of stats for a library gear row, reusing the shop's own formatters so
+    a homebrew weapon reads exactly as it does in Buy."""
+    if kind == "weapons":
+        return catalog_weapon_summary(entry)
+    if kind == "armor":
+        return catalog_armor_summary(entry)
+    if kind == "artifacts":
+        return f"{'•' * entry.rating} {entry.description}".strip()
+    return entry.category or entry.kind or ""
+
+
+@dataclass(frozen=True)
+class GearField:
+    """One control on the gear authoring form. A spec rather than a widget so both
+    shells build the same form from one description."""
+    key: str
+    label: str
+    kind: str = "int"           # "int" | "signed" | "text" | "longtext" | "choice"
+    options: tuple[tuple[str, str], ...] = ()     # (stored value, label) for "choice"
+    tip: str = ""
+
+
+# The four gear models, as forms. ⚠ Derived from `models/rules.py` FIELD BY FIELD, not
+# from the Gear tab's owned-row editors: a character's `Weapon` is not a `WeaponType`
+# (`gear_actions.library_payload` is the codec between them), and the two field sets
+# differ at both ends.
+#
+# ⚠ Three fields are deliberately ABSENT from every form:
+#   * `id` — it follows the name on first save and freezes after, like a custom Charm's.
+#   * `tags` — the loader stamps `custom` itself, and the one meaningful tag is
+#     `["shield"]` on an ArmorType. Rare enough for the JSON pane.
+#   * `requires_merit` (ArtifactType) — decision 0011: **no module outside
+#     engine/merits.py may name a Merit id**, and a dropdown of Merits would put one in
+#     UI code. A homebrew plot device sets it through the JSON pane.
+#
+# ⚠ `source` is NOT uniform and is not made uniform here: GearType carries a `Source`
+# model, ArtifactType a bare string, and WeaponType/ArmorType have no source field at
+# all. Inventing one for the two that lack it would write a key the model rejects.
+CUSTOM_GEAR_FIELDS: dict[str, tuple[GearField, ...]] = {
+    "weapons": (
+        GearField("speed", "Speed", "signed"),
+        GearField("accuracy", "Accuracy", "signed"),
+        GearField("damage", "Damage", "signed"),
+        GearField("damage_type", "Damage type", "choice",
+                  (("L", "Lethal"), ("B", "Bashing"))),
+        GearField("defense", "Defence", "signed"),
+        GearField("rate", "Rate"),
+        GearField("range", "Range", tip="yards; 0 is melee only"),
+        GearField("min_strength", "Min Strength"),
+        GearField("min_dexterity", "Min Dexterity"),
+        GearField("min_martial_arts", "Min Martial Arts"),
+        GearField("max_strength", "Max Strength",
+                  tip="bows: the Strength the bow is built for"),
+        GearField("artifact_rating", "Artifact rating",
+                  tip="0 is mundane; dots of the Artifact Background to start with it"),
+        GearField("attunement", "Attunement", tip="motes committed to attune"),
+        GearField("resources_cost", "Resources", tip="dots of Resources to buy one"),
+        GearField("notes", "Notes", "text"),
+    ),
+    "armor": (
+        # ⚠ `weight` is REQUIRED by ArmorType and the Gear tab's "Save to my library"
+        # cannot know it — a character's armour row carries none, so that path defaults
+        # to Light and apologises in its notify. Asking here is the point of the form.
+        GearField("weight", "Weight", "choice",
+                  tuple((w.value, w.value) for w in ArmorWeight)),
+        GearField("soak_lethal", "Soak (lethal)"),
+        GearField("soak_bashing", "Soak (bashing)"),
+        GearField("mobility_penalty", "Mobility", "signed",
+                  tip="stored NEGATIVE — a penalty is e.g. -2"),
+        GearField("fatigue", "Fatigue"),
+        GearField("difficulty_melee", "Difficulty (melee)", "signed",
+                  tip="shields: +N to hit the bearer hand-to-hand"),
+        GearField("difficulty_ranged", "Difficulty (ranged)", "signed",
+                  tip="shields: +N to hit the bearer with missile fire"),
+        GearField("artifact_rating", "Artifact rating"),
+        GearField("attunement", "Attunement"),
+        GearField("resources_cost", "Resources"),
+        GearField("notes", "Notes", "text"),
+    ),
+    "gear": (
+        # ⚠ `kind` decides whether the thing is OWNABLE. `view.shop_rows` skips
+        # everything that is not "goods", so a row saved as a service never appears in
+        # Buy — invisible unless the form says so.
+        GearField("kind", "Kind", "choice",
+                  (("goods", "Goods — ownable, appears in Buy"),
+                   ("service", "Service — a price you consult, never owned"))),
+        GearField("category", "Category", "text", tip="the printed table heading"),
+        GearField("resources_cost", "Resources"),
+        GearField("cash", "Cash price", "text",
+                  tip="printed jade/silver equivalent, verbatim — never arithmetic "
+                      "(M&C p.122 makes the conversion the Storyteller's call)"),
+        GearField("notes", "Notes", "text"),
+    ),
+    "artifacts": (
+        GearField("rating", "Artifact rating",
+                  tip="1-5; the dots of Artifact Background that buy it (core p.342)"),
+        GearField("rating_notes", "Rating notes", "text",
+                  tip='e.g. "• or •••" where the book prints a range'),
+        GearField("background", "Paid for by", "choice",
+                  (("artifact", "the Artifact Background"),
+                   ("manse", "the Manse Background — a Hearthstone"))),
+        GearField("resources_cost", "Resources",
+                  tip="what CASH buys one in play (M&C p.125) — a different scale from "
+                      "the rating, and 0 means the book gives no price"),
+        GearField("source", "Source", "text", tip='e.g. "MF p.279"'),
+        GearField("description", "Description", "longtext"),
+    ),
+}
+
+# The model behind each form, so defaults are READ from it rather than restated.
+_GEAR_MODELS = {"weapons": WeaponType, "armor": ArmorType,
+                "gear": GearType, "artifacts": ArtifactType}
+
+# Fields with no model default, which a payload must always carry — and what a BLANK
+# form starts them at, since there is nothing on the model to read.
+#
+# ⚠ An artifact's rating starts at 1, not 0: `ArtifactType.rating` is `ge=1`, so a zero
+# makes the row unloadable. The others are honest zeroes.
+_GEAR_REQUIRED: dict[str, dict[str, object]] = {
+    "armor": {"weight": ArmorWeight.LIGHT.value, "soak_lethal": 0, "soak_bashing": 0},
+    "artifacts": {"rating": 1},
+}
+
+
+def custom_gear_form(kind: str, row: Optional[dict] = None) -> dict:
+    """The form state for one library gear row: blank for a new one, or filled from a
+    library row for an edit. Flat and JSON-safe, the `custom_charm_form` shape.
+
+    ⚠ Defaults come from the MODEL, not from a hand-written copy — `WeaponType` and
+    friends are frozen and shared with the book data, so a form that invented its own
+    defaults would drift from what the loader accepts."""
+    row = row or {}
+    model = _GEAR_MODELS[kind]
+    form = {"name": row.get("name", "")}
+    blanks = _GEAR_REQUIRED.get(kind, {})
+    for spec in CUSTOM_GEAR_FIELDS[kind]:
+        field_info = model.model_fields[spec.key]
+        fallback = (blanks[spec.key] if field_info.is_required()
+                    else field_info.default)
+        value = row.get(spec.key, fallback)
+        form[spec.key] = value.value if hasattr(value, "value") else value
+    if kind == "gear":
+        source = row.get("source") or {}
+        form["book"] = source.get("book", "Homebrew")
+        form["page"] = source.get("page") or None
+    return form
+
+
+def custom_gear_payload(kind: str, form: dict) -> dict:
+    """Form state -> a library row for `custom_content.save_gear_row`.
+
+    Drops empty optional fields so a hand-read library file stays as short as the item
+    actually is — but ⚠ never drops one the model REQUIRES, which is why
+    `_GEAR_REQUIRED` exists: `ArmorType.soak_lethal` has no default, so omitting a zero
+    soak makes the row unloadable rather than making it zero."""
+    payload: dict = {"id": form.get("id") or "",
+                     "name": (form.get("name") or "").strip()}
+    required = _GEAR_REQUIRED.get(kind, {})
+    for spec in CUSTOM_GEAR_FIELDS[kind]:
+        value = form.get(spec.key)
+        if isinstance(value, str):
+            value = value.strip()
+        if value or spec.key in required:
+            payload[spec.key] = value
+    if kind == "gear":
+        payload["source"] = {"book": (form.get("book") or "Homebrew").strip(),
+                             "page": form.get("page") or None}
+    return payload
+
+
+def build_custom_gear_library(ruleset: RuleSet,
+                              rows_by_kind: dict[str, list[dict]]) -> list[CustomRow]:
+    """The gear half of the library list: every row ON DISK, whether or not it loaded.
+
+    Takes the rows as an argument for the same reason `build_custom_library` does —
+    the page reads the disk, this stays pure.
+
+    ⚠ A loaded gear row carries no `custom` FIELD. `WeaponType` and friends are frozen
+    and shared with the book data, so `rules_db._merge_custom_gear` tags them
+    (`"custom" in entry.tags`) rather than flagging them, and that tag is what says the
+    row is yours. Reading a `.custom` attribute here would raise.
+    """
+    problems = list(ruleset.custom_problems)
+
+    def _problem_for(row_id: str) -> str:
+        return next((p for p in problems if f"{row_id!r}" in p), "")
+
+    out: list[CustomRow] = []
+    for kind, (attribute, label) in CUSTOM_GEAR_KINDS.items():
+        catalog = getattr(ruleset, attribute)
+        for row in rows_by_kind.get(kind) or []:
+            row_id = row.get("id", "")
+            loaded = catalog.get(row_id)
+            out.append(CustomRow(
+                id=row_id, name=row.get("name") or row_id, kind="gear",
+                subkind=kind,
+                detail=(custom_gear_summary(kind, loaded) if loaded
+                        else row.get("name", "")),
+                valid=loaded is not None and "custom" in getattr(loaded, "tags", ()),
+                problem=_problem_for(row_id)))
     return out
 
 

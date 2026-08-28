@@ -546,3 +546,69 @@ item is the p.143 cross-reference table (below).
 Deferred by decision, not blocked: the Knowledge restricted-BP pool (M&F milestone).
 **No open rules questions remain.** The Science rate and "Magic for Everyone" are
 both resolved and built.
+
+## The Qt picker caught up — 2026-08-28
+
+A shell-parity audit (`ui/view.py` and `engine/` names, by which shell references them)
+found **three holes, all of them in this feature and all of them in the Qt picker**. The
+webapp had had every one since Thaumaturgy shipped.
+
+1. **Owned orientations were never shown.** `ThaumEntryRow.orientations` had zero readers
+   in `qt/`, so a ritual you knew in the Realm version did not say so anywhere. Now a
+   "Known in: …" line in the detail panel.
+2. **A further regional version was UNBUYABLE.** `add_thaum_orientation` had no Qt caller
+   at all: the orientation combo was hidden the moment a row was owned, on the reasoning
+   that "an owned entry is dropped, not re-learned" — true of the *Drop* button and false
+   of the flat-point second version (p.124). The combo now offers the regions still
+   missing, beside an **Add version — N** button.
+3. **No custom ritual could be written.** `buy_custom_ritual` had no Qt caller either.
+   The Rituals sub-tab now carries a name + level + Add row under the list — ⚠ the ONE
+   list in the picker that can be added to, because a ritual is the one printed thing the
+   book asks you to write more of.
+
+Two more things the fix turned up, neither in the gap list:
+
+* ⚠ **`_refresh_thaum_selection` re-found the row and left the DETAIL TEXT stale.** It
+  had always been wrong; nothing had made it visible, because no line in that panel used
+  to change on a purchase. "Known in:" does.
+* ⚠ **The Qt combo defaulted to NORTH**, being first in the enum, where the webapp's
+  page-level picker has always defaulted to **Realm**. Same purchase, same price, in a
+  tradition nobody chose. It defaults to Realm now where Realm is on offer.
+
+**Rituals are also a custom-library kind now** — `custom/rituals.json`, authored on either
+shell's Custom tab, merged into this catalogue and bought by id like a printed one. The
+two shapes (library row vs inline `RitualEntry`) and why both stay:
+`docs/status/custom-content.md`.
+
+### Three MORE, from a second pass on the same panel — 2026-08-28
+
+The first sweep compared `view`/`engine` NAMES by shell. A second pass, asked for as a
+final check, compared **handler functions per tab pair** instead — a different axis, and
+it found three more holes, all in this same picker:
+
+4. **An Art's aspect could not be bought NARROWED.** `ThaumArtRow.allows_narrowing` and
+   `ThaumSpecialtyRow.narrowed` had zero readers in `qt/`, and `buy_thaum_specialty` was
+   called without the keyword — so Summoning's half-price option (p.127) was unreachable
+   and a webapp-bought narrowed aspect displayed here as an ordinary one. Now a **narrow**
+   checkbox beside the buy button, offered only on an unowned PRINTED aspect of an Art
+   that allows it, plus a "Narrowed" line in the detail panel.
+5. **A specialty of your own could not be written.** p.126 invites player-invented
+   specialties in as many words; the Qt tree offered only the printed aspects (it
+   displayed a custom one you already owned, which is what made this hard to see). The
+   Arts tab now has an authoring row that acts on the selected Art.
+6. **A Science could not be stepped back DOWN.** `lower_thaum_science` had no Qt caller,
+   so a mis-click in chargen was unfixable without editing the save. A **Lower** button
+   beside Raise, chargen only — ⚠ the engine function does not check the lock itself,
+   because after the lock a rating comes back through the XP ledger's undo.
+
+And a webapp bug the fix exposed:
+
+⚠ **Ticking "narrow" halved what was CHARGED and left the button saying the full price.**
+`ThaumSpecialtyRow.narrowed_price` now carries the second number — computed in `view.py`
+from `engine.costs`, because a price is never a widget's answer — and both shells read it.
+The Qt detail panel re-prices with it too, so the panel and the button cannot disagree.
+
+⚠ **`_show_thaum_detail` is now the ONE renderer** for the panel (the Arts tree, the entry
+lists, and the post-purchase refresh). The third of those was missing for as long as
+nothing in the panel could change on a purchase — which stopped being true the moment it
+grew "Known in:".

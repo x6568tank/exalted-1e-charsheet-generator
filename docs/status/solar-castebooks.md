@@ -32,16 +32,24 @@ Tests: `tests/test_solar_castebooks.py`.
   requirement check ONLY and never touches pricing — pinned by a test.
 - **Environmental Hazard-Resisting Meditation (Zenith p.72-73) is a SECOND
   repeatable Solar Charm** — 4 resistance variants, cap = Resistance dots, "similar
-  to Ox-Body Technique". The DATA is complete (`repeatable_cap_ability`+`variants`);
-  the ENGINE is deliberately NOT wired, because a repeatable Charm needs its own
-  `Character` list and this would be the fifth list outside `character.charms`.
-  Today it is an ordinary one-off pick (legal, priced, gated). The enumeration blocker
-  is gone entirely as of 2026-07-29 — `validate.charm_picks` /
-  `chargen_charm_picks` / `charm_pick_bp_costs` (see `engine-and-ui.md`) are the one
-  place a new repeatable list has to be taught about, and display, counting AND BP
-  pricing all follow from it. What remains is the STORAGE half: a `Character` list, an
-  `ExaltDefinition` field naming the Charm, cap/variant checks, XP, the lock snapshot,
-  undo and a picker panel.
+  to Ox-Body Technique". **WIRED 2026-08-22** (human's call), and NOT as a fifth
+  bespoke list: it lands on a GENERIC `Character.variant_purchases`, keyed by
+  `charm_id`, so the next Charm of this shape needs data and nothing else. The
+  discriminator is `Charm.variants` being non-empty — every Charm in the catalogue
+  carrying variants is a variant menu, so there is no id list to keep in step.
+  `docs/plans/variant-menu-charms.md` is the build record; `tests/test_variant_purchases.py`
+  is the coverage.
+
+  ⚠ **It was NOT inert while deferred, which is what the old note implied.**
+  `variant_menu_reason` keyed on two hardcoded ids (Ox-Body, the Gifts), so this Charm
+  fell through to the ordinary toggle and stored as a duplicate id in
+  `character.charms` — losing which of the four versions was taken. Ox-Body and the
+  Gifts keep their own lists; migrating them onto `variant_purchases` is possible but
+  was NOT done, and is not a gap.
+
+  ⚠ Its TRAIT cap can never bind: the Charm needs Resistance 5 to learn at all, so its
+  four versions always run out first. `PackageMenu.cap_phrase` says so — do not
+  "correct" it back to "once per dot of Resistance".
 - All seven Twilight spells are authored (p.74-77); p.77 then turns to hearthstones,
   which `note.md` puts out of scope, so the castebooks are complete within it.
 - Gear: `notes` carries everything the models have no field for — Strength-relative

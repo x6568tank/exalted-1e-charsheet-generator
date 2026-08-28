@@ -32,7 +32,7 @@ def ruleset():
 
 def _extra() -> Adversary:
     """A Weak extra exactly as p.241 prints it: four numbers and three boxes."""
-    return Adversary(id="adv.thug", name="Hired Thug", category="Extra",
+    return Adversary(id="adv.thug", name="Hired Thug", categories=["Extra"],
                      base_initiative=4, willpower=3,
                      virtues={"valor": 2},
                      health_levels=adv.expand_health("-1/-3/I"))
@@ -351,10 +351,10 @@ def test_the_four_exalt_templates_are_roles_not_people(catalog):
     the genuinely unique ones (Fakharu, the Mask of Winters, Juggernaut) are not.
 
     Human's ruling 2026-08-01, taking option 2 of three."""
-    exalts = {t.name for t in catalog.values() if t.category == "Exalt"}
+    exalts = {t.name for t in catalog.values() if "Exalt" in t.categories}
     assert exalts == {"Dynasty Noble", "Ambitious Young Officer",
                       "Bronze Faction Functionary", "Deathknight"}
-    for t in (x for x in catalog.values() if x.category == "Exalt"):
+    for t in (x for x in catalog.values() if "Exalt" in x.categories):
         assert t.caste, f"{t.name} should carry its Caste/Aspect"
         assert t.personal_essence and t.peripheral_essence, t.name
 
@@ -392,7 +392,7 @@ def test_no_fair_folk(catalog):
     """Decision 0010: permanently out of scope, statblocks included."""
     for t in catalog.values():
         assert "fair folk" not in t.name.lower()
-        assert "fair folk" not in t.category.lower()
+        assert "fair folk" not in adv.category_label(t).lower()
 
 
 def test_the_three_extra_tiers_are_p241(catalog):
@@ -516,7 +516,7 @@ def test_every_shield_reference_resolves(ruleset, catalog):
 
 def test_beasts_carry_the_p317_default_attributes(catalog):
     """p.317: assume Intelligence 1, Perception 2 and Wits 3 unless stated."""
-    beasts = [t for t in catalog.values() if t.category == "Beast"]
+    beasts = [t for t in catalog.values() if "Beast" in t.categories]
     assert len(beasts) >= 20
     for b in beasts:
         assert b.attributes["intelligence"] == 1
@@ -537,7 +537,7 @@ def test_beast_attacks_have_no_defense(catalog):
     """p.317 says to use the Atk value for parries, so the table has no Defense
     column and none may be invented."""
     for t in catalog.values():
-        if t.category == "Beast":
+        if "Beast" in t.categories:
             assert all(a.defense is None for a in t.attacks), t.name
 
 
@@ -592,3 +592,124 @@ def test_templates_carry_no_tracked_state(catalog):
     for t in catalog.values():
         assert t.damage == [] and t.willpower_spent == 0 and t.motes_spent == 0
         assert t.template_id == ""
+
+
+# --------------------------------------------------------------------------- #
+# The roster mutations — shared by BOTH shells (ui/adversaries.py, qt/adversaries.py)
+# --------------------------------------------------------------------------- #
+
+def _played() -> Adversary:
+    return Adversary(id="a.1", name="Bandit", willpower=3, essence_pool=10,
+                     health_levels=adv.expand_health("-1/-3/I"),
+                     damage=[Damage.LETHAL, None, None],
+                     willpower_spent=2, motes_spent=5)
+
+
+def test_reset_clears_exactly_what_instantiate_clears():
+    """⚠ The two must agree on which fields are TRACKED. `instantiate` gives a duplicate
+    a fresh start and `reset_tracking` gives an existing entry one — a new tracked field
+    added to one and not the other means a "fresh" adversary carrying spent motes."""
+    source = _played()
+    fresh = adv.instantiate(source, "a.2")
+    reset = source.model_copy(deep=True)
+    adv.reset_tracking(reset)
+    for field in Adversary.model_fields:
+        if field in ("id", "name", "template_id"):
+            continue
+        assert getattr(fresh, field) == getattr(reset, field), field
+
+
+def test_add_blank_gives_the_extras_printed_three_levels():
+    """p.241: an extra has three health levels. A blank entry with an EMPTY track has no
+    boxes to click, which is not what "bare minimum" means."""
+    party = Party(id="p")
+    entry = adv.add_blank(party)
+    assert party.adversaries == [entry]
+    assert len(entry.health_levels) == 3
+
+
+def test_duplicate_sits_beside_its_original_and_is_numbered():
+    party = Party(id="p", adversaries=[_played(), Adversary(id="a.9", name="Wolf")])
+    copy = adv.duplicate(party, 0)
+    assert [a.name for a in party.adversaries] == ["Bandit", "Bandit 2", "Wolf"]
+    assert copy.damage == [] and copy.id not in ("a.1", "a.9")
+
+
+def test_remove_returns_the_name_it_dropped():
+    party = Party(id="p", adversaries=[_played()])
+    assert adv.remove(party, 0) == "Bandit"
+    assert party.adversaries == []
+
+
+def test_the_mote_cap_is_whichever_pool_shape_the_entry_uses():
+    """A spirit prints one pool; an Exalt prints Personal + Peripheral. Both spend
+    downward against ONE counter — splitting it would be tracking for its own sake."""
+    assert adv.mote_cap(Adversary(id="a", essence_pool=112)) == 112
+    assert adv.mote_cap(Adversary(id="b", personal_essence=11,
+                                  peripheral_essence=27)) == 38
+    assert adv.mote_cap(Adversary(id="c")) == 0
+
+
+def test_setting_motes_clamps_to_that_cap():
+    entry = Adversary(id="a", essence_pool=10)
+    adv.set_motes_spent(entry, 99)
+    assert entry.motes_spent == 10
+    adv.set_motes_spent(entry, -3)
+    assert entry.motes_spent == 0
+
+
+def test_a_count_track_fills_to_the_click_and_empties_back():
+    """The same behaviour `engine.play.set_count` gives a character — one tracker to
+    learn, not two."""
+    entry = _played()
+    adv.set_count(entry, "willpower_spent", 2, entry.willpower)
+    assert entry.willpower_spent == 3
+    adv.set_count(entry, "willpower_spent", 2, entry.willpower)
+    assert entry.willpower_spent == 2
+
+
+# --------------------------------------------------------------------------- #
+# Categories — a LIST of equal filing labels (human, 2026-08-27)
+# --------------------------------------------------------------------------- #
+
+def test_the_category_codec_round_trips():
+    """⚠ `category_line` and `parse_categories` are a CODEC PAIR, like the trait and
+    attack pairs: one fills the input, the other reads it back."""
+    for text in ("", "Extra", "Undead, Soldier", "Beast, Wyld, Darkbrood"):
+        assert adv.category_line(adv.parse_categories(text)) == text
+
+
+def test_parsing_categories_trims_drops_blanks_and_keeps_the_typed_order():
+    """Order is the GM's, not alphabetical — they typed the one they file it under
+    first. Duplicates go, because a chip list with "Undead" twice is a bug on screen."""
+    assert adv.parse_categories(" Undead , , Soldier ,Undead") == ["Undead", "Soldier"]
+    assert adv.parse_categories("   ") == []
+
+
+def test_an_entry_is_filed_under_every_category_it_carries():
+    """The whole point of the list: a picker's chips must offer BOTH, or a two-headed
+    entry is unfindable under one of them."""
+    templates = [Adversary(id="a", name="Legionnaire",
+                           categories=["Undead", "Soldier"]),
+                 Adversary(id="b", name="Bear", categories=["Beast"])]
+    groups = adv.catalogue_groups(templates)
+    assert groups["a"] == ["Undead", "Soldier"]
+    assert [k for k, v in groups.items() if "Soldier" in v] == ["a"]
+    assert [k for k, v in groups.items() if "Beast" in v] == ["b"]
+
+
+def test_the_display_label_joins_them():
+    assert adv.category_label(Adversary(id="a", categories=["Undead", "Soldier"])) == \
+        "Undead  ·  Soldier"
+    assert adv.category_label(Adversary(id="b")) == ""
+
+
+def test_every_catalogue_row_still_carries_at_least_one_category(catalog):
+    """⚠ The catalogue was CONVERTED, not re-authored: each template keeps exactly the
+    heading the book filed it under, as a one-element list. Adding a second to any of
+    them is an authoring decision that needs the page, not a migration."""
+    for t in catalog.values():
+        assert t.categories, f"{t.name} lost its category in the conversion"
+        assert len(t.categories) == 1, (
+            f"{t.name} gained a category the books did not print — "
+            f"{t.categories}. That is authoring, and needs a page behind it.")

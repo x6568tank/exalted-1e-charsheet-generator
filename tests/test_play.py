@@ -79,3 +79,56 @@ def test_build_play_view_capacities_match_engine():
     assert pv.personal_max == 3 * 3 + 2
     assert pv.peripheral_max == 3 * 7 + 2 + 4
     assert pv.willpower_max == 2
+
+
+# --------------------------------------------------------------------------- #
+# decision 0006, enforced structurally rather than by inspection
+# --------------------------------------------------------------------------- #
+
+def test_validate_never_imports_the_play_module():
+    """⚠ decision 0006 — play-state is validation-isolated.
+
+    `engine/play.py` now sits importably beside `engine/validate/`, so the cheap
+    mistake is a convenience import that quietly lets a marked health box change what
+    a character may legally buy. The behavioural tests above cover the cases someone
+    thought to write; this covers the ones they did not, by forbidding the edge itself.
+    """
+    import ast
+    from pathlib import Path
+
+    import exalted_builder
+
+    validate_dir = Path(exalted_builder.__file__).parent / "engine" / "validate"
+    modules = sorted(validate_dir.glob("*.py"))
+    assert modules, "no validate modules found — has the package moved?"
+    offenders = []
+    for path in modules:
+        tree = ast.parse(path.read_text())
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom):
+                names = {a.name for a in node.names}
+                if (node.module or "").endswith("play") or "play" in names:
+                    offenders.append(f"{path.name}: from {node.module} import "
+                                     f"{', '.join(sorted(names))}")
+            elif isinstance(node, ast.Import):
+                for alias in node.names:
+                    if alias.name.endswith(".play") or alias.name == "play":
+                        offenders.append(f"{path.name}: import {alias.name}")
+    assert offenders == [], offenders
+
+
+def test_validate_never_reads_the_play_field():
+    """The other half: no `.play` attribute access anywhere in validation. An import
+    guard alone is dodgeable — `character.play` needs no import."""
+    import ast
+    from pathlib import Path
+
+    import exalted_builder
+
+    validate_dir = Path(exalted_builder.__file__).parent / "engine" / "validate"
+    offenders = []
+    for path in sorted(validate_dir.glob("*.py")):
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node, ast.Attribute) and node.attr == "play":
+                offenders.append(f"{path.name}:{node.lineno}")
+    assert offenders == [], offenders

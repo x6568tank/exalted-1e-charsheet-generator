@@ -26,8 +26,8 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import advancement, costs, validate
-from ..models.character import Array, Character, Combo
+from ..engine import advancement, combo_actions, costs, validate
+from ..models.character import Character
 from ..models.rules import RuleSet
 from . import theme
 from . import view as viewmod
@@ -73,32 +73,28 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
             "text-sm font-bold").style("color:#15803d" if not errors else "color:#b91c1c")
 
     # ---- mutations -------------------------------------------------------- #
+    # ⚠ These are one-line wrappers over `engine.combo_actions` and must STAY that way.
+    # They were the real implementations until 2026-08-27, which is why the native shell
+    # could not reach them — the mutations are game logic and belong in the engine.
     def add_combo(name: str) -> None:
-        label = name.strip() or f"Combo {len(character.combos) + 1}"
-        character.combos.append(Combo(name=label, charm_ids=[]))
+        combo_actions.add_combo(character, name)
         refresh()
 
     def remove_combo(index: int) -> None:
-        if 0 <= index < len(character.combos):
-            del character.combos[index]
-            refresh()
+        combo_actions.remove_combo(character, index)
+        refresh()
 
     def add_member(index: int, charm_id: str) -> None:
-        if charm_id and 0 <= index < len(character.combos):
-            character.combos[index].charm_ids.append(charm_id)
-            refresh()
+        combo_actions.add_combo_member(character, index, charm_id)
+        refresh()
 
     def remove_member(index: int, charm_id: str) -> None:
-        if 0 <= index < len(character.combos):
-            ids = character.combos[index].charm_ids
-            if charm_id in ids:
-                ids.remove(charm_id)
-            refresh()
+        combo_actions.remove_combo_member(character, index, charm_id)
+        refresh()
 
     def rename(index: int, value: str) -> None:        # no full refresh: keep input focus
-        if 0 <= index < len(character.combos):
-            character.combos[index].name = value
-            readout.refresh()
+        combo_actions.rename_combo(character, index, value)
+        readout.refresh()
 
     def buy_combo() -> None:
         """Buy the drafted Combo with XP (in play). engine.advancement prices it,
@@ -123,32 +119,26 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
     # Attribute ratings in XP, and cuts their combined installation cost to
     # three-fourths. The two systems are mutually exclusive per splat (see
     # view.uses_arrays), so this tab renders one or the other, never both.
+    # Wrappers, as above — see `engine/combo_actions.py`.
     def add_array(name: str) -> None:
-        label = name.strip() or f"Array {len(character.arrays) + 1}"
-        character.arrays.append(Array(name=label, charm_ids=[]))
+        combo_actions.add_array(character, name)
         refresh()
 
     def remove_array(index: int) -> None:
-        if 0 <= index < len(character.arrays):
-            del character.arrays[index]
-            refresh()
+        combo_actions.remove_array(character, index)
+        refresh()
 
     def add_array_member(index: int, charm_id: str) -> None:
-        if charm_id and 0 <= index < len(character.arrays):
-            character.arrays[index].charm_ids.append(charm_id)
-            refresh()
+        combo_actions.add_array_member(character, index, charm_id)
+        refresh()
 
     def remove_array_member(index: int, charm_id: str) -> None:
-        if 0 <= index < len(character.arrays):
-            ids = character.arrays[index].charm_ids
-            if charm_id in ids:
-                ids.remove(charm_id)
-            refresh()
+        combo_actions.remove_array_member(character, index, charm_id)
+        refresh()
 
     def rename_array(index: int, value: str) -> None:   # no full refresh: keep focus
-        if 0 <= index < len(character.arrays):
-            character.arrays[index].name = value
-            readout.refresh()
+        combo_actions.rename_array(character, index, value)
+        readout.refresh()
 
     def buy_array() -> None:
         """Buy the drafted Array with XP (in play). engine.advancement prices it,
@@ -167,7 +157,7 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
         """Compose a whole Array, then buy it — the same buy-whole shape Combos use
         in play. Charms already linked into an Array are left out of the pool: the
         engine refuses to reuse one, so offering it would only produce a rejection."""
-        linked = {cid for a in character.arrays for cid in a.charm_ids}
+        linked = combo_actions.linked_array_charms(character)
         eligible = {cid: ruleset.charms[cid].name
                     for cid in validate.eligible_array_charms(ruleset, character)
                     if cid not in linked}
@@ -216,7 +206,7 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
             ui.label("No Arrays yet.").classes("text-sm text-gray-400 mt-2")
             return
 
-        linked = {cid for a in character.arrays for cid in a.charm_ids}
+        linked = combo_actions.linked_array_charms(character)
         for arow in v.arrays:
             in_array = {m.id for m in arow.members}
             # A Charm may join only one Array, so the pool excludes every linked

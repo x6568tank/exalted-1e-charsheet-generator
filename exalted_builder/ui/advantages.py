@@ -52,10 +52,9 @@ _DATA_DIR = _PKG / "data"
 _EXAMPLE = _PKG.parent / "examples" / "ashes-of-dawn.character.json"
 
 
-def _tier_label(t: str) -> str:
-    """A tier key is either a bare point value ("4") or a semantic name
-    ("favored_aptitude"). Render both readably without the caller caring."""
-    return t.replace("_", " + ").title() if not t.isdigit() else t.title()
+# Presentation shared with the native shell — one copy, in the presenter.
+_tier_label = viewmod.merit_tier_label
+_merit_label = viewmod.merit_option_label
 
 
 def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
@@ -522,14 +521,10 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
         refresh_all()
 
     def _default_tier(definition) -> str:
-        """The option a fresh row should open on: the first this SPLAT may choose, not
-        merely the first authored. ⚠ Prodigy's menu leads with `favored`, which four
-        splats are barred from, so opening on the first authored tier gives a Solar a
-        new row that flags itself immediately."""
-        if definition is None or not definition.cost_options:
-            return ""
-        return next(iter(validate.merit_tiers_available(
-            definition, character.exalt_type, character.caste)), "")
+        """The option a fresh row should open on — `view.default_merit_tier` bound to
+        this character (both shells need the same splat-aware default)."""
+        return viewmod.default_merit_tier(definition, character.exalt_type,
+                                          character.caste)
 
     def remove_merit(idx: int) -> None:
         del character.merits_flaws[idx]
@@ -597,17 +592,6 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
     def _mf_count_label(shown: int, total: int) -> str:
         return (f"{total} available" if shown == total
                 else f"{shown} of {total} shown — clear the filter to see the rest")
-
-    def _merit_label(m) -> str:
-        # The sign so a Flaw reads as a grant, not a charge; a variable-cost entry
-        # shows its range instead of a single number.
-        if m.cost_options:
-            lo, hi = min(m.cost_options.values()), max(m.cost_options.values())
-            price = f"{lo}-{hi}"
-        else:
-            price = str(m.cost)
-        sign = "−" if m.kind == "merit" else "+"
-        return f"{m.name}  ({sign}{price} {m.category or m.kind})"
 
     def _chargen_merits(b) -> None:
         # A MERIT costs bonus points; a FLAW grants them, which is why the header
@@ -907,27 +891,15 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
 
     def _gain_mf() -> None:
         """Gain a Merit or Flaw in play. Which side of the transaction it is depends on
-        the ENTRY, not on the button — a Flaw pays the character."""
-        mid = gain_state.get("id") or ""
-        definition = rs.merits_flaws.get(mid)
-        if definition is None:
-            ui.notify("Pick a Merit or Flaw first.", type="warning")
-            return
-        side = definition.kind
-        if side == "either":
-            side = gain_state.get("taken_as", "")
-            if side not in ("merit", "flaw"):
-                ui.notify(f"{definition.name} is a Merit OR a Flaw — pick which side.",
-                          type="warning")
-                return
-        kw = dict(tier=gain_state.get("tier", ""),
-                  taken_as=gain_state.get("taken_as", ""),
-                  points=gain_state.get("points", 0),
-                  detail=gain_state.get("detail", ""))
-        if side == "flaw":
-            _do(lambda: advancement.gain_flaw(rs, character, mid, **kw))
-        else:
-            _do(lambda: advancement.buy_merit(rs, character, mid, **kw))
+        the ENTRY, not on the button — a Flaw pays the character — so the branch and
+        its refusals live in `advancement.gain_merit_or_flaw`, shared with the native
+        shell."""
+        _do(lambda: advancement.gain_merit_or_flaw(
+            rs, character, gain_state.get("id") or "",
+            tier=gain_state.get("tier", ""),
+            taken_as=gain_state.get("taken_as", ""),
+            points=gain_state.get("points", 0),
+            detail=gain_state.get("detail", "")))
 
     def _drop_mf() -> None:
         idx = drop_state.get("idx")

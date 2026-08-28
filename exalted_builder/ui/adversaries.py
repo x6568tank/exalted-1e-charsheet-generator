@@ -65,7 +65,8 @@ _VIRTUES = ["compassion", "conviction", "temperance", "valor"]
 # --------------------------------------------------------------------------- #
 
 from ..engine.adversaries import (  # noqa: F401  (re-export for existing callers)
-    _copy_name, attack_line, next_id, parse_attacks, parse_traits, trait_line)
+    _copy_name, attack_line, category_line, next_id, parse_attacks, parse_categories,
+    parse_traits, trait_line)
 from .view import summary_line, trait_map_line  # noqa: F401  (re-export)
 
 
@@ -95,8 +96,7 @@ def _count_box(a: Adversary, i: int, filled: bool, field: str, cap: int,
                on_change: Callable[[], None]) -> None:
     """One box of a plain spent-count track (temporary Willpower)."""
     def click() -> None:
-        cur = getattr(a, field)
-        setattr(a, field, max(0, min(cap, i if i + 1 == cur else i + 1)))
+        adv.set_count(a, field, i, cap)
         on_change()
 
     box = ui.label("").classes("cursor-pointer select-none")
@@ -124,9 +124,10 @@ def edit_dialog(ruleset: RuleSet, a: Adversary, on_save: Callable[[], None]) -> 
 
         with ui.row().classes("w-full gap-2 no-wrap"):
             name = ui.input("Name", value=a.name).props("dense outlined").classes("grow")
-            category = ui.input("Category", value=a.category).props(
-                "dense outlined").classes("w-40").tooltip(
-                "Free text — Extra, Beast, Spirit, whatever groups your roster")
+            category = ui.input("Categories", value=adv.category_line(a.categories)).props(
+                "dense outlined").classes("w-64").tooltip(
+                "Free text, comma-separated — Extra, Beast, Spirit, whatever groups "
+                "your roster. An entry is filed under every one of them.")
         with ui.row().classes("w-full gap-2 no-wrap"):
             nature = ui.input("Nature", value=a.nature).props("dense outlined").classes("grow")
             caste = ui.input("Caste / Aspect", value=a.caste).props(
@@ -236,7 +237,7 @@ def edit_dialog(ruleset: RuleSet, a: Adversary, on_save: Callable[[], None]) -> 
 
         def commit() -> None:
             a.name = name.value or ""
-            a.category = category.value or ""
+            a.categories = adv.parse_categories(category.value or "")
             a.nature = nature.value or ""
             a.caste = caste.value or ""
             a.attributes = {k: int(w.value) for k, w in attr_inputs.items()
@@ -297,48 +298,36 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
     character-domain Adversary, which would be a cycle."""
     party = party_of()
 
-    def add(entry: Adversary) -> None:
-        party_of().adversaries.append(entry)
-        refresh()
-
+    # ⚠ Every one of these goes through `engine.adversaries`. The native Party
+    # window runs the same four interactions, and a duplicate that inserts in the
+    # wrong place in one shell only is exactly the drift nothing catches.
     def add_blank() -> None:
-        entry = Adversary(id=next_id(party_of()), name="New adversary",
-                          health_levels=adv.expand_health("-1/-3/I"))
-        add(entry)
+        adv.add_blank(party_of())
+        refresh()
         ui.notify("Added a blank adversary — use Edit to fill it in", type="positive")
 
     def add_from_template(template: Adversary, dialog) -> None:
-        entry = adv.instantiate(template, next_id(party_of()))
+        entry = adv.add_from_template(party_of(), template)
         dialog.close()
-        add(entry)
+        refresh()
         ui.notify(f"Added {entry.name}", type="positive")
 
     def duplicate(index: int) -> None:
-        """Instancing: five bandits, five health tracks."""
-        source = party_of().adversaries[index]
-        p = party_of()
-        copy = adv.instantiate(source, next_id(p),
-                               name=_copy_name(p.adversaries, source.name))
-        # Sit the duplicate next to its original rather than at the end of the
-        # roster — a squad should read as a squad.
-        p.adversaries.insert(index + 1, copy)
+        adv.duplicate(party_of(), index)
         refresh()
 
     def remove(index: int) -> None:
-        gone = party_of().adversaries[index].name or "adversary"
-        del party_of().adversaries[index]
+        gone = adv.remove(party_of(), index)
         refresh()
         ui.notify(f"Removed {gone}", type="warning")
 
     def clear_damage(index: int) -> None:
-        entry = party_of().adversaries[index]
-        entry.damage = []
-        entry.willpower_spent = 0
-        entry.motes_spent = 0
+        adv.reset_tracking(party_of().adversaries[index])
         refresh()
 
     def add_dialog() -> None:
-        templates = sorted(catalog.values(), key=lambda t: (t.category, t.name))
+        templates = sorted(catalog.values(),
+                           key=lambda t: (adv.category_label(t), t.name))
         with ui.dialog() as dialog, ui.card().classes("w-full max-w-2xl gap-2"):
             ui.label("Add an adversary").classes("text-lg font-bold")
             if templates:
@@ -352,7 +341,8 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
                 def rows() -> None:
                     needle = (search.value or "").lower()
                     shown = [t for t in templates
-                             if needle in t.name.lower() or needle in t.category.lower()]
+                             if needle in t.name.lower()
+                             or needle in adv.category_label(t).lower()]
                     with ui.column().classes("w-full gap-1 max-h-96 overflow-y-auto"):
                         for template in shown:
                             # The whole row is the click target (a bare button
@@ -368,7 +358,7 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
                                         "text-sm font-semibold truncate")
                                     ui.label(summary_line(ruleset, template)).classes(
                                         "text-xs text-gray-600 truncate")
-                                ui.label(template.category).classes(
+                                ui.label(adv.category_label(template)).classes(
                                     "text-xs text-gray-500 shrink-0")
                         if not shown:
                             ui.label("Nothing matches.").classes(
@@ -391,7 +381,8 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
                 with ui.column().classes("gap-0 min-w-0"):
                     ui.label(a.name or "(unnamed)").classes(
                         "text-base font-bold truncate").style(f"color:{pal.accent}")
-                    line = "  ·  ".join(x for x in (a.category, a.nature, a.caste) if x)
+                    line = "  ·  ".join(x for x in (adv.category_label(a), a.nature,
+                                                    a.caste) if x)
                     if line:
                         ui.label(line).classes("text-xs text-gray-600 truncate")
                 ui.label(summary_line(ruleset, a)).classes(
@@ -419,16 +410,15 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
             # One mote counter, whichever pool shape the entry uses. A spirit's
             # single pool and an Exalt's Personal+Peripheral both spend downward;
             # splitting the tracker in two would be tracking for its own sake.
-            mote_cap = a.essence_pool or (a.personal_essence + a.peripheral_essence)
+            mote_cap = adv.mote_cap(a)
             if mote_cap:
                 shape = ("pool" if a.essence_pool
                          else f"{a.personal_essence} personal + {a.peripheral_essence} peripheral")
                 with ui.row().classes("items-center gap-2"):
                     ui.number("Motes spent", value=a.motes_spent, min=0, max=mote_cap,
                               format="%d",
-                              on_change=lambda e, x=a, c=mote_cap: (
-                                  setattr(x, "motes_spent",
-                                          max(0, min(c, int(e.value or 0)))),
+                              on_change=lambda e, x=a: (
+                                  adv.set_motes_spent(x, e.value),
                                   refresh())).props("dense outlined").classes("w-32")
                     ui.label(f"{max(0, mote_cap - a.motes_spent)}/{mote_cap} left "
                              f"({shape})").classes("text-xs text-gray-600")
