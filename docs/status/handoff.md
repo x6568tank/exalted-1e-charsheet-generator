@@ -30,8 +30,24 @@ which grew an authoring row, an Add-version button and a "Known in:" line — pl
 **Custom tab's Rituals sub-tab** beside it.
 
 ⚠ **The binary is built from a working tree, and `dist/` is gitignored** — the one on
-disk is from 2026-08-27 and does NOT have the dark sheet in it. Rebuild before showing
-the app to anyone from the binary.
+disk is from 2026-08-27 and does NOT have any of this session's work in it. Rebuild
+before showing the app to anyone from the binary.
+
+## The release workflow now ships the native app — 2026-08-28
+
+⚠ **It did not, and a tag would have looked fine.** `.github/workflows/release.yml`
+built one product per OS (`pack/exalted-builder.spec`), so `v1.1` would have published
+two green assets, no failures, and **no native app on the page at all** — the Qt spec
+had shipped in the packaging commit and nothing in CI referenced it. The matrix is now
+2 OSes x 2 products, extras per row (`[desktop]` vs `[desktop,qt]` — PySide6 is ~650 MB
+and the webapp build excludes it), one tag shipping all four (the human's call).
+**A build that is not in the matrix does not exist to a tag.** `pack/BUILD.md`.
+
+⚠ **NOT yet exercised.** No tag has been cut and no `workflow_dispatch` run has been
+made since the change — the YAML parses and every spec, extra and binary path in it was
+checked against the tree, which is not the same as a green runner. **Dispatch it by hand
+before tagging**: that path uploads the artifacts and skips the release step, so a
+broken row cannot leave a half-populated public release behind.
 
 ## What shipped this session — part two: the shell-parity sweep
 

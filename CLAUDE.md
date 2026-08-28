@@ -372,6 +372,10 @@ pool calculation.
   charm-tree picker.
 - Venv is `.venv/`; tests: `.venv/bin/python -m pytest`.
 - **Git remote:** `origin` → `github.com/x6568tank/exalted-1e-charsheet-generator`, tracking `main`.
+- **A `v*` tag builds FOUR assets** — 2 OSes x 2 products (webapp + native), one release,
+  extras per matrix row. ⚠ **A build that is not in the matrix does not exist to a tag:**
+  the native spec shipped and CI kept building only the webapp, so a tag would have
+  published a release that looked complete with no native app on it. `pack/BUILD.md`.
 - Shipped **1.0.0** on 2026-08-17.
 
 ## Splats — all eleven shipped and browser-verified

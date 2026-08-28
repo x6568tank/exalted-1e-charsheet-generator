@@ -31,6 +31,33 @@ build on the **oldest** distro you need to support.
 
 Or just grab from the release page.
 
+## What a release ships — `.github/workflows/release.yml`
+
+A `v*` tag builds **four** assets and attaches them all to that one release
+(2 OSes x 2 products, `fail-fast: false` so no row can discard another's artifact):
+
+| Asset | Product |
+|---|---|
+| `ExaltedBuilder-linux-x86_64` / `-windows-x86_64.exe` | the webapp build |
+| `ExaltedBuilderQt-linux-x86_64` / `-windows-x86_64.exe` | the native build |
+
+⚠ **The extras are PER ROW.** `[desktop]` is the shared toolchain and PySide6 lives in
+`[qt]` alone, so the two webapp rows install `.[desktop]` and the two native rows
+`.[desktop,qt]`. Adding a product means adding a matrix row — nothing discovers the
+specs.
+
+⚠ **Until 2026-08-28 the matrix had only the two webapp rows**, months after the native
+spec landed. A tag would have published a release that looked complete — two green
+assets, no failures — with no native app on it. `linux.sh` and `windows.bat` were the
+Qt spec's only callers. **A build that is not in the matrix does not exist to a tag.**
+
+⚠ A headless runner builds a GUI app fine: PyInstaller only *collects* the Qt platform
+plugins. What needs a display is running the result, on the user's machine.
+
+**Dry-run a change to this workflow with `workflow_dispatch` before tagging** — it
+uploads the artifacts and skips the release step, so a broken row cannot leave a
+half-populated public release behind.
+
 ## Quickest path: the build scripts
 
 The repo root has one script per platform. Each creates `.venv`, installs the app

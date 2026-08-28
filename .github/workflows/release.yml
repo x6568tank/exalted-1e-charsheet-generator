@@ -9,20 +9,50 @@ permissions:
   contents: write         # GITHUB_TOKEN is read-only by default; releases need write
 
 jobs:
+  # TWO PRODUCTS build from this tree (decision 0018), so the matrix is
+  # 2 OSes x 2 products and every row carries its OWN extras and spec.
+  #
+  # ⚠ The extras are per-row on purpose. `[desktop]` is the shared toolchain
+  # (pyinstaller + reportlab + nicegui) and PySide6 lives in `[qt]` alone — ~650 MB
+  # that the browser build excludes anyway. Installing everything everywhere would
+  # add minutes to the two rows that cannot use it.
+  #
+  # ⚠ Until 2026-08-28 this matrix had only the two ExaltedBuilder rows, so a tag
+  # published a release that LOOKED complete — two green assets — with no native app
+  # on it at all. The Qt spec had existed since the packaging commit and nothing in CI
+  # referenced it; `linux.sh` / `windows.bat` were its only callers.
   build:
+    name: ${{ matrix.asset }}
     strategy:
-      fail-fast: false    # a Windows failure shouldn't discard the Linux artifact
+      fail-fast: false    # a Windows failure shouldn't discard the Linux artifact,
+                          # and a Qt failure shouldn't discard the webapp's
       matrix:
         include:
           - os: ubuntu-22.04
-            asset: ExaltedBuilder-linux-x86_64
+            extras: desktop
+            spec: pack/exalted-builder.spec
             binary: dist/ExaltedBuilder
+            asset: ExaltedBuilder-linux-x86_64
           - os: windows-latest
-            asset: ExaltedBuilder-windows-x86_64.exe
+            extras: desktop
+            spec: pack/exalted-builder.spec
             binary: dist/ExaltedBuilder.exe
+            asset: ExaltedBuilder-windows-x86_64.exe
+          - os: ubuntu-22.04
+            extras: desktop,qt
+            spec: pack/exalted-builder-qt.spec
+            binary: dist/ExaltedBuilderQt
+            asset: ExaltedBuilderQt-linux-x86_64
+          - os: windows-latest
+            extras: desktop,qt
+            spec: pack/exalted-builder-qt.spec
+            binary: dist/ExaltedBuilderQt.exe
+            asset: ExaltedBuilderQt-windows-x86_64.exe
           # - os: macos-latest          # arm64; unsigned -> Gatekeeper quarantines it
-          #   asset: ExaltedBuilder-macos-arm64
+          #   extras: desktop
+          #   spec: pack/exalted-builder.spec
           #   binary: dist/ExaltedBuilder
+          #   asset: ExaltedBuilder-macos-arm64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -32,10 +62,13 @@ jobs:
           python-version: "3.11"        # build on your requires-python floor
 
       - name: Install app + build tools
-        run: python -m pip install ".[desktop]"   # non-editable: matches what ships
+        run: python -m pip install ".[${{ matrix.extras }}]"   # non-editable: matches what ships
 
+      # ⚠ A headless runner builds a GUI app fine — PyInstaller only COLLECTS the Qt
+      # platform plugins, it never opens a window. What needs a display is running the
+      # result, which happens on the user's machine.
       - name: Build
-        run: pyinstaller pack/exalted-builder.spec
+        run: pyinstaller ${{ matrix.spec }}
 
       - name: Rename artifact
         shell: bash                     # git-bash exists on the Windows runner too
@@ -44,9 +77,11 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.asset }}
+          name: ${{ matrix.asset }}     # unique per row: v4 refuses a duplicate name
           path: ${{ matrix.asset }}
 
+      # Each row attaches its own file to the ONE release the tag created, so a tag
+      # ships all four products together (the human's call, 2026-08-28).
       - name: Attach to release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
