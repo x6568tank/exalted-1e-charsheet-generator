@@ -56,12 +56,22 @@ from .editor import _FavoredPicker, _FilterCombo
 from .layout import clear_layout, empty_note
 from .theme import CUSTOM, MUTED, accent as accent_light
 
-_KINDS = ("charm", "spell", "gear")
-_KIND_LABELS = {"charm": "Charms", "spell": "Spells", "gear": "Gear"}
+_KINDS = ("charm", "spell", "ritual", "gear")
+_KIND_LABELS = {"charm": "Charms", "spell": "Spells", "ritual": "Rituals",
+                "gear": "Gear"}
+
+# ⚠ The three non-gear kinds share ONE code path, and the table that drives it is
+# `view.CUSTOM_KINDS` — read by BOTH shells, so the two Custom pages cannot drift.
+# GEAR is not in it: its four catalogues need a subkind, and every
+# `if self._kind == "gear"` branch below is that difference.
+_KIND = viewmod.CUSTOM_KINDS
+_NAME_HINT = {"charm": "the Charm's printed name", "spell": "the spell's name",
+              "ritual": "the ritual's name", "gear": "what it is called"}
 # Gear carries a Kind column: the four catalogues are ONE concept on screen (things you
 # own), so they share a list rather than splitting it into four more sub-tabs.
 _COLUMNS = {"charm": ("", "Name", "Detail"),
             "spell": ("", "Name", "Detail"),
+            "ritual": ("", "Name", "Detail"),
             "gear": ("", "Name", "Kind", "Detail")}
 
 # What an EMPTY library says. ⚠ A header over a blank rectangle reads as "nothing
@@ -74,6 +84,10 @@ _EMPTY_NOTES = {
              "owns it carries a copy in their save.",
     "spell": "Your spell library is empty.\n\nWrite a spell here and it becomes "
              "learnable by every character you make.",
+    "ritual": "Your ritual library is empty.\n\nThe chapter prints five rituals and "
+              "says outright that more should be written (p.148). One written here "
+              "joins the catalogue in Thaumaturgy, priced by its level like any "
+              "other — or invent one for a single character from the picker itself.",
     "gear": "Your gear library is empty.\n\nAuthor a weapon, armour or an artifact "
             "here, or save one off a character's Gear tab — both write the same row.",
 }
@@ -289,7 +303,7 @@ class CustomPage(QWidget):
             catalog = getattr(self._ruleset,
                               viewmod.CUSTOM_GEAR_KINDS[self._gear_kind][0])
             return {i for i, row in catalog.items() if "custom" not in row.tags}
-        pool = self._ruleset.charms if self._kind == "charm" else self._ruleset.spells
+        pool = getattr(self._ruleset, _KIND[self._kind].pool)
         return {i for i, row in pool.items() if not row.custom}
 
     def _library_rows(self) -> list:
@@ -301,7 +315,8 @@ class CustomPage(QWidget):
         return [r for r in viewmod.build_custom_library(
             self._ruleset,
             custom_content.library_charms(self._root),
-            custom_content.library_spells(self._root)) if r.kind == self._kind]
+            custom_content.library_spells(self._root),
+            custom_content.library_rituals(self._root)) if r.kind == self._kind]
 
     def reload(self) -> None:
         """Re-merge the library into the live rule set, then rebuild everything that
@@ -321,11 +336,11 @@ class CustomPage(QWidget):
         return label
 
     def _sync_readout(self) -> None:
-        charms = custom_content.library_charms(self._root)
-        spells = custom_content.library_spells(self._root)
         gear = sum(len(custom_content.library_gear(kind, self._root))
                    for kind in viewmod.CUSTOM_GEAR_KINDS)
-        bits = [f"{len(charms)} Charm(s)", f"{len(spells)} spell(s)",
+        bits = [f"{len(_KIND['charm'].library(self._root))} Charm(s)",
+                f"{len(_KIND['spell'].library(self._root))} spell(s)",
+                f"{len(_KIND['ritual'].library(self._root))} ritual(s)",
                 f"{gear} gear row(s)"]
         self.readout.setText("Your library — " + " · ".join(bits))
         self.readout.setStyleSheet(f"color:{self._accent()};")
@@ -383,6 +398,15 @@ class CustomPage(QWidget):
         table.setCurrentItem(restore)
         table.blockSignals(False)
 
+    def show_kind(self, kind: str) -> None:
+        """Select the sub-tab for `kind` ("charm" / "spell" / "ritual" / "gear").
+
+        ⚠ The seam for anything that means "the Gear tab" rather than "tab 2".
+        `_KINDS` is display order and has already changed once — every caller that
+        addressed a sub-tab by POSITION pointed at the wrong kind the moment Rituals
+        went in between, which is the address-by-name lesson in its own file."""
+        self.tabs.setCurrentIndex(_KINDS.index(kind))
+
     def _kind_changed(self, index: int) -> None:
         self._kind = _KINDS[index]
         # ⚠ Before `_new()`, and here rather than only in `reload()`: the action set
@@ -419,11 +443,9 @@ class CustomPage(QWidget):
             self._set_form(viewmod.custom_gear_form(self._gear_kind, raw),
                            editing=row_id)
             return
-        rows = (custom_content.library_charms(self._root) if self._kind == "charm"
-                else custom_content.library_spells(self._root))
-        raw = next((r for r in rows if r.get("id") == row_id), {})
-        self._set_form(viewmod.custom_charm_form(raw) if self._kind == "charm"
-                       else viewmod.custom_spell_form(raw), editing=row_id)
+        raw = next((r for r in _KIND[self._kind].library(self._root)
+                    if r.get("id") == row_id), {})
+        self._set_form(_KIND[self._kind].form(raw), editing=row_id)
 
     def _set_form(self, form: dict, editing: str = "") -> None:
         self._form, self._editing = form, editing
@@ -441,8 +463,7 @@ class CustomPage(QWidget):
             self._set_form(viewmod.custom_gear_form(self._gear_kind))
             return
         self._gear_kind = ""
-        self._set_form(viewmod.custom_charm_form() if self._kind == "charm"
-                       else viewmod.custom_spell_form())
+        self._set_form(_KIND[self._kind].form())
 
     def _sync_actions(self) -> None:
         """Which toolbar actions this kind has.
@@ -467,8 +488,7 @@ class CustomPage(QWidget):
     def _payload(self) -> dict:
         if self._kind == "gear":
             return viewmod.custom_gear_payload(self._gear_kind, self._form)
-        return (viewmod.custom_charm_payload(self._form) if self._kind == "charm"
-                else viewmod.custom_spell_payload(self._form))
+        return _KIND[self._kind].payload(self._form)
 
     def _save(self) -> None:
         if self._kind == "gear":
@@ -481,9 +501,7 @@ class CustomPage(QWidget):
         if not self._editing:
             form["id"] = custom_content.make_id(form.get("name", ""))
         try:
-            saver = (custom_content.save_charm if self._kind == "charm"
-                     else custom_content.save_spell)
-            saved = saver(self._payload(), custom_dir=self._root,
+            saved = _KIND[self._kind].save(self._payload(), custom_dir=self._root,
                           reserved_ids=self._reserved())
         except CustomContentError as exc:
             self._notify(str(exc), "warning")
@@ -493,8 +511,7 @@ class CustomPage(QWidget):
         # staying on it is what makes "save, look at the tree, adjust" work.
         self._set_form(self._form, editing=saved.id)
         self._sync_readout()
-        pool = self._ruleset.charms if self._kind == "charm" else self._ruleset.spells
-        if saved.id not in pool:
+        if saved.id not in getattr(self._ruleset, _KIND[self._kind].pool):
             self._notify(f"Saved {saved.name}, but it did not load — see the problems "
                          f"below the list", "warning")
         else:
@@ -546,10 +563,8 @@ class CustomPage(QWidget):
         if self._kind == "gear":
             gone = custom_content.delete_gear(self._gear_kind, self._editing,
                                               custom_dir=self._root)
-        elif self._kind == "charm":
-            gone = custom_content.delete_charm(self._editing, custom_dir=self._root)
         else:
-            gone = custom_content.delete_spell(self._editing, custom_dir=self._root)
+            gone = _KIND[self._kind].delete(self._editing, custom_dir=self._root)
         self._new()
         self.reload()
         self._notify(f"Deleted {name}" if gone else f"{name} was not there", "info")
@@ -623,16 +638,14 @@ class CustomPage(QWidget):
 
     def _load_row(self, row: dict) -> None:
         rid = custom_content.normalize_id(str(row.get("id", "")))
-        self._set_form(viewmod.custom_charm_form(row) if self._kind == "charm"
-                       else viewmod.custom_spell_form(row), editing=rid)
+        self._set_form(_KIND[self._kind].form(row), editing=rid)
 
     def _apply_rows(self, rows: list[dict], *, label: str) -> None:
         """Save every row. One row also loads into the form, so a paste of a single
         Charm is an edit rather than a blind write; several are a bulk import and are
         reported as a count."""
         saved, failed = 0, []
-        saver = (custom_content.save_charm if self._kind == "charm"
-                 else custom_content.save_spell)
+        saver = _KIND[self._kind].save
         for row in rows:
             try:
                 saver(row, custom_dir=self._root, reserved_ids=self._reserved())
@@ -768,11 +781,9 @@ class CustomPage(QWidget):
         if self._kind == "gear":
             self._gear_detail(lay)
             return
-        self._labelled(lay, "Name", self._line("name", "the Charm's printed name"))
-        if self._kind == "charm":
-            self._charm_fields(lay)
-        else:
-            self._spell_fields(lay)
+        self._labelled(lay, "Name", self._line("name", _NAME_HINT[self._kind]))
+        {"charm": self._charm_fields, "spell": self._spell_fields,
+         "ritual": self._ritual_fields}[self._kind](lay)
 
         description = QTextEdit(str(self._form.get("description") or ""))
         description.setObjectName("custom.description")
@@ -929,6 +940,25 @@ class CustomPage(QWidget):
         self._labelled(lay, "Cost", _wrap(cost))
         self._labelled(lay, "Cost text",
                        self._line("cost_raw", "variable costs, e.g. '1m per die'"))
+
+    def _ritual_fields(self, lay) -> None:
+        """⚠ Cost, Roll and Resources are free TEXT, not numbers. A ritual has no stat
+        block in the source — the heading is the name with its dot rating and the rest
+        is prose — so a printed cost reads "1 mote or one Willpower" (p.148-150)."""
+        level = self._spin("level", 1, 5)
+        level.setToolTip("A thaumaturge needs Occult equal to the ritual's level "
+                         "(p.148); the level is also what it costs to buy.")
+        # ⚠ In a row with a stretch, not handed to `_labelled` bare: a full-width
+        # QSpinBox puts its arrows against the far edge of the pane, where they read
+        # as clipped. The spell form's Motes/WP row is the shape this follows.
+        row = QHBoxLayout()
+        row.addWidget(level)
+        row.addStretch(1)
+        self._labelled(lay, "Level", _wrap(row))
+        self._labelled(lay, "Cost", self._line("cost", "e.g. 1 mote or one Willpower"))
+        self._labelled(lay, "Roll", self._line("roll", "many rituals print none"))
+        self._labelled(lay, "Resources",
+                       self._line("resources", "components, e.g. Resources 2"))
 
     def _charm_fields(self, lay) -> None:
         ruleset = self._ruleset

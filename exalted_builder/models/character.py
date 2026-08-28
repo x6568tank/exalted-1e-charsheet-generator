@@ -1027,7 +1027,10 @@ class Character(BaseModel):
     # --- homebrew this character depends on (see custom_content.py) ------------
     # Definitions of the CUSTOM Charms/spells this character references, carried
     # inside the save so it survives being handed to someone whose machine has no
-    # copy of the author's library. Keyed "charms"/"spells".
+    # copy of the author's library. Keyed "charms"/"spells"/"rituals" — every custom
+    # kind a character references BY ID. ⚠ Gear is deliberately not among them: a save
+    # carries its own inline copy of every weapon, armour and item (decision 0007), so
+    # there is no id to resolve against someone else's library.
     #
     # ⚠ OPAQUE dicts, not Charm/Spell models: those are rules data, and this module
     # must not grow a dependency on the rules catalogue (see the module docstring).

@@ -1,14 +1,15 @@
-# Session handoff — 2026-08-28 (the native binary, and the last light surfaces went dark)
+# Session handoff — 2026-08-28 (the dark document surfaces, then a shell-parity sweep)
 
 # 👉 YOU ARE HERE
 
-Last FULL green suite: **3,034 passed, 1 skipped** (main PC, `qt-port`, 7m38s), run after
+Last FULL green suite: **3,054 passed, 1 skipped** (main PC, `qt-port`, 8m18s), run after
 the last code change. The tree is clean and nothing is half-finished.
 
-Two things since the Party window: the app is **packaged as a native binary**
+Three things since the Party window: the app is **packaged as a native binary**
 (`dist/ExaltedBuilderQt`, commit 728365c — the spec, the traps and the silent-windowed-
-crash defect it surfaced are all in that commit message and `pack/BUILD.md`), and the
-**two document surfaces went dark**, which was the last piece of theme drift in the port.
+crash defect it surfaced are all in that commit message and `pack/BUILD.md`); the **two
+document surfaces went dark**, the last piece of theme drift in the port; and a
+**shell-parity sweep** closed four holes and grew a new custom-library kind.
 
 ## 👉 NEXT: still the Party window click-through
 
@@ -23,14 +24,53 @@ finding is fixed. Scope it to what only a real display can answer:
    it twice, damage one. Does the Damage column carry what the card stack used to?
 4. **Close the builder.** The party window must go with it.
 
-Add one glance now that the theme changed: **the Sheet tab and the Reference tab** are
-dark for the first time. They were rendered offscreen and looked at, not used.
+Add two glances now, both rendered offscreen and looked at but not used: **the Sheet tab
+and the Reference tab**, dark for the first time; and **the Thaumaturgy → Rituals tab**,
+which grew an authoring row, an Add-version button and a "Known in:" line — plus the
+**Custom tab's Rituals sub-tab** beside it.
 
 ⚠ **The binary is built from a working tree, and `dist/` is gitignored** — the one on
 disk is from 2026-08-27 and does NOT have the dark sheet in it. Rebuild before showing
 the app to anyone from the binary.
 
-## What shipped this session
+## What shipped this session — part two: the shell-parity sweep
+
+Asked whether either shell was missing anything the other had, and answered
+mechanically: every public `ui/view.py` name and every public `engine/` function, scored
+by which shell references it. **Four real holes, three of them ours.** Method, findings
+and the method's blind spot: `docs/plans/qt-port.md`'s last section.
+
+**Three Qt Thaumaturgy holes, all fixed** (`docs/status/thaumaturgy.md`): owned regional
+orientations were never shown; a SECOND regional version was unbuyable, because the combo
+vanished once a row was owned and `add_thaum_orientation` had no Qt caller; and no custom
+ritual could be written at all. Fixing them turned up two more that no list had —
+`_refresh_thaum_selection` left the detail panel stale (always wrong, invisible until a
+line in it moved on a purchase), and the Qt combo defaulted to **North** where the webapp
+has always defaulted to **Realm**.
+
+**Rituals became a custom-library kind, on both shells** — the human's call when the
+webapp-only hole came up: `custom/rituals.json`, authored on the Custom tab's new Rituals
+sub-tab, merged into `ruleset.thaum_rituals`, bought by id like a printed ritual.
+⚠ **Both entry points stay**, so a ritual now has two custom shapes that are not
+interchangeable — a library row, and an inline `RitualEntry` for one character. The table
+that tells them apart is in `docs/status/custom-content.md`; read it before touching
+either.
+
+Three things that fell out, each a lesson the project already had:
+
+* ⚠ **`ui/custom.py::_switch_kind` repainted the form and not the LIBRARY** — the Spells
+  tab listed Charms, under a heading that said "YOUR SPELLS". Every test until now
+  authored and read within one kind.
+* ⚠ **`reload_custom_layer` needed the ritual purge**, exactly as it had needed the gear
+  one. The test was written first and caught it the same hour.
+* ⚠ **A library ritual TRAVELS** (`custom_definitions["rituals"]`), because it is
+  referenced by id. Gear does not, because a save carries an inline copy — decision 0007
+  is the whole difference.
+
+**The webapp's Custom page gained the gear half** it never had, which was the one thing
+Qt had and it did not.
+
+## What shipped this session — part one
 
 **The document surfaces are dark on screen and paper in print.** The Sheet tab and the
 Party window's Reference tab were the only light surfaces left, and tabbing into a white
@@ -72,7 +112,10 @@ one-line change in a surface nobody asked to touch.
 
 ## No open rules questions
 
-Nothing this session touched a rules interpretation.
+Nothing here introduced a rules interpretation. The three printed rules the new
+controls encode — Occult ≥ the ritual's level (p.148), a flat point per extra regional
+version (p.124), and "the chapter prints five and expects more" (p.148) — were all
+already in the engine and are carried, not invented.
 
 ## Still deferred, still NOT gaps
 

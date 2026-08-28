@@ -240,3 +240,62 @@ description.
 Two tests in `test_custom_content.py` pin both halves: a saved row appears, and a
 deleted one goes. ⚠ A reload that only ADDS leaves a deleted row in the catalogue
 forever, which is the shape that makes a delete look like it failed.
+
+## Rituals joined the library — 2026-08-28
+
+**A third id-referenced kind, and the first to arrive with its predecessors' lessons
+already written down.** The chapter prints five thaumaturgic rituals and says outright
+that more should be written (p.148), so the catalogue is a seed — the same argument gear
+was given a day earlier. `custom/rituals.json`, `custom_content.{library,save,delete}_ritual`,
+merged into `RuleSet.thaum_rituals` by `_load_custom_layer`, flagged with a new
+`ThaumaturgicRitual.custom` field (a *field*, not a tag — unlike gear, this model is
+ours and not shared with a frozen catalogue shape).
+
+⚠ **A ritual now has TWO custom shapes and they are not interchangeable.**
+
+| | Library row | Inline entry |
+|---|---|---|
+| What | `ThaumaturgicRitual` in the RuleSet | `RitualEntry` with `ritual_id == ""` |
+| Where authored | Custom tab → Rituals | the Thaumaturgy picker's "Add ritual" row |
+| Who can learn it | every character, by id, priced by level | the one character it was written on |
+| Travels | inside `custom_definitions["rituals"]` | it *is* the save |
+
+**Both entry points stay** (the human's ruling, 2026-08-28 — the same answer gear got the
+day before, for the same reason: one is deliberate design, the other is "I need a ritual
+mid-session").
+
+### Three things the predecessors taught, applied without being re-learned
+
+* **The reload path, not just the load path.** `reload_custom_layer` purges
+  `custom`-flagged rituals before re-merging. The test for it was written first and
+  caught the omission immediately — this is gear's bug, and it did try to happen again.
+* **A write path needs a read path.** The library list, the form, and Delete all shipped
+  in the same change as the saver; gear was write-only for two weeks because they did not.
+* **It travels.** A library ritual is referenced BY ID, so `collect/embed/absorb_definitions`
+  carry it exactly as they carry a Charm — `referenced_ritual_ids` is the walker. ⚠ Gear
+  is exempt from that layer and rituals are NOT, and the difference is decision 0007: a
+  save carries an inline copy of a weapon, and only an *id* for a ritual.
+
+### `view.CUSTOM_KINDS` — one table, both shells
+
+The two Custom pages each carried a `charm if kind == "charm" else spell` ternary at a
+dozen sites. That shape treats "not a Charm" as a spell, so a third kind was a dozen
+chances to be silently wrong. `view.CUSTOM_KINDS` is now the single table (form, payload,
+saver, deleter, library reader, RuleSet attribute) and both shells index it; a missing key
+raises where the ternary guessed. ⚠ **Gear is deliberately not in it** — its four
+catalogues need a second key, and every `if kind == "gear"` branch in a shell is that
+difference.
+
+### A webapp bug the first tab-switching test found
+
+⚠ **`ui/custom.py::_switch_kind` repainted the FORM and not the LIBRARY.** The list
+filters on the active kind at render time, so switching to Spells kept the Charm rows —
+under a heading that said "YOUR SPELLS". Every test until now had authored and read
+within one kind. `library.refresh()` is the fix, and the ritual render test is its guard.
+
+### Qt: address a sub-tab by NAME
+
+`CustomPage.show_kind(kind)` exists because the tests reached for `tabs.setCurrentIndex(2)`
+and Rituals went in at index 2. Three tests pointed at the wrong kind and stayed green
+until an assertion happened to disagree. **The one-line lesson the project already had,
+in its own file.**

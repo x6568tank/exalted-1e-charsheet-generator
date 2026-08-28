@@ -16,12 +16,14 @@ from types import SimpleNamespace
 
 from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QWheelEvent
-from PySide6.QtWidgets import QCheckBox, QLabel, QLineEdit, QPushButton
+from PySide6.QtWidgets import (QCheckBox, QLabel, QLineEdit, QPushButton,
+                               QSpinBox)
 
 from exalted_builder.engine import (advancement, charm_actions, lifecycle,
                                     refit, validate)
 from exalted_builder.models.character import (AbilityName, Character,
                                                MeritFlawPurchase, PathRating)
+from exalted_builder.models.rules import Orientation
 from exalted_builder.qt.charms import (CharmsPage, CharmTreeView, DotTrack,
                                        trees_for,
                                        EdgeItem, NodeItem, _tree_positions, populate)
@@ -201,7 +203,17 @@ def test_charms_thaum_buy_flips_button_and_unlearns(qtbot, ruleset):
     page._selected_thaum = ("formula", formula)
     page._toggle_thaum("formula", formula)
     assert page._selected_thaum[1].owned       # the button now reads "Drop"
-    assert not page._orientation_combo.isEnabled()   # owned -> no orientation pick
+    # ⚠ Owned does NOT mean the orientation pick goes away — it means it offers the
+    # regions still missing, beside the Add-version button (p.124, a flat point each).
+    # This asserted the opposite until 2026-08-28, when the combo's disappearance was
+    # the very bug: it made every version after the first unbuyable in this shell.
+    # ⚠ isVisibleTo, not isVisible: the page is never shown in these tests,
+    # so isVisible() is False for every widget on it regardless.
+    assert page._orientation_btn.isVisibleTo(page)
+    offered = {page._orientation_combo.itemText(i)
+               for i in range(page._orientation_combo.count())}
+    assert offered == {o.value for o in Orientation} - set(
+        page._selected_thaum[1].orientations)
     page._toggle_thaum("formula", page._selected_thaum[1])
     assert not page._selected_thaum[1].owned   # unlearned
 
@@ -216,6 +228,117 @@ def test_charms_thaum_orientation_combo_for_first_buy(qtbot, ruleset):
     page._update_action()
     assert page._orientation_combo.isEnabled()      # a first purchase needs the region
     assert page._orientation_combo.count() == 5
+
+
+def _own_a_ritual(ruleset, char, page):
+    """Buy the first available ritual in its Realm version and select it."""
+    row = next(r for r in build_thaum_picker(ruleset, char).rituals if r.available)
+    page._selected_thaum = ("ritual", row)
+    page._update_action()
+    page._toggle_thaum("ritual", row)
+    return page._selected_thaum[1]
+
+
+def test_a_further_regional_version_can_be_bought(qtbot, ruleset):
+    """p.124: each extra regional version is a flat point on top. The control for it
+    did not exist in this shell — the combo vanished once the row was owned, and
+    `add_thaum_orientation` had no Qt caller at all."""
+    char = _learnable_char()
+    char.abilities[AbilityName.OCCULT] = 5
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    owned = _own_a_ritual(ruleset, char, page)
+    assert owned.orientations == [Orientation.REALM.value]
+    page._orientation_combo.setCurrentIndex(
+        [page._orientation_combo.itemText(i)
+         for i in range(page._orientation_combo.count())].index(Orientation.NORTH.value))
+    page._add_orientation()
+    after = next(r for r in build_thaum_picker(ruleset, char).rituals
+                 if r.key == owned.key)
+    assert set(after.orientations) == {Orientation.REALM.value, Orientation.NORTH.value}
+
+
+def test_the_detail_panel_names_the_versions_you_know(qtbot, ruleset):
+    """⚠ The panel is rebuilt after a purchase, not only the button. It was written
+    from the pre-purchase row, so the line moved only when you re-clicked the entry."""
+    char = _learnable_char()
+    char.abilities[AbilityName.OCCULT] = 5
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    _own_a_ritual(ruleset, char, page)
+    assert f"Known in: {Orientation.REALM.value}" in page.detail.toPlainText()
+    page._orientation_combo.setCurrentIndex(0)
+    page._add_orientation()
+    text = page.detail.toPlainText()
+    assert "Known in:" in text and Orientation.REALM.value in text
+
+
+def test_all_five_versions_leaves_nothing_to_add(qtbot, ruleset):
+    """The negative control for the control above: with every region known there is
+    no purchase left, so neither the combo nor the button may offer one."""
+    char = _learnable_char()
+    char.abilities[AbilityName.OCCULT] = 5
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    _own_a_ritual(ruleset, char, page)
+    for _ in range(4):
+        page._orientation_combo.setCurrentIndex(0)
+        page._add_orientation()
+    assert page._orientation_combo.count() == 0
+    assert not page._orientation_btn.isVisibleTo(page)
+
+
+def test_a_custom_ritual_can_be_written_for_this_character(qtbot, ruleset):
+    """p.148: the chapter prints five rituals and expects more. The webapp has had
+    this control since Thaumaturgy shipped; the port had no way to write one."""
+    char = _learnable_char()
+    char.abilities[AbilityName.OCCULT] = 3
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    page._add_custom_ritual("Whisper of the Salt Road", 2)
+    entry = next((r for r in char.thaumaturgy.rituals if r.name == "Whisper of the Salt Road"),
+                 None)
+    assert entry is not None and entry.level == 2
+    assert entry.ritual_id == ""          # inline on the character, not a library id
+    rows = build_thaum_picker(ruleset, char).rituals
+    written = next(r for r in rows if r.name == "Whisper of the Salt Road")
+    assert written.owned and written.custom
+
+
+def test_the_rituals_tab_carries_the_authoring_row(qtbot, ruleset):
+    """⚠ Drives the real WIDGETS, by name. `_add_custom_ritual` being right proves
+    nothing about whether anything on screen calls it — the control is the half that
+    was missing, not the engine call."""
+    char = _learnable_char()
+    char.abilities[AbilityName.OCCULT] = 3
+    page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
+    qtbot.addWidget(page)
+    name = page.findChild(QLineEdit, "thaum.custom_ritual.name")
+    level = page.findChild(QSpinBox, "thaum.custom_ritual.level")
+    add = page.findChild(QPushButton, "thaum.custom_ritual.add")
+    assert name is not None and level is not None and add is not None
+    name.setText("Rite of the Quiet Hour")
+    level.setValue(3)
+    add.click()
+    assert any(r.name == "Rite of the Quiet Hour" for r in char.thaumaturgy.rituals)
+    assert name.text() == ""              # cleared, so a second click is not a repeat
+
+
+def test_writing_a_ritual_the_character_cannot_learn_is_refused(qtbot, ruleset):
+    """The Occult gate is the engine's (p.148) and must reach this control — a level
+    the character cannot buy is refused, not silently written onto the sheet."""
+    said = []
+    char = _learnable_char()
+    char.abilities[AbilityName.OCCULT] = 1
+    page = CharmsPage(ruleset, {"char": char},
+                      notify=lambda text, kind="info": said.append((kind, text)))
+    qtbot.addWidget(page)
+    page._add_custom_ritual("Too Ambitious", 5)
+    # ⚠ `thaumaturgy` stays None when nothing was bought — the state is created on the
+    # first purchase, so "no state at all" is itself the assertion that none happened.
+    assert char.thaumaturgy is None or not any(
+        r.name == "Too Ambitious" for r in char.thaumaturgy.rituals)
+    assert said and said[-1][0] == "warning"
 
 
 def test_charms_remove_in_chargen(qtbot, ruleset):

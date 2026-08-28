@@ -1661,3 +1661,30 @@ process — not fails the test — when no QApplication exists.** It passed for 
 because in a full run some earlier module's `qtbot` had already made one; running
 `pytest tests/test_qt_sheet.py` on its own took the whole run down with a C stack trace,
 and read exactly like a Qt/font regression on the machine.
+
+## The shell-parity audit — 2026-08-28
+
+Asked directly ("is anything in one shell missing from the other?"), and answered
+mechanically rather than by eye: every public name in `ui/view.py` and every public
+function in `engine/`, scored by **which shell references it**. Most of the diff is
+architectural noise and says so — the Qt shell routes through `view.py` and the action
+modules where the webapp calls the engine directly, which is the dependency rule working.
+What survived being chased to a real surface:
+
+**In the webapp, missing from Qt — three, all in the Thaumaturgy picker.** Owned
+orientations were never displayed; `add_thaum_orientation` had no Qt caller, so every
+regional version after the first was unbuyable; `buy_custom_ritual` had no Qt caller, so
+no ritual could be written. Written up in `docs/status/thaumaturgy.md`, all three fixed.
+
+**In Qt, missing from the webapp — one.** The Custom page authored Charms and spells only,
+so a custom weapon saved from its Buy dialog could be neither listed nor deleted there:
+`custom_content.delete_gear`'s own docstring describes that defect, and it had been closed
+on one side only. Closed on both now, along with the new Rituals kind.
+
+⚠ **The method's blind spot, stated so the next audit does not trust it too far:** it can
+only see a difference that shows up as a NAME going unreferenced. A control that exists in
+both shells but is disabled in one, a panel that renders fewer lines, a different default
+— none of those are visible to it. Two of the three Thaumaturgy findings were found this
+way *and the other two defects in the same code* (a stale detail panel, a combo defaulting
+to North where the webapp defaults to Realm) were found only by fixing them and looking at
+the render. **Eight for eight: the list was a lower bound again.**

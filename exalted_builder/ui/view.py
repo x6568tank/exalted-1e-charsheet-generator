@@ -13,7 +13,7 @@ imports NO UI toolkit, so it is unit-testable on its own and the NiceGUI layer
 from __future__ import annotations
 
 from dataclasses import dataclass, field, field as dc_field
-from typing import Optional, Sequence
+from typing import Callable, Optional, Sequence
 
 from .. import custom_content
 from ..engine import (advancement, adversaries as advmod,
@@ -1607,7 +1607,11 @@ def build_thaum_picker(ruleset: RuleSet, character: Character) -> ThaumPickerVie
                 ruleset, character, obj.level, chargen=chargen)
                 if kind == "ritual" else "")
             rows.append(ThaumEntryRow(
-                key=obj.id, name=obj.name, kind=kind, level=obj.level, custom=False,
+                # ⚠ `custom` means "not printed in a book", and a ritual now has TWO
+                # ways of being that: a library row the loader stamped (here) or an
+                # inline one on the character (below). Both wear the same mark.
+                key=obj.id, name=obj.name, kind=kind, level=obj.level,
+                custom=getattr(obj, "custom", False),
                 owned=entry is not None, available=not reason, reason=reason,
                 price=price, orientation_price=orient_price,
                 orientations=[o.value for o in entry.orientations] if entry else [],
@@ -3435,7 +3439,7 @@ class CustomRow:
     """One row in the library list on the left of the authoring page."""
     id: str
     name: str
-    kind: str                  # "charm" | "spell" | "gear"
+    kind: str                  # "charm" | "spell" | "gear" | "ritual"
     detail: str                # category/circle, for the list's second line
     valid: bool                # False = in the library but rejected by the loader
     problem: str = ""          # why it was rejected, when it was
@@ -3666,8 +3670,85 @@ def custom_spell_payload(form: dict) -> dict:
     return payload
 
 
+@dataclass(frozen=True)
+class CustomKind:
+    """One authorable library kind, as everything a shell needs to hold it: the form
+    round-trip, the three `custom_content` calls, and the RuleSet dict the loader
+    merges it into.
+
+    ⚠ ONE table, read by both shells. The two Custom pages each carried their own
+    `charm if kind == "charm" else spell` ternary at a dozen sites — a shape that
+    treats "not a Charm" as a spell, so adding the third kind was a dozen chances to
+    forget one silently. A missing key raises here instead.
+
+    ⚠ GEAR is deliberately absent. Its four catalogues need a second key (which
+    catalogue), its models are frozen and tagged rather than flagged, and it has no
+    neutral blank row — `CUSTOM_GEAR_KINDS` and `build_custom_gear_library` are its
+    equivalents, and every `if kind == "gear"` branch in a shell is that difference.
+    """
+    key: str
+    label: str                 # plural: the sub-tab caption
+    noun: str                  # singular: "New <noun>"
+    form: Callable             # raw row -> form dict
+    payload: Callable          # form dict -> raw row
+    save: Callable             # custom_content saver
+    delete: Callable           # custom_content deleter
+    library: Callable          # custom_content reader: every row on disk
+    pool: str                  # the RuleSet attribute it merges into
+
+
+def custom_ritual_form(row: Optional[dict] = None) -> dict:
+    """The authoring form for a library ritual (p.148: the chapter prints five and
+    expects more). ⚠ `cost`, `roll` and `resources` are free TEXT, not numbers — a
+    printed ritual has no stat block, and its cost reads "1 mote or one Willpower"."""
+    row = row or {}
+    source = row.get("source") or {}
+    return {
+        "id": row.get("id", ""),
+        "name": row.get("name", ""),
+        "level": row.get("level", 1),
+        "cost": row.get("cost", ""),
+        "roll": row.get("roll", ""),
+        "resources": row.get("resources", ""),
+        "description": row.get("description", ""),
+        "book": source.get("book", "Homebrew"),
+        "page": source.get("page") or None,
+    }
+
+
+def custom_ritual_payload(form: dict) -> dict:
+    return {
+        "id": form.get("id") or "",
+        "name": (form.get("name") or "").strip(),
+        "level": int(form.get("level") or 1),
+        "cost": (form.get("cost") or "").strip(),
+        "roll": (form.get("roll") or "").strip(),
+        "resources": (form.get("resources") or "").strip(),
+        "description": (form.get("description") or "").strip(),
+        "source": {"book": (form.get("book") or "Homebrew").strip(),
+                   "page": form.get("page") or None},
+    }
+
+
+CUSTOM_KINDS: dict[str, CustomKind] = {
+    "charm": CustomKind("charm", "Charms", "Charm", custom_charm_form,
+                        custom_charm_payload, custom_content.save_charm,
+                        custom_content.delete_charm, custom_content.library_charms,
+                        "charms"),
+    "spell": CustomKind("spell", "Spells", "spell", custom_spell_form,
+                        custom_spell_payload, custom_content.save_spell,
+                        custom_content.delete_spell, custom_content.library_spells,
+                        "spells"),
+    "ritual": CustomKind("ritual", "Rituals", "ritual", custom_ritual_form,
+                         custom_ritual_payload, custom_content.save_ritual,
+                         custom_content.delete_ritual, custom_content.library_rituals,
+                         "thaum_rituals"),
+}
+
+
 def build_custom_library(ruleset: RuleSet, charm_rows: list[dict],
-                         spell_rows: list[dict]) -> list[CustomRow]:
+                         spell_rows: list[dict],
+                         ritual_rows: Optional[list[dict]] = None) -> list[CustomRow]:
     """The library list: every row ON DISK, whether or not it loaded.
 
     Taking the rows as arguments keeps this pure — the page reads the disk. A row
@@ -3697,6 +3778,14 @@ def build_custom_library(ruleset: RuleSet, charm_rows: list[dict],
         out.append(CustomRow(
             id=rid, name=row.get("name") or rid, kind="spell",
             detail=f"{loaded.circle.value} Circle" if loaded else row.get("circle", "?"),
+            valid=loaded is not None and loaded.custom,
+            problem=_problem_for(rid)))
+    for row in ritual_rows or []:
+        rid = row.get("id", "")
+        loaded = ruleset.thaum_rituals.get(rid)
+        out.append(CustomRow(
+            id=rid, name=row.get("name") or rid, kind="ritual",
+            detail=f"level {loaded.level if loaded else row.get('level', '?')}",
             valid=loaded is not None and loaded.custom,
             problem=_problem_for(rid)))
     return out

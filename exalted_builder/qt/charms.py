@@ -248,6 +248,12 @@ def _detail_html(obj, currency: str = ""):
         cost = cost.raw or _cost_str(cost)
     if cost:
         lines.append(f"Cost: {html.escape(str(cost))}")
+    # ⚠ Which regional versions are KNOWN is the one thing a ritual/formula row says
+    # that no other entry does, and it is what the "add another version" price is
+    # against (p.124). The panel showed everything else about the row and not this.
+    known = getattr(obj, "orientations", None)
+    if known:
+        lines.append(f"Known in: {html.escape(', '.join(known))}")
     parts = [f"<b>{name}</b>"]
     if lines:
         # Light grey on the dark detail panel — the web-page mid-grey is invisible.
@@ -776,6 +782,15 @@ class CharmsPage(QWidget):
         self._orientation_combo.setVisible(False)   # only a ritual/formula buy shows it
         self._orientation_combo.setToolTip("Regional version of a ritual or formula")
         act_row.addWidget(self._orientation_combo)
+        # ⚠ A SECOND control, not a re-use of `action_btn`: an owned ritual's button
+        # says Drop, and "know it in one more region" is a different purchase at a
+        # different price (a flat point each, p.124) — the same shape as `again_btn`
+        # beside an owned repeatable Charm. Without it the combo was reachable only
+        # before the first purchase, so every further version was unbuyable here.
+        self._orientation_btn = QPushButton("Add version")
+        self._orientation_btn.setVisible(False)
+        self._orientation_btn.clicked.connect(self._add_orientation)
+        act_row.addWidget(self._orientation_btn)
         dp.addLayout(act_row)
         # The Path rating dot track — visible only while a Path is selected on the
         # Paths page (which binds the track). Hidden on every other selection.
@@ -888,6 +903,7 @@ class CharmsPage(QWidget):
         Thaumaturgy buy show their cost."""
         char = self._char()
         self._orientation_combo.setVisible(False)      # a ritual/formula buy re-shows it
+        self._orientation_btn.setVisible(False)
         # ⚠ Hidden HERE, not on each branch: _update_action has a dozen early returns
         # and a button left visible from the previous selection offers "Add another"
         # against whatever is selected now. The submodule panel is torn down for the
@@ -989,10 +1005,7 @@ class CharmsPage(QWidget):
                     f"Learn {row.name} — {row.price} {currency}"
                 self.action_btn.setText(label)
                 self.action_btn.setEnabled(True)
-                # The orientation matters only for the FIRST purchase — an owned
-                # entry is dropped, not re-learned.
-                self._orientation_combo.setVisible(not row.owned)
-                self._orientation_combo.setEnabled(not row.owned)
+                self._sync_orientation(row, currency)
             return
         if self._selected_elemental is not None:
             # Owned-ness is read live off the character, never off a stored row — a
@@ -1082,6 +1095,76 @@ class CharmsPage(QWidget):
                           if g.title == self._selected_augment), None)
             if group is not None:
                 self._open_augment_dialog(group)
+
+    def _sync_orientation(self, row, currency: str) -> None:
+        """Fill the orientation combo for the selected ritual/formula and show the
+        control that applies.
+
+        Unowned: every region, and the combo is which one the FIRST purchase is in.
+        Owned: only the regions still missing, beside a button that buys one more
+        (p.124). Owned in all five: neither, because there is nothing left to buy.
+        """
+        offered = [o for o in Orientation
+                   if not row.owned or o.value not in row.orientations]
+        self._orientation_combo.clear()
+        for o in offered:
+            self._orientation_combo.addItem(o.value, o)
+        # ⚠ Default to REALM where it is on offer, not to whatever the enum lists
+        # first. The webapp's page-level picker has defaulted to Realm since
+        # Thaumaturgy shipped; this combo took enum order and so bought a NORTHERN
+        # version by default — the same purchase at the same price, in a tradition
+        # nobody chose.
+        if offered:
+            self._orientation_combo.setCurrentIndex(
+                offered.index(Orientation.REALM) if Orientation.REALM in offered else 0)
+        self._orientation_combo.setVisible(bool(offered))
+        self._orientation_combo.setEnabled(bool(offered))
+        self._orientation_combo.setToolTip(
+            "Which regional version to learn it in"
+            if not row.owned else
+            f"Another regional version — {row.orientation_price} {currency}")
+        self._orientation_btn.setVisible(row.owned and bool(offered))
+        self._orientation_btn.setText(
+            f"Add version — {row.orientation_price} {currency}")
+
+    def _add_orientation(self) -> None:
+        """Buy one further regional version of the selected ritual or formula."""
+        if self._selected_thaum is None:
+            return
+        kind, row = self._selected_thaum[0], self._selected_thaum[1]
+        # PySide6 stores the enum's str value, not the member — reconstruct, exactly
+        # as `_toggle_thaum` does. (Never read a key back out of a widget: this one is
+        # a value, not a key into a dict we built.)
+        raw = self._orientation_combo.currentData() or Orientation.REALM.value
+        try:
+            msg = thaum_actions.add_thaum_orientation(
+                self._ruleset, self._char(), kind, row.key, Orientation(raw))
+        except advancement.AdvancementError as ex:
+            self._notify(str(ex), "warning")
+            return
+        self._notify(msg, "info")
+        self._refresh_current_tree()
+
+    def _add_custom_ritual(self, name: str, level: int) -> None:
+        """Author a ritual for THIS character alone — the inline `RitualEntry` path
+        (p.148: the chapter prints five and expects more).
+
+        ⚠ Not the same thing as the Custom tab's Rituals library, and both stay (the
+        human's ruling, 2026-08-28): this one is "I need a ritual mid-session", the
+        library one is reusable and joins the catalogue for every character.
+        """
+        try:
+            raw = self._orientation_combo.currentData() or Orientation.REALM.value
+            msg = thaum_actions.buy_custom_ritual(
+                self._ruleset, self._char(), name, level, Orientation(raw))
+        except advancement.AdvancementError as ex:
+            self._notify(str(ex), "warning")
+            return
+        self._notify(msg, "info")
+        # A new entry means a new ROW, which only a rebuilt page holds — unlike a buy,
+        # where the row already exists and `_refresh_current_tree` re-finds it.
+        self.reload()
+        self._update_readout()
 
     def _toggle_thaum(self, kind: str, *rest) -> None:
         """Buy/drop a Thaumaturgy entry via engine.thaum_actions — Arts and
@@ -1299,6 +1382,12 @@ class CharmsPage(QWidget):
             rows = picker.rituals if kind == "ritual" else picker.formulas
             fresh = next((r for r in rows if r.key == self._selected_thaum[1].key), None)
             self._selected_thaum = (kind, fresh) if fresh else None
+        # ⚠ The DETAIL text is stale too, not just the button. It was written from the
+        # pre-purchase row, and a ritual's panel now carries a line that moves when you
+        # buy — "Known in: Realm" after adding the Northern version.
+        if self._selected_thaum is not None:
+            self.detail.setHtml(_detail_html(self._selected_thaum[-1],
+                                             self._thaum_currency()))
         self._update_action()
 
     def _update_readout(self) -> None:
@@ -1676,14 +1765,55 @@ class CharmsPage(QWidget):
                 ("Formulas", "formula", picker.formulas)):
             entries = QListWidget()
             for row in rows:
-                item = QListWidgetItem(row.name)
+                # ⚠ `getattr`, because the three lists are three ROW TYPES: only a
+                # ritual/formula row carries `custom`, and a Science does not.
+                item = QListWidgetItem(f"{row.name}  ✎" if getattr(row, "custom", False)
+                                       else row.name)
                 item.setData(Qt.UserRole, (kind, row))
                 entries.addItem(item)
             entries.currentItemChanged.connect(
                 lambda _c, _p, lw=entries: self._panel_detail(lw))
-            inner.addTab(entries, label)
+            if kind != "ritual":
+                inner.addTab(entries, label)
+                continue
+            inner.addTab(self._rituals_tab(entries), label)
         lay = QVBoxLayout(page)
         lay.addWidget(inner)
+        return page
+
+    def _rituals_tab(self, entries) -> QWidget:
+        """The Rituals list with an authoring row under it.
+
+        ⚠ The ONE list in the picker that can be added to. Every other entry here is
+        printed content you buy; a ritual can also be WRITTEN, because the chapter
+        prints five and says more should exist (p.148). The regional version comes off
+        the same combo the buy button uses, so there is one control for one concept.
+        """
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.addWidget(entries, 1)
+        row = QHBoxLayout()
+        name = QLineEdit()
+        name.setObjectName("thaum.custom_ritual.name")
+        name.setPlaceholderText("Write your own ritual…")
+        row.addWidget(name, 1)
+        level = QSpinBox()
+        level.setObjectName("thaum.custom_ritual.level")
+        level.setRange(1, 5)
+        level.setPrefix("level ")
+        level.setToolTip("A thaumaturge needs Occult equal to the ritual's level "
+                         "(p.148)")
+        row.addWidget(level)
+        add = QPushButton("Add ritual")
+        add.setObjectName("thaum.custom_ritual.add")
+        add.setToolTip("Invent one for this character. To write one every character "
+                       "can learn, use the Custom tab's Rituals library.")
+        add.clicked.connect(
+            lambda: (self._add_custom_ritual(name.text(), level.value()),
+                     name.clear()))
+        row.addWidget(add)
+        lay.addLayout(row)
         return page
 
     # ------------------------------------------------------------------ #

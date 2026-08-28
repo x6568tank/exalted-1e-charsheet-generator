@@ -546,3 +546,36 @@ item is the p.143 cross-reference table (below).
 Deferred by decision, not blocked: the Knowledge restricted-BP pool (M&F milestone).
 **No open rules questions remain.** The Science rate and "Magic for Everyone" are
 both resolved and built.
+
+## The Qt picker caught up — 2026-08-28
+
+A shell-parity audit (`ui/view.py` and `engine/` names, by which shell references them)
+found **three holes, all of them in this feature and all of them in the Qt picker**. The
+webapp had had every one since Thaumaturgy shipped.
+
+1. **Owned orientations were never shown.** `ThaumEntryRow.orientations` had zero readers
+   in `qt/`, so a ritual you knew in the Realm version did not say so anywhere. Now a
+   "Known in: …" line in the detail panel.
+2. **A further regional version was UNBUYABLE.** `add_thaum_orientation` had no Qt caller
+   at all: the orientation combo was hidden the moment a row was owned, on the reasoning
+   that "an owned entry is dropped, not re-learned" — true of the *Drop* button and false
+   of the flat-point second version (p.124). The combo now offers the regions still
+   missing, beside an **Add version — N** button.
+3. **No custom ritual could be written.** `buy_custom_ritual` had no Qt caller either.
+   The Rituals sub-tab now carries a name + level + Add row under the list — ⚠ the ONE
+   list in the picker that can be added to, because a ritual is the one printed thing the
+   book asks you to write more of.
+
+Two more things the fix turned up, neither in the gap list:
+
+* ⚠ **`_refresh_thaum_selection` re-found the row and left the DETAIL TEXT stale.** It
+  had always been wrong; nothing had made it visible, because no line in that panel used
+  to change on a purchase. "Known in:" does.
+* ⚠ **The Qt combo defaulted to NORTH**, being first in the enum, where the webapp's
+  page-level picker has always defaulted to **Realm**. Same purchase, same price, in a
+  tradition nobody chose. It defaults to Realm now where Realm is on offer.
+
+**Rituals are also a custom-library kind now** — `custom/rituals.json`, authored on either
+shell's Custom tab, merged into this catalogue and bought by id like a printed one. The
+two shapes (library row vs inline `RitualEntry`) and why both stay:
+`docs/status/custom-content.md`.

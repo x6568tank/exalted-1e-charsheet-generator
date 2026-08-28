@@ -1083,6 +1083,11 @@ class ThaumaturgicRitual(BaseModel):
     resources: str = ""                     # display, e.g. "Resources 2" for components
     description: str = ""
     source: Source = Field(default_factory=Source)
+    # Stamped by the loader on a row that came from the user's library, exactly as
+    # `Charm.custom` and `Spell.custom` are. ⚠ Rituals are the ONE catalogue with a
+    # second custom shape beside this one: a ritual authored for a single character
+    # is an inline `RitualEntry` with no `ritual_id`, and never becomes a row here.
+    custom: bool = False
 
 
 class ThaumaturgicFormula(BaseModel):

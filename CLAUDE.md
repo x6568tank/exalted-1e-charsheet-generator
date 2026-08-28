@@ -161,6 +161,11 @@ Each is written up in full where it happened; these are the reusable one-liners.
   it had supported the repeatable case all along, cap check and page citation included.
   Both shells go through the dispatcher, so nothing could reach it. **When you write a
   broad refusal, check what the layer below already handles more precisely.**
+- **A cross-shell parity audit can only see a name going unreferenced.** Scoring every
+  `view.py`/`engine/` name by which shell uses it found three real holes; it is blind to
+  a control that exists in both but is disabled in one, to a panel with fewer lines, and
+  to a different default. Both of those turned up in the SAME code, by fixing the found
+  ones and looking at the render.
 - **A test's SUBJECT can quietly become the wrong subject.** The Qt "Add another" tests
   used a Charm that later turned out to be a variant menu, not a generic repeatable.
   They were green throughout and proved nothing about the case they named. When a
@@ -393,8 +398,8 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**3,034 passing, 1 skipped** (2026-08-28, main PC, the `qt-port` branch after the dark
-document surfaces — includes the Qt-port tests in `tests/test_qt_*.py`,
+**3,054 passing, 1 skipped** (2026-08-28, main PC, the `qt-port` branch after the dark
+document surfaces and the ritual library — includes the Qt-port tests in `tests/test_qt_*.py`,
 `tests/test_charm_actions.py`, `tests/test_gear_actions.py` and
 `tests/test_variant_purchases.py`).
 
@@ -454,7 +459,7 @@ are pointers only; the traps and history live in the files.
 | M&F mechanical-effect triage — what was modelled, what was skipped and why | `status/merits-flaws-triage.md` |
 | Backgrounds — per-splat catalogues, the dot ladder, the numeric rules | `status/backgrounds.md` |
 | Thaumaturgy — cross-splat Arts/Sciences/Rituals/Formulas | `status/thaumaturgy.md` |
-| Custom content — user-authored Charms/styles/spells, the `/custom` page | `status/custom-content.md` |
+| Custom content — user-authored Charms/styles/spells/**rituals**/gear, the `/custom` page | `status/custom-content.md` |
 | Dice pools — decision 0016, the Play-tab sidebar | `status/dice-pools.md` |
 | Elder Exalts — Essence to the splat cap, the p.259 downtime calculator | `status/elder-exalts.md` |
 | Edit⇄XP merge — one trait surface both sides of the lock | `status/edit-xp-merge.md` |

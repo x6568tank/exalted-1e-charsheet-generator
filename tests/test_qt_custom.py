@@ -29,10 +29,12 @@ import pytest
 # turn into a COLLECTION ERROR — that kills the whole run, not just these tests.
 pytest.importorskip("PySide6", reason="the optional [qt] extra is not installed")
 
-from PySide6.QtWidgets import QComboBox, QLabel, QLineEdit, QPushButton, QTextEdit
+from PySide6.QtWidgets import (QComboBox, QLabel, QLineEdit, QMessageBox,
+                               QPushButton, QSpinBox, QTextEdit)
 
 from exalted_builder import custom_content
 from exalted_builder.models.character import Character
+from exalted_builder.qt import custom as custommod
 from exalted_builder.qt.custom import CustomPage
 from exalted_builder.ui import view as viewmod
 
@@ -100,12 +102,54 @@ def test_charms_and_spells_are_separate_sub_tabs(ruleset, tmp_path, qtbot):
     page = _page(ruleset, tmp_path)
     qtbot.addWidget(page)
     _author(page, "Blade of the Setting Sun", category="melee")
-    page.tabs.setCurrentIndex(1)
+    page.show_kind("spell")
     assert page._kind == "spell"
     _author(page, "Ivory Orchid Petal")
     assert _names(page, "spell") == ["Ivory Orchid Petal"]
     # ⚠ The Charm is still in the OTHER table, not merged into this one.
     assert _names(page, "charm") == ["Blade of the Setting Sun"]
+
+
+def test_a_ritual_is_authored_here_and_lands_in_the_catalogue(ruleset, tmp_path, qtbot):
+    """The Rituals library (2026-08-28). p.148 prints five and expects more, so a row
+    written here joins `ruleset.thaum_rituals` and is bought from the Thaumaturgy
+    picker by id, like a printed one."""
+    page = _page(ruleset, tmp_path)
+    qtbot.addWidget(page)
+    page.show_kind("ritual")
+    assert page._kind == "ritual"
+    rid = _author(page, "Whisper of the Salt Road", level=3, cost="1 mote")
+    assert _names(page, "ritual") == ["Whisper of the Salt Road"]
+    entry = ruleset.thaum_rituals[rid]
+    assert entry.level == 3 and entry.cost == "1 mote" and entry.custom
+    assert "level 3" in _item(page, "Whisper of the Salt Road", "ritual").text(2)
+
+
+def test_the_ritual_form_carries_the_fields_the_model_has(ruleset, tmp_path, qtbot):
+    """⚠ Cost, Roll and Resources are TEXT boxes, not numbers: a ritual prints no stat
+    block and a printed cost reads "1 mote or one Willpower" (p.148-150)."""
+    page = _page(ruleset, tmp_path)
+    qtbot.addWidget(page)
+    page.show_kind("ritual")
+    page._new()
+    assert _control(page, "level", QSpinBox) is not None
+    for field in ("cost", "roll", "resources"):
+        assert _control(page, field) is not None, field
+
+
+def test_deleting_a_library_ritual_takes_it_out_of_the_catalogue(ruleset, tmp_path,
+                                                                 qtbot, monkeypatch):
+    page = _page(ruleset, tmp_path)
+    qtbot.addWidget(page)
+    page.show_kind("ritual")
+    rid = _author(page, "Rite of the Quiet Hour", level=1)
+    assert rid in ruleset.thaum_rituals
+    monkeypatch.setattr(custommod, "QMessageBox", QMessageBox)
+    monkeypatch.setattr(QMessageBox, "question",
+                        staticmethod(lambda *a, **k: QMessageBox.StandardButton.Yes))
+    page._delete()
+    assert rid not in ruleset.thaum_rituals
+    assert custom_content.library_rituals(tmp_path) == []
 
 
 def test_a_rejected_row_is_shown_and_still_openable(ruleset, tmp_path, qtbot):
@@ -173,7 +217,7 @@ def test_switching_kind_starts_a_new_row_of_that_kind(ruleset, tmp_path, qtbot):
     page = _page(ruleset, tmp_path)
     qtbot.addWidget(page)
     assert "category" in page._form                       # a Charm form
-    page.tabs.setCurrentIndex(1)
+    page.show_kind("spell")
     assert page._kind == "spell" and page._editing == ""
     assert "circle" in page._form and "category" not in page._form
 
@@ -367,7 +411,7 @@ def _seed_gear(tmp_path):
 
 def _gear_page(ruleset, tmp_path, notes=None):
     page = _page(ruleset, tmp_path, notes=notes)
-    page.tabs.setCurrentIndex(2)
+    page.show_kind("gear")
     page.reload()
     return page
 
@@ -408,7 +452,7 @@ def test_gear_can_be_authored_but_not_imported(ruleset, tmp_path, qtbot):
     qtbot.addWidget(page)
     assert page.new_btn.isEnabled()
     assert not page.import_btn.isEnabled()
-    page.tabs.setCurrentIndex(0)
+    page.show_kind("charm")
     assert page.new_btn.isEnabled() and page.import_btn.isEnabled()
 
 
@@ -463,7 +507,6 @@ def test_the_kind_picker_freezes_once_the_row_is_saved(ruleset, tmp_path, qtbot)
 def test_mobility_penalty_accepts_a_negative(ruleset, tmp_path, qtbot):
     """⚠ `Armor.mobility_penalty` is stored NEGATIVE. A 0-floored spin box makes a
     penalty impossible to enter, and a consumer reading it as a magnitude ADDS dice."""
-    from PySide6.QtWidgets import QSpinBox
     page = _gear_page(ruleset, tmp_path)
     qtbot.addWidget(page)
     page._switch_gear_kind("armor")
@@ -548,7 +591,6 @@ def test_building_the_shell_does_not_read_the_users_library(ruleset, qtbot, monk
     """⚠ This page's refresh reads the FILESYSTEM, and the shell builds all nine pages up
     front — so `reload()` is deliberately NOT called in the constructor. Without this the
     user's homebrew library is re-scanned on every window and in every Qt test."""
-    from exalted_builder.qt import custom as custommod
     from exalted_builder.qt.main_window import MainWindow
     reads = []
     monkeypatch.setattr(custommod.custom_content, "library_charms",

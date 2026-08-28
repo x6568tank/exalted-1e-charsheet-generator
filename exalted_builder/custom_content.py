@@ -30,7 +30,7 @@ from typing import Any, Iterable, Optional
 
 from pydantic import ValidationError
 
-from .models.rules import Charm, Spell
+from .models.rules import Charm, Spell, ThaumaturgicRitual
 from .persistence import atomic_write, default_save_dir
 
 # Environment variable that relocates the whole library.
@@ -50,6 +50,16 @@ ID_PREFIX = "custom."
 # the destination for content created in the app.
 CHARMS_FILE = "charms/custom-charms.json"
 SPELLS_FILE = "spells.json"
+
+# Thaumaturgic rituals (2026-08-28). The chapter prints five and says outright that
+# more should be written (p.148), so the catalogue is a seed like the gear one.
+#
+# ⚠ This is the SECOND way to author a ritual, not a replacement for the first: a
+# ritual invented for one character stays an inline `RitualEntry` bought from the
+# Thaumaturgy picker (both entry points stay — the human's ruling for custom gear,
+# 2026-08-27, applied again here). A library row is the reusable one: it enters the
+# RuleSet catalogue, is bought by id, and can be edited or deleted afterwards.
+RITUALS_FILE = "rituals.json"
 
 # The gear library (2026-08-13). Same shapes as the shipped `data/` files, so a row
 # copied out of one is a valid row here — and the same non-fatal treatment: a typo in
@@ -165,6 +175,10 @@ def library_spells(custom_dir: str | Path | None = None) -> list[dict]:
     return _read_rows(_dir(custom_dir) / SPELLS_FILE)
 
 
+def library_rituals(custom_dir: str | Path | None = None) -> list[dict]:
+    return _read_rows(_dir(custom_dir) / RITUALS_FILE)
+
+
 # --------------------------------------------------------------------------- #
 # writing
 # --------------------------------------------------------------------------- #
@@ -227,6 +241,16 @@ def save_spell(payload: dict, *, custom_dir: str | Path | None = None,
     _, index = _locate([path], spell.id)
     _upsert(path, spell.model_dump(mode="json", exclude={"custom"}), index)
     return spell
+
+
+def save_ritual(payload: dict, *, custom_dir: str | Path | None = None,
+                reserved_ids: Optional[set[str]] = None) -> ThaumaturgicRitual:
+    """Create or replace one custom ritual. See save_charm."""
+    ritual = _validated(payload, ThaumaturgicRitual, reserved_ids)
+    path = _dir(custom_dir) / RITUALS_FILE
+    _, index = _locate([path], ritual.id)
+    _upsert(path, ritual.model_dump(mode="json", exclude={"custom"}), index)
+    return ritual
 
 
 def library_gear(kind: str, custom_dir: str | Path | None = None) -> list[dict]:
@@ -292,6 +316,16 @@ def delete_charm(charm_id: str, *, custom_dir: str | Path | None = None) -> bool
 
 def delete_spell(spell_id: str, *, custom_dir: str | Path | None = None) -> bool:
     return _delete([_dir(custom_dir) / SPELLS_FILE], spell_id)
+
+
+def delete_ritual(ritual_id: str, *, custom_dir: str | Path | None = None) -> bool:
+    """Remove one ritual from the library. False if it was not there.
+
+    A character who already knows it is NOT rewritten: `RitualEntry.ritual_id` keeps
+    pointing at the id, and an unresolvable id is a case the loader and the sheet
+    already handle gracefully (ARCHITECTURE.md's graceful-unresolvable-ids invariant).
+    """
+    return _delete([_dir(custom_dir) / RITUALS_FILE], ritual_id)
 
 
 def delete_gear(kind: str, row_id: str, *,
@@ -366,6 +400,24 @@ def referenced_ids(character) -> tuple[set[str], set[str]]:
     return charms, spells
 
 
+def referenced_ritual_ids(character) -> set[str]:
+    """Every LIBRARY ritual id the character mentions — the live thaumaturgy state
+    and, for a locked character, the chargen snapshot's copy of it.
+
+    ⚠ A ritual with no `ritual_id` is the INLINE kind, written for this character
+    alone; it is already carried in full by the save and has nothing to travel.
+    Separate from `referenced_ids` rather than a third member of its tuple, so no
+    existing caller has to be re-read to be sure it still means what it did.
+    """
+    out: set[str] = set()
+    for state in (character.thaumaturgy, getattr(character.chargen_snapshot,
+                                                 "thaumaturgy", None)):
+        for entry in (state.rituals if state is not None else []):
+            if entry.ritual_id:
+                out.add(entry.ritual_id)
+    return out
+
+
 def _closure(rows: dict[str, dict], wanted: set[str]) -> list[dict]:
     """The rows for `wanted`, plus every custom row they depend on, transitively.
 
@@ -390,16 +442,25 @@ def collect_definitions(character, *, custom_dir: str | Path | None = None) -> d
     """The custom definitions `character` depends on, ready to embed. Empty dict when
     it uses no homebrew, which is the overwhelmingly common case."""
     charm_ids, spell_ids = referenced_ids(character)
+    ritual_ids = referenced_ritual_ids(character)
     charm_rows = {r["id"]: r for r in library_charms(custom_dir) if r.get("id")}
     spell_rows = {r["id"]: r for r in library_spells(custom_dir) if r.get("id")}
+    ritual_rows = {r["id"]: r for r in library_rituals(custom_dir) if r.get("id")}
 
     charms = _closure(charm_rows, charm_ids)
     spells = [spell_rows[i] for i in sorted(spell_ids) if i in spell_rows]
+    # ⚠ Rituals travel for the same reason Charms do and gear does NOT: a character
+    # references a library ritual BY ID (`RitualEntry.ritual_id`), so a save handed to
+    # another player resolves it only against the author's library. Gear is exempt
+    # because a save carries its own inline copy (decision 0007).
+    rituals = [ritual_rows[i] for i in sorted(ritual_ids) if i in ritual_rows]
     out: dict[str, list[dict]] = {}
     if charms:
         out["charms"] = charms
     if spells:
         out["spells"] = spells
+    if rituals:
+        out["rituals"] = rituals
     return out
 
 
@@ -418,7 +479,7 @@ def embed_definitions(character, *, custom_dir: str | Path | None = None) -> int
     fresh = collect_definitions(character, custom_dir=custom_dir)
     carried = character.custom_definitions or {}
     merged: dict[str, list[dict]] = {}
-    for key in ("charms", "spells"):
+    for key in ("charms", "spells", "rituals"):
         by_id = {r.get("id"): r for r in carried.get(key, []) if isinstance(r, dict)}
         by_id.update({r["id"]: r for r in fresh.get(key, [])})
         rows = [by_id[k] for k in sorted(by_id) if k]
@@ -432,6 +493,10 @@ def embed_definitions(character, *, custom_dir: str | Path | None = None) -> int
         merged["charms"] = [r for r in merged["charms"] if r["id"] in keep]
     if "spells" in merged:
         merged["spells"] = [r for r in merged["spells"] if r.get("id") in spell_ids]
+    if "rituals" in merged:
+        keep_rituals = referenced_ritual_ids(character)
+        merged["rituals"] = [r for r in merged["rituals"]
+                             if r.get("id") in keep_rituals]
     merged = {k: v for k, v in merged.items() if v}
     character.custom_definitions = merged
     return sum(len(v) for v in merged.values())
@@ -468,6 +533,15 @@ def absorb_definitions(character, *, custom_dir: str | Path | None = None) -> li
         path = root / SPELLS_FILE
         _atomic_rows(path, _read_rows(path) + new_spells)
         added += [r["id"] for r in new_spells]
+
+    have_rituals = {r.get("id") for r in library_rituals(root)}
+    new_rituals = [r for r in carried.get("rituals", [])
+                   if isinstance(r, dict) and r.get("id")
+                   and r["id"] not in have_rituals]
+    if new_rituals:
+        path = root / RITUALS_FILE
+        _atomic_rows(path, _read_rows(path) + new_rituals)
+        added += [r["id"] for r in new_rituals]
 
     return added
 
