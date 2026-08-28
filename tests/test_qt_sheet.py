@@ -14,8 +14,8 @@ import pytest
 pytest.importorskip("PySide6", reason="the optional [qt] extra is not installed")
 
 from exalted_builder.models.character import Character
-from exalted_builder.qt.sheet import (SheetPage, build_document, print_pdf,
-                                      sheet_html)
+from exalted_builder.qt.sheet import (SheetPage, build_document, print_colors,
+                                      print_pdf, screen_colors, sheet_html)
 from exalted_builder.ui.view import build_sheet_view
 
 
@@ -37,11 +37,33 @@ def test_build_document_is_nonempty(ruleset):
     assert len(doc.toPlainText()) > 100
 
 
-def test_print_pdf_writes_a_real_file(ruleset, tmp_path):
+def test_print_pdf_writes_a_real_file(qapp, ruleset, tmp_path):
+    """⚠ Takes `qapp` although it builds no widget: laying a document out for the
+    printer hits QFontDatabase, which ABORTS the interpreter — not fails — when no
+    QApplication exists. It passed for months only because some earlier module's qtbot
+    had already made one; running this file on its own took the whole run down."""
     doc = build_document(sheet_html(build_sheet_view(ruleset, Character(id="char.new"))))
     out = tmp_path / "sheet.pdf"
     print_pdf(doc, str(out))
     assert out.stat().st_size > 500
+
+
+def test_the_printed_sheet_stays_ink_on_paper(ruleset):
+    """⚠ The screen set is for the SCREEN. `sheet_html` defaults to the paper colours so
+    a caller that just wants a printable document — `print_pdf`, and any future export —
+    cannot pick up the dark page by omission."""
+    view = build_sheet_view(ruleset, Character(id="c", exalt_type="Solar"))
+    assert sheet_html(view) == sheet_html(view, print_colors("Solar"))
+    assert sheet_html(view) != sheet_html(view, screen_colors("Solar"))
+    assert screen_colors("Solar").muted in sheet_html(view, screen_colors("Solar"))
+
+
+def test_the_screen_sheet_lightens_the_splat_accent(ruleset):
+    """The printed accents are dark tones that vanish on the dark base, so the screen
+    set lightens them exactly as every other widget's does."""
+    solar = build_sheet_view(ruleset, Character(id="c", exalt_type="Solar"))
+    assert print_colors("Solar").accent not in sheet_html(solar, screen_colors("Solar"))
+    assert screen_colors("Solar").accent != screen_colors("Lunar").accent
 
 
 def test_sheet_page_reloads_from_context(qtbot, ruleset):

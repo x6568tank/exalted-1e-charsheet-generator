@@ -1,114 +1,78 @@
-# Session handoff — 2026-08-27 (the Party / ST window — THE PORT IS FEATURE-COMPLETE)
+# Session handoff — 2026-08-28 (the native binary, and the last light surfaces went dark)
 
 # 👉 YOU ARE HERE
 
-Last FULL green suite: **3,027 passed, 1 skipped** (main PC, `qt-port`, 7m54s), run
-after the last code change. The tree is clean and nothing is half-finished.
+Last FULL green suite: **3,034 passed, 1 skipped** (main PC, `qt-port`, 7m38s), run after
+the last code change. The tree is clean and nothing is half-finished.
 
-**The Qt port has nothing left to build.** The Party / ST window shipped this session —
-the one thing that was a design question rather than a port, and the last item on the
-list. Every tab and both windows now exist.
+Two things since the Party window: the app is **packaged as a native binary**
+(`dist/ExaltedBuilderQt`, commit 728365c — the spec, the traps and the silent-windowed-
+crash defect it surfaced are all in that commit message and `pack/BUILD.md`), and the
+**two document surfaces went dark**, which was the last piece of theme drift in the port.
 
-## 👉 NEXT: click the Party window on a real display
+## 👉 NEXT: still the Party window click-through
 
-**That is the only owed work.** `qt/party.py` (Party · Adversaries · Reference) and
-`qt/adversaries.py` were rendered offscreen tab by tab and dialog by dialog, and looked
-at — which is not the same thing as being used. Scope the click-through to what only the
-display can answer:
+**It remains the only owed work**, unchanged from the last handoff except that its first
+finding is fixed. Scope it to what only a real display can answer:
 
 1. **Open the Party window from the builder toolbar, add the open character, click a
-   health box, then go back and spend XP in the builder.** The card must redraw. (This
-   is the one cross-window path; everything else on the card is Play's shape, already
-   approved.)
+   health box, then go back and spend XP in the builder.** The card must redraw.
 2. **"Builder" on a card, edit something, come back.** One builder, retargeted, same
-   object — the human's call. Does that read right in use, with two windows open?
-3. **The Adversaries tab as a COLLECTION rather than cards.** This is the half of the
-   design that changed shape from the webapp: add a template, duplicate it twice, damage
-   one. Does the Damage column carry what the card stack used to?
+   object. Does that read right in use, with two windows open?
+3. **The Adversaries tab as a COLLECTION rather than cards** — add a template, duplicate
+   it twice, damage one. Does the Damage column carry what the card stack used to?
 4. **Close the builder.** The party window must go with it.
 
-## The click-through started, and its first finding is fixed
+Add one glance now that the theme changed: **the Sheet tab and the Reference tab** are
+dark for the first time. They were rendered offscreen and looked at, not used.
 
-**"The adversaries list doesn't load anything?"** — an empty collection table is a header
-over a blank rectangle, and reads as broken rather than empty. **Every collection tab in
-the port had it** (Gear, Advantages, Combos, Custom); the roster is where it bit because
-empty is that tab's opening state. `qt/layout.py::empty_note` is the fix, wired to the
-model's own row signals so no `_fill_table` can forget it, and guarded by a SWEEP —
-`test_no_empty_table_anywhere_in_the_port_is_a_bare_void` fails for any table anywhere in
-either window that holds no rows and says nothing. ⚠ Its slot must be a bound method of
-the label, not a closure: the Advantages/Custom tables are rebuilt with their sub-tab
-pages, so a closure fires into a deleted C++ object — and that crash surfaces in the NEXT
-test, not the one that caused it.
-
-**Adversaries now carry SEVERAL categories** (asked for at the same sitting, human's
-call: one list, all equal, no primary). `Adversary.category` → `categories: list[str]`,
-edited as a comma-separated codec line, joined for display, and the Add dialog files an
-entry under **every** one of its labels — `CatalogueDialog.group_of` learned to take a
-list per key. ⚠ The 52 catalogue rows were CONVERTED, not re-authored: each keeps exactly
-the heading its book filed it under, and a test now fails if any of them grows a second
-without a page behind it. `docs/status/adversary-roster.md`.
-
-**The rest of the click-through is still owed.**
+⚠ **The binary is built from a working tree, and `dist/` is gitignored** — the one on
+disk is from 2026-08-27 and does NOT have the dark sheet in it. Rebuild before showing
+the app to anyone from the binary.
 
 ## What shipped this session
 
-| Thing | Where |
-|---|---|
-| The Party window — a second `QMainWindow`, three tabs | `qt/party.py` |
-| The Adversaries collection tab | `qt/adversaries.py` |
-| The ST reference screen, ported for the first time anywhere in Qt | `qt/party.py::reference_html` |
-| The tracker box + damage colours, now shared by all three surfaces | `qt/trackers.py` |
-| Roster mutations moved into the engine; the webapp calls them too | `engine/adversaries.py` |
-| The Party toolbar action, `_open_member`, the visible-only redraw, `closeEvent` | `qt/main_window.py` |
-| 30 + 49 + 8 + 7 tests | `tests/test_qt_party.py`, `test_qt_adversaries.py`, `test_qt_shell.py`, `test_adversaries.py` |
+**The document surfaces are dark on screen and paper in print.** The Sheet tab and the
+Party window's Reference tab were the only light surfaces left, and tabbing into a white
+page from the dark shell is a flashbang; the Reference tab had the treatment only because
+it copied the Sheet tab's one-line stylesheet. `qt/sheet.py::SheetColors` is now a frozen
+colour set with two constructors — `print_colors` (unchanged greys) and `screen_colors`
+(the dark base, accent lightened as every widget's is) — and every HTML helper takes the
+set rather than a bare accent. **One document, two palettes**, which is what keeps the
+print path honest: `sheet_html(view)` still defaults to paper.
 
-Full write-up, with every trap: **`docs/plans/qt-port.md`**, the last section. Do not
-re-derive it.
+Three traps, all written up in `docs/plans/qt-port.md`'s last section:
 
-## The four design answers, so they are not re-litigated
+* ⚠ **`ink` and `paper` are the two colours the HTML does not carry** — a QTextBrowser
+  takes its page shade from the WIDGET stylesheet, and the shell QSS hands every
+  QTextBrowser the card shade. The ancestor-stylesheet trap in its fourth disguise.
+* ⚠ **A document's colours are baked into its HTML**, so `qtheme.apply` does not reach
+  them; `ReferencePage.apply_colors` re-renders and `PartyWindow.apply_chrome` calls it.
+* ⚠ **`test_print_pdf_writes_a_real_file` had been ABORTING the interpreter** whenever
+  its file was run alone — laying a document out for the printer hits QFontDatabase with
+  no QApplication, which is a C-level abort, not a failure. It looked exactly like a Qt
+  font regression on the machine. It takes `qapp` now.
 
-Asked before any code was written; all four taken as recommended (human, 2026-08-27):
-a **second window** (not a dialog, not a mode) · **sub-tabs with mixed layouts** (cards
-for members, the collection layout for adversaries) · **"Open in builder" retargets the
-one builder** · **the ST reference screen lives on this window**, not on ST Options.
+The guard is a RENDER, next to the other invisible-QSS tests:
+`test_no_document_surface_is_a_white_page_on_the_dark_app` measures each page's mean
+brightness and fails above 120/255. **Negative-controlled on both halves** — restoring
+either surface's `#fffdf7` fails it.
 
-⚠ **The Party tab is the THIRD written exception to the collection layout**, and it is
-Play's exception for Play's reason: a card is a live tracker with nothing to select. The
-Adversaries tab beside it IS a collection. **Two shapes in one window is the design.**
+## Not clicked, not blocking
 
-## The gap list was a lower bound — SEVEN for seven
-
-"~1,100 lines, `ui/gm.py` + `ui/adversaries.py`" did not mention:
-
-* the **ST reference screen**, which existed in no Qt module at all;
-* the **roster mutations having no engine home** — the same hole Combos had a day
-  earlier, closures inside `ui/adversaries.py` that the native shell could not reach;
-* **four layout defects only a render could show** (a nested layout's inherited 11px
-  margin ×6 per card, a grid stretching cards to the tallest in the row, full-width spin
-  boxes, and a first screenshot that lied because the scroll area had not settled).
+Group 4's five per-splat **Charm surfaces** and the POST-lock half of the variant chooser;
+each was rendered offscreen and each has test coverage. ⚠ `ui/picker.py::variant_menu_detail`
+— the WEBAPP's variant panel — has still never been rendered at all.
 
 ## A webapp bug found and deliberately NOT fixed
 
-⚠ **`ui/gm.py`'s card ignores `PlayView.single_pool`.** A merged Essence pool is ONE
-track (p.41), so a merged-pool character's card draws a Personal box sitting at a
-permanent 0/0. The Qt card honours it. The webapp card was left alone — it is a one-line
-fix in a surface nobody asked to touch this session, and it should be its own change.
-
-## Not blocking, but not clicked either
-
-Group 4's five per-splat **Charm surfaces** (Eclipse foreign tree, MA style panel,
-Alchemical submodules, the DB Immaculate banner, the Jadeborn repeat), plus the POST-lock
-half of the variant chooser. Each was rendered offscreen and each has test coverage.
-
-⚠ **`ui/picker.py::variant_menu_detail` — the WEBAPP's variant panel — has still never
-been rendered at all.** It remains the least-verified code in the tree.
+⚠ **`ui/gm.py`'s card ignores `PlayView.single_pool`**, so a merged-pool character's card
+draws a Personal box at a permanent 0/0 (p.41). The Qt card honours it. Still its own
+one-line change in a surface nobody asked to touch.
 
 ## No open rules questions
 
-Nothing here introduced a rules interpretation. The three printed rules the widgets had
-to encode — 0-means-absent in a trait grid (p.316), absent-is-not-zero for dodge (p.307),
-and Charms/Spells/Powers as prose (p.303) — were all already decided in
-`models/adversary.py` and are carried, not invented.
+Nothing this session touched a rules interpretation.
 
 ## Still deferred, still NOT gaps
 

@@ -23,7 +23,10 @@ from PySide6.QtWidgets import QMessageBox, QPlainTextEdit, QPushButton, QSpinBox
 
 from exalted_builder.models.character import Character, Damage, PlayState
 from exalted_builder.models.party import Party, PartyMember
-from exalted_builder.qt.party import PartyWindow, reference_html
+from exalted_builder.qt.party import (PartyWindow, ReferencePage,
+                                      reference_html)
+from exalted_builder.qt.sheet import screen_colors
+from exalted_builder.ui import theme
 
 
 @pytest.fixture
@@ -261,6 +264,19 @@ def test_the_reference_screen_renders_every_table(ruleset):
         assert escape(group.title) in html
         for table in group.tables:
             assert escape(table.title) in html
+
+
+def test_the_reference_screen_follows_the_partys_accent(ruleset, qtbot):
+    """The window re-themes when the party becomes single-splat, and the reference is a
+    document inside it — `apply_chrome` has to re-render it, since a document's colours
+    are baked into its HTML and no palette change reaches them."""
+    page = ReferencePage(ruleset)
+    qtbot.addWidget(page)
+    default = page.view.toHtml()
+    page.apply_colors(theme.palette("Lunar"))
+    assert page.view.toHtml() != default
+    assert screen_colors("Lunar").accent in reference_html(
+        ruleset, screen_colors("Lunar"))
 
 
 def test_a_ruleset_with_no_st_screen_says_so(ruleset):

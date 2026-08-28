@@ -106,3 +106,32 @@ def test_a_disabled_checkbox_still_shows_whether_it_is_on(qtbot):
     off = _brightness(_render(qtbot, _check(False, False), _INDICATOR))
     on = _brightness(_render(qtbot, _check(False, True), _INDICATOR))
     assert abs(on - off) > 20, f"off {off}, on {on}"
+
+
+# --------------------------------------------------------------------------- #
+# The two DOCUMENT surfaces — the Sheet tab and the party window's Reference tab
+# --------------------------------------------------------------------------- #
+
+def _document_pages(ruleset):
+    """The port's two read-only document surfaces, built for one character each."""
+    from exalted_builder.models.character import Character
+    from exalted_builder.qt.party import ReferencePage
+    from exalted_builder.qt.sheet import SheetPage
+    char = Character(id="c", name="Tirnis", exalt_type="Dragon-Blooded")
+    return [SheetPage(ruleset, {"char": char}), ReferencePage(ruleset)]
+
+
+def test_no_document_surface_is_a_white_page_on_the_dark_app(qtbot, ruleset):
+    """The Sheet and Reference tabs shipped as light "paper" while every other surface
+    was dark, which reads as a flashbang between tabs (human, 2026-08-28).
+
+    ⚠ Measures the RENDERED page, not the stylesheet string: the shell QSS hands every
+    QTextBrowser the card shade, so a document that sets only its own text colours looks
+    right in the HTML and wrong on screen."""
+    for page in _document_pages(ruleset):
+        qtbot.addWidget(page)
+        page.resize(600, 600)
+        page.show()
+        qtbot.waitExposed(page)
+        shade = _brightness(page.view.grab().toImage())
+        assert shade < 120, f"{type(page).__name__} renders at {shade}/255"

@@ -53,7 +53,8 @@ from exalted_builder.ui import view as viewmod
 from . import theme as qtheme
 from .adversaries import AdversariesPage
 from .layout import clear_layout
-from .sheet import build_document, sheet_html
+from .sheet import (SheetColors, build_document, print_colors, screen_colors,
+                    screen_colors_for, sheet_html)
 from .theme import CARD, INPUT, MUTED, accent as accent_light
 from .trackers import MARK_FILL, box as tracker_box
 
@@ -427,26 +428,40 @@ class ReferencePage(QWidget):
 
     def __init__(self, ruleset, parent=None):
         super().__init__(parent)
+        self._ruleset = ruleset
         self.view = QTextBrowser()
-        # ⚠ Styled inline: a QTextBrowser is a document, and this one is REFERENCE — it
-        # stays light "paper" like the Sheet tab rather than taking the card shade the
-        # shell QSS gives QTextBrowser.
-        self.view.setStyleSheet("QTextBrowser { background:#fffdf7; color:#1a1a1a; }")
-        self.view.setDocument(build_document(reference_html(ruleset)))
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.addWidget(self.view, 1)
+        self.apply_colors(theme.palette(None))
+
+    def apply_colors(self, pal) -> None:
+        """Redraw the screen in `pal`'s accent on the dark base. Called from the
+        window's `apply_chrome`, so a party that becomes single-splat re-tints the
+        reference with everything else.
+
+        ⚠ The widget background is set here as well as the document's colours: the
+        shell QSS gives every QTextBrowser the card shade, and an ancestor stylesheet
+        beats anything the document says about its own page."""
+        colors = screen_colors_for(pal)
+        self.view.setStyleSheet(
+            f"QTextBrowser {{ background:{colors.paper}; color:{colors.ink}; }}")
+        self.view.setDocument(build_document(reference_html(self._ruleset, colors)))
 
 
-def reference_html(ruleset) -> str:
+def reference_html(ruleset, colors: SheetColors | None = None) -> str:
     """The ST screen as HTML: a heading per group, a table per RefTable. A
-    `columns`-less table renders as a bare list of rows (a step sequence)."""
+    `columns`-less table renders as a bare list of rows (a step sequence).
+
+    `colors` defaults to the PAPER set, like `sheet_html`; the tab passes the screen
+    set."""
     screen = ruleset.st_screen
     esc = _html.escape
     if screen is None:
         return ("<p>No Storyteller reference screen is loaded "
                 "(<code>data/st_screen.json</code> is absent).</p>")
-    accent = "#8a5a1a"
+    c = colors if colors is not None else print_colors(None)
+    accent = c.accent
     parts = [f"<h1 style='color:{accent};font-size:18pt;margin:0'>"
              f"{esc(screen.title)}</h1>"]
     for group in screen.groups:
@@ -469,7 +484,7 @@ def reference_html(ruleset) -> str:
                     parts.append(f"<p style='margin:1px 0'>"
                                  f"{esc('  ·  '.join(row))}</p>")
             if table.note:
-                parts.append(f"<p style='font-style:italic;color:#555;margin:2px 0'>"
+                parts.append(f"<p style='font-style:italic;color:{c.label};margin:2px 0'>"
                              f"{esc(table.note)}</p>")
     return "".join(parts)
 
@@ -530,6 +545,7 @@ class PartyWindow(QMainWindow):
         name = self._party().name or "(unnamed)"
         self.setWindowTitle(f"Exalted 1e — Party: {name}")
         qtheme.apply(self, self._pal())
+        self.reference_page.apply_colors(self._pal())
 
     def _notify_status(self, text: str, kind: str = "info") -> None:
         if kind == "warning":
@@ -675,9 +691,11 @@ class PartyWindow(QMainWindow):
         dialog.setWindowTitle(f"Sheet — {character.name or '(unnamed)'}")
         dialog.resize(900, 800)
         view = QTextBrowser()
-        view.setStyleSheet("QTextBrowser { background:#fffdf7; color:#1a1a1a; }")
+        colors = screen_colors(character.exalt_type)
+        view.setStyleSheet(
+            f"QTextBrowser {{ background:{colors.paper}; color:{colors.ink}; }}")
         view.setDocument(build_document(sheet_html(
-            viewmod.build_sheet_view(self._ruleset, character))))
+            viewmod.build_sheet_view(self._ruleset, character), colors)))
         lay = QVBoxLayout(dialog)
         lay.addWidget(view, 1)
         close = QPushButton("Close")

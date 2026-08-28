@@ -1617,3 +1617,47 @@ The guard is a **sweep, not a per-tab test**:
 windows for a fresh character and fails on any table that holds no rows and offers no
 explanation — so a new collection tab fails there until it is wired. Negative-controlled
 by deleting Gear's call.
+
+## The two DOCUMENT surfaces went dark (2026-08-28)
+
+The Sheet tab and the Party window's Reference tab were the only light surfaces left in
+the app. Both were deliberate — a sheet is a *document*, and the 2026-08-20 direction was
+that it stays "paper" — but in use, tabbing from the dark Edit page to a white page is a
+flashbang, and the Reference tab had inherited the treatment purely by copying the Sheet
+tab's one-line stylesheet. Reversed at the human's call: **on screen both are dark; the
+PRINTED sheet is still ink on paper.**
+
+`qt/sheet.py::SheetColors` is the mechanism — a frozen dataclass of the seven colours the
+sheet draws with, in two constructors: `print_colors` (the old hard-coded greys) and
+`screen_colors` (the dark base, with the accent LIGHTENED exactly as `qt/theme.py::accent`
+does for every widget — the printed accents are dark tones that vanish on the dark page).
+Every `_dots`/`_trait_table`/`_section` helper now takes the colour set instead of a bare
+accent string, so **one document has two palettes rather than there being two documents**
+— which is what keeps the print path honest. `sheet_html(view)` still defaults to the
+paper set, so a caller that just wants something printable cannot pick up the dark page
+by omission (`test_the_printed_sheet_stays_ink_on_paper`).
+
+⚠ **`ink` and `paper` are the two colours the HTML does NOT carry.** A QTextBrowser takes
+its page shade from the WIDGET's stylesheet, and the shell QSS hands every QTextBrowser
+the card shade — so each surface sets an inline stylesheet as well as building the HTML,
+and `SheetPage.reload` sets it on every reload rather than once, because a splat change
+re-renders. This is the ancestor-stylesheet-beats-palette trap in its fourth disguise.
+
+⚠ **A document's colours are baked into its HTML, so a palette change does not reach
+them.** `ReferencePage.apply_colors(pal)` re-renders, and `PartyWindow.apply_chrome`
+calls it — otherwise a party that becomes single-splat re-tints its chrome and leaves the
+reference screen on the default gold.
+
+The guard is a RENDER, in `tests/test_qt_theme.py` where the other invisible-QSS tests
+live: `test_no_document_surface_is_a_white_page_on_the_dark_app` measures the mean
+brightness of each page's viewport and fails above 120/255. Negative-controlled both
+halves — restoring either surface's `#fffdf7` line fails it (paper renders at ~250).
+
+### A test that had been aborting the interpreter for months
+
+`test_print_pdf_writes_a_real_file` takes `qapp` now, though it builds no widget.
+⚠ **Laying a QTextDocument out for the printer hits QFontDatabase, which ABORTS the
+process — not fails the test — when no QApplication exists.** It passed for months
+because in a full run some earlier module's `qtbot` had already made one; running
+`pytest tests/test_qt_sheet.py` on its own took the whole run down with a C stack trace,
+and read exactly like a Qt/font regression on the machine.

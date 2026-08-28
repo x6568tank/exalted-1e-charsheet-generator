@@ -346,7 +346,11 @@ pool calculation.
     `view.py` over inline computation in a widget module.
   - **Theme is settled** (the human's desktop direction): one unified dark base, the
     splat as a light accent. The dark printed accents are invisible on dark; do not
-    reintroduce them.
+    reintroduce them. ⚠ **That includes the DOCUMENT surfaces** — the Sheet tab and the
+    Party window's Reference tab went dark on 2026-08-28 (a white page between dark tabs
+    is a flashbang); only the PRINTED sheet is still ink on paper. `qt/sheet.py`'s
+    `print_colors` / `screen_colors` are the two sets, and `sheet_html` defaults to
+    paper so nothing picks up the dark page by omission.
 
 ## Stack
 - Python + pydantic v2 + pytest. Frontend: **NiceGUI** (chosen over Reflex), the optional
@@ -389,8 +393,8 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**3,027 passing, 1 skipped** (2026-08-27, main PC, the `qt-port` branch after the Party
-/ ST window and multi-category adversaries — includes the Qt-port tests in `tests/test_qt_*.py`,
+**3,034 passing, 1 skipped** (2026-08-28, main PC, the `qt-port` branch after the dark
+document surfaces — includes the Qt-port tests in `tests/test_qt_*.py`,
 `tests/test_charm_actions.py`, `tests/test_gear_actions.py` and
 `tests/test_variant_purchases.py`).
 
@@ -400,6 +404,12 @@ them.
   those tests. **A count 470 lower on a webapp-only machine is that working**, not
   tests going missing — install with `.venv/bin/pip install -e '.[qt]'`.
 
+- ⚠ **A Qt test that touches fonts without a QApplication ABORTS the interpreter**, and
+  it looks like a native crash on the machine, not a test failure. Laying a
+  QTextDocument out for the printer is enough. Such a test passes in a full run — some
+  earlier module's `qtbot` made the app — and takes the whole run down when its file is
+  run alone. `test_print_pdf_writes_a_real_file` did that for months; the fix is to take
+  the `qapp` fixture even when the test builds no widget.
 - ⚠ **Quote the RUN's numbers, not `--collect-only`'s** — the two have disagreed by one
   here and the cause was not chased. The run is what tells you the suite is green.
 - ⚠ **Read the "passed" count off a run that was GREEN.** `2674 passed` on a line that
