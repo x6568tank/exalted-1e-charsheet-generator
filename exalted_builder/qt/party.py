@@ -9,6 +9,18 @@ every play-state click goes through `engine.play`, every roster mutation through
 `engine.adversaries`; "Open in builder" calls back into the MainWindow, which re-points
 itself at that member's Character — the same object, so nothing needs syncing.
 
+⚠ **The Party tab carries the ADVERSARY cards too**, under the members, because a fight
+is run off one screen. The roster is therefore drawn on two tabs and a change to either
+has to reach the other: the discrete events push through `on_roster_change` /
+`on_change`, and a per-keystroke edit is picked up when the other tab is next shown
+(`_tab_shown`). Editing stays on the Adversaries tab alone — a roster card's "Edit"
+raises it rather than growing a second editor.
+
+⚠ **A tracker click REPAINTS, it never redraws.** `_sync_card` restyles one card's boxes
+and re-texts its headings. Rebuilding deletes the box under the cursor, and Qt hands the
+focus to whatever inherits it with the scroll area following: measured at 354 → 463 with
+the focus thrown into the toolbar. `trackers.restyle` carries the full note.
+
 ⚠ **A WINDOW, not a tab** (human, 2026-08-27). The builder and the party are two
 surfaces a Storyteller uses at once — the settled tab layout never decided this one,
 because the shape was never a tab. A QDialog was rejected for the same reason: you must
@@ -40,23 +52,26 @@ from PySide6.QtGui import QResizeEvent
 from PySide6.QtWidgets import (
     QComboBox, QDialog, QFileDialog, QFrame, QGridLayout, QHBoxLayout, QLabel,
     QLineEdit, QMainWindow, QMessageBox, QPlainTextEdit, QPushButton, QScrollArea,
-    QSpinBox, QTabWidget, QTextBrowser, QToolBar, QVBoxLayout, QWidget,
+    QSizePolicy, QSpinBox, QTabWidget, QTextBrowser, QToolBar, QVBoxLayout, QWidget,
 )
 
 from exalted_builder import persistence
-from exalted_builder.engine import derive, play as engineplay
+from exalted_builder.engine import adversaries as adv, derive, play as engineplay
 from exalted_builder.models.character import Character, Damage, PlayState
 from exalted_builder.models.party import Party, PartyMember
 from exalted_builder.ui import pdf, theme
 from exalted_builder.ui import view as viewmod
 
 from . import theme as qtheme
-from .adversaries import AdversariesPage
+# ⚠ The trait ORDER is imported, not re-listed. A fourth copy of the nine Attributes is
+# how the roster card and the roster editor come to print them in different orders.
+from .adversaries import (AdversariesPage, AdversaryTrackers,
+                          _ATTRIBUTES as _ADV_ATTRIBUTES, _VIRTUES as _ADV_VIRTUES)
 from .layout import clear_layout
 from .sheet import (SheetColors, build_document, print_colors, screen_colors,
                     screen_colors_for, sheet_html)
 from .theme import CARD, INPUT, MUTED, accent as accent_light
-from .trackers import MARK_FILL, box as tracker_box
+from .trackers import MARK_FILL, box as tracker_box, restyle as restyle_box
 
 _BOXES_PER_ROW = 10
 
@@ -90,6 +105,43 @@ _GEAS_TAIL = ("When Divergence reaches 10 the pool resets to 0 and the character
               "Divergence, they lose one point.")
 
 
+class _StatLine(QLabel):
+    """One line of a roster card's printed stats, elided to whatever width it is given.
+
+    Input: the full text. Output: a single-line label showing as much as fits, ending in
+    "…", with the whole line on hover. Mechanism: `resizeEvent` re-elides against the
+    label's own width, which is the only place that width is known.
+
+    ⚠ **Not a word-wrapped QLabel.** A wrapped label answers `heightForWidth`, and the
+    `QGridLayout` that lays these cards out does not honour it — the card comes out too
+    short and paints the tracker boxes through the heading below them.
+
+    ⚠ **`Ignored` horizontally, and that is the point.** An abilities line runs to
+    "Archery 1, Athletics 1, Awareness 1, Brawl 1, Bureaucracy 1, …" and a prose line to
+    "All Solar Charms the Storyteller cares to give him" (p.303). A normal policy lets
+    one of those set the card's minimum width and blow the grid apart; `Ignored` lets the
+    card size itself and the text elide into it. ⚠ Eliding by CHARACTER COUNT instead was
+    tried and shipped a card whose lines were CLIPPED mid-word with no ellipsis at all —
+    one count cannot be right for both a one-column and a three-column layout.
+    """
+
+    def __init__(self, text: str, parent=None):
+        super().__init__(parent)
+        self._full = text
+        self.setToolTip(text)
+        self.setTextFormat(Qt.TextFormat.PlainText)
+        self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
+        self._elide()
+
+    def _elide(self) -> None:
+        self.setText(self.fontMetrics().elidedText(
+            self._full, Qt.TextElideMode.ElideRight, max(0, self.width() - 2)))
+
+    def resizeEvent(self, event) -> None:            # noqa: N802 - Qt override
+        super().resizeEvent(event)
+        self._elide()
+
+
 # --------------------------------------------------------------------------- #
 # The Party tab — live cards
 # --------------------------------------------------------------------------- #
@@ -101,7 +153,7 @@ class PartyPage(QWidget):
     trackers and nothing else."""
 
     def __init__(self, ruleset, ctx, *, on_open, on_sheet, on_pdf, on_remove,
-                 parent=None):
+                 on_edit_adversary=None, on_roster_change=None, parent=None):
         super().__init__(parent)
         self._ruleset = ruleset
         self._ctx = ctx
@@ -109,13 +161,33 @@ class PartyPage(QWidget):
         self._on_sheet = on_sheet
         self._on_pdf = on_pdf
         self._on_remove = on_remove
+        self._on_edit_adversary = on_edit_adversary or (lambda entry_id: None)
+        # ⚠ A hook, not a direct call into the sibling tab. The roster is drawn on TWO
+        # surfaces now, so a change made on either has to reach the other — and the page
+        # must still stand alone in a test, which is why the default is a no-op.
+        self._on_roster_change = on_roster_change or (lambda: None)
         self._columns = 0
+        # Per-card tracker widgets, keyed by member index — what `_sync_card` repaints.
+        self._card_boxes: dict[int, dict] = {}
+        # Per-adversary tracker widgets, keyed by entry id — repainted, never rebuilt.
+        self._adv_trackers: dict[str, AdversaryTrackers] = {}
 
         body = QWidget()
-        self._grid = QGridLayout(body)
-        self._grid.setContentsMargins(8, 8, 8, 8)
+        outer_body = QVBoxLayout(body)
+        outer_body.setContentsMargins(8, 8, 8, 8)
+        outer_body.setSpacing(8)
+        self._grid = QGridLayout()
+        self._grid.setContentsMargins(0, 0, 0, 0)
         self._grid.setSpacing(8)
         self._grid.setAlignment(Qt.AlignmentFlag.AlignTop)
+        outer_body.addLayout(self._grid)
+        # The opposition, under the party it is fighting — the ONE screen a fight is run
+        # off. `_roster_lay` holds a heading and its own card grid, both rebuilt together.
+        self._roster_lay = QVBoxLayout()
+        self._roster_lay.setContentsMargins(0, 0, 0, 0)
+        self._roster_lay.setSpacing(6)
+        outer_body.addLayout(self._roster_lay)
+        outer_body.addStretch(1)
         self._scroll = QScrollArea()
         self._scroll.setWidgetResizable(True)
         self._scroll.setWidget(body)
@@ -165,6 +237,18 @@ class PartyPage(QWidget):
     def _fit_columns(self) -> int:
         return max(1, (self._scroll.viewport().width() - 16) // _CARD_WIDTH)
 
+    @staticmethod
+    def _even_columns(grid: QGridLayout, columns: int) -> None:
+        """Give every column of `grid` the same width.
+
+        ⚠ Without this a grid only ever creates the columns it has items in, so ONE card
+        in a two-column layout is drawn full width. That was invisible while the members
+        were the only cards on the tab; with the roster underneath it, a full-width lone
+        member over half-width adversaries reads as two different card sizes. Columns
+        past `columns` are zeroed, or a narrowed window keeps the stretch it had."""
+        for column in range(max(columns, grid.columnCount())):
+            grid.setColumnStretch(column, 1 if column < columns else 0)
+
     def reload(self) -> None:
         """Redraw every card, and re-read the session notes from the party."""
         # ⚠ The notes box is refilled only when the model and the widget actually
@@ -177,6 +261,10 @@ class PartyPage(QWidget):
             self.session_notes.blockSignals(False)
 
         clear_layout(self._grid)
+        # ⚠ Cleared with the cards it points at. These are the widgets a play-state
+        # click repaints IN PLACE rather than rebuilding, so a stale entry here is a
+        # reference to a deleted C++ object.
+        self._card_boxes = {}
         self._columns = self._fit_columns()
         members = self._party().members
         if not members:
@@ -184,7 +272,6 @@ class PartyPage(QWidget):
                            "load a .character.json, or load a saved .party.json.")
             empty.setStyleSheet(f"color:{MUTED};")
             self._grid.addWidget(empty, 0, 0)
-            return
         for index, member in enumerate(members):
             # ⚠ Aligned TOP, per card. Without it the grid stretches every card in a row
             # to the height of the tallest, and a QVBoxLayout hands that spare height to
@@ -193,14 +280,176 @@ class PartyPage(QWidget):
             self._grid.addWidget(self._card(index, member),
                                  index // self._columns, index % self._columns,
                                  Qt.AlignmentFlag.AlignTop)
+        self._even_columns(self._grid, self._columns)
+        self._reload_roster()
+
+    # ---- the opposition -------------------------------------------------- #
+
+    def reload_roster(self) -> None:
+        """Redraw the adversary cards only — what an edit on the Adversaries tab needs,
+        without tearing down a member card someone is typing notes into."""
+        self._reload_roster()
+
+    def _reload_roster(self) -> None:
+        clear_layout(self._roster_lay)
+        # ⚠ Cleared with the cards. Same rule as `_card_boxes`: a surviving entry here is
+        # a handle on a deleted C++ object.
+        self._adv_trackers = {}
+        entries = self._party().adversaries
+        # `reload_roster` is reachable before the first full `reload` has measured the
+        # viewport, and a column count of 0 is a division by zero rather than a layout.
+        columns = self._columns or self._fit_columns()
+        head = QHBoxLayout()
+        title = QLabel(f"ADVERSARIES  ({len(entries)})")
+        title.setStyleSheet(f"font-weight:700; letter-spacing:1px; color:{MUTED};")
+        head.addWidget(title)
+        head.addStretch(1)
+        self._roster_lay.addLayout(head)
+        if not entries:
+            note = QLabel("No adversaries yet — add extras, beasts or NPCs on the "
+                          "Adversaries tab and they appear here beside the party.")
+            note.setWordWrap(True)
+            note.setStyleSheet(f"color:{MUTED};")
+            self._roster_lay.addWidget(note)
+            return
+        grid = QGridLayout()
+        grid.setContentsMargins(0, 0, 0, 0)
+        grid.setSpacing(8)
+        grid.setAlignment(Qt.AlignmentFlag.AlignTop)
+        for index, entry in enumerate(entries):
+            grid.addWidget(self._adversary_card(entry),
+                           index // columns, index % columns,
+                           Qt.AlignmentFlag.AlignTop)
+        self._even_columns(grid, columns)
+        self._roster_lay.addLayout(grid)
+
+    def _adversary_card(self, entry) -> QFrame:
+        """One adversary as a live tracker card, beside the characters fighting it.
+
+        ⚠ **This is what the port dropped.** The webapp renders the roster as a card
+        grid on the party page; the native app compressed it into a table plus ONE detail
+        pane, so a Storyteller could see exactly one bandit's health at a time — "gming
+        combat is a challenge" (human, 2026-08-28). The table is still where an entry is
+        typed off the page; this is where a fight is run.
+
+        ⚠ Trackers and a stat READOUT only — no editor. Editing lives on the Adversaries
+        tab, and "Edit" jumps there rather than growing a second one here.
+        """
+        accent = accent_light(self._pal_for_roster())
+        card = QFrame()
+        card.setObjectName("advCard")
+        # ⚠ Inline, on the widget itself — an ancestor stylesheet beats a set palette.
+        card.setStyleSheet(f"QFrame#advCard {{ background:{CARD}; border-radius:6px; }}")
+        card.setMinimumWidth(_CARD_WIDTH - 40)
+        lay = QVBoxLayout(card)
+        lay.setContentsMargins(10, 8, 10, 8)
+        lay.setSpacing(4)
+
+        title = QLabel(entry.name or "(unnamed)")
+        title.setStyleSheet(f"font-weight:700; font-size:14px; color:{accent};")
+        lay.addWidget(title)
+        line = "  ·  ".join(x for x in (adv.category_label(entry), entry.nature,
+                                        entry.caste) if x)
+        if line:
+            sub = _StatLine(line)
+            sub.setStyleSheet(f"color:{MUTED}; font-size:11px;")
+            lay.addWidget(sub)
+
+        trackers = AdversaryTrackers(
+            entry, accent, prefix=f"adv.{entry.id}", framed=False, box_size=24,
+            on_change=self._on_roster_change)
+        self._adv_trackers[entry.id] = trackers
+        lay.addWidget(trackers)
+        self._adversary_stats(lay, entry)
+
+        buttons = QHBoxLayout()
+        buttons.addStretch(1)
+        # ⚠ `_c=False` FIRST in every one of these. `clicked` carries a `checked` bool,
+        # and it lands in the first default argument — a `lambda e=entry:` is handed
+        # False as its entry and dies inside the handler, where the Qt event loop
+        # swallows the traceback and the button simply does nothing.
+        for label, tip, slot in (
+                ("Reset", "Clear damage and both spent pools",
+                 lambda _c=False, e=entry: self._reset_adversary(e)),
+                ("Duplicate", "Another one, with its own health track",
+                 lambda _c=False, e=entry: self._duplicate_adversary(e)),
+                ("Edit", "Open this entry on the Adversaries tab",
+                 lambda _c=False, e=entry: self._on_edit_adversary(e.id))):
+            button = QPushButton(label)
+            button.setObjectName(f"adv.{entry.id}.{label.lower()}")
+            button.setToolTip(tip)
+            button.clicked.connect(slot)
+            buttons.addWidget(button)
+        lay.addLayout(buttons)
+        return card
+
+    def _pal_for_roster(self):
+        """The roster takes the PARTY's palette, not a member's — an adversary has no
+        splat of its own."""
+        splats = {m.character.exalt_type for m in self._party().members}
+        return theme.palette(splats.pop() if len(splats) == 1 else None)
+
+    def _adversary_stats(self, lay, entry) -> None:
+        """The printed block, read-only: the lines a Storyteller calls a roll against."""
+        rows = [viewmod.summary_line(self._ruleset, entry),
+                viewmod.trait_map_line(entry.attributes, _ADV_ATTRIBUTES)]
+        virtues = viewmod.trait_map_line(entry.virtues, _ADV_VIRTUES)
+        if virtues:
+            rows.append(f"Virtues: {virtues}")
+        rows += [adv.attack_line(atk) for atk in entry.attacks]
+        if entry.abilities:
+            rows.append(adv.trait_line(entry.abilities))
+        if entry.backgrounds:
+            rows.append(f"Backgrounds: {adv.trait_line(entry.backgrounds)}")
+        for label, prose in (("Powers", entry.powers), ("Charms", entry.charms),
+                             ("Spells", entry.spells)):
+            if prose:
+                rows.append(f"{label}: {prose}")
+        if entry.notes:
+            rows.append(entry.notes)
+        # ⚠ NOT word-wrapped, and that is load-bearing rather than a style choice. A
+        # wrapped QLabel answers `heightForWidth`, and `QGridLayout` — which is what lays
+        # the cards out — does not honour it: the card was handed a height computed from
+        # one-line labels, overflowed, and painted the health boxes through the heading
+        # under them (2026-08-28). Every label here is a printed one-liner anyway; the
+        # prose that isn't is elided with the full text on hover, which is the right
+        # trade on a card you glance at mid-fight. The editor is one click away.
+        for text in rows:
+            if not text:
+                continue
+            label = _StatLine(text)
+            label.setStyleSheet(f"color:{MUTED}; font-size:11px;")
+            lay.addWidget(label)
+
+    def _reset_adversary(self, entry) -> None:
+        """⚠ Repaints, never rebuilds — for the button's OWN sake. `_reload_roster` here
+        would delete the Reset button that was just clicked, which is the same
+        focus-and-scroll defect one widget over from the one that was reported."""
+        adv.reset_tracking(entry)
+        trackers = self._adv_trackers.get(entry.id)
+        if trackers is not None:
+            trackers.sync()
+        self._on_roster_change()
+
+    def _duplicate_adversary(self, entry) -> None:
+        entries = self._party().adversaries
+        index = next((i for i, e in enumerate(entries) if e.id == entry.id), None)
+        if index is None:
+            return
+        adv.duplicate(self._party(), index)
+        self._reload_roster()
+        self._on_roster_change()
+
 
     # ---- one card -------------------------------------------------------- #
 
     def _panel(self, lay, title: str, accent: str) -> QVBoxLayout:
+        """A heading over a body. `self._last_head` is the heading just added — every
+        one of these carries a live count that is re-texted rather than rebuilt."""
         head = QLabel(title)
-        head.setWordWrap(True)
         head.setStyleSheet(f"font-weight:700; letter-spacing:1px; color:{accent};"
                            f" font-size:11px;")
+        self._last_head = head
         lay.addWidget(head)
         body = QVBoxLayout()
         # ⚠ Margins zeroed. A nested QVBoxLayout inherits an 11px default on all four
@@ -228,13 +477,15 @@ class PartyPage(QWidget):
         lay = QVBoxLayout(card)
         lay.setContentsMargins(10, 8, 10, 8)
         lay.setSpacing(4)
+        self._card_boxes[index] = {"health": [], "willpower_spent": [], "count": [],
+                                   "health_head": None, "willpower_head": None,
+                                   "count_head": None, "character": character}
 
         title = QLabel(cv.name + ("   🔒" if cv.chargen_locked else ""))
         title.setToolTip("Chargen locked — in play" if cv.chargen_locked else "")
         title.setStyleSheet(f"font-weight:700; font-size:14px; color:{accent};")
         lay.addWidget(title)
         identity = QLabel(cv.identity_line)
-        identity.setWordWrap(True)
         identity.setStyleSheet(f"color:{MUTED}; font-size:11px;")
         lay.addWidget(identity)
 
@@ -279,12 +530,16 @@ class PartyPage(QWidget):
         lay.addLayout(buttons)
         return card
 
-    def _health(self, lay, index, character, cv, marks, accent) -> None:
+    @staticmethod
+    def _health_title(cv, marks) -> str:
         counts = {d: sum(1 for m in marks if m == d) for d in Damage}
-        body = self._panel(
-            lay, f"HEALTH   ·   penalty {viewmod.worst_penalty(cv.play, marks)}   ·   "
-                 f"{counts[Damage.BASHING]}/ {counts[Damage.LETHAL]}x "
-                 f"{counts[Damage.AGGRAVATED]}*", accent)
+        return (f"HEALTH   ·   penalty {viewmod.worst_penalty(cv.play, marks)}   ·   "
+                f"{counts[Damage.BASHING]}/ {counts[Damage.LETHAL]}x "
+                f"{counts[Damage.AGGRAVATED]}*")
+
+    def _health(self, lay, index, character, cv, marks, accent) -> None:
+        body = self._panel(lay, self._health_title(cv, marks), accent)
+        self._card_boxes[index]["health_head"] = self._last_head
         row = None
         for i, box in enumerate(cv.play.health_boxes):
             if i % _BOXES_PER_ROW == 0:
@@ -306,8 +561,9 @@ class PartyPage(QWidget):
                                  mark.value if mark else "")
             button.setToolTip(f"Wound penalty {box.label}")
             button.clicked.connect(
-                lambda _c=False, c=character, i=i, n=len(cv.play.health_boxes):
-                (engineplay.cycle_mark(c, i, n), self.reload()))
+                lambda _c=False, c=character, i=i, n=len(cv.play.health_boxes),
+                x=index: (engineplay.cycle_mark(c, i, n), self._sync_card(x)))
+            self._card_boxes[index]["health"].append(button)
             cell.addWidget(button)
             row.addLayout(cell)
         if row is not None:
@@ -356,29 +612,38 @@ class PartyPage(QWidget):
                 engineplay.set_motes(c, f, v, m),
                 left.setText(f"{max(0, m - v)}/{m}")))
 
+    @staticmethod
+    def _willpower_title(cv, cur) -> str:
+        return (f"WILLPOWER   ({cv.play.willpower_max - cur.willpower_spent}"
+                f"/{cv.play.willpower_max})")
+
     def _willpower(self, lay, index, character, cv, cur, accent) -> None:
-        body = self._panel(
-            lay, f"WILLPOWER   ({cv.play.willpower_max - cur.willpower_spent}"
-                 f"/{cv.play.willpower_max})", accent)
+        body = self._panel(lay, self._willpower_title(cv, cur), accent)
+        self._card_boxes[index]["willpower_head"] = self._last_head
         self._count_track(body, index, character, "willpower_spent",
                           cur.willpower_spent, cv.play.willpower_max, accent)
+
+    def _count_title(self, character, cur) -> str:
+        """The Limit / Paradox / Clarity heading — whichever this character uses."""
+        ruleset = self._ruleset
+        if derive.uses_clarity(ruleset, character):
+            cl = derive.clarity(ruleset, character)
+            return (f"CLARITY   ({cl.total}/{derive.CLARITY_MAX}  ·  {cl.permanent} perm "
+                    f"+ {cl.temporary} temp  ·  band {cl.band})")
+        label = derive.limit_label(ruleset, character).upper()   # "PARADOX" for a Sidereal
+        return (f"{label}   ({cur.limit}/10"
+                f"{f'  — {label} BREAK' if cur.limit >= 10 else ''})")
 
     def _limit(self, lay, index, character, cur, accent) -> None:
         """Limit, or Clarity for an Alchemical (p.69) — never both. Only the temporary
         half of Clarity is clickable; the permanent half is derived."""
         ruleset = self._ruleset
+        body = self._panel(lay, self._count_title(character, cur), accent)
+        self._card_boxes[index]["count_head"] = self._last_head
         if derive.uses_clarity(ruleset, character):
-            cl = derive.clarity(ruleset, character)
-            body = self._panel(
-                lay, f"CLARITY   ({cl.total}/{derive.CLARITY_MAX}  ·  {cl.permanent} perm "
-                     f"+ {cl.temporary} temp  ·  band {cl.band})", accent)
             self._count_track(body, index, character, "clarity_temporary",
                               cur.clarity_temporary, derive.CLARITY_MAX, accent)
             return
-        label = derive.limit_label(ruleset, character).upper()   # "PARADOX" for a Sidereal
-        body = self._panel(
-            lay, f"{label}   ({cur.limit}/10"
-                 f"{f'  — {label} BREAK' if cur.limit >= 10 else ''})", accent)
         self._count_track(body, index, character, "limit", cur.limit, 10, accent)
         if derive.limit_label(ruleset, character) == "Divergence":
             # ⚠ A BUTTON, not a hover. Divergence is Storyteller-adjudicated and never
@@ -406,11 +671,55 @@ class PartyPage(QWidget):
             button = tracker_box(f"party.{index}.{field}.{i}", 16,
                                  accent if i < spent else INPUT, accent)
             button.clicked.connect(
-                lambda _c=False, c=character, i=i, f=field, m=cap:
-                (engineplay.set_count(c, f, i, m), self.reload()))
+                lambda _c=False, c=character, i=i, f=field, m=cap, x=index:
+                (engineplay.set_count(c, f, i, m), self._sync_card(x)))
+            # ⚠ Filed under "willpower_spent" or "count", not under `field`: the third
+            # track is `limit` for most splats and `clarity_temporary` for an Alchemical,
+            # and a sync keyed on the field name would silently skip whichever one this
+            # character does not have.
+            key = "willpower_spent" if field == "willpower_spent" else "count"
+            self._card_boxes[index][key].append(button)
             row.addWidget(button)
         if row is not None:
             row.addStretch(1)
+
+    def _sync_card(self, index: int) -> None:
+        """Repaint ONE member card's tracker boxes and headings from the model.
+
+        ⚠ **Never `reload()`.** A play-state click used to redraw every card on the tab,
+        which deletes the box under the cursor — Qt hands the focus on to whatever
+        inherits it and the scroll area scrolls to follow. Measured: clicking a health
+        box on the third of six cards threw the scroll from 354 to 463 and left the
+        focus in the toolbar's party-name field. This is the adversary detail pane's bug
+        (human, 2026-08-28) on the surface one tab over; both were found by the same
+        probe, and only one of them had been reported.
+
+        Nothing structural can change from a play click — no cap moves, so no track
+        changes length — which is what makes repainting in place sound here."""
+        card = self._card_boxes.get(index)
+        if card is None:
+            return
+        character = card["character"]
+        cv = viewmod.build_party_card_view(self._ruleset, character)
+        cur = character.play or PlayState()
+        marks = list(cur.health)[:len(cv.play.health_boxes)]
+        marks += [None] * (len(cv.play.health_boxes) - len(marks))
+        accent = self._accent(character)
+        for i, button in enumerate(card["health"]):
+            mark = marks[i] if i < len(marks) else None
+            restyle_box(button, MARK_FILL[mark] if mark else INPUT, accent,
+                        mark.value if mark else "")
+        for key, spent in (("willpower_spent", cur.willpower_spent),
+                           ("count", cur.clarity_temporary
+                            if derive.uses_clarity(self._ruleset, character)
+                            else cur.limit)):
+            for i, button in enumerate(card[key]):
+                restyle_box(button, accent if i < spent else INPUT, accent)
+        for key, text in (("health_head", self._health_title(cv, marks)),
+                          ("willpower_head", self._willpower_title(cv, cur)),
+                          ("count_head", self._count_title(character, cur))):
+            if card[key] is not None:
+                card[key].setText(text)
 
 
 # --------------------------------------------------------------------------- #
@@ -511,8 +820,11 @@ class PartyWindow(QMainWindow):
 
         self.party_page = PartyPage(
             ruleset, ctx, on_open=self._open_member, on_sheet=self._show_sheet,
-            on_pdf=lambda c: self._export_pdf(c), on_remove=self._remove_member)
-        self.adversaries_page = AdversariesPage(ruleset, ctx, notify=self._notify_status)
+            on_pdf=lambda c: self._export_pdf(c), on_remove=self._remove_member,
+            on_edit_adversary=self._edit_adversary,
+            on_roster_change=self._roster_changed)
+        self.adversaries_page = AdversariesPage(ruleset, ctx, notify=self._notify_status,
+                                                on_change=self._adversaries_changed)
         self.reference_page = ReferencePage(ruleset)
 
         self.tabs = QTabWidget()
@@ -520,6 +832,11 @@ class PartyWindow(QMainWindow):
         self.tabs.addTab(self.party_page, "Party")
         self.tabs.addTab(self.adversaries_page, "Adversaries")
         self.tabs.addTab(self.reference_page, "Reference")
+        # ⚠ The roster is drawn on TWO tabs, and the editor writes per keystroke. Firing
+        # `on_change` from every one of those would rebuild every roster card while
+        # someone types a name — so the discrete events push, and typing is picked up
+        # when the other tab is next SHOWN.
+        self.tabs.currentChanged.connect(self._tab_shown)
         self.setCentralWidget(self.tabs)
         self.statusBar().showMessage("")
         self.apply_chrome()
@@ -546,6 +863,36 @@ class PartyWindow(QMainWindow):
         self.setWindowTitle(f"Exalted 1e — Party: {name}")
         qtheme.apply(self, self._pal())
         self.reference_page.apply_colors(self._pal())
+
+    # ---- the roster, drawn on two tabs ----------------------------------- #
+
+    def _tab_shown(self, index: int) -> None:
+        widget = self.tabs.widget(index)
+        if widget is self.party_page:
+            self.party_page.reload_roster()
+        elif widget is self.adversaries_page:
+            self.adversaries_page.reload()
+
+    def _roster_changed(self) -> None:
+        """A change made on the Party tab's roster cards — refresh the Adversaries
+        tab's table so the two never disagree."""
+        self.adversaries_page.reload()
+
+    def _adversaries_changed(self) -> None:
+        """The mirror: a change made on the Adversaries tab reaches the Party cards.
+
+        ⚠ The ROSTER only. A full `party_page.reload()` would tear down the member card
+        whose notes box someone is typing into, and a member card shows nothing an
+        adversary edit can change."""
+        self.party_page.reload_roster()
+
+    def _edit_adversary(self, entry_id: str) -> None:
+        """"Edit" on a roster card: raise the Adversaries tab with that entry selected.
+
+        ⚠ The card carries no editor of its own. Two editors for one model is how the
+        `powers`/`combat_pool` dead-field class of bug got in the first time."""
+        self.adversaries_page.select(entry_id)
+        self.tabs.setCurrentWidget(self.adversaries_page)
 
     def _notify_status(self, text: str, kind: str = "info") -> None:
         if kind == "warning":

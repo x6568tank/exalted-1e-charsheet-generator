@@ -22,7 +22,8 @@ import pytest
 pytest.importorskip("PySide6", reason="the optional [qt] extra is not installed")
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QComboBox, QLineEdit, QPlainTextEdit, QSpinBox
+from PySide6.QtWidgets import (QComboBox, QLineEdit, QPlainTextEdit, QPushButton,
+                               QScrollArea, QSpinBox)
 
 from exalted_builder.engine import adversaries as adv
 from exalted_builder.models.adversary import Adversary, AdversaryAttack, AdversaryTrait
@@ -258,6 +259,92 @@ def test_a_willpower_box_fills_to_the_click_and_empties_back(make_page):
     assert entry.willpower_spent == 3
     page._count(2)
     assert entry.willpower_spent == 2
+
+
+def _scrollable_page(make_page, qtbot):
+    """A page whose detail pane is genuinely scrollable, shown and activated — the focus
+    machinery this guards does nothing on a widget that was never shown."""
+    entry = Adversary(id="adv.0", name="Bandit", willpower=5, essence_pool=20,
+                      health_levels=adv.expand_health("-0/-1 x 2/-2/-4/Incap"))
+    page = make_page(Party(id="p", adversaries=[entry]))
+    page.resize(1200, 700)
+    page.show()
+    qtbot.waitExposed(page)
+    bar = page.findChildren(QScrollArea)[0].verticalScrollBar()
+    assert bar.maximum() > 0, "the detail pane has to overflow for this to mean anything"
+    bar.setValue(bar.maximum() // 2)
+    return page, entry, bar
+
+
+def test_a_tracker_click_leaves_the_detail_panes_scroll_where_it_was(make_page, qtbot):
+    """⚠ **The bug this whole widget exists for.** The detail pane sits in a
+    QScrollArea, and a click that REBUILDS it deletes the button under the cursor; Qt
+    hands the focus to whatever inherits it and the scroll area scrolls to follow, so
+    every damage mark threw the pane down the page (human, 2026-08-28) — unusable for
+    the one thing the surface is for.
+
+    Negative-control it by putting `self._sync_detail()` back into `_cycle`: the scroll
+    moves 465 → 695 and `focusWidget()` is no longer the button that was clicked."""
+    page, entry, bar = _scrollable_page(make_page, qtbot)
+    button = _widget(page, "adv.health.1", QPushButton)
+    button.setFocus(Qt.FocusReason.MouseFocusReason)
+    qtbot.wait(10)
+    at = bar.value()
+    page._cycle(1)
+    qtbot.wait(10)
+    assert bar.value() == at
+    # The same button object still holds the focus — it was repainted, not replaced.
+    assert page.window().focusWidget() is button
+    # …and it is repainted, so "nothing rebuilt" is not "nothing happened".
+    assert button.text() == Damage.BASHING.value
+
+
+def test_a_willpower_click_leaves_the_scroll_alone_too(make_page, qtbot):
+    """⚠ The sibling widget class. The report named health AND Willpower boxes, and a
+    fix applied to one tracker and not the other is the shape half this port's stylesheet
+    defects took."""
+    page, entry, bar = _scrollable_page(make_page, qtbot)
+    at = bar.value()
+    page._count(2)
+    qtbot.wait(10)
+    assert bar.value() == at
+    assert entry.willpower_spent == 3
+
+
+def test_reset_empties_the_mote_box_it_left_standing(make_page):
+    """⚠ Reset writes 0 to the model without rebuilding the pane, so the spin box has to
+    be re-read from the model — a stale 12 over an entry holding 0 is the whole hazard
+    of repainting instead of rebuilding."""
+    entry = Adversary(id="a", name="Spirit", essence_pool=12)
+    page = make_page(Party(id="p", adversaries=[entry]))
+    _widget(page, "adv.motes_spent", QSpinBox).setValue(9)
+    page._reset()
+    assert entry.motes_spent == 0
+    assert _widget(page, "adv.motes_spent", QSpinBox).value() == 0
+
+
+def test_select_finds_an_entry_by_id_not_by_row(make_page):
+    """The seam "Edit" on a Party-tab roster card uses. ⚠ By id: the table is sortable
+    and a duplicate lands in the middle, so a row number names someone else."""
+    first, second = _template(), _template()
+    second.id, second.name = "adv.2", "Bear"
+    page = make_page(Party(id="p", adversaries=[first, second]))
+    page.select("adv.2")
+    assert page._current() is second
+
+
+def test_a_roster_change_reaches_the_window(make_page, ruleset, qtbot):
+    """⚠ The hook contract. The roster is drawn on the Party tab as well now, and a page
+    built without an `on_change` leaves the two surfaces disagreeing — the defect that
+    hid `CharmsPage`'s dead readout."""
+    party = Party(id="p", adversaries=[_template()])
+    seen = []
+    ctx = {"party": party, "adversary_catalog": {}}
+    page = AdversariesPage(ruleset, ctx, on_change=lambda: seen.append(1))
+    qtbot.addWidget(page)
+    page._cycle(0)
+    page._delete()
+    assert len(seen) >= 2
 
 
 # --------------------------------------------------------------------------- #

@@ -31,14 +31,33 @@ MARK_FILL = {
 }
 
 
+def _style(fill: str, accent: str) -> str:
+    return (f"QPushButton {{ background:{fill}; color:#f4f2ee; border:none;"
+            f" border-radius:3px; font-weight:700; padding:0px; }}"
+            f"QPushButton:hover {{ background:{fill}; border:1px solid {accent}; }}")
+
+
 def box(name: str, size: int, fill: str, accent: str, text: str = "") -> QPushButton:
     """One tracker box: `size`x`size`, filled with `fill`, outlined on hover."""
     button = QPushButton(text)
     button.setObjectName(name)
     button.setFixedSize(size, size)
     button.setFlat(True)
-    button.setStyleSheet(
-        f"QPushButton {{ background:{fill}; color:#f4f2ee; border:none;"
-        f" border-radius:3px; font-weight:700; padding:0px; }}"
-        f"QPushButton:hover {{ background:{fill}; border:1px solid {accent}; }}")
+    button.setStyleSheet(_style(fill, accent))
     return button
+
+
+def restyle(button: QPushButton, fill: str, accent: str, text: str = "") -> None:
+    """Repaint an existing box, in place.
+
+    Input: a box from `box`, its new fill and text. Output: the same button, repainted.
+
+    ⚠ **A tracker repaints by RESTYLING, never by rebuilding its panel.** A rebuild
+    deletes the button that was just clicked; Qt then hands the focus to whatever
+    inherits it and a `QScrollArea` scrolls to follow — which is why every damage click
+    on the adversary detail pane jumped the pane to the bottom (human, 2026-08-28). It
+    also takes the focus out of the surface entirely, so the keyboard stops working
+    mid-fight.
+    """
+    button.setText(text)
+    button.setStyleSheet(_style(fill, accent))

@@ -1,11 +1,13 @@
-# Session handoff — 2026-08-28 (the dark document surfaces, then a shell-parity sweep)
+# Session handoff — 2026-08-28 (the dark surfaces, a parity sweep, then the roster cards)
 
 # 👉 YOU ARE HERE
 
-Last FULL green suite: **3,065 passed, 1 skipped** (main PC, `qt-port`, 7m26s), run after
+Last FULL green suite: **3,083 passed, 1 skipped** (main PC, `qt-port`, 6m55s), run after
 the last code change. The tree is clean and nothing is half-finished.
 
-Three things since the Party window: the app is **packaged as a native binary**
+Four things since the Party window: the **adversary roster came back as cards on the
+Party tab** and a tracker click stopped scrolling the pane away (both from the human's
+first look at the pushed UI — see below); the app is **packaged as a native binary**
 (`dist/ExaltedBuilderQt`, commit 728365c — the spec, the traps and the silent-windowed-
 crash defect it surfaced are all in that commit message and `pack/BUILD.md`); the **two
 document surfaces went dark**, the last piece of theme drift in the port; and a
@@ -20,8 +22,11 @@ finding is fixed. Scope it to what only a real display can answer:
    health box, then go back and spend XP in the builder.** The card must redraw.
 2. **"Builder" on a card, edit something, come back.** One builder, retargeted, same
    object. Does that read right in use, with two windows open?
-3. **The Adversaries tab as a COLLECTION rather than cards** — add a template, duplicate
-   it twice, damage one. Does the Damage column carry what the card stack used to?
+3. **Add a template on the Adversaries tab, duplicate it twice, then go to the Party
+   tab and run the fight off the cards** — damage two of them, spend a Willpower.
+   ⚠ The pane must NOT scroll away under the click; that is the whole point of the fix.
+   Do the same on a member card. Then hit "Edit" on a roster card and confirm it lands
+   you on the right entry.
 4. **Close the builder.** The party window must go with it.
 
 Add two glances now, both rendered offscreen and looked at but not used: **the Sheet tab
@@ -139,6 +144,52 @@ The guard is a RENDER, next to the other invisible-QSS tests:
 `test_no_document_surface_is_a_white_page_on_the_dark_app` measures each page's mean
 brightness and fails above 120/255. **Negative-controlled on both halves** — restoring
 either surface's `#fffdf7` fails it.
+
+## The roster is drawn TWICE now, and a tracker click repaints — 2026-08-28
+
+Two reports off the pushed Qt UI, and the second turned out to be three defects.
+
+**1. "Let me see the added adversaries in the GM screen, like the webapp has —
+otherwise gming combat is a challenge."** The Party tab now carries a **grid of
+adversary tracker cards under the member cards**, which is where the webapp put them
+(`ui/gm.py` renders the roster on the party page). ⚠ **The port had compressed a card
+grid into a table plus ONE detail pane**, so a Storyteller could see exactly one
+bandit's health at a time — the "a port that compresses a surface's shape is where its
+missing controls are" rule, and every adversary test was green throughout because they
+all addressed the tab that DID exist. The Adversaries tab keeps its collection layout
+and stays the only place an entry is EDITED; a roster card's "Edit" raises that tab with
+the entry selected rather than growing a second editor. `AdversaryTrackers` in
+`qt/adversaries.py` is the one tracker both surfaces draw.
+
+**2. "Clicking health or wp boxes scrolls the adversary's information to the bottom."**
+The detail pane rebuilt itself on every mark, which **deletes the button under the
+cursor**; Qt hands the focus to whatever inherits it and the enclosing `QScrollArea`
+scrolls to follow. Trackers now **repaint in place** (`trackers.restyle`).
+
+⚠ **Two more instances of the same bug, neither reported.** The probe that reproduced it
+found the **member cards on the Party tab** doing it too — a health click there threw the
+scroll 354 → 463 and left the focus in the toolbar's party-name field — and then the
+roster card's own new "Reset" button did it a third time. All three repaint now.
+`qt/play.py` was measured and holds its scroll; it loses focus only, and is left alone.
+**A defect one widget over is still your defect.**
+
+⚠ **Two LAYOUT defects that no test could see, found only by rendering offscreen and
+looking.** A word-wrapped `QLabel` answers `heightForWidth` and **`QGridLayout` does not
+honour it**, so the card was handed a height computed from one-line labels, overflowed,
+and painted the health boxes THROUGH the Willpower heading below them. The fix is two
+parts: no word-wrap in a card a grid lays out (long prose is elided with the full text on
+hover), and a hard `setMinimumHeight` on the trackers — a size policy alone was not
+enough. Separately, a grid only creates the columns it has items in, so a lone member
+card drew full width over half-width adversary cards; `_even_columns` fixes that.
+
+**Both scroll fixes are negative-controlled** — put `_sync_detail()`/`reload()` back into
+the handler and the tests fail. ⚠ **Do not "verify" this with `QPushButton.click()`**: a
+programmatic click takes no focus, so the bug does not reproduce and the test passes
+against it. The tests call `setFocus(MouseFocusReason)` on a `show()`n, activated widget
+first.
+
+**Owed:** the Party window click-through this was always waiting on — now including the
+roster cards.
 
 ## Not clicked, not blocking
 

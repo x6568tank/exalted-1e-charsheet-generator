@@ -19,7 +19,9 @@ import pytest
 
 pytest.importorskip("PySide6", reason="the optional [qt] extra is not installed")
 
-from PySide6.QtWidgets import QMessageBox, QPlainTextEdit, QPushButton, QSpinBox
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (QLabel, QMessageBox, QPlainTextEdit, QPushButton,
+                               QSpinBox)
 
 from exalted_builder.models.character import Character, Damage, PlayState
 from exalted_builder.models.party import Party, PartyMember
@@ -363,3 +365,178 @@ def test_only_a_jadeborn_card_offers_the_great_geas(ruleset, make_window):
     if derive.limit_label(ruleset, jadeborn) != "Divergence":
         pytest.skip("this build's Mountain Folk definition does not use Divergence")
     assert _boxes(window.party_page, "party.1.geas")
+
+
+# --------------------------------------------------------------------------- #
+# The opposition, on the party's own tab
+#
+# ⚠ **The port dropped this and the tests could not see it.** The webapp renders the
+# roster as a card grid on the party page; the native app compressed it into a table
+# plus ONE detail pane, so a Storyteller running a fight could see exactly one bandit's
+# health at a time — "gming combat is a challenge" (human, 2026-08-28). Every adversary
+# test was green throughout, because they all addressed the tab that DID exist. The
+# shape a port compresses is where its missing controls are.
+# --------------------------------------------------------------------------- #
+
+def _adversary(name="Bandit", entry_id="adv.1", **kw):
+    from exalted_builder.engine import adversaries as adv
+    from exalted_builder.models.adversary import Adversary
+    return Adversary(id=entry_id, name=name, categories=["Extra"], willpower=3,
+                     health_levels=adv.expand_health("-1/-3/I"), **kw)
+
+
+def test_every_adversary_gets_a_tracker_card_on_the_party_tab(make_window):
+    party = _party(_solar())
+    party.adversaries = [_adversary(), _adversary("Bear", "adv.2")]
+    window, _ctx, _calls = make_window(party)
+    for entry_id in ("adv.1", "adv.2"):
+        assert _boxes(window.party_page, f"adv.{entry_id}.health.")
+        assert _boxes(window.party_page, f"adv.{entry_id}.willpower_spent.")
+
+
+def test_a_roster_card_click_marks_that_entry_and_no_other(make_window):
+    from exalted_builder.engine import adversaries as adv
+    party = _party(_solar())
+    first, second = _adversary(), _adversary("Bear", "adv.2")
+    party.adversaries = [first, second]
+    window, _ctx, _calls = make_window(party)
+    _named(window.party_page, "adv.adv.2.health.0").click()
+    assert adv.normalize_damage(second)[0] == Damage.BASHING
+    assert all(m is None for m in adv.normalize_damage(first))
+
+
+def test_a_roster_card_click_reaches_the_adversaries_tab(make_window):
+    """⚠ The roster is drawn on TWO surfaces now. A click on either has to reach the
+    other, or the table's Damage column and the card disagree about the same bandit."""
+    party = _party(_solar())
+    party.adversaries = [_adversary()]
+    window, _ctx, _calls = make_window(party)
+    _named(window.party_page, "adv.adv.1.health.0").click()
+    assert window.adversaries_page.table.topLevelItem(0).text(2) == "1/ 0x 0*  (-1)"
+
+
+def test_a_roster_card_click_does_not_rebuild_the_card_under_it(make_window):
+    """The same guard as the detail pane's, on the surface a fight is actually run from.
+    Negative-control it by calling `_reload_roster()` from `_on_adversary_changed`."""
+    party = _party(_solar())
+    party.adversaries = [_adversary()]
+    window, _ctx, _calls = make_window(party)
+    before = _named(window.party_page, "adv.adv.1.health.0")
+    before.click()
+    assert _named(window.party_page, "adv.adv.1.health.0") is before
+    assert before.text() == Damage.BASHING.value
+
+
+def test_edit_on_a_roster_card_raises_the_adversaries_tab_on_that_entry(make_window):
+    """⚠ The card carries NO editor — two editors for one model is how the
+    `powers`/`combat_pool` dead fields got in. "Edit" jumps to the one that exists."""
+    party = _party(_solar())
+    party.adversaries = [_adversary(), _adversary("Bear", "adv.2")]
+    window, _ctx, _calls = make_window(party)
+    _named(window.party_page, "adv.adv.2.edit").click()
+    assert window.tabs.currentWidget() is window.adversaries_page
+    assert window.adversaries_page._current().name == "Bear"
+
+
+def test_duplicating_from_a_roster_card_goes_through_the_engine(make_window):
+    party = _party(_solar())
+    party.adversaries = [_adversary()]
+    window, _ctx, _calls = make_window(party)
+    _named(window.party_page, "adv.adv.1.duplicate").click()
+    assert [a.name for a in party.adversaries] == ["Bandit", "Bandit 2"]
+    assert _boxes(window.party_page, "adv.adv.2.health.")
+
+
+def test_an_adversary_added_on_its_own_tab_appears_on_the_party_tab(make_window):
+    """The mirror direction, through the tab the human actually adds one from."""
+    party = _party(_solar())
+    window, _ctx, _calls = make_window(party)
+    window.adversaries_page._add(None)                    # the dialog's Custom button
+    entry_id = party.adversaries[0].id
+    assert _boxes(window.party_page, f"adv.{entry_id}.health.")
+
+
+def test_an_empty_roster_says_so_rather_than_leaving_a_blank(make_window):
+    """⚠ An empty surface is indistinguishable from a broken one — the reason
+    `layout.empty_note` exists for the tables."""
+    window, _ctx, _calls = make_window(_party(_solar()))
+    assert [w for w in window.party_page.findChildren(QLabel)
+            if "No adversaries yet" in w.text()]
+
+
+def test_a_roster_card_prints_the_stats_a_roll_is_called_against(make_window):
+    """Trackers alone are not enough to run a fight off: the attack lines, the soak and
+    the traits have to be on the card, which is what the webapp's card carried."""
+    from exalted_builder.models.adversary import AdversaryAttack
+    party = _party(_solar())
+    party.adversaries = [_adversary(
+        attributes={"strength": 4}, soak_lethal=3,
+        attacks=[AdversaryAttack(name="Bite", speed=6, accuracy=7, damage=1,
+                                 damage_type="L", defense=5)])]
+    window, _ctx, _calls = make_window(party)
+    text = " ".join(w.text() for w in window.party_page.findChildren(QLabel))
+    assert "Bite" in text
+    assert "Str 4" in text
+
+
+def test_a_member_card_click_leaves_the_tabs_scroll_where_it_was(make_window, qtbot):
+    """⚠ The adversary detail pane's bug (human, 2026-08-28) on the surface one tab
+    over, found by the same probe and never separately reported. A play-state click used
+    to `reload()` every card, which deletes the box under the cursor; Qt passes the focus
+    on and the scroll area follows it. Measured before the fix: 354 → 463, with the focus
+    left in the toolbar's party-name field.
+
+    Negative-control it by putting `self.reload()` back into `_health`'s handler."""
+    window, _ctx, _calls = make_window(_party(*[_solar(f"PC{i}") for i in range(6)]))
+    window.resize(900, 600)
+    window.show()
+    qtbot.waitExposed(window)
+    bar = window.party_page._scroll.verticalScrollBar()
+    assert bar.maximum() > 0, "the tab has to overflow for this to mean anything"
+    bar.setValue(bar.maximum() // 2)
+    button = _named(window.party_page, "party.2.health.1")
+    button.setFocus(Qt.FocusReason.MouseFocusReason)
+    qtbot.wait(10)
+    at = bar.value()
+    button.click()
+    qtbot.wait(10)
+    assert bar.value() == at
+    assert window.focusWidget() is button
+    assert button.text() == Damage.BASHING.value
+
+
+def test_a_member_card_click_still_moves_that_cards_readouts(make_window, qtbot):
+    """⚠ "Nothing was rebuilt" must not become "nothing was updated". The heading counts
+    the marks, so it has to be re-texted in place — a card that repaints the box and not
+    the penalty is worse than one that redraws everything."""
+    character = _solar()
+    window, _ctx, _calls = make_window(_party(character))
+    _named(window.party_page, "party.0.health.0").click()
+    headings = [w.text() for w in window.party_page.findChildren(QLabel)
+                if w.text().startswith("HEALTH")]
+    assert headings and "1/ 0x 0*" in headings[0]
+
+
+def test_a_click_on_one_card_does_not_touch_another(make_window):
+    first, second = _solar("One"), _solar("Two")
+    window, _ctx, _calls = make_window(_party(first, second))
+    _named(window.party_page, "party.1.health.0").click()
+    assert second.play.health[0] == Damage.BASHING
+    assert first.play is None
+
+
+def test_reset_on_a_roster_card_repaints_rather_than_rebuilding(make_window):
+    """⚠ The same defect one BUTTON over, in code written to fix it: `_reload_roster()`
+    here would delete the Reset button that was just clicked. Repaint, and it survives."""
+    from exalted_builder.engine import adversaries as adv
+    party = _party(_solar())
+    entry = _adversary()
+    party.adversaries = [entry]
+    window, _ctx, _calls = make_window(party)
+    _named(window.party_page, "adv.adv.1.health.0").click()
+    button = _named(window.party_page, "adv.adv.1.reset")
+    button.click()
+    assert all(m is None for m in adv.normalize_damage(entry))
+    assert _named(window.party_page, "adv.adv.1.reset") is button
+    # and the box it repainted is empty again
+    assert _named(window.party_page, "adv.adv.1.health.0").text() == ""

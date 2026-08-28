@@ -239,9 +239,19 @@ shape**: the webapp's card stack becomes the settled Qt collection layout — to
 editor in a detail pane. The modal editor dialog is that pane; nothing about the data
 changed.
 
-⚠ **Cards did one thing better and it is kept.** Six bandits' damage visible at once is
-now the table's **Damage column** (`1/ 0x 0*  (-1)`); it is the compensation that makes a
-collection acceptable here, not decoration.
+⚠ **Cards did one thing better, the Damage column was NOT enough, and the cards came
+back — 2026-08-28.** Six bandits' damage at once is the table's **Damage column**
+(`1/ 0x 0*  (-1)`), and that was written up here as the compensation that made a
+collection acceptable. In use it wasn't: *"otherwise gming combat is a challenge"*
+(human). The roster is now drawn **twice** — this tab is where an entry is EDITED, and
+the **Party tab carries a grid of tracker cards under the member cards**, which is where
+the webapp always put it. A roster card's "Edit" raises this tab with the entry selected;
+there is no second editor. `AdversaryTrackers` is the one tracker widget both surfaces
+use, and `qt/party.py::_adversary_card` is the card.
+
+⚠ **A compensation you reasoned your way to is a hypothesis until someone uses it.** The
+Damage column is a good column and it is still here; it just was not the same feature as
+seeing the whole fight at once, and no test could tell the difference.
 
 ⚠ **The table is sortable but NOT SORTED** (`sortByColumn(-1, …)`). Roster order is the
 feature — a duplicate is inserted *beside* its original so a squad reads as a squad — and

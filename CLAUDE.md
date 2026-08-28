@@ -175,6 +175,24 @@ Each is written up in full where it happened; these are the reusable one-liners.
   but is disabled in one, to a panel with fewer lines, and to a different default —
   three more defects turned up in the same code, found only by fixing the others and
   looking at the render.
+- **A compensation you reasoned your way to is a HYPOTHESIS until someone uses it.** The
+  Qt roster replaced the webapp's card grid with a table and argued in three documents
+  that the Damage column bought back what cards did better. It did not — six damage cells
+  are not six health tracks you click, and *"gming combat is a challenge"* was the
+  verdict. **Write the compensation down as a claim to be tested, not as a closed
+  trade**, and note that no test can fail on it: all 3,065 were green, because they all
+  addressed the surface that DID exist.
+- **A click that rebuilds its own button throws the focus and drags the scroll with it.**
+  Qt hands focus to whatever inherits it, and an enclosing `QScrollArea` scrolls to
+  follow. **A live tracker REPAINTS** (`qt/trackers.py::restyle`); only a change that
+  re-lengthens a track may rebuild. ⚠ **Do not verify this with `QPushButton.click()`** —
+  a programmatic click takes no focus, so the bug does not reproduce and the test passes
+  against it. `show()`, `waitExposed`, `setFocus(MouseFocusReason)`, *then* click.
+- **A word-wrapped `QLabel` answers `heightForWidth` and `QGridLayout` does not honour
+  it**, so a card in a grid is laid out too short, and the only children that cannot
+  shrink gracefully — fixed-size boxes — get painted through whatever is under them. No
+  word-wrap on a card a grid lays out, and a hard `setMinimumHeight` on the fixed part;
+  a `QSizePolicy.Fixed` alone does not save you. Invisible to every test.
 - **A test's SUBJECT can quietly become the wrong subject.** The Qt "Add another" tests
   used a Charm that later turned out to be a variant menu, not a generic repeatable.
   They were green throughout and proved nothing about the case they named. When a
@@ -329,7 +347,11 @@ pool calculation.
     **The PARTY tab** (human, 2026-08-27) is the third, and it is Play's exception for
     Play's reason — the member cards are live trackers with nothing to select. ⚠ The
     **Adversaries** tab in the same window IS a collection, because its entries are
-    edited as well as tracked: **two shapes in one window is the design.**
+    edited as well as tracked: **two shapes in one window is the design.** ⚠ **The
+    ADVERSARIES are drawn on BOTH** (human, 2026-08-28): tracker cards under the members
+    on the Party tab, because a fight is run off one screen, and the collection on their
+    own tab, which stays the only place an entry is EDITED. **Where a thing is tracked
+    and where it is edited are two questions.**
     **Identity + Traits** (human, 2026-08-22) KEEP their card scroll. Asked, spiked six
     ways — including a `QTreeWidget` collection exactly like Gear's — and declined:
     *"the way it is right now works best for this information specifically."* A trait
@@ -411,15 +433,15 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite
-**3,065 passing, 1 skipped** (2026-08-28, main PC, the `qt-port` branch after the dark
-document surfaces, the ritual library and the picker parity fixes — includes the Qt-port tests in `tests/test_qt_*.py`,
+**3,083 passing, 1 skipped** (2026-08-28, main PC, the `qt-port` branch after the
+adversary roster cards and the repaint-don't-rebuild fixes — includes the Qt-port tests in `tests/test_qt_*.py`,
 `tests/test_charm_actions.py`, `tests/test_gear_actions.py` and
 `tests/test_variant_purchases.py`).
 
-- ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (470 of them,
+- ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (522 of them,
   fourteen whole modules). `pytest.importorskip("PySide6")` guards each; before that guard
   a bare import was a COLLECTION ERROR, which takes the entire run down rather than
-  those tests. **A count 470 lower on a webapp-only machine is that working**, not
+  those tests. **A count 522 lower on a webapp-only machine is that working**, not
   tests going missing — install with `.venv/bin/pip install -e '.[qt]'`.
 
 - ⚠ **A Qt test that touches fonts without a QApplication ABORTS the interpreter**, and

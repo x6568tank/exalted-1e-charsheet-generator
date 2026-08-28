@@ -1747,3 +1747,91 @@ note does not.
 **Open, and NOT ours to invent:** a God-Blooded stopped at that same raised cap gets no
 explanation in either shell. There is no printed clause for it that we have, and writing
 one would be authoring from memory. Flagged for the human, not fixed.
+
+## The roster came back as cards, and a click stopped scrolling the pane (2026-08-28)
+
+Two reports from the human against the pushed UI. The first reversed a decision this
+document argued for; the second was one bug that turned out to be three, plus two layout
+defects no test could ever have seen.
+
+### The Damage column was not the same feature as the cards
+
+**"Can we add a way to see selected/added adversaries in the GM screen, like the webapp
+has? mainly because otherwise gming combat is a challenge."**
+
+"What the collection layout bought on the roster, and what it cost" above says the
+table's **Damage column** is "the compensation that makes the collection layout
+acceptable here". In use it wasn't. Six bandits' damage as six table cells is not six
+bandits' *health tracks you click*, and the detail pane shows exactly one of them.
+
+The fix does not undo the collection layout — it puts the cards back **where the webapp
+always had them**, which is the party page, not a second view of the Adversaries tab:
+
+* **`qt/party.py::_adversary_card`** — a tracker card per adversary, in a grid under the
+  member cards. Trackers, the printed stat lines, and Reset / Duplicate / Edit.
+* **The Adversaries tab is unchanged** and remains the only place an entry is EDITED.
+  "Edit" on a card calls `AdversariesPage.select(id)` and raises that tab. ⚠ Two editors
+  for one model is how the `powers` / `combat_pool` dead fields got in the first time.
+* **`AdversaryTrackers`** (`qt/adversaries.py`) is the ONE tracker widget both surfaces
+  draw — the detail pane's copy became it. `framed` is the only difference.
+* The roster is now on two tabs, so a change to either has to reach the other. Discrete
+  events push (`on_roster_change` / `AdversariesPage(on_change=…)`); a per-keystroke edit
+  is picked up when the other tab is next shown (`PartyWindow._tab_shown`), because
+  firing on every keystroke would rebuild every card while someone types a name.
+
+⚠ **`AdversariesPage` had no `on_change`** — the same hook-contract hole `CharmsPage`
+had. It never mattered while the roster was drawn once.
+
+⚠ **A compensation you reasoned your way to is a hypothesis until someone uses it.**
+Every adversary test was green through all of this, because they all addressed the tab
+that DID exist. **The shape a port compresses is where its missing controls are** — this
+document already said that, about this exact panel, and the gap list was still a lower
+bound.
+
+### A click that rebuilds its own button scrolls the pane away
+
+**"When you've added an adversary, clicking on health or wp boxes scrolls the
+adversary's information to the bottom."**
+
+`_cycle` and `_count` called `_sync_detail()`, which tears the pane down and rebuilds it.
+That **deletes the button under the cursor**; Qt hands the focus to whatever inherits it
+and the enclosing `QScrollArea` scrolls to follow. Trackers now **repaint** — see
+`trackers.restyle`, which is where the note lives.
+
+⚠ **Two more instances, neither reported, found by the probe that reproduced the first.**
+
+1. **The member cards on the Party tab.** Every play-state click called `self.reload()`,
+   redrawing all six cards. Measured: a health click on the third card threw the scroll
+   **354 → 463** and left the focus in the toolbar's party-name field. `_sync_card`
+   repaints one card's boxes and re-texts its headings; nothing structural can change
+   from a play click, which is what makes that sound.
+2. **The roster card's own new "Reset" button**, in the code written to fix (1) —
+   `_reload_roster()` deleted the button that had just been clicked.
+
+`qt/play.py` was measured too: it holds its scroll and only loses focus, so it is left
+alone. **A defect one widget over is still your defect** — this is that rule for the
+third time in this port, after `QPushButton:disabled` and `QCheckBox`.
+
+⚠ **Do not "verify" this class of bug with `QPushButton.click()`.** A programmatic click
+takes no focus, so the bug does not reproduce and a test written that way passes against
+the very defect it names — the `test_qt_theme.py` failure mode again. The guards
+`show()` the widget, `waitExposed`, and `setFocus(MouseFocusReason)` before clicking, and
+both were negative-controlled by putting the rebuild back.
+
+### What the render caught — two, neither visible to the tests
+
+Rendered offscreen and LOOKED AT, per the standing rule. Both were in the new cards and
+both were invisible to all 3,065 tests then in the suite, which only ever ask for
+object names and values.
+
+* ⚠ **A word-wrapped `QLabel` answers `heightForWidth`, and `QGridLayout` does not honour
+  it.** The card was laid out at a height computed from one-line labels, overflowed, and
+  **painted the health boxes through the Willpower heading below them**. Two parts to the
+  fix, and the first alone was not enough: **no word-wrap on a card a grid lays out** (the
+  one genuinely free-text line is elided by character count, full text on hover), and a
+  hard **`setMinimumHeight`** on `AdversaryTrackers` — a `QSizePolicy` of `Fixed` did not
+  stop it, because the parent was itself being given less than its minimum.
+* ⚠ **A `QGridLayout` only creates the columns it has items in**, so one member card in a
+  two-column layout is drawn full width. Harmless while the members were the only cards
+  on the tab; with half-width adversary cards under them it read as two card sizes.
+  `PartyPage._even_columns` sets an equal stretch on every column of both grids.

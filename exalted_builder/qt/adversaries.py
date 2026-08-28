@@ -9,11 +9,15 @@ re-syncs only the row it changed, so a keystroke never rebuilds the pane under t
 cursor. Every computed number comes from `engine.adversaries`; every roster mutation
 goes through it too.
 
-⚠ **The webapp renders this as CARDS; the native app does not.** A card stack was the
-webapp's answer to "several entries, each with trackers"; here the roster is a
-collection like Gear and Advantages, and the editor that was a modal dialog there is the
-detail pane. The one thing cards did better — seeing six bandits' damage at once — is
-kept as the table's **Damage** column, which is why that column is not decoration.
+⚠ **This tab is where an adversary is EDITED; the Party tab is where a fight is RUN.**
+The roster is drawn twice on purpose. Here it is a collection like Gear and Advantages —
+a table, and the editor that was a modal dialog on the webapp as the detail pane. On the
+Party tab it is a grid of live tracker cards beside the characters fighting it
+(`qt/party.py::_adversary_card`), which is what the webapp had and what the port dropped:
+one detail pane shows exactly one bandit's health, and "gming combat is a challenge"
+(human, 2026-08-28). `AdversaryTrackers` below is the ONE tracker both surfaces use.
+The table's **Damage** column is not decoration either — it is the at-a-glance readout
+while you are on this tab.
 
 ⚠ **An `Adversary` is NOT a `Character`.** Nothing here validates, prices or locks, and
 no dot tracks: these values are typed off a page or invented on the spot, never bought,
@@ -30,7 +34,8 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QFrame, QHBoxLayout, QHeaderView, QLabel,
-    QLineEdit, QPlainTextEdit, QPushButton, QScrollArea, QSpinBox, QSplitter,
+    QLineEdit, QPlainTextEdit, QPushButton, QScrollArea, QSizePolicy, QSpinBox,
+    QSplitter,
     QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget,
 )
 
@@ -43,7 +48,7 @@ from exalted_builder.ui import view as viewmod
 from .catalogue import CatalogueDialog
 from .layout import clear_layout, empty_note
 from .theme import CARD, INPUT, MUTED, accent as accent_light
-from .trackers import MARK_FILL, box as tracker_box
+from .trackers import MARK_FILL, box as tracker_box, restyle as restyle_box
 
 _COLUMNS = ("Name", "Categories", "Damage", "Stats")
 
@@ -107,19 +112,263 @@ _ADD_SUBTITLE = ("Pick a template to start from — you get an editable copy, an
                  "catalogue entry is untouched.")
 
 
+class AdversaryTrackers(QWidget):
+    """One adversary's live trackers — health, Willpower, Essence — as a widget.
+
+    Input: an `Adversary`, the accent to paint it in, a name `prefix` for the boxes and
+    an `on_change` the owner uses to re-render whatever else shows these numbers.
+    Output: up to three panels, each a heading over its boxes. Mechanism: a click writes
+    through `engine.adversaries` and then RESTYLES the boxes and re-texts the headings it
+    changed; nothing here is ever torn down by its own click.
+
+    ⚠ **ONE trackers widget, used twice.** The Adversaries detail pane and the Party
+    tab's roster cards draw the same boxes for the same entries — a second copy is how
+    the two drift, and drift here means two answers to "how hurt is this bandit".
+
+    ⚠ **`framed` is presentation only.** In the detail pane each panel is its own card;
+    on a roster card the surrounding card already supplies the shade, and a card inside a
+    card reads as a rendering fault.
+
+    ⚠ **A click never rebuilds this widget** (see `trackers.restyle`). The one change
+    that legitimately re-lengthens the boxes is an edit to `health_levels`, and that goes
+    through the owner's rebuild, not through here.
+    """
+
+    def __init__(self, entry: Adversary, accent: str, *, prefix: str = "adv",
+                 on_change=None, framed: bool = True, box_size: int = 28,
+                 boxes_per_row: int = _BOXES_PER_ROW, parent=None):
+        super().__init__(parent)
+        self._a = entry
+        self._accent = accent
+        self._prefix = prefix
+        self._on_change = on_change or (lambda: None)
+        self._framed = framed
+        self._box_size = box_size
+        self._per_row = boxes_per_row
+
+        self._health_boxes: list = []
+        self._wp_boxes: list = []
+        self._health_head: QLabel | None = None
+        self._wp_head: QLabel | None = None
+        self._essence_head: QLabel | None = None
+        self._motes_spin: QSpinBox | None = None
+
+        self._lay = QVBoxLayout(self)
+        self._lay.setContentsMargins(0, 0, 0, 0)
+        self._lay.setSpacing(4 if framed else 3)
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        self._build()
+        # ⚠ A HARD floor, set after building, and it is not belt-and-braces. A card is a
+        # stack of word-wrapped labels, and a word-wrapped QLabel answers
+        # `heightForWidth` — which makes the enclosing QGridLayout's idea of how tall the
+        # card needs to be smaller than the truth. Every label then shrinks gracefully
+        # and the only things that CANNOT are these fixed-size boxes, so the health row
+        # was clipped to half height and painted through the Willpower heading below it
+        # (2026-08-28). A minimum height on the widget is a floor no parent layout may
+        # go under; a size policy alone was not enough. Invisible to all 3,065 tests —
+        # only a render showed it.
+        self.setMinimumHeight(self._lay.minimumSize().height())
+
+    # ---- construction ---------------------------------------------------- #
+
+    def _panel(self, title: str) -> tuple[QVBoxLayout, QLabel]:
+        """A heading over a body, carded when `framed`. Returns both, because every
+        heading here carries a live count that is re-texted rather than rebuilt."""
+        # ⚠ NOT word-wrapped. A wrapped QLabel answers `heightForWidth`, which
+        # `QGridLayout` does not honour — and these headings sit on cards a grid lays
+        # out, so wrapping them makes the card too short and clips the boxes below.
+        head = QLabel(title)
+        head.setStyleSheet(f"font-weight:700; letter-spacing:1px; color:{self._accent};"
+                           + ("" if self._framed else " font-size:11px;"))
+        body = QVBoxLayout()
+        # ⚠ Margins zeroed: a nested QVBoxLayout inherits an 11px default on all four
+        # sides, and three of them down a card add 66px of nothing between each heading
+        # and the boxes it labels.
+        body.setContentsMargins(0, 0, 0, 0)
+        body.setSpacing(3)
+        if not self._framed:
+            self._lay.addWidget(head)
+            self._lay.addLayout(body)
+            return body, head
+        frame = QFrame()
+        frame.setObjectName("advPanel")
+        frame.setStyleSheet(
+            f"QFrame#advPanel {{ background:{CARD}; border-radius:6px; }}")
+        inner = QVBoxLayout(frame)
+        inner.setContentsMargins(10, 8, 10, 8)
+        inner.setSpacing(4)
+        inner.addWidget(head)
+        inner.addLayout(body)
+        self._lay.addWidget(frame)
+        return body, head
+
+    def _build(self) -> None:
+        a = self._a
+        marks = adv.normalize_damage(a)
+        body, self._health_head = self._panel(self._health_title())
+        if not a.health_levels:
+            note = QLabel("No health track — set one under Combat below.")
+            note.setWordWrap(True)
+            note.setStyleSheet(f"color:{MUTED};")
+            body.addWidget(note)
+        row = None
+        for i in range(len(a.health_levels)):
+            if i % self._per_row == 0:
+                row = QHBoxLayout()
+                row.setSpacing(4)
+                body.addLayout(row)
+            cell = QVBoxLayout()
+            cell.setSpacing(1)
+            # The wound penalty is CAPTIONED, not just a tooltip: which box to mark next
+            # is what a Storyteller reads off a card mid-fight, and a hover is no use
+            # when six of them are on screen at once.
+            caption = QLabel(adv.level_label(a.health_levels[i]))
+            caption.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+            caption.setStyleSheet(f"color:{MUTED}; font-size:10px;")
+            cell.addWidget(caption)
+            mark = marks[i]
+            button = tracker_box(f"{self._prefix}.health.{i}", self._box_size,
+                                 MARK_FILL[mark] if mark else INPUT,
+                                 self._accent, mark.value if mark else "")
+            button.clicked.connect(lambda _c=False, index=i: self.cycle(index))
+            self._health_boxes.append(button)
+            cell.addWidget(button)
+            row.addLayout(cell)
+        if row is not None:
+            row.addStretch(1)
+
+        if a.willpower:
+            body, self._wp_head = self._panel(self._willpower_title())
+            track = QHBoxLayout()
+            track.setSpacing(4)
+            for i in range(a.willpower):
+                button = tracker_box(f"{self._prefix}.willpower_spent.{i}",
+                                     max(16, self._box_size - 8),
+                                     self._accent if i < a.willpower_spent else INPUT,
+                                     self._accent)
+                button.clicked.connect(lambda _c=False, index=i: self.count(index))
+                self._wp_boxes.append(button)
+                track.addWidget(button)
+            track.addStretch(1)
+            body.addLayout(track)
+
+        cap = adv.mote_cap(a)
+        if cap:
+            body, self._essence_head = self._panel(self._essence_title())
+            spin = QSpinBox()
+            spin.setObjectName(f"{self._prefix}.motes_spent")
+            spin.setRange(0, cap)
+            spin.setValue(min(a.motes_spent, cap))
+            # ⚠ No rebuild from a spin box either: a redraw deletes the widget
+            # mid-keystroke and takes the focus with it. The heading is re-texted.
+            spin.valueChanged.connect(self._write_motes)
+            self._motes_spin = spin
+            row = QHBoxLayout()
+            label = QLabel("Motes spent")
+            label.setStyleSheet(f"color:{MUTED};")
+            label.setMinimumWidth(90)
+            row.addWidget(label)
+            spin.setFixedWidth(88)
+            row.addWidget(spin)
+            row.addStretch(1)
+            body.addLayout(row)
+
+    # ---- headings -------------------------------------------------------- #
+
+    def _health_title(self) -> str:
+        a = self._a
+        penalty = adv.worst_penalty(a)
+        shown = ("none" if penalty is None
+                 else "Incap" if penalty == adv.INCAPACITATED else str(penalty))
+        counts = {d: sum(1 for m in adv.normalize_damage(a) if m == d) for d in Damage}
+        return (f"HEALTH   ·   penalty {shown}   ·   "
+                f"{counts[Damage.BASHING]}/ {counts[Damage.LETHAL]}x "
+                f"{counts[Damage.AGGRAVATED]}*")
+
+    def _willpower_title(self) -> str:
+        a = self._a
+        return f"WILLPOWER   ({a.willpower - a.willpower_spent}/{a.willpower})"
+
+    def _essence_title(self) -> str:
+        a = self._a
+        cap = adv.mote_cap(a)
+        shape = ("one pool" if a.essence_pool
+                 else f"{a.personal_essence} personal + {a.peripheral_essence} peripheral")
+        return f"ESSENCE   ({max(0, cap - a.motes_spent)}/{cap} left — {shape})"
+
+    # ---- writes ---------------------------------------------------------- #
+
+    def cycle(self, index: int) -> None:
+        """Advance one health box through none → bashing → lethal → aggravated."""
+        adv.cycle_mark(self._a, index)
+        self.sync()
+        self._on_change()
+
+    def count(self, index: int) -> None:
+        """Click the Willpower track at `index` — spend up to it, or back off to it."""
+        adv.set_count(self._a, "willpower_spent", index, self._a.willpower)
+        self.sync()
+        self._on_change()
+
+    def _write_motes(self, value: int) -> None:
+        adv.set_motes_spent(self._a, value)
+        if self._essence_head is not None:
+            self._essence_head.setText(self._essence_title())
+        self._on_change()
+
+    def sync(self) -> None:
+        """Repaint every box and heading from the model, in place.
+
+        ⚠ Zips against the boxes it BUILT. A change to `health_levels` re-lengthens the
+        track, and that is the owner's rebuild — this method would silently render the
+        old length."""
+        marks = adv.normalize_damage(self._a)
+        for i, button in enumerate(self._health_boxes):
+            mark = marks[i] if i < len(marks) else None
+            restyle_box(button, MARK_FILL[mark] if mark else INPUT, self._accent,
+                        mark.value if mark else "")
+        if self._health_head is not None:
+            self._health_head.setText(self._health_title())
+        for i, button in enumerate(self._wp_boxes):
+            restyle_box(button,
+                        self._accent if i < self._a.willpower_spent else INPUT,
+                        self._accent)
+        if self._wp_head is not None:
+            self._wp_head.setText(self._willpower_title())
+        if self._essence_head is not None:
+            self._essence_head.setText(self._essence_title())
+        if self._motes_spin is not None:
+            # ⚠ Signals blocked: "Reset" writes 0 to the model and then here, and an
+            # un-blocked setValue would write it straight back out through
+            # `_write_motes` — harmless today, and exactly the loop a future cap change
+            # would turn into a fight between the two.
+            self._motes_spin.blockSignals(True)
+            self._motes_spin.setValue(min(self._a.motes_spent,
+                                          self._motes_spin.maximum()))
+            self._motes_spin.blockSignals(False)
+
+
 class AdversariesPage(QWidget):
     """The tab widget. `reload()` rebuilds the roster table for the party in ctx;
     `notify` surfaces transient messages."""
 
-    def __init__(self, ruleset, ctx, *, notify=None, parent=None):
+    def __init__(self, ruleset, ctx, *, notify=None, on_change=None, parent=None):
         super().__init__(parent)
         self._ruleset = ruleset
         self._ctx = ctx
         self._notify = notify or (lambda text, kind="info": None)
+        # ⚠ Every Qt page takes an `on_change`, and this one was built without: the
+        # roster is now drawn on the Party tab too, so an edit here that never announced
+        # itself would leave two surfaces showing different damage (the hook-contract
+        # trap that hid `CharmsPage`'s missing readout — CLAUDE.md).
+        self._on_change = on_change or (lambda: None)
         # The selected entry's ID, not its row. ⚠ Positions shift on add, duplicate and
         # delete — the roster is the one list here that inserts in the MIDDLE (a
         # duplicate sits beside its original), so an index would re-select a neighbour.
         self._selected: str | None = None
+        # The live trackers of whatever is selected, so a click repaints instead of
+        # rebuilding the pane it is standing in.
+        self._trackers: AdversaryTrackers | None = None
 
         bar = QHBoxLayout()
         bar.setContentsMargins(8, 4, 8, 4)
@@ -221,8 +470,26 @@ class AdversariesPage(QWidget):
         self._sync_detail()
 
     def _rebuild(self) -> None:
-        """A change that moved the LIST — refill and re-derive the pane."""
+        """A change that moved the LIST — refill, re-derive the pane, and tell the
+        window, which redraws the same roster on the Party tab."""
         self.reload()
+        self._on_change()
+
+    def select(self, entry_id: str) -> None:
+        """Select an entry by id — the seam "Edit" on a Party-tab roster card uses.
+
+        ⚠ By ID, never by row. This table is sortable and a duplicate lands in the
+        MIDDLE of the list, so a row number names a different adversary the moment
+        either happens."""
+        self._selected = entry_id
+        self._fill_table()
+        self._sync_detail()
+
+    def _tracked(self) -> None:
+        """A tracker click: re-render this row, and let the Party tab's copy of the same
+        entry catch up."""
+        self._refresh_row()
+        self._on_change()
 
     # ------------------------------------------------------------------ #
     # the roster table
@@ -341,8 +608,9 @@ class AdversariesPage(QWidget):
         if entry is None:
             return
         adv.reset_tracking(entry)
-        self._sync_detail()
-        self._refresh_row()
+        if self._trackers is not None:
+            self._trackers.sync()
+        self._tracked()
 
     def _delete(self) -> None:
         index = self._index()
@@ -402,6 +670,7 @@ class AdversariesPage(QWidget):
 
     def _sync_detail(self) -> None:
         clear_layout(self._detail_lay)
+        self._trackers = None
         entry = self._current()
         if entry is None:
             self.detail_title.setText("")
@@ -423,84 +692,23 @@ class AdversariesPage(QWidget):
     # ---- trackers -------------------------------------------------------- #
 
     def _tracker_panel(self, a: Adversary) -> None:
-        marks = adv.normalize_damage(a)
-        penalty = adv.worst_penalty(a)
-        shown = ("none" if penalty is None
-                 else "Incap" if penalty == adv.INCAPACITATED else str(penalty))
-        body = self._panel(f"HEALTH   ·   penalty {shown}   ·   "
-                           f"/ bashing   x lethal   * aggravated")
-        if not a.health_levels:
-            body.addWidget(self._muted("No health track — set one under Combat below."))
-        row = None
-        for i in range(len(a.health_levels)):
-            if i % _BOXES_PER_ROW == 0:
-                row = QHBoxLayout()
-                row.setSpacing(4)
-                body.addLayout(row)
-            cell = QVBoxLayout()
-            cell.setSpacing(1)
-            caption = QLabel(adv.level_label(a.health_levels[i]))
-            caption.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-            caption.setStyleSheet(f"color:{MUTED}; font-size:10px;")
-            cell.addWidget(caption)
-            mark = marks[i]
-            button = tracker_box(f"adv.health.{i}", 28,
-                                 MARK_FILL[mark] if mark else INPUT,
-                                 self._accent(), mark.value if mark else "")
-            button.clicked.connect(
-                lambda _c=False, index=i: self._cycle(index))
-            cell.addWidget(button)
-            row.addLayout(cell)
-        if row is not None:
-            row.addStretch(1)
+        """The shared trackers widget, held so a click can repaint it in place.
 
-        if a.willpower:
-            wp = self._panel(f"WILLPOWER   ({a.willpower - a.willpower_spent}"
-                             f"/{a.willpower})")
-            track = QHBoxLayout()
-            track.setSpacing(4)
-            for i in range(a.willpower):
-                button = tracker_box(f"adv.willpower_spent.{i}", 20,
-                                     self._accent() if i < a.willpower_spent
-                                     else INPUT, self._accent())
-                button.clicked.connect(
-                    lambda _c=False, index=i: self._count(index))
-                track.addWidget(button)
-            track.addStretch(1)
-            wp.addLayout(track)
-
-        cap = adv.mote_cap(a)
-        if cap:
-            shape = ("one pool" if a.essence_pool
-                     else f"{a.personal_essence} personal + "
-                          f"{a.peripheral_essence} peripheral")
-            motes = self._panel(f"ESSENCE   ({max(0, cap - a.motes_spent)}/{cap} left "
-                                f"— {shape})")
-            spin = QSpinBox()
-            spin.setObjectName("adv.motes_spent")
-            spin.setRange(0, cap)
-            spin.setValue(a.motes_spent)
-            # ⚠ No pane rebuild from a spin box: a redraw deletes the widget
-            # mid-keystroke and takes the focus with it. Only the row re-renders.
-            spin.valueChanged.connect(
-                lambda v: (adv.set_motes_spent(a, v), self._refresh_row()))
-            self._labelled(motes, "Motes spent", spin)
+        ⚠ It is NOT re-created per click. The detail pane sits in a QScrollArea, and
+        rebuilding it under the button that was just pressed threw the focus to the end
+        of the tab chain and dragged the scroll to the bottom of the pane on every
+        damage mark (human, 2026-08-28)."""
+        self._trackers = AdversaryTrackers(a, self._accent(), prefix="adv",
+                                           on_change=self._tracked)
+        self._detail_lay.addWidget(self._trackers)
 
     def _cycle(self, index: int) -> None:
-        entry = self._current()
-        if entry is None:
-            return
-        adv.cycle_mark(entry, index)
-        self._sync_detail()
-        self._refresh_row()
+        if self._trackers is not None and self._current() is not None:
+            self._trackers.cycle(index)
 
     def _count(self, index: int) -> None:
-        entry = self._current()
-        if entry is None:
-            return
-        adv.set_count(entry, "willpower_spent", index, entry.willpower)
-        self._sync_detail()
-        self._refresh_row()
+        if self._trackers is not None and self._current() is not None:
+            self._trackers.count(index)
 
     # ---- the editor ------------------------------------------------------ #
 
