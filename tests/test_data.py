@@ -895,3 +895,38 @@ def test_no_book_is_spelled_two_ways():
         groups.setdefault(bare(b), []).append(b)
     dupes = {k: sorted(v) for k, v in groups.items() if len(v) > 1}
     assert not dupes, f"one book under several spellings: {dupes}"
+
+
+def test_no_necromancy_spell_claims_the_corebook():
+    """The corebook prints sorcery and NO necromancy — the Circles were introduced in
+    *The Abyssals*, whose necromancy chapter is pp.224-229.
+
+    ⚠ This is the same misattribution `docs/source-attribution.md` records for
+    2026-08-10, when all 233 Abyssal Charms carried `Core` with Abyssals page numbers.
+    That fix moved the CHARMS and missed the 23 necromancy SPELLS, which sat wrong for
+    another five days until the phase-2 book census surfaced them (2026-08-15).
+    **When a misattribution is found, sweep every record type in that book, not the one
+    that reported it.**
+    """
+    import json as _json
+
+    rows = _json.loads((DATA_DIR / "spells.json").read_text(encoding="utf-8"))
+    necromancy = {"Shadowlands", "Labyrinth", "Void"}
+    stray = [e["name"] for e in rows
+             if e.get("circle") in necromancy
+             and isinstance(e.get("source"), dict)
+             and e["source"].get("book") == "Core"]
+    assert not stray, f"necromancy spells attributed to the corebook: {stray}"
+
+
+def test_the_corebook_sorcery_spells_are_still_there():
+    """The positive half — the reattribution must not have swept up the real corebook
+    sorcery on pp.217-223, which is the neighbouring page range in the same file."""
+    import json as _json
+
+    rows = _json.loads((DATA_DIR / "spells.json").read_text(encoding="utf-8"))
+    core = [e for e in rows
+            if isinstance(e.get("source"), dict) and e["source"].get("book") == "Core"]
+    assert len(core) == 19, [e["name"] for e in core]
+    assert {e.get("circle") for e in core} == {"Terrestrial", "Celestial", "Solar"}
+    assert max(e["source"]["page"] for e in core) <= 223

@@ -106,6 +106,25 @@ copy it rather than writing a third walker.
 The general lesson: **a doc's list of call sites is a hint, not an inventory.** This one
 was written when it was true and rotted exactly like the field it describes. Grep.
 
+## ⚠ The 2026-08-10 fix was INCOMPLETE — found 2026-08-15
+
+The August fix moved all 233 Abyssal **Charms** off `Core`. It did not touch the **23
+necromancy spells**, which sat attributed to `Core` pp.224-229 for another five days.
+The corebook prints sorcery on pp.217-223 and **no necromancy at all** — the
+Shadowlands, Labyrinth and Void Circles were introduced in *The Abyssals*, whose
+necromancy chapter is exactly pp.224-229. Verified against the page (the Abyssals PDF
+runs printed + 1; PDF p.225 is headed "NECROMANCY AND OTHER EXALTED") and corrected.
+
+**The rule this gives you: when you find a misattribution, sweep every record TYPE in
+that book, not just the one that reported it.** A book contributes Charms *and* spells
+*and* artifacts *and* gear, they live in different files, and a fix aimed at one file
+leaves the others wrong while the count in the fixed file looks healthy.
+
+Two guards now sit in `tests/test_data.py`:
+`test_no_necromancy_spell_claims_the_corebook` and, as its positive half,
+`test_the_corebook_sorcery_spells_are_still_there` — which pins the 19 real corebook
+spells at pp.217-223 so a future re-sweep cannot drag them out with the necromancy.
+
 ## When you cannot tell
 
 The never-author-from-memory rule applies to `source.book` exactly as it does to a cost

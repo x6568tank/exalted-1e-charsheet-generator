@@ -270,11 +270,12 @@ pool calculation.
   it and ship deliberately incomplete (Weak Essence, Brigid's Heir, Death's Taint's
   Harrowing, the elder-Exalt ceilings); that is accepted, not a gap. Anything needing the
   passage of in-game time is out for the same reason `PlayState` is a manual tracker.
-- **Deferred INDEFINITELY, and neither is a gap** — the **Mist numina / Mist aspect**
-  (`docs/status/mist-numina.md`: there is no numen effect LIST to author) and **Cult
-  Abyssals** (`docs/status/illuminated.md`: 56 Charms needing human-approved mappings).
-  A sweep that lists either as unauthored is counting a deferral as an oversight. **Do
-  not offer them as follow-ups.**
+- **Deferred INDEFINITELY, and none is a gap** — the **Mist numina / Mist aspect**
+  (`docs/status/mist-numina.md`: there is no numen effect LIST to author), **Cult
+  Abyssals** (`docs/status/illuminated.md`: 56 Charms needing human-approved mappings)
+  and **Haltan pets** (Scavenger Sons p.28 — a bonus-point rule with no origin axis to
+  hang it on). A sweep that lists any of them as unauthored is counting a deferral as an
+  oversight. **Do not offer them as follow-ups.**
 - **The Qt port** — **COMMITTED as decision 0018 (2026-08-20)**: branch and rebuild the
   UI on **PySide6/Qt** as the bedrock of a 2.0, offered alongside the NiceGUI webapp.
   Plan and build record: **`docs/plans/qt-port.md`**. The two spikes (`spikes/qt_tree/`

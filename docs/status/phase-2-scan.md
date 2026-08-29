@@ -140,6 +140,81 @@ to bring it back. **Spear thrower (p.29)** — Cost •, 0.5 lbs.; adds +2 to th
 javelins and doubles their range with no accuracy loss. It is an accessory that modifies
 another weapon, not a weapon with its own line.
 
+## What the book census found — and what is actually left
+
+Suite at close: **2,391 passing, 1 skipped**, plus the one machine-dependent failure.
+**Not browser-verified** — see the click-through list at the end of this file.
+
+A per-book × per-record-type census (every `source` in `data/`, both shapes) was run to
+scope what remains. It found one bug and closed three worries.
+
+### The bug it found — 23 necromancy spells on the wrong book
+
+They were attributed to `Core` pp.224-229. The corebook prints sorcery on pp.217-223 and
+**no necromancy at all**; the Shadowlands, Labyrinth and Void Circles were introduced in
+*The Abyssals*, whose necromancy chapter is exactly pp.224-229. Verified against the
+page and corrected. Full write-up and the two new guards are in
+`docs/source-attribution.md`.
+
+⚠ **This is the 2026-08-10 bug, unfinished.** That fix moved all 233 Abyssal *Charms*
+off `Core` and never touched the *spells*. **When you find a misattribution, sweep every
+record TYPE in that book, not just the one that reported it** — a book contributes
+Charms *and* spells *and* artifacts *and* gear, they live in different files, and the
+file you fixed looks healthy afterwards.
+
+### The artifact catalogue is COMPLETE — verified two independent ways
+
+* **Per-book counts match the discovery index** (`artifact-backlog.md`): Bone & Ebony
+  74/74, Rathess 18/18, Book of Three Circles 14/14, Player's Guide 14/14, Aspect Book
+  Air 13/13, Abyssals 16/16.
+* **An independent probe of The Abyssals** — the one big splat book with a full OCR text
+  layer — found all **14** printed `(ARTIFACT …)` headings authored, plus 2 more whose
+  headings use a different form. **16/16.**
+
+⚠ **The Lunars and The Dragon-Blooded show ZERO artifacts because they PRINT none** —
+the discovery index has no row for either. A zero in a census is not evidence of a gap.
+
+### The two rulings that scope the next sweep (human, 2026-08-15)
+
+* **Merits & Flaws are "pretty much all Player's Guide."** Consistent with every
+  measurement: all 170 authored entries are PG, the full Abyssals text layer has zero
+  `PT. MERIT` hits, and none of the five phase-1 books prints a single one. **M&F are
+  not the reason to read another book.**
+* **Backgrounds are scattered across mainly the SPLAT BOOKS.** That makes them the
+  target of the remaining sweep, and they are the record type with **no discovery index
+  to diff against** — artifacts had one, Backgrounds do not.
+
+### What genuinely remains
+
+**Backgrounds in the five pure-scan splat groups** — Lunars (258 pp.), Dragon-Blooded
+(297 pp.), Sidereals (277 pp.), the five Caste Books (~490 pp.) and the five Aspect
+Books. Roughly **1,800 pages**, all needing the phase-2 treatment (`pdftoppm` +
+`tesseract` to locate, page images to read).
+
+⚠ **`source` is missing entirely on 63/63 Backgrounds, 28/28 armour rows and 105/117
+weapons.** The weapons/armour half is already recorded as metadata-only, but the
+Backgrounds half matters here: **a book-keyed sweep cannot diff against records that
+name no book.** Backfilling Background provenance first would make the 1,800-page sweep
+checkable instead of open-ended — the necromancy bug is precisely what unsourced data
+hides.
+
+## Click-through list — NOT browser-verified
+
+Nothing in phases 1 and 2 has been seen in a browser. What to click:
+
+1. **Gear tab → Buy.** The new categories should appear: `Halta — Plants and Medicines`,
+   `Halta — Talismans`, `Deep-Forest Drugs`, `Southern Magical Gemstones`. Rows carry
+   `Res •`…`Res •••••`, and the two free rows (message seed, lucky rock) should read as
+   free rather than blank.
+2. **A long `notes` string in the catalogue dialog.** These rows have the longest notes
+   in the build — check they are not collapsed. ⚠ `ui/catalogue.py` needs
+   `whitespace-pre-line` on structured description strings or NiceGUI eats the newlines
+   (recorded in `backgrounds.md`).
+3. **Weapons.** Firewand, bayonet, war boomerang, spear thrower, firedust in the weapon
+   picker. ⚠ The **spear thrower has no attack line at all** — confirm it renders as a
+   row rather than crashing a table that expects accuracy/damage.
+4. **GM roster → Beast.** The six `Marukani *` templates, each with its health track.
+
 ## On a creature creator — an observation, not a proposal
 
 The human raised this and explicitly did not ask for it. Recording only the fact that
