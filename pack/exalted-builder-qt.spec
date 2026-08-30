@@ -24,6 +24,8 @@ rl_datas, rl_binaries, rl_hidden = collect_all("reportlab")
 
 datas = rl_datas + [
     (str(ROOT / "exalted_builder" / "data"), "exalted_builder/data"),
+    # The window/tab icon, read at runtime via branding.app_icon_path().
+    (str(ROOT / "assets" / "icon.png"), "assets"),
 ]
 
 # ⚠ The app imports exactly THREE Qt modules (QtCore, QtGui, QtWidgets — grep it).
@@ -96,6 +98,10 @@ exe = EXE(
     upx=False,
     runtime_tmpdir=None,
     console=False,        # no terminal window; this is a native GUI app
+    # ⚠ The EXECUTABLE's own icon, which is NOT the same thing as the window
+    # icon set in code — this one is baked into the binary by the OS shell and
+    # needs .ico. Windows and macOS use it; Linux ignores it entirely.
+    icon=str(ROOT / "assets" / "icon.ico"),
 )
 # Passing a.binaries and a.datas into EXE (with no COLLECT step) produces a
 # single-file executable in dist/.

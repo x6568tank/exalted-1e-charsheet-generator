@@ -11,10 +11,11 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 import exalted_builder
-from exalted_builder import persistence, rules_db
+from exalted_builder import branding, persistence, rules_db
 from exalted_builder.models.character import Character
 from exalted_builder.qt.main_window import MainWindow
 
@@ -47,6 +48,12 @@ def open_character(argv: list[str]) -> tuple[Character, Path, str]:
 
 def main() -> None:
     app = QApplication(sys.argv)
+    # Set on the APPLICATION, not the window: every window inherits it, including
+    # the separate QMainWindow the party/ST screen opens. None when the file is
+    # absent, which leaves Qt's default and must stay non-fatal.
+    icon = branding.app_icon_path()
+    if icon is not None:
+        app.setWindowIcon(QIcon(str(icon)))
     ruleset = rules_db.load_app_ruleset(_DATA_DIR)
     character, save_path, complaint = open_character(sys.argv)
     win = MainWindow(ruleset, character, save_path)

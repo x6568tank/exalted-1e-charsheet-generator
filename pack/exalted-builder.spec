@@ -26,6 +26,8 @@ datas = ng_datas + rl_datas + [
     (str(ROOT / "exalted_builder" / "data"), "exalted_builder/data"),
     (str(ROOT / "exalted_builder" / "ui" / "vendor"), "exalted_builder/ui/vendor"),
     (str(ROOT / "examples"), "examples"),
+    # The window/tab icon, read at runtime via branding.app_icon_path().
+    (str(ROOT / "assets" / "icon.png"), "assets"),
 ]
 
 a = Analysis(
@@ -70,6 +72,10 @@ exe = EXE(
     upx=True,
     runtime_tmpdir=None,
     console=False,        # no terminal window; the app opens a browser
+    # ⚠ The EXECUTABLE's own icon, which is NOT the same thing as the window
+    # icon set in code — this one is baked into the binary by the OS shell and
+    # needs .ico. Windows and macOS use it; Linux ignores it entirely.
+    icon=str(ROOT / "assets" / "icon.ico"),
 )
 # Passing a.binaries and a.datas into EXE above (with no COLLECT step) produces a
 # single-file executable in dist/.
