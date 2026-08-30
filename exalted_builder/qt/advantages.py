@@ -337,14 +337,6 @@ class AdvantagesPage(QWidget):
         label.setStyleSheet(f"color:{MUTED};" + (" font-style:italic;" if italic else ""))
         return label
 
-    def _clamp(self, text: str, limit: int = 220) -> str:
-        """The one-line-ish summary a row carries. The web app clamps its catalogue
-        blurb with CSS; Qt has no line-clamp, and a Manse's full printed paragraph
-        pushed everything else off the panel. The whole text stays in the tooltip and
-        in the catalogue dialog, which is where it is read."""
-        text = " ".join(text.split())
-        return text if len(text) <= limit else text[:limit].rstrip() + "…"
-
     def _warn(self, text: str) -> QLabel:
         label = QLabel(text)
         label.setWordWrap(True)
@@ -1001,9 +993,13 @@ class AdvantagesPage(QWidget):
         if wants:
             lay.addWidget(self._muted("Requires: " + "; ".join(wants), italic=True))
         if with_description and definition.description:
-            text = self._muted(self._clamp(definition.description, 320))
-            text.setToolTip(definition.description)
-            lay.addWidget(text)
+            # ⚠ WHOLE text, not a clamp. The 320-character clamp was written when this
+            # pane was a card in a stack and a paragraph pushed the controls off the
+            # panel; the detail pane it lives in now is a scrolling half of a splitter,
+            # and the Backgrounds pane beside it has always printed its blurb in full.
+            # A truncated rules text with the rest in a TOOLTIP reads as a bug (human,
+            # 2026-08-30, watching a player use it).
+            lay.addWidget(self._muted(" ".join(definition.description.split())))
 
     # ------------------------------------------------------------------ #
     # Merits & Flaws — chargen

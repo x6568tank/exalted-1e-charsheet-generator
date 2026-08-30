@@ -67,8 +67,19 @@ def qss(pal: Palette) -> str:
     return f"""
 QToolBar {{ background:{ac}; color:#1a1a1a; }}
 QToolBar QToolButton {{ color:#1a1a1a; }}
+/* ⚠ The BAR itself must be painted, not just its tabs. `background:transparent` on
+   the tab draws whatever the base style put under it: on Linux/Fusion that is the
+   window's dark BG showing through and it looks correct, but the Windows style paints
+   a native LIGHT tab strip there, so every sub-tab row in the port (Charms, Gear,
+   Advantages, Custom, the party window) rendered as a white band on Windows while the
+   same build looked right on Linux. Same family as the QDialog hole below: an
+   unstyled class falls back to the PLATFORM's chrome, which is light.
+   ⚠ Not reproducible on Linux — neither Fusion nor the "Windows" style paints it —
+   so it cannot be guarded by a render test here. */
+QTabWidget {{ background:{BG}; }}
 QTabWidget::pane {{ border:none; background:{BG}; }}
-QTabBar::tab {{ background:transparent; color:{INK}; padding:6px 14px; }}
+QTabBar {{ background:{BG}; border:none; }}
+QTabBar::tab {{ background:{BG}; color:{INK}; padding:6px 14px; }}
 QTabBar::tab:selected {{ color:{ac}; font-weight:bold;
                         border-bottom:2px solid {ac}; }}
 QScrollArea {{ background:{BG}; border:none; }}

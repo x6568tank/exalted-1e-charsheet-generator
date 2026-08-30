@@ -1835,3 +1835,47 @@ object names and values.
   two-column layout is drawn full width. Harmless while the members were the only cards
   on the tab; with half-width adversary cards under them it read as two card sizes.
   `PartyPage._even_columns` sets an equal stretch on every column of both grids.
+
+## Two defects a WINDOWS player found, and neither shell showed here (2026-08-30)
+
+The human watched a friend drive the packaged app on Windows. Two reports, and they are
+different species — one is a platform difference, the other is prose that outlived its
+layout.
+
+### Every sub-tab row painted WHITE on Windows
+
+`QTabBar::tab` carried `background:transparent` and the BAR itself was never named in
+`qt/theme.py::qss`. On Linux — Fusion *and* the "Windows" style, both measured — the
+transparent strip lets the window's dark `BG` show through and it looks correct; the
+platform's real Windows style paints its own light tab strip there, so every
+QTabWidget in the port (Charms, Gear, Advantages, Custom, the party window) drew a
+white band under a dark app. `QTabWidget`, `QTabBar` and `QTabBar::tab` now all name
+`BG` explicitly, so nothing is left to the base style to draw.
+
+⚠ **This is the QDialog hole again** — an unstyled class falls back to the PLATFORM's
+chrome, and the platform's chrome is LIGHT. That is now four instances
+(`QPushButton:disabled`, `QCheckBox`, `QDialog`/`QPlainTextEdit`, and this), and the
+first one whose light fallback **does not reproduce on Linux at all**.
+
+⚠ **It therefore cannot be guarded by a render test here**, which is what
+`tests/test_qt_theme.py` exists to do — the tab strip measures 63/255 on this machine
+with the rule deleted. The guard is the rule being explicit and this note; **the check
+is a Windows click-through.** Remaining unstyled classes in the same family, unreported
+but the same risk: `QScrollBar`, `QMenuBar`, `QMenu`, `QGroupBox`.
+
+### A Merit's rules text was clamped at 320 characters, in a pane with room to spare
+
+`AdvantagesPage._clamp` truncated the description under a selected Merit or Flaw and put
+the rest in a **tooltip**. It was correct when written: the pane was then a card in a
+stack, and a printed paragraph pushed the controls off it. Milestone 5 made it the
+scrolling half of a splitter — and the Backgrounds pane four hundred lines up has
+printed its blurb in FULL the whole time, which is why it looked like a bug rather than
+a limit. `_clamp` is deleted; it had no other caller.
+
+⚠ **A layout change stales the prose that compensated for the old layout.** No test
+could fail on this: the clamp had never had one, and the tests that name "clamped" are
+about `catalogue.BLURB_WORDS`, a different mechanism on the dialog's LIST rows (still
+correct — that dialog's own detail pane shows the whole text).
+`test_a_merits_rules_text_is_printed_WHOLE_in_the_detail_pane` probes the LONGEST
+description in the rule set, so it cannot rot into probing a short one, and was
+negative-controlled by putting the clamp back.
