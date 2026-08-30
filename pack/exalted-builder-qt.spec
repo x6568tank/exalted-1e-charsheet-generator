@@ -26,6 +26,7 @@ datas = rl_datas + [
     (str(ROOT / "exalted_builder" / "data"), "exalted_builder/data"),
     # The window/tab icon, read at runtime via branding.app_icon_path().
     (str(ROOT / "assets" / "icon.png"), "assets"),
+    (str(ROOT / "assets" / "icons"), "assets/icons"),
 ]
 
 # ⚠ The app imports exactly THREE Qt modules (QtCore, QtGui, QtWidgets — grep it).

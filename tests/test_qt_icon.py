@@ -15,6 +15,27 @@ from PySide6.QtWidgets import QMainWindow            # noqa: E402
 from exalted_builder import branding                 # noqa: E402
 
 
+def test_titlebar_renders_are_square(qapp) -> None:
+    """⚠ THE BUG THIS GUARDS: the master icon.png is 500x502, and Qt preserves aspect
+    ratio, so a QIcon built from it alone answers pixmap(16,16) with a 15x16 image
+    that sits skewed in a square titlebar slot. Only the pre-rendered square sizes
+    give a square render — asserting the icon merely loads does NOT catch this."""
+    icon = QIcon()
+    for path in branding.app_icon_sizes():
+        icon.addFile(str(path))
+    assert icon.availableSizes(), "no pre-rendered sizes found"
+    for n in (16, 24, 32, 48):
+        pm = icon.pixmap(n, n)
+        assert pm.width() == pm.height() == n, f"pixmap({n}) is {pm.width()}x{pm.height()}"
+
+
+def test_small_sizes_are_pre_rendered_not_downscaled_from_the_master(qapp) -> None:
+    """A titlebar asks for ~16-24px. Without renderings at that end, Qt crushes 500px
+    in one step; the sizes below are what stops it."""
+    have = {int(p.stem.split("-")[1]) for p in branding.app_icon_sizes()}
+    assert {16, 24, 32} <= have, f"missing small renderings, have {sorted(have)}"
+
+
 def test_the_icon_file_actually_loads_into_qt(qapp) -> None:
     """⚠ QIcon accepts an unreadable path SILENTLY and yields an empty icon — it does
     not raise. `isNull` and a real pixmap are the only proof the file was read, so a

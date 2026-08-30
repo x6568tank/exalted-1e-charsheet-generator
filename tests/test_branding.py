@@ -42,7 +42,20 @@ def test_both_specs_bundle_the_icon_and_brand_the_executable(spec: str) -> None:
     text = (ROOT / "pack" / spec).read_text()
     ast.parse(text)                                   # the spec is executed as python
     assert '"assets" / "icon.png"), "assets"' in text
+    assert '"assets" / "icons"), "assets/icons"' in text
     assert 'icon=str(ROOT / "assets" / "icon.ico")' in text
+
+
+def test_every_pre_rendered_icon_is_square() -> None:
+    """⚠ Square-ness is the whole point of these files; a non-square one silently
+    reintroduces the skewed titlebar render they exist to prevent."""
+    from PIL import Image
+    sizes = branding.app_icon_sizes()
+    assert sizes, "no pre-rendered icons found"
+    for path in sizes:
+        with Image.open(path) as im:
+            assert im.size[0] == im.size[1] == int(path.stem.split("-")[1]), \
+                f"{path.name} is {im.size}"
 
 
 def test_the_executable_icon_file_exists_and_is_square() -> None:

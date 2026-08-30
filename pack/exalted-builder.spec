@@ -28,6 +28,7 @@ datas = ng_datas + rl_datas + [
     (str(ROOT / "examples"), "examples"),
     # The window/tab icon, read at runtime via branding.app_icon_path().
     (str(ROOT / "assets" / "icon.png"), "assets"),
+    (str(ROOT / "assets" / "icons"), "assets/icons"),
 ]
 
 a = Analysis(
