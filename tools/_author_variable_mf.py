@@ -13,7 +13,7 @@ Run _extract_mountain_folk.py first, then this, then validate_charms.py.
 import json
 
 OUT = "exalted_builder/data/charms"
-BOOK = "Exalted: The Mountain Folk (CH6)"
+BOOK = "The Mountain Folk (CH6)"
 SRC_PAGE = {
     "pillar-of-compassion": 248, "pillar-of-conviction": 248, "pillar-of-temperance": 248,
     "pillar-of-valor": 248,

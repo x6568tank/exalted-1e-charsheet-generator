@@ -15,7 +15,7 @@
     "duration": "Instant",
     "description": "Close alignment with Air simplifies hurling deadly objects: the Dragon-Blooded forges a path through the air to her target, ensuring the missile's true flight. For each mote of Essence spent, the player adds two dice to a Thrown attack roll; this cannot increase the dice pool by more than her Thrown rating. The player must declare how much Essence she is infusing before making the attack roll.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 187
     }
   },
@@ -39,7 +39,7 @@
     "duration": "Instant",
     "description": "Ensures a valuable weapon returns safely to hand: when first hurled, the Dynast attaches an invisible rope of wind to it, and whether it hits or not the weapon instantly flies back to her hand, available next turn. Works on any weapon, not just thrown ones \u2014 a daiklave can be hurled as easily as shuriken. Melee weapons thrown this way keep their accuracy, speed, and damage and gain a range of 10 x Essence yards, but use the character's Thrown rather than Melee. Anyone in the weapon's path (other than the target) may try to grab it as his action with a Dexterity + Athletics roll, but must then win an immediate reflexive opposed Strength + Athletics roll against the weapon's master or fail to stop its progress.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 187
     }
   },
@@ -63,7 +63,7 @@
     "duration": "Essence in turns",
     "description": "Currents of elemental Air sustain a thrown missile's flight long after its energy would be spent. The hurled weapon takes on a life of its own, continuing to circle and attack for a number of turns equal to the attacker's Essence, striking a single target each turn with the character's Perception + Thrown, acting on the character's initiative. Once assigned a target it cannot be changed. The weapon can be attacked as a normal character (difficulty to hit = the thrower's Essence); if struck it does not soak and is immediately knocked from the air and rendered inert. The character must declare the Charm when first throwing the weapon. If used in a Combo, the weapon must repeat the other Combo Charms exactly, paying their motes each time it uses them, but need not pay the Willpower every turn.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 187
     }
   },
@@ -89,7 +89,7 @@
     "duration": "Instant",
     "description": "The character tosses a weapon (or weapons) into the air and sends it Elsewhere for later use; later she can release it back into the material world. The weapon must be a thrown type she is skilled with. Attacking with a waiting weapon is a reflexive action taken at the same time as her regular action and may accompany any other normal simple action; otherwise it is a normal reflexive Dexterity + Thrown attack, modifiable by Charms. Waiting weapons may be used in a Combo, but the Combo can only apply to the hidden weapons, cannot include an Extra Attacks-type Charm, and must include every hidden weapon called up that turn. There is no limit to how many she releases in one turn, each thrown with her full Dexterity + Thrown pool. The weapons originate from her location and are clearly her attack. She can maintain as many invisibly hidden weapons as her Essence x 2, as impossible to sense as anything hidden Elsewhere.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 187
     }
   },
@@ -110,7 +110,7 @@
     "duration": "One scene",
     "description": "Whirling currents of air surround the Exalt, deflecting ranged attacks aimed at her: each time a ranged attack is directed at her, her Essence acts as automatic successes subtracted from the attacker's ranged attack roll. It can be used on a group if she wishes, but those protected must remain within range of her perception, and she must commit an additional mote per companion protected.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 188
     }
   },
@@ -134,7 +134,7 @@
     "duration": "Instant",
     "description": "Lets a character strike back at a ranged attacker. On being made the target of a ranged attack she is aware of, the player makes an immediate Dexterity + Thrown check as an opposed defensive roll in place of a dodge or parry; if it exceeds the attacker's roll, the missile is reversed and hurled back to its origin, striking with successes equal to the extra successes on the defender's roll. Even without extra successes she still subtracts her successes from the attack, as with a dodge or parry. If Whirlwind Shield Form is active when she activates this, her Essence is subtracted from the attack before the Dexterity + Thrown roll is applied, allowing stronger counterattacks. Against an area attack (e.g. Death of Obsidian Butterflies), Whirlwind Shield protects only her own person but the attack can still be deflected.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 188
     }
   },
@@ -162,7 +162,7 @@
     "duration": "Instant",
     "description": "The character infuses the air with Essence, solidifying it into glittering weapons of icy wind. Too unstable for melee, they are eminently suited to ranged attacks. A wind weapon has base damage and accuracy equal to permanent Essence and a range of 10 x that value. More than one can be created at once if the Essence is paid for each; the maximum created in a single turn equals permanent Essence. Each is thrown as a reflexive action using Dexterity + Thrown plus the weapon's accuracy and ranged modifiers; multiple weapons are all thrown at once, at one or several targets, each at her full pool. Wind weapons cannot be handed to anyone else or used in melee. Cannot be put in a Combo with Extra Action Charms.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 188
     }
   },
@@ -186,7 +186,7 @@
     "duration": "One scene per point of permanent Essence",
     "description": "Refining the Whirlwind Shield, the character forms invisible armor from the surrounding air that bars any assault, not just ranged. The Wind Armor has a 1B/1L soak rating for every mote of Essence committed to it, with no mobility penalty or fatigue, appearing as a cocoon of swirling winds. Its maximum rating is permanent Essence, and it is fully compatible with and additive to physical armor. It can also be used on others, but they cannot move farther than 5 x the Exalt's permanent Essence in yards away or the effect fades; use on others costs the normal one mote per 1L/1B and must be paid for every target.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 188
     }
   },
@@ -210,7 +210,7 @@
     "duration": "Instant",
     "description": "This is the first of what are collectively known as the Crosswind Techniques, a group of Charms predicated on emulating and channeling Essence in a manner similar to the Essence within the very wind, first taught centuries ago by their creator, \"Windtamer\" Cynis Mond. The eccentric innovator no longer teaches the Techniques he once claimed were mere by-products of his other studies of the Essence of the winds, but the collection of Charms is so widespread today that instruction is available practically anywhere. The Crosswind Offense is a technique by which a Terrestrial may imbue both weapon and throw with windlike Essence in order to guide the throw accurately in a wide arc instead of a straight line, with the purpose of bypassing a shield or cover with a lateral attack. This technique costs 1 mote of Essence per difficulty penalty due to shields or cover bypassed.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Air",
+      "book": "Aspect Book: Air",
       "page": 67
     }
   },
@@ -234,7 +234,7 @@
     "duration": "Instant",
     "description": "\"One: As the wind shepherds a leaf, shepherd the target. Two: As the wind drives the rain, drive your weapon to the target.\" These are Windtamer's words on the subject of this Charm, often quoted by teachers of this technique. Activating this Charm, the Exalt uses a feinted attack to trick a target into dodging into a second attack, the true attack. To use this Charm, the attacking character splits his action into two actions. The player rolls one attack using his character's Manipulation + Thrown at -2 dice with a difficulty of 1. If this attack is successful, it does no damage, but instead, note the extra successes rolled on the attack. The second action is a normal Dexterity + Thrown attack at -3 dice. The extra successes on the first roll reduce the target's dice on any attempts to dodge the second throw.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Air",
+      "book": "Aspect Book: Air",
       "page": 67
     }
   },
@@ -258,7 +258,7 @@
     "duration": "Instant",
     "description": "Learning to more fully emulate the Essence of wind, a Terrestrial with this Charm can throw her weapon with the terrible force of hurricanes, sending her target flying through the air. The attack is rolled normally, a successful hit does damage as usual and also knocks the target back (the attacker's Essence + attack successes) yards. This attack may be blocked and dodged as usual, though a block is only useful against the damage, not the knockback.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Air",
+      "book": "Aspect Book: Air",
       "page": 67
     }
   },
@@ -282,7 +282,7 @@
     "duration": "Instant",
     "description": "Using a more focused version of the principles behind the Crosswind Gale technique, a Dragon-Blood utilizing this Charm may imbue his thrown weapons with highly concentrated, windlike Essence. Weapons thus empowered are only vehicles for this pure force, which will find its way through even the smallest chink in the target's armor. Attacks made using this Charm are treated as piercing attacks, halving the target's lethal armor soak.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Air",
+      "book": "Aspect Book: Air",
       "page": 67
     }
   }

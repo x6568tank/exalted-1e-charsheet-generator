@@ -16,7 +16,7 @@
     "duration": "Instant",
     "description": "Ghosts maintain links to the world they left behind, willingly or no. World-Bridging Meditation enables a ghost to check in on those things that still matter. While it does not provide tremendous detail, it does give enough information to allow the ghost to know the basics of what’s going on with his Fetters. For many of the dead, that’s enough. To employ World-Bridging Meditation, the ghost requires a moment of peace and quiet in which to meditate. If the circumstances are noisy or disruptive, a Willpower roll is required. Once the ghost is calm enough to continue, the player announces what Fetter the ghost is attempting to sense. It must be a Fetter — otherwise, the connection won’t be strong enough to allow the ghost to peer through the veil of death. At that point, a Wits + Temperance roll is made. If it is successful, the ghost gets a sense of the current state of the object or person. What the ghost gets is nothing more than a general assessment — health, condition and not much more. If the person is dead (or the object has been destroyed) the ghost is instantly aware of it and feels a cold, hollow absence.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 248
     }
   },
@@ -42,7 +42,7 @@
     "duration": "One week/instant",
     "description": "Sometimes, a momentary glimpse isn’t enough. In these cases, the ghost wishes to establish a more permanent link. In that case, Death-Avoiding Monitor is a useful technique for letting the ghost remain constantly aware of the condition of an object. The Death-Avoiding Monitor lets the ghost know when the object — or person’s — condition changes. Such changes include — but are not limited to — injury, illness, death, falling in love and pregnancy, in the case of a person, or structural damage or destruction, in the case of an object. The sense of the object stays in the background and only intrudes when the ghost concentrates or when the monitored condition changes. The object does not need to be one of the ghost’s Fetters. Establishing the Death-Avoiding Monitor requires a Perception + Temperance roll, difficulty 1. If the ghost wishes to extend the effect of the Death-Avoiding Monitor, his player can do so by extending an experience point. This allows the effect to carry over for a year and a day. Adding a second experience point makes the effect permanent.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 248
     }
   },
@@ -67,7 +67,7 @@
     "duration": "Instant",
     "description": "Extension of the Friendly Gaze allows a ghost to peer in on another ghost’s Fetters. By laying a hand on her fellow shade, the ghost can peer across the barrier between worlds to see how the Fetter is faring. This information is not magically shared with the target, which allows the ghost gathering it to use the power in a potentially unscrupulous manner. The first step in the Extension of the Friendly Gaze is simple physical contact between the ghost and her peer. If the other ghost is willing, this is automatic. If not, it requires a successful Dexterity + Brawl or Martial Arts attack, which need do no damage. Once physical contact, be it ever so brief, has been established, the player of the ghost attempting to use this Arcanos makes a reflexive Wits + Mediation roll at a difficulty of (5 - the Fetter rating of the object). If successful, the ghost gets the same sort of information about one of the target’s Fetters that she would have gotten from using World-Bridging Meditation for herself. If the target is not consenting, the Storyteller chooses the object or individual the ghost learns about",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 248
     }
   },
@@ -93,7 +93,7 @@
     "duration": "Instant",
     "description": "With Veil-Piercing Binding, a ghost can do for others what Death-Avoiding Monitor allows him to do for himself. This Arcanos binds an object or person in the lands of the living to the consciousness of a ghost, allowing her to perform a check on its status whenever she wants. Veil-Piercing Binding must be invoked the turn after Extension of the Friendly Gaze. The ghost’s player makes an Endurance + Meditation roll (difficulty 2). If it succeeds, the Fetter the ghost saw with Extension of the Friendly Gaze is bound to the target. As with Death-Avoiding Monitor, the target must spend a point of Essence each time she wishes to check in on her bound Fetter. Veil-Piercing Binding can only bind one object or person at a time, but it can be used more than once on an individual ghost. The duration of Veil-Piercing Binding can be extended by the expenditure of experience points. One experience point prolongs the effect for a year; two makes it permanent.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 248
     }
   },
@@ -119,7 +119,7 @@
     "duration": "One week",
     "description": "The Mark of the Relentless Hunter allows a ghost to not only know the rough condition of a Fetter, but also to sense its location and direction. While Mark of the Relentless Hunter is in effect, the ghost can effortlessly sense the Fetter and, thus, can track it even across the worlds. The connection, once forged, is unbreakable by any natural means, and the ghost’s sense of his Fetter is unshakable. Only the end of the Arcanos’ duration or the destruction of the item will serve to break the connection naturally. The Mark of the Relentless Hunter can also be set on an item or person bound to a ghost through either DeathAvoiding Monitor or Veil-Piercing Binding. The object must be specified before the Essence and Willpower is spent, at which point the player of the ghost activating the Arcanos makes a Perception + Meditation roll (difficulty 2 if it’s being performed on another ghost, difficulty 1 if the ghost is performing it on herself). If the roll is successful, the ghost now has a fix on the item and can summon up its condition and direction without expenditure of Essence. Expending 1 experience point can extend the Mark out to a year. A second experience point makes the sign permanent. Characters who have this Charm’s effects binding them to an object can develop Fetters relating to it more easily and cheaply. See Chapter Seven: Storytelling for details. If another ghost is the beneficiary of this Arcanos, his player must spend the experience points. Essence committed to the Charm is released when it is made permanent with experience",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 248
     }
   },
@@ -148,7 +148,7 @@
     "duration": "Instant",
     "description": "Sensing the Delicate Strands allows a ghost to get a mental image of the things that are important to another ghost. It is also a key step in performing Chain-Shattering Discipline, illuminating a target who would otherwise be unknowable. Using the Arcanos does not require physical contact. Instead, the ghost must only be within sight of her target. Once the object of her attentions has been picked out, the ghost’s player makes a Perception + Occult roll (difficulty 3). A success gives the ghost basic knowledge of one of the target’s Fetters. The character knows the distance to, the direction of, the appearance of and the general nature of the subject’s attachment to the Fetter. At no additional cost, the ghost’s player can keep rolling until she fails. Each success reveals another secret. If an attempt at Sensing the Delicate Strands fails, 24 hours must elapse before the ghost can make another attempt on the same target. A ghost whose mind has been read thus is not aware that Sensing the Delicate Strands has been used on him, regardless of whether the attempt succeeds or fails.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 248
     }
   },
@@ -174,7 +174,7 @@
     "duration": "Instant",
     "description": "Chain-Shattering Discipline is the inverse of powers such as Veil-Piercing Binding. Instead of binding a ghost to a Fetter, this Arcanos instead shatters that bond. Once the ghost has identified a target, she can choose to break the ghost’s connection to it. Once the connection is broken, the Fetter is gone. It and its representation no longer provide any benefits, nor can the ghost nor any other ghosts spy on it with Arcanoi for sensing or locating Fetters. The connection is lost, irretrievably and irrevocably. The use of Chain-Shattering Discipline requires either visual contact with the target and a successful use of Sensing the Delicate Strands or possession of something belonging to the target, which is broken when the Charm is activated. A Strength + Temperance roll with difficulty equal to the target’s permanent Essence plus the strength of the Fetter is required to actually break the link. The target is instantly aware of the breaking of the link, even if there was no active connection between the two at the time. The victim’s player must also succeed on a Willpower roll, or his character goes mad for a number of days equal to the attacker’s Temperance rating.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 248
     }
   },
@@ -199,7 +199,7 @@
     "duration": "One day",
     "description": "Any ghost who can touch another’s Fetters is painfully aware that someone may be doing the same thing to them. This knowledge made the development of Weaver Guards the Loom — the most basic defense against this sort of aggression — a necessity. By exercising Weaver Guards the Loom, the ghost gathers the threads of his Fetters, so as to know when another hand is touching them. Activating Weaver Guards the Loom requires an Intelligence + Meditation roll (difficulty 1). If successful, the ghost is now automatically protected against Fetterrelated intrusion. He need not think about it and can reflexively renew the protection when its duration lapses. While Weaver Guards the Loom is in effect, the ghost’s player gets a reflexive Perception + Temperance roll (difficulty 1) in the instance of any attempt to use any Fetter monitoring or detection Charm against the ghost. If the action is detected, the ghost’s player can make a reflexive Perception + Occult roll (difficulty 3) to see if his character has an idea where the intrusion comes from. Success on this roll reveals the identity of the interloper. Weaver Guards the Loom does not prevent the intrusion. It merely reports the fact to the ghost whose Fetters are being violated. There is no way for the intruding ghost to know she has been detected.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 248
     }
   },
@@ -224,7 +224,7 @@
     "duration": "Instant",
     "description": "Weaver Guards the Loom provides awareness of intrusion. Farmer Defends the Unharvested Field allows the ghost to strike back. A supplement to its predecessor, Farmer Defends the Unharvested Field is generally invoked whenever Weaver Guards the Loom detects tampering with the character’s Fetters. As soon as the latter Charm detects an unwelcome intrusion of this sort, the ghost’s power strikes back invisibly. On a successful Wits + Mediation (difficulty 1) roll by the player of the ghost using this Charm, the offending party suddenly suffers sharp pain, akin to being struck with a glass-studded whip. This does 5L damage, soaked only with natural soak. The intruding ghost loses her concentration, the attempt she made automatically fails, and her identity is immediately known to her target. While the blow is strictly psychic, it does have a physical manifestation — the affect ghost bleeds from her sensory organs for several minutes. While Farmer Defends the Unharvested Field is reflexive, a ghost can choose not to unleash it. The cost of the Arcanos is paid each time it is used, but there is no cost if the ghost refrains from using it. Farmer Defends the Unharvested Field can specifically preempt Chain-Shattering Discipline.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 248
     }
   }

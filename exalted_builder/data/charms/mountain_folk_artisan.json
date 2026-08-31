@@ -16,7 +16,7 @@
     "duration": "(Essence + 1) hours",
     "description": "The Artisan attunes herself to the flow of Essence, perceiving the hidden currents and structures of Creation. In this state, the Jadeborn can see the luminous contrails and whirls of Essence floating through the world. Manses and Demesnes glow the shade of their aspect (midnightblue for water, red for fire, green for wood, sky-blue for air, white for earth, silver for Lunar, black for Abyssal, gold for Solar and a shifting chromatic rainbow for Sidereal). Artifacts and beings with Essence pools appear outlined in auras colored by their aspect and magic. Charms and spells shine as they take shape, each according to a design particular to the magic. Living and animate beings glimmer with the undifferentiated hue of their life force, only marginally brighter than the backdrop of Creation itself. This alternate illumination reduces the penalty for absolute darkness to that associated with murky vision. Mountain Folk using this Charm can perceive immaterial beings and sanctum entrances clearly. In addition, they can see the patterns of standing Essence in ongoing magical effects and can recognize any magic they have previously seen without a roll. They can similarly identify the aspect of any perceived Essence with a Perception + Essence roll at standard difficulty. Finally, this Charm adds the Jadeborn’s Essence to any Awareness rolls to counteract mundane Stealth attempts, although Unfolding Pattern Intuition provides no bonus to spot magically concealed beings.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 261
     }
   },
@@ -41,7 +41,7 @@
     "duration": "Instant",
     "description": "With a jolt of clarifying Essence, the Artisan looks past apparent randomness to the underlying levels of association and order. For every mote spent, this Charm reduces the difficulty of any roll to notice hidden patterns by 1. This cannot reduce the difficulty by more than the",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 261
     }
   },
@@ -66,7 +66,7 @@
     "duration": "One scene",
     "description": "The Jadeborn closes his eyes and clears his mind, opening his soul to the ebb and flow of Essence currents through Creation. If he opens his eyes, they appear as featureless orbs of cold white jade that no longer grant sight for the duration of the Charm. Instead, the character sees in all directions simultaneously and perfectly by magic alone. He cannot be surprised and gains the effects of Unfolding Pattern Intuition. He still cannot pierce magical concealment or see in darkness better than Unfolding Pattern Intuition allows. Finally, his magical sight perceives a flash of Essence whenever an unseen physical danger directly threatens. This sense does not reveal the source of the threat apart from a general sense of direction (above, below, behind, etc.), but it provides at least one full turn of advance warning in which to prepare.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 262
     }
   },
@@ -88,7 +88,7 @@
     "duration": "Permanent",
     "description": "Upon learning this Charm, an Artisan gains all the effects of Unfolding Pattern Intuition as a permanent expansion of her natural senses. Characters with Essence 5 further upgrade this second sight to permanently duplicate Supernal Awareness of All.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 262
     }
   },
@@ -113,7 +113,7 @@
     "duration": "Instant",
     "description": "This Charm begins the brief cascade known variably as the Lower Earth Path or the Art of Shaping. The Artisan lays a hand upon any object made of earth and extends his Essence through it, suffusing and sculpting the material according to the Jadeborn’s will. The character may not affect more cubic yards than the number of motes",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 262
     }
   },
@@ -138,7 +138,7 @@
     "duration": "Instant",
     "description": "This Charm duplicates the effects of Earth-Shaping Discipline, save that Artisans can sculpt objects from a distance with their will alone, to a maximum range of (Willpower x 10) yards. This upgraded version requires no words or gestures to invoke, although such movements can merit a stunt bonus if properly narrated.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 263
     }
   },
@@ -163,7 +163,7 @@
     "duration": "One scene",
     "description": "With this Charm active, Jadeborn can shape earth with their minds as a simple action each turn as if using Shaping Mind Concentration. This costs no Essence, but cannot affect more cubic yards in a turn than the character’s permanent Essence.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 263
     }
   },
@@ -188,7 +188,7 @@
     "duration": "Instant/one hour",
     "description": "This Charm begins the cascade known as the Higher Earth Path or the Art of Geomancy. With Living Earth Meditation, an Artisan learns to channel Essence more",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 263
     }
   },
@@ -210,7 +210,7 @@
     "duration": "Permanent",
     "description": "In learning this Charm, an Artisan awakens and deepens her connection to the vast wellspring of Essence at the heart of Creation. While underground in Creation, she regains a number of motes per hour equal to her Essence regardless of her activity level. This amount is in addition to any received as a result of resting, sleeping or meditating. Mountain Folk with Essence 4 may purchase this Charm a second time, doubling the Essence recovery bonus. Characters may not purchase this Charm more than twice under any circumstances.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 264
     }
   },
@@ -235,7 +235,7 @@
     "duration": "Instant",
     "description": "With a touch, an Artisan with this Charm can drain or donate Essence in a cascade of glittering light. The transfer requires complete concentration for several seconds and cannot be used in conjunction with a striking attack. However, characters may explicitly use this Charm from within a clinch. Each activation of this Charm can drain or donate motes up to the permanent Essence of the target or Artisan (whichever is lower). Jadeborn cannot donate motes to beings that lack Essence pools, but they can store Essence in flawless crystals. This unusual use costs 5 motes per mote stored in the gem, and gems cannot hold more motes than their Resources value. Gems filled with Essence faintly glow with a pale white light, but have no additional powers. If taken above to the surface world, these stones lose 1 mote per week, but otherwise remain charged indefinitely in their natural environs. Any being with an Essence pool can take Essence from a charged gem with a touch but cannot regain motes from more than one gem in a turn or more motes per turn than her permanent Essence.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 265
     }
   },
@@ -260,7 +260,7 @@
     "duration": "Instant",
     "description": "The Artisan extends the grasping power of her will, channeling and absorbing ambient Essence from the earth in an incandescent surge of power. White light flares in a corona around the character as the Charm activates, as bright and glorious as an iconic Solar anima but not depictive of the character’s nature. If the Artisan is standing within a Manse or Demesne to which she is attuned, she may drain as many dots as desired from the site’s rating. She can also pillage a Manse through the conduit of its Hearthstone by focusing on the gem. Each drained dot costs one Willpower point and restores 10 motes to her Essence pool. Sites of power recover one dot of drained rating per day until they refill completely. Any Hearthstones belonging to a drained Manse continue to provide Essence at the diminished rate, but lose all special powers until the Manse fully heals. Mountain Folk cannot drain Essence from a Manse/Demesne to which they are not attuned and so must first connect themselves to the site using Living Earth Meditation. As a dangerous alternative to draining a site of power, an intrepid Artisan can journey into the Wyld itself and draw power from the flowing sea of inchoate Essence. A mile radius region in the Bordermarches or Middlemarches is considered the equivalent of a level-1 Demesne, while the same area in the Deep Wyld is level 2. Zones of Pure Chaos afford the equivalent of level 3. Draining any Wyld region inflicts unsoakable levels of aggravated damage to the Mountain Folk equal the equivalent Demesne rating, as well as sending painful shockwaves of disturbed Essence for 10 miles that Fair Folk can sense with a Perception + Awareness roll at standard difficulty. Finally, Artisans can tap the ambient Essence in Creation outside of a Manse. This restores 5 motes to their pool, but desiccates the area’s geomantic currents within a half mile radius for a day. No being can respire to regain Essence in the depleted zone (stunts, Hearthstones and other effects work normally), and all immaterial spirits feel acutely uncomfortable in the area. Gods and elementals will assuredly seek revenge for such abuse of their homes unless placated with apologetic prayers and offerings. Demesnes and Manses reduced to a rating of 0 cannot be drained any further, nor may areas desiccated of Essence. Use of this Charm can increase a Jadeborn’s Essence pool above its normal maximum, but only briefly. After a number of full turns equal to the character’s permanent Essence, the excess begins bleeding off at the rate of 5 motes per turn.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 265
     }
   },
@@ -285,7 +285,7 @@
     "duration": "Essence hours",
     "description": "The Artisan makes a harsh clutching gesture and spreads his fingers. Coruscating filaments of light flash and sizzle in the air around his hand, weaving into geometrically impossible knots as they fade to invisibility. This versatile and much-feared Charm has many uses, depending on how the Artisan deploys the web. As a first option, the Jadeborn can attack a Manse or Demesne in which he stands, provided the site does not have a rating higher than his permanent Essence. The web hopelessly snares the Essence flows of the site, scattering and diminishing its power. The site loses one dot of its rating for every 5 motes spent (to a minimum rating of 0) until the Charm’s duration ends. This effect temporarily disables all Hearthstones of tangled Manses until the web fades. A Dragon-Tangling Web can also assault a Hearthstone the character touches with an unarmed attack for a cost of (the rating of the stone x 3) motes. The tangled gem loses its glow and remains an inert and powerless rock for the duration of the Charm.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 265
     }
   },
@@ -307,7 +307,7 @@
     "duration": "Until broken",
     "description": "The Artisan traces an elaborate mandala with one finger, trailing luminous Essence in the air or upon a surface. When complete, the sign flares with power and spreads weaving tendrils of Essence across the warded area. These threads fade by the end of the turn, and the original symbol dims by the end of the scene, visible only to spirits and beings capable of perceiving Essence. The ward only appears in full radiance when triggered by a forbidden intruder. The effects of the warding sign depend upon its intended function. Each ward can be keyed as broadly or specifically as desired and with as much “intelligence” as needed to fulfill the directives. The simplest and most basic wards are barriers of material and immaterial force that only permit their creators to pass. More complicated barriers only stop spirits or anyone who isn’t a Jadeborn or even key themselves to specific individuals. Additionally, wards can be keyed to inflict damage on anyone who touches them, though this rapidly depletes their energies. Finally, wards can be made one or two way. Regardless of their keys, wards have common statistics. Barrier-type wards have a soak of 1L/1B per mote invested in the enchantment and require twice that number of health levels of damage to damage. A damaged ward has a hole large enough for whatever broke it to squeeze through, with additional damage tearing open other cracks as appropriate. Destroying a ward requires a total number of health levels of damage equal to the motes invested x 4. Barriers regenerate one health level per turn, sealing all gaps once they mend sufficient structural damage. For every week that passes, a barrier cumulatively loses 1L/1B soak. When soak reaches zero, the barrier is destroyed. Wards that have the ability to inflict injury do so on contact, inflicting dice of bashing or lethal damage (as designated) equal to half of their soak value to any forbidden being touching them. This damage is applied once a turn, with each shock depleting 1L/1B from the ward’s soak (which may diminish future damage effects). A barrier can be renewed and mended with a reapplication of this Charm by anyone, but no ward can be made stronger than its original strength or have its key conditions altered. Wards that enclose a space can shield a sphere with a maximum radius of (Willpower x 10) yards. Wards that cover a specific two-dimensional space (serving as a gate, for instance) can have a maximum area of (Willpower x 50) square yards. Emerald Countermagic can nullify a ward created with this Charm.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 266
     }
   },
@@ -335,7 +335,7 @@
     "duration": "Varies",
     "description": "Like the Exalted, the Artisans of the Mountain Folk can learn to ritually summon and bind elementals. To use this Charm, the Jadeborn spends 10 motes and 1 Willpower point. He then uses his finger as a stylus, inscribing a geometric design of light upon a stone surface. The power of the elemental determines the complexity of the design as well as the time required to draw it (one hour per dot of the spirit’s permanent Essence). The elemental’s aspect dictates the pattern’s color: azure for air, green for wood, red for fire, midnight blue for water and white for earth. Finally, the spirit’s size defines the size of the design, ensuring that it will always be large enough to contain the elemental when it appears. Once the Artisan completes the mystical design, he steps outside of it and lays a hand against its edge. A dragon line erupts from the center of the pattern, threading its way through Creation at the speed of thought toward the specific elemental or the closest elemental of the desired type. Only the Artisan, spirits and beings capable of perceiving Essence can see this blazing filament. The line instantly coils and weaves itself into a",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 266
     }
   },
@@ -360,7 +360,7 @@
     "duration": "One scene",
     "description": "The Artisan hurls a pulse of opalescent light at an immaterial being in his line of sight. The energy spreads and coruscates through the ephemera of the spirit’s body, weighting it with Essence. Roll the Jadeborn’s Willpower + 6 against the target’s Willpower + Essence. If the target wins, the Charm simply drains 5 motes from the being’s Essence pool. If the Artisan wins, the being becomes solid. Gods and demons with the Materialize Charm must activate it immediately and cannot voluntarily retreat back to an immaterial state for the rest of the scene. Ghosts with Weighted with the Anchor of Flesh or another Arcanos allowing materialization must activate one of their options and also cannot dematerialize before the end of the scene. Spirits without such Charms or who cannot currently afford to pay the cost of these Charms lose all remaining motes of Essence but materialize for the scene. Elementals and other beings using the Dematerialize Charm (or an equivalent effect) are forced back into a default material state at no cost but cannot attempt to dematerialize again for the duration of the Charm. Spirit-Calcifying Technique cannot affect beings with a permanent Essence of 7+. This Charm does not confer the ability to detect immaterial beings.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 267
     }
   },
@@ -385,7 +385,7 @@
     "duration": "Varies",
     "description": "Although Mountain Folk cannot bind gods into service any more than the Exalted, the greatest Artisans can command gods associated with the element of earth or the subterranean depths to appear before them. This requires a geometric pattern similar to that employed by the Elemental Invocation Rite, although designs to summon gods are considerably more complex and time consuming to create (four hours per dot of the spirit’s Essence). At the end of the ritual, the Artisan kneels outside the violet pattern and unleashes the dragon line with a touch. The god appears before the Jadeborn and manifests, although it need not actually materialize unless it wishes to do so. From this point on, the god and Artisan are free to interact however they choose. If the Jadeborn desires service or a favor from the deity, she must bargain, bribe or bully it — or employ some combination of the three. Nothing stops the spirit from attacking or using Charms, though the Artisan can attempt to banish the god back to its original location at any time as a standard dice action. The player rolls Willpower + Essence against a difficulty of the spirit’s permanent Essence. Alternately, Artisans who know Sign of Warding can set up protective barriers to contain potentially hostile deities, though most gods regard this as a deadly insult.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 267
     }
   },
@@ -413,7 +413,7 @@
     "duration": "Instant",
     "description": "Although Mountain Folk cannot learn actual sorcery, geomancers with sufficient understanding of Essence can disrupt the patterns of such magic. The Artisan traces a coiled symbol of green light in the air with her fingers and invests the sign with power. She can hold this sign ahead of her for the rest of the turn, shattering all Terrestrial Circle spells that attempt to affect her. However, the concentration required to sustain this rune adds one to the difficulty of all non-reflexive physical actions. Alternately, the Artisan can spend 20 motes to unleash the sign against a Terrestrial Circle spell already in effect. The symbol flies from the Jadeborn’s hand to the center or focal point of the magic and shatters in a violent flash. This tears apart the spell but inflicts dice of bashing damage equal to half the shattered spell’s Essence cost (rounded up) to everything within three yards of the explosion. This Charm can only shatter spells within (the Artisan’s Essence x 20) yards.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 267
     }
   },
@@ -438,7 +438,7 @@
     "duration": "One hour",
     "description": "While accomplished Artisans can tear apart Terrestrial Circle spells with relative ease, they can only shatter magic of the Celestial or Shadowlands Circle with a ritual requiring three participants using this Charm in conjunction. As the rite begins, the gathered Mountain Folk stand together and raise their hands in unison. They chant or sing, each in a different and discordant pitch. As the melodious incantations flow from their lips, their hands trace vast azure patterns of light around them. At the conclusion of the hour, the trio adjusts their pitch into breathtaking harmony, and the three designs merge into a single rune. The symbol hovers for a moment, then flashes to the center of the targeted spell and detonates with a thunderclap. This focal point of the spell cannot be further than (the lowest permanent Essence of any participant x 20) yards. As the magic shatters, its Essence rushes out in a destructive torrent, inflicting dice of lethal damage equal to half the spell’s Essence cost (rounded up) to everything within 10 yards of the blast. Sapphire Unweaving Rune is comparable to the spell Sapphire Countermagic in all regards except those previously listed.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 268
     }
   },
@@ -466,7 +466,7 @@
     "duration": "Until broken",
     "description": "The Artisan spends an hour setting up an array of flawless crystals around the heart of a Demesne to which he is attuned. These gems can be any variety provided they are sufficiently large and well cut (Resources ••• for a Demesne of • to ••• or Resources ••••• for a Demesne of •••• to •••••). Tradition links certain gemstones with Essence aspects (emerald for wood, ruby for fire, sapphire for water, chalcedony for air and diamond for earth), but the use of specific types of gemstones is unnecessary. With the Ritual of Auspicious Placement complete, the Artisan stands at the center of the Demesne (or as close as physically possible) and activates this Charm. Lines of Essence crisscross the room like a vast spider web, connecting the gems to one another. The gems chime in various pitches beginning with cacophony and ending in perfected harmony. As the pitches and lights align, a pulse of Essence sweeps the room. When this pulse passes, the crystals remain charged with Essence and glow like strange votive candles. For as long as the crystals remain undisturbed, the Demesne is now considered capped by a Manse of equal rating. Over the next week, this temporary Manse produces a Hearthstone somewhere toward the center of the chamber. Fortunately for the creator, the Charm locks the crystals in place so they will not accidentally fall out of position. A being must deliberately try to move the gems by applying a Strength + Athletics total of 10 or greater to the task. Once disturbed, the Manse is ruined. The crystals may be reused and the Charm applied to fix the situation, but the Hearthstone remains an inert rock until and unless such repairs are completed. In addition to its primary function, Demesne-Binding Ritual has a second supplementary use. The Artisan can place crystals around the central chamber of an extant Manse and activate the Charm as normal. If the Manse has an insufficient rating to cap the Demesne beneath it, it rises to the needed level for as long as the crystals remain intact.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 268
     }
   },
@@ -491,7 +491,7 @@
     "duration": "Until broken",
     "description": "The Artisan clears and cleans the central room of a level-4 or level-5 Manse to which he is attuned. With a chisel or other implement, he denotes the circumference of a circle 12 feet wide in the floor. Next, he takes the Manse’s Hearthstone and sets it at the very center of the circle. With all the preparations complete, he stands at the edge of the circle, activates this Charm and begins walking. He does not approach the center directly, but instead follows the labyrinthine twists of the unique dragon lines running through the room. His path etches a glowing mandala of exquisite symmetry and complexity, weaving back and forth in ever-greater complexity until it finally ends at the center. This journey requires an extended Intelligence + Lore roll at a base difficulty of the Manse’s rating, with 100 successes required. A botch at any time ruins the effort and blasts the Artisan out of the unfinished design, inflicting five levels of unsoakable aggravated damage and stripping away a dot of permanent Willpower. If the Jadeborn succeeds, he reaches the center and reclaims the Hearthstone. Upon touching the gem, the ritual is complete, and the mandala remains etched in cold white light in the circle. Any structural damage to the Manse or the circle itself destroys the design, as does application of Emerald Countermagic cast by a sorcerer with a permanent Essence of 4 or higher. A completed Geomantic Conveyance Glyph serves as a mystical transport device, allowing teleportation to another such glyph in another Manse. The maximum range of this journey is (the Manse rating associated with the departure glyph + the Manse rating of the arrival glyph x 200) miles. In order to use these devices, an Enlightened Jadeborn must walk the maze of the design, necessitating an Intelligence + Lore roll (difficulty 4). A failure means the character must start anew, while a botch also inflicts a level of unsoakable agg r a v a t e d damage. Success allows him to sense the direction and rough",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 269
     }
   },
@@ -516,7 +516,7 @@
     "duration": "Instant",
     "description": "While most geomantic Charms have a wide variety of complex utilitarian purposes, Pattern Rending Onslaught is elegant in its simplicity and monstrous brutality. The underlying principle of the magic is trivial. Essence is everywhere, bound up in the laws of form and force inscribed by the Primordials upon the shapeless Wyld. These laws define the web of the Tapestry, the very fabric of space and fate. With this Charm, an Artisan reaches out his hand and will to slit a handful of these strands, disintegrating the targeted object in a shrieking flare of discharged Essence. The Artisan spends a turn in concentration as a simple action, gathering Essence as colorless flame around his hand. On the next turn, he makes a stylized slashing blow as a simple action, releasing the power in a spray of immaterial ribbons that reach into the center of the target. The light spreads outward to pierce the surface in dazzling rays, a broken prism of hues. In a moment, nothing remains of the target except a fine cloud of glittering motes. Anyone or anything that somehow survives an attack by this Charm is almost assuredly horribly maimed. The blast from Pattern Rending Onslaught is made using the Artisan’s Willpower + Essence. It cannot be parried without an enchanted weapon, although it can be dodged. If a defending character attempts a parry with a non-magical weapon, the attempt fails, and the weapon is destroyed by the energies. The beam has a base damage of 10L + successes + (1L for every mote spent after the eighth). There is no limit on how much Essence an Artisan may pour into a single use of this Charm apart from what he has available. The Charm bypasses the entire soak of non-magical inanimate targets and ignores and destroys non-magical armor. This attack can affect immaterial beings (which the Jadeborn must perceive and target using some other effect). Anything destroyed by this Charm is truly obliterated and leaves no ghost, grave good or continued trace of its existence. Spirits are annihilated utterly. Only Mountain Folk souls, the Exaltations of Celestial Exalted and beings with Primordial Essence can endure to reincarnate or linger forever in the Underworld as appropriate to their nature. Storytellers should consider allowing this Charm to instantly destroy extras and any nonmagical inanimate objects of roughly human size or smaller rather than wasting time with a damage roll.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 270
     }
   },
@@ -541,7 +541,7 @@
     "duration": "Indefinite",
     "description": "The Artisan brings her hands together and indicates an inanimate object within two yards. After a moment’s concentration, she pulls her hands apart forcefully. The target glows a pale white and fades away, the pattern of its Essence dispersed across the folded non-space of Elsewhere. While banished, objects exist in ageless and immutable stasis. At any later time, the Artisan can revoke the Charm as a reflexive action, summoning the object to appear in her grasp or anywhere within a yard of her person. This Charm can only affect objects of the character’s size or smaller and may not target anything that currently belongs to someone else. Ownership creates a metaphysical attachment that causes this Charm to fail. The activation cost is normally only 1 mote, but it increases to the artifact’s rating if targeting a magical device. Only artifacts attuned to the Artisan may be banished, but they retain their attunement indefinitely while Elsewhere.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 270
     }
   },
@@ -566,7 +566,7 @@
     "duration": "Instant",
     "description": "This Charm marks the beginning of the cascade known as the Fire Path or the Art of the Forge. Essence flashes across the Artisan’s eyes as he stares at a crafted object. He immediately knows whether the object has any magical power. If the object is enchanted, roll the Jadeborn’s Perception + Occult at a difficulty of the artifact’s rating (or 6 in the case of artifacts with an N/A rating). The number of successes determines the additional information gleaned. Each threshold of success cumulatively provides all the information available at lower thresholds. One success: The character determines whether the artifact is functional, damaged or otherwise inoperative. Two successes: The Artisan knows the overall category of purpose into which the device’s magic falls (offensive, defensive, utilitarian, etc.). Three successes: The character understands the object’s specific purpose but not the details of its powers",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 270
     }
   },
@@ -588,7 +588,7 @@
     "duration": "Permanent",
     "description": "The Artisan resonates with the Primordial Essence of his creator, greatly accelerating the pace at which he can create or repair mundane objects and artifacts. This Charm halves the duration required for any such attempt. Mountain Folk with Essence 4 can purchase this Charm a second time, reducing the duration to a third of usual. Jadeborn with Essence 5 may purchase this Charm a third and final time, quartering the original duration.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 271
     }
   },
@@ -613,7 +613,7 @@
     "duration": "Instant",
     "description": "The Artisan touches an ownerless artifact, threading tendrils of invisible Essence through its components. She may instantly force full attunement with the device, reducing the standard commitment cost by her permanent Essence (to a minimum of half its standard cost, rounded up). For artifacts made of Magical Materials other than jade, the attunement cost is doubled before subtracting the cost reduction granted by this Charm.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 271
     }
   },
@@ -638,7 +638,7 @@
     "duration": "Instant",
     "description": "This Charm is perhaps the single most important piece of magical lore known to the Mountain Folk. Without it, their race would quickly dwindle into extinction. Jade’s Egg Hatched allows Artisans to carve jade slabs containing Mountain Folk souls, transmuting cold rock into living flesh as they free the newborn within. The birthing ritual takes (8 - the Artisan’s permanent Essence) minutes. Roll the Jadeborn’s Intelligence + Craft (Sculpture). The difficulty is 1 to make a Worker, 2 for a Warrior and 6 for an Artisan. Failing the roll produces a Worker, while a botch kills the newborn and forces its soul to flee to a new slab of jade. Rolling eight or more successes on an attempt to create a Warrior or Worker can make the Jadeborn one of the Enlightened at Storyteller discretion. However, Mountain Folk culture teaches that this freakish occurrence is the result of catastrophic and regrettable failure on the part of an Artisan. Storytellers should keep in mind that only 10,000 or so Enlightened Mountain Folk exist out of a total population of 10 million, so the odds are roughly 1 in 1,000 that any particular child will be an Artisan. For a more “realistic” system, roll four dice. If three dice show a result of 10, the child can be an Artisan. With four 10s, she can be an Enlightened member of an undercaste. Roll the sculpting attempt normally, only allowing creation of an Enlightened Jadeborn if the probability check permits.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 271
     }
   },
@@ -663,7 +663,7 @@
     "duration": "Indefinite",
     "description": "The Artisan concentrates, reweaving the threads of his Essence. In response, his body ripples and shifts like molded clay. Upon activating this Charm, the Jadeborn’s player may reallocate a number of dots of the character’s Physical Attributes up to his permanent Essence. This cannot raise any Attribute above 7 or drop any Attribute below 3, nor can the magic change an Attribute by more than three dots from its true rating. A character’s body can only accept one application of this Charm at a time. If he wishes to change the allocation, he must first drop back to his normal configuration by ending the Charm.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 271
     }
   },
@@ -763,7 +763,7 @@
     "duration": "Permanent",
     "description": "At the apex of mastery, this supernal enlightenment allows the greatest Princes of Adamant to wield a shard of Autochthon’s own Primordial power. This confers numerous benefits: First, the master Artisan can create matter out of raw Essence, shaping it into any form he can imagine with a combination of will and craft. Such matter coalesces from streamers of white light that weave into the desired shape next to their creator. Upon activating this power (which counts as a Charm use), the Jadeborn spends 1 Willpower point and the requisite motes of Essence as a simple action. The number of motes varies with the size and complexity of the desired object. The base cost is 2 motes for every cubic yard the final object will occupy.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 271
     }
   }

@@ -16,7 +16,7 @@
     "duration": "One scene",
     "description": "Attunes the Immaculate to the ebb and flow of the air: for the scene she cannot be surprised or ambushed and is considered aware of any attacks against her. Standing perfectly still for a minute, she may add her Essence to an Awareness roll. Grants the Air Dragon signature weapon (chakram) training with the Path's first Charm.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 243
     },
     "open_to_tiers": [
@@ -44,7 +44,7 @@
     "duration": "Instant",
     "description": "For one turn the Immaculate adds her Martial Arts rating to her initiative total.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 243
     },
     "open_to_tiers": [
@@ -72,7 +72,7 @@
     "duration": "Martial Arts in turns",
     "description": "A blow that drives the air from an enemy's lungs. Instead of damage, roll the Immaculate's Strength + Martial Arts against the target's Stamina + Endurance; each success penalizes the target's actions by -1 for a number of turns equal to the Immaculate's Martial Arts. If the accumulated impairment equals double the target's Stamina, he falls unconscious for the scene. Only affects creatures that must breathe.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 243
     },
     "open_to_tiers": [
@@ -100,7 +100,7 @@
     "duration": "Martial Arts in turns",
     "description": "Wraps the air about the Exalt, rendering her invisible for her Martial Arts score in turns. Observers may attempt a reflexive Perception + Awareness roll each turn to spot her (difficulty scaling from 1 up to 5 the longer she stays undetected); even when spotted, actions against her suffer +2 difficulty.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 244
     },
     "open_to_tiers": [
@@ -134,7 +134,7 @@
     "duration": "One scene",
     "description": "The Elemental Dragon Form of Air. Requires a successful Dexterity + Martial Arts roll to invoke. For the scene the Exalt may add her Martial Arts to her Ability total for any ranged attack or dodge attempt (no more than doubling the Ability, applied before splitting the pool); she may reflexively dodge with her Martial Arts score.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 245
     },
     "open_to_tiers": [
@@ -163,7 +163,7 @@
     "duration": "Instant",
     "description": "For every 4 motes invested, the Immaculate may make an additional martial arts or ranged attack without penalty. The maximum number of attacks in a turn equals her Martial Arts rating.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 245
     },
     "open_to_tiers": [
@@ -191,7 +191,7 @@
     "duration": "Martial Arts in turns",
     "description": "For her Martial Arts rating in turns the Immaculate's movement rate is doubled (as is leaping distance) and she need not touch solid ground, running across smoke, water, or treetops. She must keep moving each turn or gravity reasserts itself; she may re-invoke the Charm to continue.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 246
     },
     "open_to_tiers": [
@@ -219,7 +219,7 @@
     "duration": "Instant",
     "description": "A hand-to-hand or ranged attack, rolled and damaged normally, that also blasts the target back. After being hit the target's player makes a reflexive Strength + Athletics roll; the target is blown the Exalt's Martial Arts x 10 yards, -5 yards per success, whether or not the strike dealt damage.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 245
     },
     "open_to_tiers": [
@@ -247,7 +247,7 @@
     "duration": "Instant",
     "description": "A thunderclap that stuns and deafens. Those within the Exalt's Essence x 10 yards make a reflexive Stamina + Resistance roll (difficulty = the Exalt's Essence); on a single success they cover their ears in time but lose their action, otherwise they take bashing damage equal to the Exalt's Strength + Martial Arts and are deafened for the Exalt's Essence in turns. All effects are doubled against spirits.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 247
     },
     "open_to_tiers": [
@@ -276,7 +276,7 @@
     "duration": "Instant",
     "description": "A focused blast of wind striking a single target in a 90-degree arc out to Essence x 10 feet. The target is automatically hit unless he has an impenetrable defense, taking the Exalt's Strength + Essence in lethal damage (soaked only by Stamina and non-armor defenses) and must make a reflexive Strength + Athletics roll (difficulty = the attacker's Strength + Essence) or be knocked off his feet.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 245
     },
     "open_to_tiers": [
@@ -306,7 +306,7 @@
     "duration": "Martial Arts in turns",
     "description": "Lightning arcs across the Exalt's body. For the Charm's duration she may make martial arts attacks out to Essence x 10 feet that deal lethal damage equal to her Strength + Essence; martial arts weapons add their accuracy and damage as normal.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 247
     },
     "open_to_tiers": [
@@ -340,7 +340,7 @@
     "duration": "Martial Arts in turns",
     "description": "The Exalt becomes a whirlwind of speed and mayhem. She adds her Martial Arts to her initiative and to all dodge rolls (using Martial Arts alone if she has no dodge pool), triples her movement, doubles her jumping height, and may make extra martial arts or ranged attacks equal to her permanent Essence each turn. The 1 health level per turn is paid when the Charm ends; the Willpower and motes are paid up front. She may end it at the end of any turn.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 247
     },
     "open_to_tiers": [

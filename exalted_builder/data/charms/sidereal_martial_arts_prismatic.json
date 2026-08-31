@@ -20,7 +20,7 @@
     "duration": "Five turns",
     "description": "…and their names were JI and PENG and LU and ZHOU\n\nThe character infuses her fingernails with Essence, hardening them, sharpening them, lengthening them into weapons — and, most importantly, causing them to bend, influence and predict the path of fate in the manner of starmetal. They inflict Strength + 7L damage, with +2 to Speed, Accuracy and Defense, and can parry both lethal and ranged attacks. Treat attacks and parries enhanced with this Charm as unarmed; they are legal weapons for any martial arts style.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 189
     }
   },
@@ -45,7 +45,7 @@
     "duration": "Five turns",
     "description": "The character wraps her body in a sheath of Essence, mirroring in its interaction with her own anima the link between Solar Exalted and orichalcum. She adds (12L/12B) to her soak. This bonus acts as armor in all respects save one: It does not interfere with the use of any Martial Arts Charm. Thus, attacks that ignore armor ignore this soak, while aggravated damage does not. The character can invoke this Charm on her initiative. She can also invoke it when attacked but must declare the use of the Charm before her opponent’s player makes his attack roll.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 190
     }
   },
@@ -70,7 +70,7 @@
     "duration": "Five turns",
     "description": "The character traces patterns through the air that echo the slippery, mutable ways in which moonsilver twists the flows of Essence around it. Opponents cannot precisely determine the Sidereal’s location: He can make an unarmed Martial Arts attack against anyone within (his Essence x 5) yards, and the target subtracts his Martial Arts from her dice pools to defend against him.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 190
     }
   },
@@ -95,7 +95,7 @@
     "duration": "Five turns",
     "description": "The character binds the substance of Creation to her Essence, shifting into a pattern of attacks that radiates the elemental authority of jade. Each gives a gift, which applies only to unarmed Martial Arts attacks. Her blows can be bashing or lethal, as she chooses, reflecting the compassion and conviction of green jade. The grace of black jade steers her attacks well: She supplements attack rolls with one extra automatic success for every three dice rolled, rounded up. The reliability of white jade ensures reasonable damage: She supplements damage rolls with one extra automatic success for every three dice rolled, again rounding up. The force of blue jade knocks opponents back one yard for each level of damage inflicted. Finally, the swiftness of red jade adds +3 to her initiative.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 191
     }
   },
@@ -133,7 +133,7 @@
     "duration": "One scene",
     "description": "and HOU TUI\n\nThe character attunes herself to the Essence of the world, drawing on the flows of interwoven fates, raw power, progressive change and elemental stability that play out all around her. In this fashion, while she maintains the Form, she becomes a living artifact. This Form does not mimic the Essence of soulsteel.\n\nWhen using this Form, the character continuously receives the benefits of the four stances from which it derives. In addition, she becomes unbreakable: She automatically converts any lethal damage she receives to bashing damage, before soak, unless the attack could damage one of the Five Magical Materials.\n\nCharacters cannot normally use more than one Martial Arts Form-type Charm at a time.\n\n(Style prerequisite: mastery of one complete Martial Arts style — all its Charms.)",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 191
     }
   },
@@ -158,7 +158,7 @@
     "duration": "Instant",
     "description": "and AN and CAI and LI and HUA JI\n\nThe character learns to catch, tangle and throw the Essence flows of Charms as if they were the flailing limbs of her hapless foes. This is a Martial Arts parry action. Therefore, before the character’s initiative, she can abort to the Charm Redirection Technique. Afterward, she can use Martial Arts parry actions (obtained through a pre-split dice pool or a Combo with a Charm allowing a reflexive Martial Arts parry) for the Charm Redirection Technique.\n\nWhen someone uses a Charm against her or when someone within three yards uses a Charm, the Sidereal’s player rolls her character’s Dexterity + Martial Arts against a difficulty equal to the Charm user’s Essence. The character must invoke the Charm Redirection Technique before her opponent’s player rolls the Charm’s effect, if applicable.\n\nShould the Charm Redirection Technique succeed, the Sidereal learns a one-sentence summary of the chosen Charm’s effects. She can then choose a new target for the Charm (if possible) or annul it entirely. The rules for annulling Charms are as follows:\n\n• The target must have the option to not use the Charm. (Charms that invoke themselves, such as Surprise Anticipation Method, are immune.)\n\n• The target pays for the Charm normally, but nothing happens. For simple or extra action Charms, this also means the target cannot act that turn. For supplemental Charms, he must take the original dice action, unassisted by the Charm.\n\n• Annulling a reflexive Charm allows the target to immediately reuse it. For example, if the character annuls Seven Shadow Evasion, the target can reinvoke it before the relevant attack resolves.\n\nThe key rules for redirecting Charms are as follows:\n\n• A redirection is only valid if the original user could apply the Charm to the new target. For example, the Sidereal can redirect a Solar’s Sandstorm-Wind Attack against any target within (10 x the Solar’s Essence) yards of the Solar. The redirection must also make sense. A Solar’s impassioned words can accidentally seduce the wrong target, but Eye-Deceiving Camouflage cannot accidentally hide the wrong person.\n\n• Redirecting the Charm does not change the variable effects. Base these on the original user’s Traits and mote expenditure. For example, a redirected Blazing Solar Bolt uses the Solar’s Dexterity + Melee pool, not the Sidereal’s.\n\n• The victim whose Charm the Sidereal redirected pays for the Charm normally. For simple Charms, the Charm also represents his action for the turn.\n\n• Redirecting a supplemental Charm also redirects the associated dice action. This uses the original user’s dice pool.\n\n• Reflexive Charms cannot be redirected.\n\n• Redirecting extra action Charms redirects all possible associated dice actions to the new target. If the extra action Charm does not allow the application of every roll to a single target — the Arrow Storm Technique being an example — the character chooses as many actions to redirect as possible, and any remaining actions proceed normally.\n\nThis Charm does not work against Charms established in previous turns or against Combos. It does not work against Martial Arts Form-type Charms or sorcery — they cannot be redirected or annulled.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 191
     }
   },
@@ -183,7 +183,7 @@
     "duration": "Instant",
     "description": "This Charm extends the Charm Redirection Technique, allowing the character to:\n\n• Annul the effects of established Charms. For example, she can cancel an ongoing Flow Like Blood Charm.\n\n• Annul or redirect a Combo. This follows simple rules: If the Exalt can legally redirect all the simple, supplemental and extra action Charms in a Combo, she can do so, as a single invocation of Sequential Charm Disruption. If she can legally annul all of them, she can do so, again with a single invocation. She chooses whether to annul or ignore the reflexive Charms in a Combo individually, as they are used.\n\nTo use Sequential Charm Disruption, the character must be a target of the Charm or effect or the character must come within three yards of the Charm’s original user. She then uses a Martial Arts parry action against the Charm itself, her player rolling Dexterity + Martial Arts against the Charm user’s Essence. When disrupting Combos, if applicable, the Sidereal must invoke Sequential Charm Disruption before her opponent begins rolling the Charms’ effects.\n\nLike Charm Redirection Technique, this Charm does not affect Form-type Charms or Sorcery. The Essence cost for this Charm equals the Essence cost for all the Charms affected, plus 5 motes.\n\nFor Example: Swan’s Combo, as described on page 215 of Exalted, includes Striking Serpent Speed, Crippling Pressure-Point Strike, Serpentine Evasion and Thunderbolt Attack Prana. Nerys wishes to thwart Swan and his associate Imri using Sequential Charm Disruption. The Sidereal splits her dice pool and attacks him. Swan invokes Serpentine Evasion, declaring the Combo and spending 1 Willpower. Nerys ignores this Charm, and Swan successfully evades. Then, Swan attacks. He spends 4 motes and 1 Willpower on Striking Serpent Speed, his player rolling the Eclipse’s Essence and discovering that he can make three attacks that turn. Each attack costs 6 motes and 1 Willpower, for a total cost of 22 motes of Essence and 4 Willpower. Nerys uses her second action to parry and disrupt the Combo, with a difficulty equal to Swan’s Essence. This costs 27 motes and 1 Willpower. She cannot redirect Swan’s actions to different targets because of the rules for redirecting extra action Charms. However, if Imri happens to be standing near Swan, Nerys can legally redirect all of these Charms at her. Swan shrinks into a tight crouch, then explodes upward in a leap, blazing with golden Essence. Nerys catches and twists the power radiating from Swan. Instead of enabling a terrifying assault against Nerys, the energy flow from Swan’s Combo draws him, with absolute grace and helpless beauty, into a series of three fierce attacks upon Imri. Each blow casts off spherical shockwaves of white energy, and not until all three land can Swan wrench himself free from the tangled Essence flow.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 192
     }
   },
@@ -208,7 +208,7 @@
     "duration": "Instant",
     "description": "The character uses martial arts to yank the threads of a delicate construct of sorcery out of place. Upon contact with the effects of sorcery, she activates this Charm and makes a reflexive unarmed Martial Arts attack against the structure of the spell. The difficulty equals the sorcerer’s Essence plus the spell’s circle. If she succeeds, the spell shatters, as if dispelled by countermagic of its own circle.\n\nThe Exalt can work an even greater mischief if someone actually casts a spell within her reach. Her player makes an unarmed Martial Arts attack roll as described above. If she succeeds, the Sidereal can abort the spell as above. Alternately, she can cause the entire structure to unravel as if the sorcerer had botched a distraction roll (see Exalted, pp. 216-217).\n\nThis Charm functions against necromancy as well as sorcery, but only if the Sidereal Exalted has had extensive opportunity to study the dark magics of the Abyssal Exalted.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 192
     }
   },
@@ -233,7 +233,7 @@
     "duration": "Instant",
     "description": "The character uses her education in the nature of fate in conjunction with her martial skill to disjoint, snarl and otherwise tangle the fates the spiders weave. By lightly striking the target in the five points where the threads of the Loom of Fate attach, the Sidereal can negate the effects of Sidereal astrology. Upon contact with a Sidereal astrological effect, she may activate this Charm and make a reflexive unarmed Martial Arts attack against the threads of destiny. The difficulty equals the Essence + College of the Sidereal who created the effect. If she succeeds, the effect is dangerously torn or frayed, and the pattern spiders abandon it. This causes ● Paradox to both the martial artist attacking the effect and the Sidereal who created it and may trigger an inquiry by the bureau.\n\nThis Charm can target resplendent destinies, even ones lurking in the target’s background. If the target has multiple effects active at once, the martial artist will have to attack them each separately. Roll first for any active resplendent destiny, then any other effects, highest Essence + College first.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 193
     }
   },
@@ -268,7 +268,7 @@
     "duration": "One scene",
     "description": "and QIAN JING\n\nThe character balances her actions so perfectly to the local flow of Essence that the world around her — whether Creation, the Wyld, the Underworld or Malfeas itself — cannot help but support her victory.\n\nWhile using the Soul Fire Shaper Form, the character increases her effective permanent Essence score to 10. This does not give her additional temporary Essence, although it does increase her maximum temporary Essence. It does not allow her to purchase Charms, familiars or acquaintances she would otherwise be unable to possess. Otherwise, treat her Essence as 10 for all effects.\n\nIn addition, the character can make one free use of Charm Redirection Technique, Sequential Charm Disruption, Astrology Interruption Method or Spell-Shattering Palm in each turn. This is part of the Form’s effect and does not count as the character’s action or Charm for that turn.\n\nCharacters cannot normally use more than one Martial Arts Form-type Charm at a time.\n\n(Style prerequisite: mastery of one complete Martial Arts style — all its Charms.)",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 193
     }
   },
@@ -293,7 +293,7 @@
     "duration": "Indefinite",
     "description": "and ZUO GU and YOU PAN\n\nThe character steps into an object or person, displacing its natural spirit with his Essence manipulations as easily as a master of legerdemain might steal a mortal’s coat. The Sidereal’s player rolls Charisma + Martial Arts against a difficulty equal to the Essence of the Exalt’s target — the body he wants to steal or the god or least god of the thing he wishes to possess. The target’s player can make a simple Willpower roll against difficulty 2 each turn to regain control over her body. In the meantime, the Exalt’s body dematerializes. He can move and take Martial Arts actions through the stolen flesh, using the body’s Strength, Dexterity or Stamina if they exceed his own. This Charm imbues the stolen body with supernatural flexibility and mobility. Thus, possessed trees can attack and unattended ox-carts can charge.\n\nThe character cannot possess soulsteel. He can only possess objects made of other Magical Materials if he knows the style’s Charm for emulating that Magical Material (see pp. 189-191).",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 193
     }
   },
@@ -318,7 +318,7 @@
     "duration": "Five turns",
     "description": "The character strikes his throat, abdomen, spine, brow and crown chakras, forcibly reshaping his Essence and altering how his anima interacts with the world. This is actually a set of Charms. Each allows the character, for five turns, to mimic the anima banner and anima effects of one other type and caste of Exalted. Most Sidereals on this path choose No Moon or Changing Moon Lunar Ways, Zenith or Night Solar Ways or Dragon-Blooded Aspect of Air Ways. However, even Alchemical, Abyssal and alternate Sidereal castes are viable choices. This Charm temporarily replaces the Exalt’s anima banner. It does not change his Caste Mark or suppress his ability to make his Maiden’s Lesser Sign. The character also adds his Essence in automatic successes to one of the relevant caste’s favored Attributes or Abilities while this Charm operates. He can choose a new Attribute or Ability each time he invokes this Charm.\n\nKnowing Exalt Ways, even Eclipse Caste Solar Ways or Moonshadow Caste Abyssal Ways, gives no special ability to purchase normally forbidden Charms.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 193
     }
   },
@@ -347,7 +347,7 @@
     "duration": "One scene",
     "description": "and WU JI\n\nThe character adopts the attitude and posture of the spirit courts, moving with the infinite baroque complexity necessary to the management of Creation. Directed by the four powers of her mind — aspiration, effort, intention and analysis — the whole of her Essence flows as one. Simultaneously, even the smallest mote of her being directs itself toward managing its own affairs.\n\nThough no imperfect creature can truly master it, this Form has a perfect beauty to it. While the character uses this Form, enemies’ players must fail a Compassion roll if these enemies wish to harm her. Subduing her or manipulating her remains acceptable. Enemies cannot spend Willpower for the roll to deliberately fail. Those who witness the Games of Divinity Form become addicted: So long as they remember the Sidereal or the Form, they crave to see it again. Their players must succeed at Temperance rolls for their characters to refuse any reasonable opportunity to behold, once again, the Games of Divinity Form.\n\nDreamstones (see p. 18) provide a more intense experience than this Form. Dreamstone addiction both wipes away and prevents addiction to the Form. However, witnessing or performing the Games of Divinity Form is an unpleasant but palatable dreamstone alternative for even the most desperate of addicts.\n\nCharacters cannot normally use more than one Martial Arts Form-type Charm at a time.\n\n(Style prerequisite: mastery of one complete Martial Arts style — all its Charms.)",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 194
     }
   },
@@ -372,7 +372,7 @@
     "duration": "One scene",
     "description": "and KAO\n\nTugging gently on the flows of Essence around him, the character forms himself into a nexus, a convergence point through which power pours. The Sidereal’s player rolls Dexterity + Martial Arts, unmodified by any other Charms. For the remainder of the scene, each of the Exalt’s successful unarmed attacks also does aggravated damage equal to the number of successes rolled for the Demesne Emulation Practice Charm. This damage is soaked separately. The Sidereal’s hand upon an enemy’s chest burns her with raw Essence, his elbow in her ear fills her head with Essence lightning, and his foot against her knee is as terribly cold as the Essence of a saltwater siren’s heart.",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 194
     }
   },
@@ -401,7 +401,7 @@
     "duration": "One scene",
     "description": "and CHUNG TING!\n\nThe character adopts the stately grandeur of a temple and radiates the ancient power of a Manse. She can now properly channel and constrain the raw Essence flow that the Demesne Emulation Practice feeds into her, coalescing it around her Caste Mark into a Hearthstone set in her brow. This Hearthstone only exists while the character is using Demesne and Manse Form. When the Sidereal terminates the Form, the Hearthstone fades.\n\nWhen using the Form, the character receives the Hearthstone’s benefits, as if it were properly set in a starmetal circlet. The player and the Storyteller should work together to determine its effects, developing a 4- or 5-dot Hearthstone that reflects the character’s personality. Treat major changes to the character’s nature as architectural alterations to a Manse, adjusting the Hearthstone’s abilities appropriately.\n\nCharacters cannot normally use more than one Martial Arts Form-type Charm at a time.\n\n(Style prerequisite: mastery of one complete Martial Arts style — all its Charms.)",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 194
     }
   },
@@ -439,7 +439,7 @@
     "duration": "One scene",
     "description": "The Elder Sutra of Essence: The last maiden’s name was TAO. These were their names, but they knew them not.\n\nAs she assumes this Form, the character vanishes into the flows of Essence around her. For a long moment, she is nowhere and everywhere, embodied in the dance of all things. Then, she manifests again, in every movement consummately aware of everything around her, reacting to intentions before they are formed, actions before they are taken and to the battle as a whole as easily as to a single blow.\n\nThis Charm doubles the character’s base initiative (Dexterity + Wits). Charms such as Opportune Shot and Thunderclap Rush Attack do not automatically win initiative over her. The Exalt is aware of every attack against her and is immune to sensory penalties — this is a perfect effect. She can sense every effect, object and creature within (her Essence x 10) yards. Noticing something hidden requires a reflexive Perception + Awareness roll, adding the Sidereal’s Essence in automatic successes.\n\nWhile using the Prismatic Arrangement of Creation Form, the character can also invoke any or all of its subsidiary Forms, paying the normal Essence cost. As long as the Prismatic Arrangement of Creation Form is active, the Four Magical Materials Form, Soul Fire Shaper Form, Games of Divinity Form and Demesne and Manse Form can coexist with it and with one another. The character can also invoke other Form-type Charms, but this limits her to a total of two other Forms. For example, she could invoke Prismatic Arrangement of Creation Form followed by either Earth Dragon Form and Games of Divinity Form, Tiger Form and Ebon Shadow Form or Snake Form and Charcoal March of Spiders Form. The Prismatic Arrangement of Creation Form is transcendent and embraces other Forms as lesser parts of itself.\n\nWhile this Form is active, the character may have access to unexpected weaponry. Any weapon treated as an unarmed attack by a style whose Form-type Charm she has active is treated as an unarmed attack for the purpose of all Martial Arts Charms. This is a specific benefit of the Prismatic Arrangement of Creation Form and not a general rule. For example, Tiger Form allows the use of tiger claws as unarmed attacks. If she has both Prismatic Arrangement of Creation Form and Tiger Form active, the Sidereal can use tiger claws to inflict the Water Spider Bite — whether or not she also has Charcoal March of Spiders Form active. This effect does not extend to armor.\n\nThe Prismatic Arrangement of Creation Form is complete and perfect in every respect, but to perform it correctly requires a deep understanding of the other styles that it subsumes. Sidereal masters estimate that a complete understanding of roughly 40 styles would allow an essentially accurate adoption of this Form, possibly increasing the power of this Charm.\n\n(Style prerequisite: mastery of one complete Martial Arts style — all its Charms.)",
     "source": {
-      "book": "Exalted 1e The Sidereals",
+      "book": "The Sidereals",
       "page": 194
     }
   }

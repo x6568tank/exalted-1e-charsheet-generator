@@ -257,7 +257,7 @@
     "duration": "One day",
     "description": "This Charm allows the character to swim almost as well as a fish. While he still needs to breathe normally and cannot swim in armor, he can swim at his normal movement rate and never needs to worry about drowning in relatively calm water. This Charm reduces the difficulty of all Athletics rolls related to swimming by 1 (to a minimum of 1).",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 72
     }
   },
@@ -283,7 +283,7 @@
     "duration": "One hour",
     "description": "The Character can now swim at twice her movement rate if unarmored and at her normal movement rate if wearing no more than light armor. In addition, she swims underwater easily and can hold her breath for up to Stamina x 10 minutes — each success on a Stamina + Resistance roll extends this time by 10 minutes. She can swim in the worst seas without risk of drowning, and her player need never make Athletics rolls for the character to stay afloat. Although the character cannot swim if wearing anything heavier than light armor, she can still walk along the bottom while holding her breath. This Charm reduces the difficulty of all Athletics rolls related to swimming by 3 (to a minimum of 1).",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 73
     }
   },
@@ -309,7 +309,7 @@
     "duration": "Instant",
     "description": "As a part of any attack, the character may vault over the head of any foe she is facing. At the end of this vault, the character lands behind the foe and may attack this opponent from behind. This attack does no additional damage, but it gains all of the benefits of attacking from behind (see Exalted, p. 238). Normally, this Charm can only be used once on a given foe — enemies who are expecting this maneuver can pivot around rapidly enough to parry or dodge attacks. However, against the unsuspecting, this is often a devastating technique.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 73
     }
   },
@@ -335,7 +335,7 @@
     "duration": "One turn",
     "description": "Supported by both air and Essence, the character can almost fly, leaping vast distances in a single fantastic bound. Rather than making an ordinary movement action, she can leap (Strength + Athletics) x 10 yards vertically or twice this distance horizontally. The character can attack and perform other actions in the same turn that she performs Soaring Crane Leap but gains no special bonuses to these actions. If desired, this Charm can be used to leap down from great heights, effectively making the character almost immune to falling damage.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 73
     }
   },
@@ -361,7 +361,7 @@
     "duration": "One scene",
     "description": "This Charm allows the character to leap long distances in a single bound, which takes the remainder of the scene (or about five minutes in real time). The character can cover a distance of five miles per point of permanent Essence. If he does not know his destination, his player may be required to make a successful reflexive Dexterity + Athletics roll on the Exalt's landing or have him tumble and potentially take up to three dice of bashing damage. The character may take no other actions except to parry and counterattack during the scene he's leaping. If the character can fly or otherwise navigate through air, doing so immediately ends this Charm's effect and leaves the character dependent on whatever means of locomotion he activated. A character can reach a height of several miles at the apex of the leap, so flight effects of short duration are suicidal unless the character can survive such a long fall.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 73
     }
   },
@@ -390,7 +390,7 @@
     "duration": "One scene",
     "description": "Through the use of this Charm, the Exalt can obtain the effects of Spider-Foot Style and Feather-Foot Style for the remainder of the scene, allowing her to walk up horizontal surfaces, across ceilings and also over fluid surfaces such as water. The Exalt may stop, stand, kneel or otherwise do whatever she wishes — the effects will not end until she wishes for the Charm to dissipate or the scene changes.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 73
     }
   },
@@ -419,7 +419,7 @@
     "duration": "One Scene",
     "description": "The character can focus her Essence to actually repel the ground — she leaps and will continue to move through the air for the rest of the scene. The character moves with a speed up to triple her sprinting distance per turn. She can effectively fly like a bird, but she must keep moving at no less than half her sprinting distance every turn, or she will have to land and end the Charm. Though she can \"climb\" higher obstacles such as walls and cliffs by zooming along the vertical surface, a character flying with this Charm cannot naturally maintain an altitude higher above the ground (or whatever flat, stable surface lies below her) than three times her normal vertical leaping distance — so, no more than 3 x her Strength + Athletics in yards.\n\nTo direct the flows of Essence, the character must keep one arm extended out in front of her. As a result, she cannot use bows or any other two handed weapons while flying. However, she may use thrown weapons, fight unarmed or wield one-handed hand-to-hand weapons normally, regardless of how fast she is moving. The character can engage in aerial duels with opponents capable of taking to the air, or she can hurl thrown weapons at foes on the ground or swoop down and strike them as she flies past.\n\nFlying characters may be attacked only by ranged attacks, by other flying or leaping characters or on the initiative count when they attack someone on the ground. Keep in mind that any foe who rolled a higher initiative can delay his action and attack the character as she swoops by. People other than the character's target who attempt to strike the Exalt as she swoops in for the attack do so at -3 dice (due to the Exalt's speed), unless they are using long weapons such as spears or poleaxes. In such cases, the penalty is reduced to -1. The Exalt's target can attack the Exalt normally and without penalty, but only during the initiative count in which he, the target, is attacked. Otherwise, he must use some sort of ranged attack.\n\nEAGLE-WING STYLE TRAVEL SPEEDS — Dexterity 1: 47 MPH; 2: 53; 3: 59; 4: 65; 5: 71; 6: 77.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 73
     }
   }

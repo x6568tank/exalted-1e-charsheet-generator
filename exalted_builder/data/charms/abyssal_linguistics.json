@@ -15,7 +15,7 @@
     "duration": "One week",
     "description": "Absorbs a victim's knowledge of language even as he devours her Essence (must consume at least 1 mote of hers during the scene). Roll Wits + Linguistics (difficulty 5 minus motes taken; no roll if below 1); success instantly learns one language known to the target, spoken/read/written with perfect fluency. For 5+ motes consumed he may pay double the XP cost to permanently raise Linguistics; otherwise the language fades when the Charm expires.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 213
     }
   },
@@ -38,7 +38,7 @@
     "duration": "One scene",
     "description": "Speaks and writes with haunting skill and eloquence: adds one die per mote to Linguistics rolls for a specific known language (mechanically a Linguistics specialty), and may add to other communication rolls at Storyteller discretion. Cannot buy more bonus dice than Intelligence. Four or more fluency dice convey superhuman grace.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 213
     }
   },
@@ -61,7 +61,7 @@
     "duration": "One hour",
     "description": "Temporarily excises a victim's comprehension of a language: whisper in the maddening dialect of the Malfeans, indicate a target in sight, roll Manipulation + Linguistics vs the target's Essence; per success spend 5 motes to remove a random language OR suppress a chosen one (a gamble unless he's sure the target knows it). A victim stripped of all language cannot speak or write. No effect on higher-Essence beings; memory returns when the duration ends.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 214
     }
   },
@@ -85,7 +85,7 @@
     "duration": "One scene",
     "description": "Curses in the lost tongue of the Malfeans to distort all communication in a zone around her: no one inside can understand written or spoken language (letters run into baffling glyphs, speech twists to gibberish). Roll Manipulation + Linguistics vs the targets' highest Essence. Clever characters may pantomime simple concepts; formal hand signs fail. No effect on beings whose Essence matches/exceeds hers. Radius permanent Essence×3 yards.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 214
     }
   },
@@ -109,7 +109,7 @@
     "duration": "Until released",
     "description": "Bypasses language to communicate telepathically (she must directly sense the target to invoke it; breaks if she loses perception of him). While linked she may reflexively project thoughts to speak with someone she shares no language with, and he may reply along the link. The target knows the thoughts come from outside but cannot pinpoint their source without magic. No mind reading, memory probing, or forced honesty.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 215
     }
   },
@@ -128,7 +128,7 @@
     "duration": "One scene",
     "description": "By channeling Essence-laden blood through his fingertips, he always has a means of writing: tracing glyphs with his fingers leaves runes of indelible crimson (indistinguishable from ink stains, cleanable if the surface permits). On living beings the glyphs resemble tattoos that fade over days or weeks. He writes with uncanny precision, matching a fine stylus or brush.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 215
     }
   },
@@ -154,7 +154,7 @@
     "duration": "One day",
     "description": "Requires Occult 4. Traces a mystical blood rune on a target's forehead to protect an individual from hungry ghosts and walking dead: no zombie or bestial ghost will attack the target unless compelled by a necromancer, an Abyssal, an Arcanoi-using ghost, or other supernatural compulsion. Sentient ghosts generally leave the target alone out of fear of the Deathlords. Enchants any human (including Exalted), but an anima banner or Caste Mark burns away the rune. The Abyssal may use it on himself.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 216
     }
   },
@@ -178,7 +178,7 @@
     "duration": "One reading",
     "description": "By touching a sample of writing, attunes his mind to the wisps of memory left by the author and reads the work with perfect fluency (attunement lost when he stops reading or reaches the end). He may skim, jump ahead and reread, but cannot quote specific passages or recall exact wording afterward (only the gist). Does not work against artificial languages, codes, or deliberate obfuscation.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 216
     }
   },
@@ -205,7 +205,7 @@
     "duration": "One scene",
     "description": "Becomes preternaturally resistant to all persuasion, from simple argument to mind control (his Nature changes to Critic): whenever subjected to words/magic that would alter his point of view, he may reflexively roll Willpower vs the offending character's Essence to scornfully shrug it off. He is notably brusque and bitter (+1 difficulty to all Charisma rolls). Cannot defend against persuasion by beings of higher permanent Essence than his Willpower.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 216
     }
   }

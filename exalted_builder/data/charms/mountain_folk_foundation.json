@@ -13,7 +13,7 @@
     "duration": "Permanent",
     "description": "Like many magical beings, most Mountain Folk are considerably hardier than their physiques suggest. Every purchase of this Charm provides one -1 and one -2 health level. Jadeborn cannot develop Ox-Body Technique more times than their highest Virtue.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 245
     },
     "repeatable_cap_highest_virtue": true,
@@ -43,7 +43,7 @@
     "duration": "Permanent",
     "description": "Mountain Folk who develop Essence Satiation Method alter their metabolism, subsisting on an ephemeral diet of Essence. With the first purchase of this Charm, the character halves the amount of food and water she needs to consume in order to remain healthy and fit. With the second purchase, this requirement drops to a quarter of normal. Jadeborn must have Essence 3 to purchase the Charm a third time, but this purchase obviates the need for sustenance altogether.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 245
     },
     "repeatable_cap_ability": "essence",
@@ -63,7 +63,7 @@
     "duration": "Permanent",
     "description": "By studying this Charm, Jadeborn may learn to respire Essence in place of air. With the first purchase of StoneStill Lungs, the character only needs to take a breath every (Stamina + Essence + highest Virtue) minutes. Suffocation proceeds normally after this interval passes. With the second purchase, the interval increases to ([Stamina + Essence + highest Virtue] x 3) minutes. Upon the third purchase (which requires Essence 3), the character no longer needs to breath at all except to facilitate speech or other vocal utterance.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 245
     },
     "repeatable_cap_ability": "essence",
@@ -83,7 +83,7 @@
     "duration": "Permanent",
     "description": "Mountain Folk with this Charm surpass the physiological need for sleep, although they still derive spiritual benefit as represented by respired Essence and Conviction rolls to regain Willpower. If a character goes more days without sleep than his Stamina rating, each subsequent day of sleeplessness cumulatively reduces the number of motes he gains from respiration each hour. For example, a Jadeborn with Stamina 3 could go without sleep for three days. After the fourth day, he respires one less mote per hour (7 for meditation, 3 for inactivity). By the seventh day, he only respires 4 motes per hour of meditation and cannot respire by casual inactivity at all. Sleeping one full night for eight hours resets the count back to zero. This Charm provides no benefit outside of Creation.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 245
     }
   },
@@ -114,7 +114,7 @@
     "duration": "Varies",
     "description": "The Jadeborn floods his body with Essence, crystallizing his flesh and personal possessions into a statue of the purest jade. He remains aware and conscious in this state, but he loses all senses and mobility, leaving him a prisoner within his own transmogrified form. Upon activating the Charm, the player must specify the intended duration in increments of one month. The Jadeborn cannot abandon the state any sooner, nor can he be roused by conventional means. As a statue, he has a nearly invincible soak of 20L/ 30B and completely ignores all attacks that do not inflict more damage than his soak. He heals any damage sustained at the rate of 1L or 2B per day, remaining a lifeless and broken statue if killed. Furthermore, he does not hunger, thirst or breath. Instead of aging, his biological age actually decreases by the chronological time spent in torpor. When he emerges from slumber, he has full reserves of health, Willpower and Essence (minus the commitment required by the Charm and any recent injuries). All mundane diseases and poisons are purged by the magic, though supernatural maladies remain as virulent as they were at the time of transformation. The experience of total isolation inflicted by this Charm can be maddening, even for one of the Enlightened. Roll the Jadeborn’s Willpower with a difficulty of the number of months spent comatose. If the roll fails, the character gains a derangement that he must contend with normally. On a botch, he also loses a dot of permanent Willpower. Time spent torpid counts as training time for Mental Attributes but cannot be used for raising or purchasing any other Traits that have a required training time. The only way to end Eternal Jade Rejuvenation prematurely is through Emerald (or greater) Countermagic. This spell shatters the enchantment, leaving the Jadeborn with sufficient levels of unsoakable aggravated damage",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 245
     }
   },
@@ -135,7 +135,7 @@
     "duration": "(Essence + 1) hours",
     "description": "The Jadeborn’s eyes darken to the glassy black of obsidian. In this state, she can see in total darkness without penalty. She cannot see any better through fog or other visual obstructions, however.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 246
     }
   },
@@ -156,7 +156,7 @@
     "duration": "One hour",
     "description": "Suffusing her senses with Essence, the Jadeborn’s senses become preternaturally attuned to details and stimuli. For every 3 motes spent, she subtracts one from the difficulty of all Awareness rolls for next hour. Multiple activations of this Charm are cumulative, but no roll can have a difficulty lower than 1.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 246
     }
   },
@@ -177,7 +177,7 @@
     "duration": "One hour",
     "description": "The Jadeborn freezes in place, becoming like a statue. His skin and possessions take on the visual and tactile semblance of rock or earth, blending in with any subterranean environment. So long as he remains motionless, his player adds the character’s Temperance to all Stealth rolls. This camouflage vanishes as soon as he moves, falling away as a fine sheen of gray-brown dust. However, the camouflage reasserts itself the moment the Jadeborn stops moving again and continues to do so for the duration of the Charm.\n\n### THE WORKER PATTERN The smallest and least dramatic of the three Patterns, the Charms of the Worker Caste serve as a natural and practical outgrowth of their utilitarian nature. This magic assists in day-to-day tasks and is the craft of servitude, though Enlightened masters of the Pattern transcend labor itself to become efficient overseers.",
     "source": {
-      "book": "Exalted: The Mountain Folk (CH6)",
+      "book": "The Mountain Folk (CH6)",
       "page": 246
     }
   }

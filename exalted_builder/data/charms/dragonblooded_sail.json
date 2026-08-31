@@ -15,7 +15,7 @@
     "duration": "Instant",
     "description": "With a look at the sky, the Exalted can predict the weather for the next day or so; his empathy with the currents of the ocean and air give him real prescience regarding the weather. The Charm will fail if the local weather is changing in response to a magical event or sorcery; this Charm only describes to the character what the natural weather will be if nothing unusual takes place. Perceptive Dragon-Blooded can sometimes use this Charm to predict events other than the weather: If, for instance, Admiral Potan's fleet is preparing to sail on a rebellious prefecture as soon as a storm breaks, the user of this Charm can predict exactly when they will set sail. And impossibly heavy clouds appearing out of clear blue skies might be a harbinger of an impending volcanic eruption. This Charm only works when the character is on the water; it fails when the Exalted's feet are on land.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 221
     }
   },
@@ -39,7 +39,7 @@
     "duration": "One scene",
     "description": "When time is of the essence and getting a ship into safe harbor is more important than the crew's rest and safety, a captain or pilot with Storm-Outrunning Technique is essential to survival and success. This Charm allows a ship's officer to double that ship's rate of movement for the current scene. This may enable a small ship to beat an enemy fleet to a friendly port, giving the city some warning; it may let a ship beat a storm to safety; or it may let a crew of merchants beat a rival to a choice port. To activate the Charm, the Exalt need only spend the necessary Essence. The greatly increased speed may require one or more Sail rolls, especially if the ship cruises through hazardous waters at double normal velocity. Also, note that if this Charm is used from the deck of a becalmed sailing ship it will have no effect, as a speed of zero, when doubled, remains zero.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 222
     }
   },
@@ -63,7 +63,7 @@
     "duration": "One scene",
     "description": "The finest captains and pilots can thread their ships through the most dangerous patches of sea, avoiding submerged hazards with flair and panache. This Charm is the source of more than one pilot's reputation. With it, an Exalt gains an instinctive knowledge of any submerged hazards within five miles of the ship's current location, as well as the prevailing current, danger spots and safe channels in the same radius. The net effect of this knowledge is that the pilot's Sail dice pool improves by three dice for the remainder of the scene for the purpose of avoiding hazards. This Charm does not directly protect the ship from such hazards: If the pilot makes a bad mistake, the hull might still be rent asunder. It also does not give its user any special awareness of the activities of other characters: It cannot point out an ambush in a narrow passage or the impending arrival of an enemy vessel.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 222
     }
   },
@@ -87,7 +87,7 @@
     "duration": "One scene",
     "description": "A Charm favored by Wood-aspected sailors, Sturdy Bulkhead Concentration enhances the strength of a ship's hull without making it heavier. When this Charm is active, the hull gains three additional health levels and 2 additional soak. The benefit only remains as long as the Exalted who activated the Charm remains aboard the vessel. To activate the Charm, the character needs only to spend the necessary Essence while aboard the ship.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 223
     }
   },
@@ -111,7 +111,7 @@
     "duration": "One scene",
     "description": "Whenever a ship under the command of a Dragon-Blooded with this Charm comes into contact with hostile ships of any stripe, it is temporarily camouflaged as a ship of that allegiance: The ship appears to be a merchantman to those aboard merchantmen; it looks as a pirate ship does to pirates; and so on. The Charm is largely a visual illusion \u2014 the vessel's flag changes its appearance, and the crew appears, from a distance, to be the appropriate sort of crew for a ship of its type. The Charm does not change the line of the ship itself, so one cannot, for instance, hide an imperial dreadnought among fishing smacks and expect to go unnoticed. The Charm also fails should any viewer set foot upon the ship; visitors and raiders see the ship as it really is, once they are aboard it.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 223
     }
   },
@@ -135,7 +135,7 @@
     "duration": "One scene",
     "description": "By pursing her lips and whistling as she invokes this Charm, an Exalt can call the winds into the sails of her ship and escape from a dangerous situation \u2014 or hurl herself into battle. The wider the sails and the mightier the ship, the more winds are called, as the spirits of the air hasten to obey the Exalt, until the ship is moving at full speed in the desired direction. The winds are intensely localized and will affect other ships within a couple hundred meters of the Exalt's ship. However, they cannot be commanded to alter their direction once summoned. The ship may run before the wind or tack into it, but it cannot turn back on itself. The winds will cause the ship to move at its full rate of speed, depending on the type of ship, and will last for up to a scene.",
     "source": {
-      "book": "Exalted 1e The Outcaste",
+      "book": "The Outcaste",
       "page": 93
     }
   },
@@ -160,7 +160,7 @@
     "duration": "Instant",
     "description": "When this Charm is activated, all those who see the ship on which the Exalt stands perceive it as an awesome naval battleship, haloed with strange lights and manned by deadly warriors \u2014 even if it's a rickety old piece of wood held together by worn-out nails and the sweepings of the local port. While common sense cuts in a moment later and the ship is clearly visible as what it actually is, the players of all those who were looking at the ship when the Charm took effect must succeed in a reflexive Willpower roll for the characters to attack it. This Charm is normally used in order to gain the advantage of surprise. A wise captain can have half the enemy crew slaughtered before it manages to pull itself together and fight back.",
     "source": {
-      "book": "Exalted 1e The Outcaste",
+      "book": "The Outcaste",
       "page": 93
     }
   },
@@ -185,7 +185,7 @@
     "duration": "Instant",
     "description": "By spending 5 motes of Essence and invoking this Charm, an Exalt can whisper his name into the waves around his vessel, and it will be carried to all sea spirits, pelagials or other sentient inhabitants of the ocean within five miles of his ship. All those who have no particular and personal reason to hate the Exalt will be instinctively reminded of the power and authority of the Exalted and will travel to the vessel to pay their respects and to find out why the Exalt has declared his presence. Particularly powerful creatures or minor gods may send a representative rather than attend themselves. The Charm can be used while at port, but fewer creatures of the sea are likely to answer the summons. Any beings who will arrive do so within half an hour at the most. Their behavior and the length of time they remain depends upon the attitude or requests of the Exalt.",
     "source": {
-      "book": "Exalted 1e The Outcaste",
+      "book": "The Outcaste",
       "page": 93
     }
   },
@@ -209,7 +209,7 @@
     "duration": "Instant",
     "description": "By invoking this Charm, the Exalt summons a great swarm of lampreys and similar clinging creatures, which adhere to the hull of the target ship, slowing it and possibly even causing it to founder if the weather conditions are exceptionally bad. The target ship, which must be within a mile of the Exalt, has its speed reduced by 10 percent for every mote of the Exalt's permanent Essence and will remain at this reduced speed until its hull is cleaned or for a week, whichever is sooner. This may require a formal drydocking, if the crew has no facilities to do so at sea. This Charm fails to work on any ships whose hulls are crafted from the Five Magical Materials or other imperishable First Age materials, though the Essence is still lost, as such ships are of too noble a substance to be so fouled.",
     "source": {
-      "book": "Exalted 1e The Outcaste",
+      "book": "The Outcaste",
       "page": 94
     }
   },
@@ -233,7 +233,7 @@
     "duration": "One scene",
     "description": "This Charm invokes the powers of the Exalted to disguise the ship, clothing it in the appearance of an ally \u2014 or even an enemy. When a ship with this Exalt on board flies the colors of a particular person or group and comes into contact with other ships, the Exalt's ship temporarily appears to be the ship of the captain who flies those colors or a typical ship of that group. This is a visual illusion and even goes so far as to alter the perceived lines of the ship if necessary, so that a warship may appear to be a slaver's dhow or even a common fishing vessel. The Charm fails the moment that any outsider sets foot on the ship or if any damage (such as that of a flaming arrow or a barrel of pitch) is done to it. It has no mechanical effects in terms of sailing speed, defense or anything else.",
     "source": {
-      "book": "Exalted 1e The Outcaste",
+      "book": "The Outcaste",
       "page": 94
     }
   },
@@ -258,7 +258,7 @@
     "duration": "One scene",
     "description": "This Charm is specifically designed to work with North-ern air boats. The character can completely protect her air boat from the effects of storms. This Charm does nothing to affect the storm. Instead, it sheathes the air boat in a large bubble of protective Essence. The winds of the storm continues to push the air boat forward, but the Charm completely protects both the vessel and everyone on board from all environmental damage. The entire air boat and all of its rigging are completely calm, even if gale-force winds are blowing a few feet away. This Charm can be recast as necessary, but most air-boat pilots use it as a chance to outrun a small storm or to land and stake down the air boat to protect it from the effects of a prolonged storm.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Water",
+      "book": "Aspect Book: Water",
       "page": 73
     }
   },
@@ -278,7 +278,7 @@
     "duration": "One scene",
     "description": "Whether the character is on a trireme off the coast of the Blessed Isle or on an air boat high above Diamond Hearth, the deck and rigging of any ship can become exceedingly treacherous during a storm, a battle or any other emergency, and a single misstep can cause a character to fall to her death. This Charm effectively removes such risks. A character using Deck-Walking Prana can move across the deck or up and down the rigging of a storm-tossed ship as safely as if she were doing so while the ship was in dry dock. The Charm also negates all movement penalties associated with environmental factors such as ice, snow, water or motion. If an action such as sliding rapidly down the rigging would normally require a roll to be safely performed, then the character's player must still roll, but this Charm removes all penalties associated with adverse environmental conditions. This Charm only works on board a ship, and it does not allow the character to perform actions that would normally be impossible, such as walking along the side of the hull or striding across the canvas of a billowing sail. In addition to being able to use this Charm herself, the character can also cast it on anyone she can touch.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Water",
+      "book": "Aspect Book: Water",
       "page": 73
     }
   },
@@ -302,7 +302,7 @@
     "duration": "One scene",
     "description": "This Charm allows the character employing it to move about a ship in any possible fashion and under any conditions. She can walk along the underside of a flying air boat or stand on the bottom of the keel of a ship sailing through a storm, with no risk of slipping or falling off. The character can completely defy gravity with this Charm, but the object she is standing upon must be able to physically bear her weight. The character can also use this Charm on anyone she can touch. Although this Charm allows the character to stand firmly upon the hull in calm conditions, if she is buffeted by waves or high winds, her player must make a successful Dexterity + Athletics roll for the Exalt to avoid falling \u2014 the difficulty of this roll would be 1 for the normal motion of a ship through water or on an air boat during a gale. The difficulty only rises to 5 during a storm so severe that it is almost certain to destroy the vessel.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Water",
+      "book": "Aspect Book: Water",
       "page": 73
     }
   }

@@ -36,7 +36,7 @@
     ],
     "description": "Armored plates and redundant parts make the Alchemical harder to hurt. Each installation grants two -1 or three -2 health levels (chosen at installation). Installable up to permanent Essence times. Eclipse and Moonshadow Caste may not install this Charm.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 107
     },
     "exalt_type": "Alchemical",
@@ -62,7 +62,7 @@
     "duration": "Indefinite",
     "description": "Crystalline amulets mute pain without hiding injury: while active, reduce all wound penalties by half Stamina (rounded up). Essence 6-7 variant subtracts full Stamina; Essence 8+ needs only one installation for total immunity to physical pain penalties.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 107
     },
     "exalt_type": "Alchemical",
@@ -87,7 +87,7 @@
     "duration": "N/A",
     "description": "Hidden plate mesh (+2L/+3B natural soak per installation) or a riveted carapace (+3L/+4B, counts as obvious armor, stacks with worn armor). Installable up to Essence times. Higher-Essence tiers add more soak and Hardness.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 108
     },
     "exalt_type": "Alchemical",
@@ -114,7 +114,7 @@
     "duration": "Five minutes",
     "description": "Subdermal ports screw into worn armor over five minutes, making it a second skin: reduce its mobility penalty and fatigue by 3 each. Reactivate (another five minutes) to release it.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 108
     },
     "exalt_type": "Alchemical",
@@ -136,7 +136,7 @@
     "duration": "One scene",
     "description": "A force field second skin: soak 1B/1L per mote (armor, stacks with worn/installed armor), max Stamina + Essence motes, 1 Willpower the first time each scene; negates stealth. Secondary mode forms a hand shield adding +1 attack difficulty per 2 motes (max +Essence).",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 108
     },
     "exalt_type": "Alchemical",
@@ -162,7 +162,7 @@
     "duration": "One day",
     "description": "One of five separately-purchased frames optimizing the body against a Machine-God element. Injurious contact with crystal or stone becomes bashing before soak; attacks whose raw damage is under the Exalt's natural bashing soak are ignored. Also projects a two-yard bubble of stable reality immune to the Wyld.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 109
     },
     "exalt_type": "Alchemical",
@@ -188,7 +188,7 @@
     "duration": "One day",
     "description": "One of five separately-purchased frames optimizing the body against a Machine-God element. Immunity to fire, lightning and other raw energy discharges (non-magical). Also projects a two-yard bubble of stable reality immune to the Wyld.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 109
     },
     "exalt_type": "Alchemical",
@@ -214,7 +214,7 @@
     "duration": "One day",
     "description": "One of five separately-purchased frames optimizing the body against a Machine-God element. Immunity to acid and other chemicals (non-magical). Also projects a two-yard bubble of stable reality immune to the Wyld.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 109
     },
     "exalt_type": "Alchemical",
@@ -240,7 +240,7 @@
     "duration": "One day",
     "description": "One of five separately-purchased frames optimizing the body against a Machine-God element. As Crystal, but versus injurious contact with metal. Also projects a two-yard bubble of stable reality immune to the Wyld.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 109
     },
     "exalt_type": "Alchemical",
@@ -266,7 +266,7 @@
     "duration": "One day",
     "description": "One of five separately-purchased frames optimizing the body against a Machine-God element. Immunity to extremes of temperature or pressure (non-magical). Also projects a two-yard bubble of stable reality immune to the Wyld.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 109
     },
     "exalt_type": "Alchemical",
@@ -292,7 +292,7 @@
     "duration": "Indefinite",
     "description": "Legs replaced by a spider-thorax with (Essence x 2) metal legs. One automatic success on climbing/balance/resisting knockback; claw attacks (speed +3, accuracy +1, damage +4L) if three legs stay grounded; +2 to Strength+Athletics feats; +25% ground speed; free-spinning waist. Grants 1 permanent Clarity; cannot be hidden by an Integrated Artifact Transmogrifier.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 109
     },
     "exalt_type": "Alchemical",
@@ -319,7 +319,7 @@
     "duration": "N/A",
     "description": "Metal-plated bones and reinforcing wires add +1L/+1B natural soak. When an anima power or Charm temporarily raises Strength for a feat of strength, the bonus dice/dots are doubled.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 109
     },
     "exalt_type": "Alchemical",
@@ -341,7 +341,7 @@
     "duration": "One scene",
     "description": "Twist personal gravity (each mode activated separately). Primary: redefine 'down' to walk on walls/ceilings (realignment reaches Essence feet from the soles). Secondary: reduce weight to as little as 15% of normal, boosting movement speed (x1.5 at 50-75%, x2 at 50% or less).",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 110
     },
     "exalt_type": "Alchemical",
@@ -366,7 +366,7 @@
     "duration": "Varies",
     "description": "Levitate or leap. Levitation (2m/turn): move up to Strength yards vertically / (Strength x 2) horizontally each turn without regard to gravity, acting freely midair. Leap (1m, instant, once/turn): spring up to (Strength x Essence) yards vertically or five times that horizontally. Safe descent from any height.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 111
     },
     "exalt_type": "Alchemical",
@@ -391,7 +391,7 @@
     "duration": "Instant or one hour",
     "description": "Foot/back nozzles for jet flight. Burst (2m): straight-line move up to (Strength x 50) yards, once/turn. Strike (4m,1wp): reach a target up to (Strength x 30) yards for a hand-to-hand attack at doubled raw damage plus knockdown. Flight (10m/hour): (Strength x 15) mph, Dexterity+Athletics to maneuver. Everything one yard behind/below suffers 5L.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 111
     },
     "exalt_type": "Alchemical",
@@ -413,7 +413,7 @@
     "duration": "One day",
     "description": "Retractable jet modules give neutral buoyancy regardless of weight or fluid density and let the Exalt swim at running speed and act without penalty underwater (or in fluids up to heavy-oil viscosity).",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 112
     },
     "exalt_type": "Alchemical",
@@ -441,7 +441,7 @@
     "duration": "Indefinite",
     "description": "Retractable tendrils plug into any Ride-able mount. A living steed (one unsoakable bashing to bond, must consent if sentient) has its control rating cut by the Exalt's Charisma; the Exalt adds Essence to Ride and cannot be forcibly dismounted. Artificial mounts bond without damage and can be piloted directly; warstriders attune in one turn at -5 motes and lose mobility/fatigue equal to Essence.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 112
     },
     "exalt_type": "Alchemical",
@@ -468,7 +468,7 @@
     "duration": "Indefinite",
     "description": "Bond with a Sail-scale Essence-powered vessel (First Age ships, skycraft, pneumatic trams — not mundane Second-Age ships). The Exalt falls catatonic and the ship becomes his body: telepathic control of all systems (Wits minor actions/turn), attunement -10 motes, add Essence to Sail, and see from any hull vantage (one at a time). Max vessel size (Charisma x 20) yards.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 113
     },
     "exalt_type": "Alchemical",

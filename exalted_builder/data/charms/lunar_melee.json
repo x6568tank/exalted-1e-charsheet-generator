@@ -12,7 +12,7 @@
     "cost": {"raw": "1 mote per die"},
     "duration": "Instant",
     "description": "By means of this Charm, a Lunar can perceive the flows of Essence around his target, using them to guide his blows to best effect. For each mote of Essence spent on this Charm, the Lunar gains an additional dice die on a single Melee attack. These bonus dice may not exceed the character's Dexterity.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 149}
+    "source": {"book": "The Lunars", "page": 149}
   },
   {
     "id": "lunar.melee.striking-mospid-method",
@@ -27,7 +27,7 @@
     "cost": {"raw": "1 mote per +1 initiative"},
     "duration": "Instant",
     "description": "Using this Charm, a Lunar can imbue his weapon with preternatural speed, using his Essence and instincts to enhance the tempo of his attack. When rolling initiative for a turn in which the character plans to make a Melee attack, the Lunar may spend Essence to improve his initiative rating for a single turn, each mote buying a +1 modifier. The character cannot spend more motes than he has points of Dexterity.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 149}
+    "source": {"book": "The Lunars", "page": 149}
   },
   {
     "id": "lunar.melee.ferocious-biting-sword",
@@ -42,7 +42,7 @@
     "cost": {"motes": 4, "raw": "4 motes"},
     "duration": "Instant",
     "description": "By fortifying his attacking weapon with Essence, a Lunar can make it very difficult for his opponent to block a single attack with a hand-to-hand weapon. Players rolling to defend against this attack must roll two successes for each of the Exalt's own successes they seek to negate. If a defender rolls an odd number of successes, the extra success is wasted.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 149}
+    "source": {"book": "The Lunars", "page": 149}
   },
   {
     "id": "lunar.melee.dance-of-the-living-blade",
@@ -57,7 +57,7 @@
     "cost": {"motes": 3, "willpower": 1, "raw": "3 motes per attack, 1 Willpower"},
     "duration": "Instant",
     "description": "By using the Dance of the Living Blade, the Lunar can make multiple Melee attacks per turn. These may be against the same foe or against multiple foes within a distance in yards equal to the Lunar's Dexterity. Each additional attack costs 3 motes of Essence, and the Lunar may purchase no more additional attacks than he has points of Essence. Each attack is made with the Lunar's full dice pool and must be parried or dodged separately. A Lunar can buy no more extra actions than (the initiative on which he activated this Charm ÷ 3, rounded down). This normally means (the character's initiative ÷ 3), but Lunars who hold their action and then invoke this Charm may lose extra actions.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 150}
+    "source": {"book": "The Lunars", "page": 150}
   },
   {
     "id": "lunar.melee.twisting-surprise-attack",
@@ -72,7 +72,7 @@
     "cost": {"motes": 4, "raw": "4 motes"},
     "duration": "Instant",
     "description": "By suddenly transforming his body — extending his reach, adding an extra joint in an arm and so forth — the Lunar performs an 'impossible' maneuver. As a result, he automatically wins initiative against a single opponent. This Charm can be activated at any point prior to the Lunar's actual action, so the player could roll initiative as normal but choose to activate this Charm depending on the actions of others. When used in a Combo with extra action type Charms, the Charm does not need to be applied to every action in that Combo. The Twisting Surprise Attack cannot be used in a Combo with any other Charm that gives an initiative bonus.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 151}
+    "source": {"book": "The Lunars", "page": 151}
   },
   {
     "id": "lunar.melee.irresistible-storm-attack",
@@ -87,7 +87,7 @@
     "cost": {"motes": 6, "willpower": 1, "raw": "6 motes + 1 mote per yard, 1 Willpower"},
     "duration": "Instant",
     "description": "Using this Charm, a Lunar can face multiple foes and force them onto the defensive. The Irresistible Storm Attack allows the Lunar to make a number of Melee attacks equal to his Essence. All the foes targeted by this Charm must be within a number of yards of the Lunar equal to twice his Dexterity. Each target of the Irresistible Storm Attack is subject to a full attack. In addition, for each additional mote the character spends, he may force all his opponents to either give up one yard of ground or give him a bonus Dexterity die, as per the Ferocious Avalanche Technique. The Irresistible Storm Attack cannot be used in a Combo with Charms that grant extra attack dice or extra actions. As with the Ferocious Avalanche Technique, the maximum number of bonus dice the character can gain is equal to his Dexterity. Each attack must be at a different foe, and no foe can be attacked more than once. Unused extra attacks are wasted.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 150}
+    "source": {"book": "The Lunars", "page": 150}
   },
   {
     "id": "lunar.melee.spinning-blade-attack",
@@ -102,7 +102,7 @@
     "cost": {"motes": 2, "raw": "2 motes"},
     "duration": "Instant",
     "description": "By means of this Charm, activated immediately after rolling initiative, a Lunar armed with two hand-to-hand weapons can attack a single opponent twice in a single turn. One action is made with each weapon. Each attack uses the Lunar's full dice pool at the character's full initiative score, and neither attack is considered to be with the character's off hand. The Lunar using the Spinning Blade Attack may abort one or both of these attacks to parries and, thus, can attack twice, attack and parry, or parry twice at his full dice pool in the same turn, provided the actions are against the same opponent.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 150}
+    "source": {"book": "The Lunars", "page": 150}
   },
   {
     "id": "lunar.melee.lightning-sword-method",
@@ -117,7 +117,7 @@
     "cost": {"motes": 5, "raw": "5 motes"},
     "duration": "Instant",
     "description": "The Lightning Sword Method allows a Lunar armed with two weapons to attack one or two opponents in the same turn. The mechanics are as per the Spinning Blade Attack, save that both actions need not be directed against the same target, though the Lunar's attack has no greater range than normal, so both foes must be within the distance the Lunar can move for that turn.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 151}
+    "source": {"book": "The Lunars", "page": 151}
   },
   {
     "id": "lunar.melee.dust-devil-advance",
@@ -132,7 +132,7 @@
     "cost": {"motes": 3, "willpower": 1, "raw": "3 motes, 1 Willpower"},
     "duration": "Varies",
     "description": "Using this Charm, the Lunar becomes a whirling killing machine, constantly moving and attacking, ever aware of his surroundings. While using this Charm, the Lunar gets an initiative bonus equal to half (round down) the number of yards he moved the previous turn. The Charm remains active so long as the Lunar keeps moving and commits Essence to it. If he is forced to stop moving, the Charm ends. Additionally, while the Charm is active, the Lunar can turn to meet any attack and cannot be ambushed or attacked from the rear. The Dust Devil Advance cannot be used in a Combo with any other Charm that gives an initiative bonus. This Charm cannot give the Lunar more bonus dice than his Dexterity.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 151}
+    "source": {"book": "The Lunars", "page": 151}
   },
   {
     "id": "lunar.melee.foe-driving-attack",
@@ -147,7 +147,7 @@
     "cost": {"motes": 5, "willpower": 1, "raw": "5 motes, 1 Willpower"},
     "duration": "Instant",
     "description": "This Charm allows the Lunar to extend his body in wild and improbable ways, wrong-footing his opponent, keeping her off balance by force of arms and wearing down her defenses until she makes a deadly error. When activating this Charm, the Lunar's player rolls the attack dice normally, but if the player gets 3 or more successes (not extra successes) on the attack roll, the Lunar may immediately attack the same target again. If the second attack also gets 3 successes, the Lunar can attack again, and so on, up to a maximum number of attacks equal to the Lunar's Dexterity. All attacks must be at the same target. Damage for each attack is resolved normally before the next attack is launched, so unless the target has powerful defensive Charms, she will surely falter. The Foe-Driving Attack may not be used in any Combo that includes Charms that provide automatic successes on the attack roll.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 151}
+    "source": {"book": "The Lunars", "page": 151}
   },
   {
     "id": "lunar.melee.monkey-paw-advantage",
@@ -162,7 +162,7 @@
     "cost": {"raw": "1 mote per die"},
     "duration": "Instant",
     "description": "The Lunar may combine his mastery of weapons and his protean nature to counter the efforts of an unwary foe, adjusting his weapon's path at the last moment to negate defensive moves. If an opponent attempts to parry a Lunar's Melee attack but does not completely block it, the Lunar's player can use the Monkey Paw Advantage to reroll the parried successes as another attack with the same weapon, paying 1 mote per die rerolled. If the opponent has actions remaining, she can attempt to parry these rerolled attack dice. The Monkey Paw Advantage confers no benefit if the target dodges. The Monkey Paw Advantage cannot be included in a Combo with Charms that give extra actions.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 151}
+    "source": {"book": "The Lunars", "page": 151}
   },
   {
     "id": "lunar.melee.surprising-gibbon-attack",
@@ -177,7 +177,7 @@
     "cost": {"motes": 1, "raw": "1 mote"},
     "duration": "Instant",
     "description": "Even allowing for the reach of limbs and weapons, melee combat requires the combatants to be within a few yards of each other. Longer weapons — such as pole arms — can confer considerable advantages, particularly when facing mounted opponents. Lunar Exalted may adjust their bodies to adjust circumstances in their favor — they can elongate one or both limbs, allowing them to attack opponents some distance. A Lunar using this Charm may attack at a distance of up to his Essence in yards. If the opponent is more than three yards from the Lunar, she will be unable to make a hand-to-hand counterattack and must move before engaging the Exalt in hand-to-hand combat. Any weapon wielded in this manner — even a knife — is considered a long weapon, and the Lunar does not suffer the usual penalties for attacking mounted opponents from on foot.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 153}
+    "source": {"book": "The Lunars", "page": 153}
   },
   {
     "id": "lunar.melee.weapon-clutching-method",
@@ -192,7 +192,7 @@
     "cost": {"motes": 2, "raw": "2 motes"},
     "duration": "Instant",
     "description": "Using this Charm, the Lunar can elongate one of his arms to retrieve a weapon that has been knocked from his grasp or to otherwise arm himself. The arm may extend to a number of yards equal to twice the Lunar's Essence, grabs the weapon, then returns to its normal length with the weapon ready to use. The extension and contraction of the arm are almost simultaneous, and so, the Weapon Clutching Method cannot be used to attack at a distance. Lunars who wish to make a ranged Melee attack will need to use the Surprising Gibbon Attack.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 152}
+    "source": {"book": "The Lunars", "page": 152}
   },
   {
     "id": "lunar.melee.twisting-monkey-wrist",
@@ -207,7 +207,7 @@
     "cost": {"raw": "1 mote per die"},
     "duration": "Instant",
     "description": "In addition to proving a major advantage in weaving past an opponent's defenses, a Lunar's protean flexibility helps to make disarming opponents easy. The Lunar merely extends her limbs and alters the way her joints move in order to give her a considerable edge. When attempting a disarming attack (see Exalted, pp.238-239), the Lunar can purchase additional dice up to her Dexterity. When using this Charm, the difficulty of disarming in melee combat decreases to 2. The target may parry the attempt as usual, but his player's reflexive Wits + Melee roll requires one more success than the Lunar's disarming roll to succeed.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 152}
+    "source": {"book": "The Lunars", "page": 152}
   },
   {
     "id": "lunar.melee.tiger-claw-swat",
@@ -222,7 +222,7 @@
     "cost": {"raw": "3 motes per die"},
     "duration": "Instant",
     "description": "By lunging at his foe and binding Essence into his attacks, a Lunar can inflict monstrous damage on his opponent. The Lunar may enhance a single Melee attack by buying additional damage dice at a cost of 3 motes per die. The maximum number of points that can be added is equal to the Lunar's Strength rating. This must be done before the attack is rolled. The attack may be dodged as normal, but the difficulty of parrying an attack augmented with this Charm is greatly increased. All parry attempts must first overcome a base difficulty equal to the number of motes spent fueling Tiger Claw Swat before they subtract successes from the attack. This doesn't enhance the attack. They simply increase the difficulty of the target's parry and do not add to the damage of the Lunar's attack. Tiger Claw Swat cannot be used in a Combo with other Charms that increase damage.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 153}
+    "source": {"book": "The Lunars", "page": 153}
   },
   {
     "id": "lunar.melee.knowing-weapon-technique",
@@ -237,7 +237,7 @@
     "cost": {"raw": "3 motes per die"},
     "duration": "Instant",
     "description": "By means of this Charm, a Lunar's control over his weapon is without peer, and he can steer his attack to its most deadly effect: blades carve through flesh, and blunt weapons break bones like porcelain. After an opponent has applied his soak to an attack the Lunar makes using a hand-to-hand weapon, the Lunar may pay 3 motes of Essence per remaining point of damage. Each point paid for in this manner becomes an automatic success. The Lunar cannot buy more automatic successes in this fashion than he has points of Strength.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 153}
+    "source": {"book": "The Lunars", "page": 153}
   },
   {
     "id": "lunar.melee.scar-making-blow",
@@ -252,7 +252,7 @@
     "cost": {"motes": 2, "raw": "2 motes"},
     "duration": "Instant",
     "description": "Scars are an integral part of Lunar Exalted society, maintaining the Lunars' form and used as a means of counting coup. Scarring an opponent, without causing serious injury, is an unsubtle means of demonstrating martial superiority. A Lunar enacting this Charm can turn the Dexterity dice in his Melee attack pool into automatic successes when attempting to mark a target (see Exalted, p.238). The opponent may parry or dodge as normal, reducing the net successes for the marking attempt. Ritual scarring forms part of several Lunar events, and the Scar-Making Blow is used in some cases to impart the markings. In such cases, the target willingly undergoes the marking, and the number of successes needed to mark the target is reduced to 1. Scars imparted by this Charm are simply the product of healing and lack the magical strength of those imparted by the No Moon Caste's Form-Fixing Method.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 154}
+    "source": {"book": "The Lunars", "page": 154}
   },
   {
     "id": "lunar.melee.ferocious-avalanche-technique",
@@ -267,7 +267,7 @@
     "cost": {"raw": "1 mote per yard"},
     "duration": "Instant",
     "description": "By making a series of swift and decisive blows, a Lunar can unbalance his opponent. By using the Ferocious Avalanche Technique, the Lunar forces his opponent to give ground. For each mote of Essence spent by the Lunar, his target must either back off a yard or allow the Lunar to gain a bonus die. If the opponent has not yet acted this turn or has moved less than half his move allowance, he may back off as a reflexive action. If the opponent cannot back away, the Lunar gains a number of bonus attack dice equal to the distance the target didn't move. The maximum bonus the Lunar can gain from this attack is equal to his Dexterity, and these are Dexterity bonus dice.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 154}
+    "source": {"book": "The Lunars", "page": 154}
   },
   {
     "id": "lunar.melee.thunderclap-method",
@@ -282,7 +282,7 @@
     "cost": {"raw": "1 mote per die"},
     "duration": "Instant",
     "description": "Most competent swordsmen can adjust their blows so as to cause bashing damage to their targets. The Lunar Exalted are considerably more formidable than any mortal swordsman, and their Essence-laden blows can fell even a Terrestrial. By means of the Thunderclap Method, a Lunar increases the strength of a Melee attack while softening its impact, so that it will only fell an enemy, rather than slay her. A blow enhanced by this Charm rings like thunder, stunning the opponent. Any attack enhanced with this Charm automatically does only bashing damage, but after subtracting soak from the damage of the attack, the Lunar can activate this Charm and pay 1 mote to change a remaining die of damage to an automatic success. Each remaining die becomes an automatic success, inflicting a level of bashing damage. The Lunar cannot buy more automatic damage dice in this fashion than he has points of Strength. The Charm cannot be part of a Combo with any other Charm that grants automatic successes.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 155}
+    "source": {"book": "The Lunars", "page": 155}
   },
   {
     "id": "lunar.melee.limb-maiming-flourish",
@@ -297,7 +297,7 @@
     "cost": {"motes": 6, "raw": "6 motes"},
     "duration": "Instant",
     "description": "Using the Limb-Maiming Flourish, a Lunar uses Essence to maximize the lethal effect of her weapon, guiding it to the points that will do most damage. When rolling damage, any 10s on the damage dice count as two successes. After determining the actual amount of damage inflicted, the Lunar may reduce one instead of limiting to reduce one of the victim's Physical Attributes or Appearance by one instead of inflicting two health levels of damage. This may not reduce an Attribute below 1, nor may it be used to convert all damage into Attribute loss — the target must lose at least one health level per Attribute point lost. An Exalted requires a week of healing to recover each Attribute point lost, but such injuries are permanent if inflicted on mortals. Limb-Maiming Flourish cannot be used in a Combo with other Charms that increase damage dice.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 154}
+    "source": {"book": "The Lunars", "page": 154}
   },
   {
     "id": "lunar.melee.weapon-fusion-method",
@@ -312,7 +312,7 @@
     "cost": {"motes": 1, "raw": "1 mote"},
     "duration": "Instant",
     "description": "By means of this Charm, the Lunar's weapon becomes an extension of his body. When making a single attack or parry with a hand-to-hand weapon, the Lunar's player can use his choice of the character's Melee, Brawl or Martial Arts Abilities. The weapon's characteristics are unaffected, only the Ability used to make the attack changes. The Weapon Fusion Method cannot be used as part of a Combo that incorporates Charms that aid in unarmed Brawl or Martial Arts combat.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 155}
+    "source": {"book": "The Lunars", "page": 155}
   },
   {
     "id": "lunar.melee.weapon-shaping-prana",
@@ -327,7 +327,7 @@
     "cost": {"raw": "2 or 3 motes"},
     "duration": "Indefinite",
     "description": "Using this Charm, a Lunar can pick up any piece of wood or bone and imbue it with his Essence to transform it into a serviceable hand-to-hand weapon (selected from the list on p.327 of Exalted). It costs 2 motes to form a one-handed hand-to-hand weapon and 3 motes to form a two-handed hand-to-hand weapon. These weapons can be used by others as well as by the Lunar and persist until the Exalt withdraws the Essence committed to the Charm.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 155}
+    "source": {"book": "The Lunars", "page": 155}
   },
   {
     "id": "lunar.melee.stunning-moonsilver-blow",
@@ -342,7 +342,7 @@
     "cost": {"motes": 1, "raw": "1 mote"},
     "duration": "Instant",
     "description": "The Lunar's mastery of moonsilver weapons allows her to imbue such a weapon with Essence, causing it to flow and flatten, rather than crush or cut. With the use of this Charm, the Lunar can cause a single attack with a moonsilver weapon to inflict bashing damage rather than lethal without subtracting a success from the attack action as per the normal pulling blows rules (see Exalted, p.238).",
-    "source": {"book": "Exalted 1e The Lunars", "page": 155}
+    "source": {"book": "The Lunars", "page": 155}
   },
   {
     "id": "lunar.melee.surprising-moonsilver-deformation",
@@ -357,7 +357,7 @@
     "cost": {"raw": "2 motes per success"},
     "duration": "Instant",
     "description": "Moonsilver weapons have an innate link to the Lunar Exalted, affording them considerable advantages in combat. Combining this Charm with a moonsilver weapon's fluid nature increases the difficulty of parrying or dodging the weapon; the weapon simply flows around the opponent's defenses or anticipates the defensive moves. Increase the number of successes needed to parry or dodge a single attack with a moonsilver weapon by up to the Exalt's Essence, at a cost of 2 per additional success required. These simply increase the difficulty of the target's parry and do not add to the damage of the Lunar's attack. The difficulty modifier is applied first and must be overcome before the extra successes can be applied to defend against the Lunar's blow. This has no effect if the parrying weapon is also made of moonsilver, nor is it effective when attacking with moonsilver talons or teeth.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 155}
+    "source": {"book": "The Lunars", "page": 155}
   },
   {
     "id": "lunar.melee.deadly-moonsilver-affinity",
@@ -372,7 +372,7 @@
     "cost": {"raw": "1 or 3 motes per die"},
     "duration": "Instant",
     "description": "By means of this Charm, a Lunar can further exploit her weapon's fluid form, rendering it into a truly devastating tool, for the edge flows into blows, seeking to widen and deepen cuts or reshaping itself to smash bones for maximum effect. When making a damage roll for a moonsilver weapon, the Lunar's player can purchase additional damage dice up to the weapon's damage rating. These points are added before soak is applied. Bonus dice of damage up to the Lunar's Strength cost 1 mote each, while those that exceed the character's Strength cost 3 motes each. Deadly Moonsilver Affinity cannot be used as part of a Combo with other Charms that increase the damage value or extra successes of an attack.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 155}
+    "source": {"book": "The Lunars", "page": 155}
   },
   {
     "id": "lunar.melee.insidious-moonsilver-shard",
@@ -390,6 +390,6 @@
     "cost": {"motes": 6, "willpower": 1, "raw": "6 motes, 1 Willpower"},
     "duration": "Instant",
     "description": "A moonsilver weapon's edge is its most lethal aspect, inflicting heinous damage on the Lunar's foes. It is not, however, the only means such weapons can inflict. A more insidious option is open to appropriately minded Lunars. By activating this Charm, the Lunar empowers his moonsilver weapon so that it gains a purpose even when beyond his hands. If the blow is successful, a fragment of the blade breaks off in the wound, remaining to cause grievous harm to the victim. The player must pay for the Charm before making the attack roll. For the magic to have effect, the attack must be successful and must inflict at least one health level of damage. The attack does damage as normal, and a shard of moonsilver remains in the wound, slowly working its way through the victim's body. This causes one die of lethal damage per day and continues to cause damage until it is removed. Removing the shard requires at least Medicine 3 and is Challenging (requires 3 successes). The removal procedure causes five dice of lethal damage, minus one die per extra success (to a minimum of 1L). Charms that heal aggravated damage, such as Bodily Regeneration Prana, can also be used to expel a moonsilver shard, as can a shapeshifting stunt. Activating this Charm lowers the weapon's damage rating by 1 until the next night the moon is full.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 156}
+    "source": {"book": "The Lunars", "page": 156}
   }
 ]

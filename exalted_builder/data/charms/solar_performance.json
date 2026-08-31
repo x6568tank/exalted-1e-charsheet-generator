@@ -249,7 +249,7 @@
     "duration": "Instant",
     "description": "One of the greatest dangers of warfare is troops being out of touch with their commander. This Charm allows the caster to shout a short message to every soldier under her command. All friendly troops within a radius equal to the caster's Essence x 100 yards will hear the message. The message must be possible to call out during a single turn of combat and cannot contain more than a dozen words. In general, only its intended targets can hear it; opponents will not hear the message unless they are within earshot of the character using this Charm.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 76
     }
   },
@@ -275,7 +275,7 @@
     "duration": "Instant",
     "description": "As with Commanding the Ideal Celestial Army, a character using this Charm can give an order audible to all troops under her command. In addition, the instant before she gives the order, she receives impressions of how the battle is going on every front. The character is aware of any weakness in her lines and of which troops (if any) can safely be moved elsewhere. This knowledge combined with the ability to give a short command (two dozen words or less) to either the entire army or to any section of it \u2014 for example, \"the cavalry\" or \"the troops on the left flank\" \u2014 enables the character to exercise amazing control over her soldiers.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 76
     }
   },
@@ -301,7 +301,7 @@
     "duration": "One scene",
     "description": "The fog of war is banished for those who are truly blessed by the Unconquered Sun. For the rest of the scene, a character using this Charm knows how all areas of the battle are going and is instantly aware of any weakness in his lines or of any troops who have crushed their opponents. The character can, at will, speak messages that will be heard by his entire army, or by any specific portion of it to which he wishes to give orders. This ability to continuously direct the battle gives all soldiers under the character's command one additional die for all combat-related rolls and reduces by 1 the difficulty of all Valor rolls made by those same troops.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 76
     }
   },
@@ -327,7 +327,7 @@
     "duration": "One day",
     "description": "Sometimes, there are places that a woman can go that a man cannot, and vice versa. This Charm helps an Exalted overcome such problems through disguise. By applying Essence to the task, the Chosen can enhance his illusion of femininity (or her illusion of masculinity). The application of Essence reshapes the Exalt's body into the proper curves and leaves those who might see his or her sex organs with the impression that they were those of the opposite gender. The Charm will not fool close physical examination and does not allow intercourse, but anyone doing a less thorough inspection will be deceived.",
     "source": {
-      "book": "Exalted 1e Caste Book: Zenith",
+      "book": "Caste Book: Zenith",
       "page": 76
     }
   },
@@ -349,7 +349,7 @@
     "duration": "Instant",
     "description": "The character channels Essence through his body, enhancing his sense of rhythm and making his dance a riveting display. To use this Charm, the character must be performing a dance. The player first makes a regular Charisma + Performance roll for the character. Then, the player may \"buy\" additional successes, up to (the character's permanent Essence rating + the number of successes rolled on his Charisma + Performance roll). Each success bought in this fashion costs 2 motes of Essence. Graceful Reed Dancing is not compatible with Masterful Performance Exercise, as it is basically the same Charm for a different mode of Performance.",
     "source": {
-      "book": "Exalted 1e Caste Book: Zenith",
+      "book": "Caste Book: Zenith",
       "page": 76
     }
   },
@@ -378,7 +378,7 @@
     "duration": "One scene",
     "description": "This Charm raises the art of seduction through dance to a supernatural level. So long as an Exalt using this Charm continues to dance, all who watch the performance see him or her as the most desirable being possible, regardless of their sexual preference. They are unwilling to harm the Chosen and are likely to behave irrationally in an attempt to impress the Solar. This Charm is ineffective on beings with an Essence higher than the Exalted invoking the power. The Charm does not work on characters who are in combat or who otherwise have reason to believe the Exalt means them harm. Overtly hostile acts on the part of the dancing character dispel the Charm's effect.",
     "source": {
-      "book": "Exalted 1e Caste Book: Zenith",
+      "book": "Caste Book: Zenith",
       "page": 76
     }
   },
@@ -404,7 +404,7 @@
     "duration": "Special",
     "description": "By combining song and dance with the art of seduction, the Exalted invoking this Charm weaves a spell of influence over a chosen target. Like Husband-Seducing Demon's Dance, this Charm starts with a masterful performance by the Exalted. This performance includes both song and dance and is directed at a specific individual. Regardless of the specific genders of the Exalted and the target, the target will be entranced by the extreme desirability of the performer.\n\nOther observers of the Divine Performance will be affected much as if observing the Husband-Seducing Demon's Dance, but the Charm will have no overt effect on them. Against the chosen target, however, there is an extended effect. The Exalt's player rolls Charisma + Performance and compares the resulting number of successes against the target's permanent Willpower. Other Charms may be used to enhance this Performance roll, including the Masterful Performance Exercise.\n\nIf the Chosen achieves more successes than the target's permanent Willpower, the target will be particularly vulnerable to the influence of the performer for a number of days. The duration of this influence is equal to the difference between the Exalt's permanent Essence and the target's. While under the influence of the Divine Performance, a victim is at a -1 Essence with regard to the use of mind-controlling or -affecting Charms by the Exalt. For example, if the Exalted achieves 10 successes against a character with a Willpower of 7, the target will be at a -1 Essence penalty for 3 days.\n\nBeings with Essence 1 who have their Essence reduced become the infatuated thralls of the Exalt for the duration of the effect (though they may easily be manipulated into doing so), but they will perform almost any other act, even the most foolish or foolhardy.\n\nThe Essence penalty does not stack with other uses of Divine Performance Style, but the Exalt can use Divine Performance again before a previous application has expired to extend its duration. In this case, the new result replaces the older one, even if it is lower. With proper planning, an Exalted performer can keep one or more targets entranced indefinitely.",
     "source": {
-      "book": "Exalted 1e Caste Book: Zenith",
+      "book": "Caste Book: Zenith",
       "page": 77
     }
   },
@@ -426,7 +426,7 @@
     "duration": "Special",
     "description": "Through the use of this Charm, the Exalted weaves a complicated false identity around herself. The identity is complete with a detailed history and natural personality traits. Mere conversation cannot detect any flaws in the identity. In fact, the infallibility of the identity is perfect until the Exalted chooses to drop the fa\u00e7ade or she is faced with an investigative intellect that is likewise Charm-enhanced. King of Masks Technique provides no resistance to interrogation techniques.\n\nWhen invoking the Charm, the Exalted crafts a back-story for herself and her player makes a Intelligence + Performance roll, adding one automatic success for each mote of Essence she chooses to invest. The total number of successes is the number of successes an investigator must achieve to see through the false identity, but this can never exceed twice the character's Intelligence + Performance pool. Only Charm-enhanced Investigation rolls will reduce this pool of successes, but all such investigations are cumulative. The Fair Folk and beings with Essence higher than the character are immune to the effects of this Charm.\n\nAt the time of an identity's creation, the Exalted may spend one experience point to make the identity permanent. The character may resume a permanent identity at any time by spending half as many motes of Essence as she originally spent creating the identity. Persistent investigators can wear away at and eventually destroy permanent identities. If an identity is pierced, then the experience point is lost. Permanent identities can be investigated even when the character is not using them. Motes of Essence spent creating a permanent identity are not committed after the identity is first \"put aside,\" but whenever the character resumes the identity, the Essence she pays to resume it is committed while she uses the identity.\n\nThis Charm cannot be used to mimic specific individuals. It can only create fictional identities. An Exalted may have as many permanent identities as she has points of permanent Essence.",
     "source": {
-      "book": "Exalted 1e Caste Book: Zenith",
+      "book": "Caste Book: Zenith",
       "page": 78
     }
   },
@@ -452,7 +452,7 @@
     "duration": "Special",
     "description": "Impenetrable Identity is initially identical to King of Masks Technique, but with some significant enhancements. First of all, while using Impenetrable Identity, the Exalted becomes the role he has chosen. While the Charm is in effect, he consciously and even subconsciously believes he is the role he has adopted. Interrogation techniques that do not have a magical basis are useless for discovering the Chosen's true identity because the character has no idea that he is not his cover identity.\n\nWhen invoking the Charm, the Exalted crafts a back-story for himself and makes a Intelligence + Performance roll, adding two automatic successes for each mote of Essence, beyond the base cost of 10, she chooses to invest. As with King of Masks Technique, the number of successes can never exceed twice the character's Intelligence + Performance pool. Normal investigation and interrogation is useless against Impenetrable Identity, and when Charm-enhanced interrogation or investigation is used to attack an Impenetrable Identity, only half the investigator's successes, rounded down, count for reducing the success pool.\n\nAt the time the Charm is invoked, the Chosen may set any number of conditions that will automatically restore her original identity. This can include a time period, arrival at a specific location, spoken key words or any other triggering event that the character chooses to specify prior to assuming the Impenetrable Identity. There can be as many triggering conditions as the character wishes, and if they are at all complex, they should be written down to prevent disputes. The identity also ends automatically if anyone can pierce it and prove it to be false. When the identity ends, it is gone forever, and the experience point is lost.",
     "source": {
-      "book": "Exalted 1e Caste Book: Zenith",
+      "book": "Caste Book: Zenith",
       "page": 78
     },
     "extra_min_abilities": [

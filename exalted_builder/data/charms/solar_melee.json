@@ -502,7 +502,7 @@
     "duration": "One scene",
     "description": "The character increases her mastery of her power and learns to charge her weapon with Essence for an entire battle. Filled with devastating might, the weapon can deliver punishing blows to all opponents. Add the character's permanent Essence to the weapon's damage for the rest of the scene. Any weapon save one of exceptional quality will fall to pieces after the end of this scene, and only weapons made of the Five Magical Materials can stand up to repeated uses of this Charm. A character can benefit from the effects of only one application of this Charm at a time.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 74
     }
   },
@@ -531,7 +531,7 @@
     "duration": "Special",
     "description": "The character may block, without rolling, a number attacks against him that he is aware of equal to his Melee Ability, even if the attack is not normally blockable (like a bolt of acid or a hurtling boulder). Blocking even a single strong attack by a powerful spirit or a Yozi will cause any non-magical weapons to perish, but the Charm will blunt the attack at no harm to the blocking character. Characters wielding magical weapons can parry any number of incredibly powerful attacks without risk.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 74
     }
   },
@@ -553,7 +553,7 @@
     "duration": "Instant",
     "description": "The character guides his hands with Essence, allowing him to fight with weapons in both hands. This Charm reduces multiple action penalties by 2 for an attack or parry action performed by a character wielding two weapons and completely eliminates the penalty for using a weapon in the character's off hand. The character can activate this Charm a maximum number of times per turn equal to his Melee score.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 70
     }
   },
@@ -579,7 +579,7 @@
     "duration": "One turn",
     "description": "Through harmony with the Essence flows, a character holding a weapon in each hand can strike once with each weapon without penalties for off-hand use or multiple actions. In a single turn, the character can make two parries, two attacks or one attack and one parry without any penalties for multiple actions. However, a character cannot split his dice pool when using this Charm, and the character's parry is a normal single-attempt parry unless the Exalt is also using Two Swords Technique. In order to use this Charm, the character must have weapons in both hands. This Charm may explicitly be placed in a Combo despite its non-Instant duration. This Charm may be activated reflexively but Combos as if it were of the Extra Actions type.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 70
     }
   },
@@ -605,7 +605,7 @@
     "duration": "One scene",
     "description": "The character can now allow Essence to manage his hands for him and receives no penalty for fighting with two weapons for an entire scene. He may use either weapon to perform any combat action without penalty. This does not allow him to take extra actions as if he were using Charms, but he may split his dice pool normally. In addition, this Charm completely eliminates the off-hand penalty and also allows the character to sacrifice an action for the turn make a \"cascading parry.\" This consumes both his actions for the turn. The cascading parry's dice pool starts at the Exalt's Dexterity + Melee + the sum of the two weapons' defensive bonuses and drops by 1 for each successive parry attempt. A character using Two Swords Technique can abort to this defense, just as if he were aborting to a full dodge or a full parry. In order to use this Charm, the character must have weapons in both hands.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 70
     }
   },
@@ -634,7 +634,7 @@
     "duration": "One scene",
     "description": "The character enfolds himself in Essence, allowing it to guide his actions as he whirls through a breathtakingly graceful whirlwind of deadly blows. So long as he has weapons in both hands, a character who has activated this Charm is an incredibly deadly opponent.\n\nWhenever the character is attacked, he may make a reflexive automatic parry attempt with whichever of his weapons he chooses at his Dexterity + Melee + any other modifiers. In addition, he may reflexively counterattack any hand-to-hand attack with whichever of his weapons he chooses. This counterattack is rolled after the automatic parry, and if the automatic parry is successful, extra successes on the parry attempt are added as bonus dice to the counterattack roll.\n\nThe parry and the counterattack are \"normal\" actions for the character, and so, the character could enhance his counterattacks with Excellent Strike or his defense with Golden Essence Block, but the character still cannot invoke the effects of more than one different Charm per turn without a Combo. In addition, a character under the effects of this Charm may not use or benefit from extra action Charms, nor may he use or benefit from any effect that causes him to make another parry or another riposte. The counterattack bonus dice added by extra successes on the parry attempt are a Charm bonus and count against the character's Attribute + Ability maximum for bonus dice if he uses other Charms to enhance the riposte. The counterattack effect of Steel Devil Style cannot be used in response to other counterattack effects, but the automatic parry is still active against these attacks.\n\nIn order to use this Charm, the character must have weapons in both hands. If the character is no longer using two weapons, he loses access to the Charm's effects, though he can use them again the instant he is rearmed. A character under this Charm's effects who no longer has a weapon in either hand is still unable to activate extra action, full parry or riposte Charms while disarmed and must terminate the Charm's effects (this can be done reflexively and does not require dice or count as an action) in order to permit these types of effects to work on him.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 71
     }
   }

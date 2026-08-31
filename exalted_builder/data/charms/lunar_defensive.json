@@ -12,7 +12,7 @@
     "cost": {"motes": 1, "raw": "1 mote"},
     "duration": "Instant",
     "description": "By means of this Charm, the Lunar focuses Essence into the skin of his hands and forearms, briefly causing them to become iron-hard. This allows the Lunar to parry hand-to-hand or ranged attacks, even if unarmed, though it confers no bonus to the parry and cannot be used as part of an offensive action.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 161}
+    "source": {"book": "The Lunars", "page": 161}
   },
   {
     "id": "lunar.defensive.ground-denying-defense",
@@ -27,7 +27,7 @@
     "cost": {"raw": "2 motes per enemy denied"},
     "duration": "One turn",
     "description": "In clear terrain, up to five opponents can attack a single target in a given turn. By using the Ground-Denying Defense to focus his instincts, a Lunar can use the terrain and the opponent's own actions to limit the number of attackers he faces in a given turn. For every 2 motes spent, the Lunar can reduce the maximum number of opponents able to attack him in a turn by one. Essence spent to activate this Charm must be spent before initiative is rolled for the turn. The Lunar has no control over which opponent he avoids — those with the highest initiative scores are still able to attack, while those with lower initiative values are evaded — nor can he reduce the maximum number of opponents by more than his Dexterity or below one. The Ground-Denying Defense can be used in any terrain, even open ground. If the terrain naturally reduces the number of potential attackers, for example a narrow passage, the Ground-Denying Defense reduces the modified maximum number of attackers for that terrain but still cannot reduce the value below one. The Charm reduces the MAXIMUM number of attackers that a character faces, not the actual number. In a narrow tunnel that allows a maximum of two attackers, a Lunar would only need to spend 2 motes to reduce the number of attackers to one.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 161}
+    "source": {"book": "The Lunars", "page": 161}
   },
   {
     "id": "lunar.defensive.golden-tiger-block",
@@ -42,7 +42,7 @@
     "cost": {"raw": "1 mote per success"},
     "duration": "Instant",
     "description": "The preternatural speed of a Lunar Exalted gives him a substantial advantage when seeking to parry an opponent's attacks. Indeed, a sufficiently dexterous Lunar can use the Golden Tiger Block to render himself almost unassailable. When making a parry, he may spend 1 mote to convert a die into an automatic success. He may only purchase as many automatic successes as he has points of Dexterity in that pool. A Lunar using the Golden Tiger Block may parry lethal damage even if unarmed.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 162}
+    "source": {"book": "The Lunars", "page": 162}
   },
   {
     "id": "lunar.defensive.feline-guard-technique",
@@ -57,7 +57,7 @@
     "cost": {"motes": 3, "raw": "3 motes"},
     "duration": "Instant",
     "description": "Like a cat, the Lunar is always ready to respond to attacks. By means of the Feline Guard Technique, a Lunar may parry an attack with his full relevant Ability pool total (meaning Dexterity + Ability + any weapon modifiers). The character cannot activate this Charm more times in a turn than he has points of permanent Essence. A Lunar cannot dodge during a turn in which he activates the Feline Guard Technique. A Lunar may not move more than half his movement allowance. Feline Guard Technique cannot be used in any Combos that contain extra action Charms. This Charm is not effective against attacks the character is not aware of.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 162}
+    "source": {"book": "The Lunars", "page": 162}
   },
   {
     "id": "lunar.defensive.wary-swallow-method",
@@ -72,7 +72,7 @@
     "cost": {"motes": 2, "raw": "2 motes"},
     "duration": "Instant",
     "description": "Using this Charm, a Lunar can attempt to parry an attack directed at him, even if he is unaware of it (for example, an attack from the rear or by an invisible character). The Exalt allows instinct to guide his actions and, thus, can respond to events that have yet to register in his conscious mind. The Lunar gains no advantage in the parry action, but he may use his full dice pool in the attempt if he has not yet acted during the turn. The Lunar can postpone his action, but once he has taken it, he may not use Wary Swallow Method to gain a parry.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 162}
+    "source": {"book": "The Lunars", "page": 162}
   },
   {
     "id": "lunar.defensive.den-mother-method",
@@ -87,7 +87,7 @@
     "cost": {"motes": 2, "raw": "2 motes"},
     "duration": "Instant",
     "description": "Using his superhuman reflexes, a Lunar Exalted who has yet to act can activate this Charm and abort his action to parry an attack directed at another character. This Charm is effective so long as the Lunar is aware of the attack, it is possible to parry it and the target is within (the Lunar's permanent Essence) yards. If the Lunar has already acted, then this Charm has no effect. The Lunar uses his entire dice pool to parry the attack, and any parry successes he gets are added to those achieved by the character he is aiding.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 162}
+    "source": {"book": "The Lunars", "page": 162}
   },
   {
     "id": "lunar.defensive.crouching-tiger-stance",
@@ -102,7 +102,7 @@
     "cost": {"motes": 4, "raw": "4 motes"},
     "duration": "Instant",
     "description": "A skilled Lunar can turn his opponent's attack into a deadly counter, the Lunar extending and twisting his limbs in a manner that allows him to go on the offensive in hand-to-hand attacks. He parries with his full dice pool +2 Dexterity bonus dice in the parry attempt he enhances with the Crouching Tiger Stance, and if he completely blocks the attack, the Lunar may immediately make a reflexive Melee, Martial Arts or Brawl counterattack with his full dice pool against his opponent. If he only partially parries the blow, he cannot counterattack. The Lunar must activate this Charm before he acts for the turn — he may postpone his action, but if the Lunar has already acted, then this Charm cannot be used in the turn. The Crouching Tiger Stance confers no advantages against a ranged attack, nor can it be used to counter counterattacks or against attacks the Lunar is not aware of.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 162}
+    "source": {"book": "The Lunars", "page": 162}
   },
   {
     "id": "lunar.defensive.bowing-reed-technique",
@@ -117,7 +117,7 @@
     "cost": {"motes": 4, "raw": "4 motes"},
     "duration": "Instant",
     "description": "Mobility and agility are innate characteristics of the Lunar Exalted, who can use them to considerable effect when seeking to avoid damage. By activating this Charm when the player declares a full dodge (see Exalted, p.231), the Lunar does not suffer any dice-pool penalties for dodging multiple attacks for the rest of the turn. She may use her full Dexterity + Dodge pool against attacks for the remainder of the turn, providing she is able to maneuver away from attacks. A Lunar rendered immobile by terrain, magic or other effects gains no advantage from the Bowing Reed Technique.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 163}
+    "source": {"book": "The Lunars", "page": 163}
   },
   {
     "id": "lunar.defensive.bending-before-the-storm",
@@ -132,7 +132,7 @@
     "cost": {"raw": "1 mote per success"},
     "duration": "Instant",
     "description": "Using this Charm, a Lunar can use his Essence to enhance his dodging efforts. Upon activating this Charm, he moves as gracefully as a swan and as sure-footedly as a mountain goat. Before making a dodge roll, the Lunar's player may spend Essence to transform some of his dice on a dodge attempt into automatic successes at a cost of 1 mote per die converted. The Lunar's player may purchase as many automatic successes as the character's Dexterity Attribute, even if circumstances — such as making multiple evasion attempts while using full dodge — reduce the number of dice in the dodge pool below the character's Dexterity, then the size of the pool is the maximum number of successes that may be purchased. The successes must be purchased separately for each dodge attempt, so a Lunar who player sought to gain five automatic successes on each of three dodge attempts in the same turn would spend a total of 15 motes. A Lunar rendered immobile by terrain, magic or other effects gains no advantage from Bending Before the Storm and must rely on parry or soak to avoid the attack.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 163}
+    "source": {"book": "The Lunars", "page": 163}
   },
   {
     "id": "lunar.defensive.wind-dancing-method",
@@ -147,7 +147,7 @@
     "cost": {"motes": 4, "raw": "4 motes"},
     "duration": "Instant",
     "description": "Simply dodging an attack may not be enough to save an Exalt from harm — his opponent may have multiple actions and may keep attacking until the character's defenses fail. Using the Wind-Dancing Method, a Lunar can use his agility to both avoid an attack and make it much harder for an opponent to press her advantage. By using this Charm, when dodging, if he succeeds in dodging an attack, the Lunar can move up to eight yards from the opponent as a reflexive part of the dodge action, even if the Lunar has already moved this turn. In hand-to-hand combat, this means the opponent must herself move or use some reach-extending magic if she wishes to attack again. If the attacker cannot reach the Lunar for her next attack, she may make no further attacks against her opponent this turn. A Lunar who is attacked repeatedly can activate this Charm after each attack and continue moving away from the attacker, hoping to exhaust her movement. Note that this Charm does not allow the Lunar to take a dodge action if he could not normally do so — Lunars wishing to defend themselves without splitting their dice pools or going full dodge will have to put this Charm in a Combo.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 164}
+    "source": {"book": "The Lunars", "page": 164}
   },
   {
     "id": "lunar.defensive.serpent-eye-defense",
@@ -162,7 +162,7 @@
     "cost": {"motes": 4, "raw": "4 motes"},
     "duration": "Instant",
     "description": "By locking his eyes with his attacker and activating this Charm, the Lunar may distract his opponent and cause the attack to go awry. The attacker must be within a number of yards equal to (5 x the target's Perception) for the Charm to be effective — the opponent needs to be able to see the Lunar's eyes for them to distract him. If the attacker does not use her visual senses — for example, if she is blind or blindfolded — then the Charm is wasted. If the victim is deliberately avoiding the Lunar's gaze, this increases the difficulty of all actions involving the Lunar (including attack and defense rolls) by 2, and the avoidance must be declared before the Charm is activated. Once stung, the opponent may begin avoiding the Lunar's gaze, but the target cannot suddenly decide to begin when the Lunar activates this Charm. If the Charm takes effect, the attacker is momentarily confused as to the Lunar's position, and the Lunar may add a number of dice to his dodge pool equal to his Charisma. These are not Dexterity bonus dice, they are Charisma dice, and thus, they circumvent the normal ceiling on dodge bonus dice.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 164}
+    "source": {"book": "The Lunars", "page": 164}
   },
   {
     "id": "lunar.defensive.unmoving-bear-defense",
@@ -177,7 +177,7 @@
     "cost": {"motes": 2, "raw": "2 motes"},
     "duration": "Instant",
     "description": "Dodges usually require the defender to maneuver and are thus impossible if the character cannot give ground. Using the Unmoving Bear Defense, a Lunar Exalted can dodge attacks without moving, instead using his protean abilities to twist and deform his body to avoid the attacks. The Lunar must be conscious and able to maneuver to use this Charm, though he does not need to actually move his feet. When dodging, he may add his Essence to his dice pool in a dodge action. If the character has no dodge action, he may use his Essence as his dice pool in a dodge attempt. This Charm is not compatible with other Charms that add dice to the character's dodge attempts but does not preclude Charms that allow dodge attempts at the character's full dice pool.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 165}
+    "source": {"book": "The Lunars", "page": 165}
   },
   {
     "id": "lunar.defensive.foot-trapping-counter",
@@ -192,7 +192,7 @@
     "cost": {"motes": 2, "raw": "2 motes"},
     "duration": "Instant",
     "description": "If, during hand-to-hand combat, an opponent seeks to move away from the Lunar, he may activate this Charm to hinder the move. The opponent's player makes a reflexive Dexterity + Athletics roll against a difficulty equal to the Lunar's Dexterity. If the opponent succeeds, she may move as intended; otherwise, she must remain in the same position. This can stop Charm-powered escapes such as the Lunar Charm Wind-Dancing Method and the Terrestrial Hopping Firecracker Evasion and even high-speed flyby attacks such as the Solar Eagle-Wing Style.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 165}
+    "source": {"book": "The Lunars", "page": 165}
   },
   {
     "id": "lunar.defensive.flowing-body-evasion",
@@ -207,7 +207,7 @@
     "cost": {"motes": 6, "willpower": 1, "raw": "6 motes, 1 Willpower"},
     "duration": "Instant",
     "description": "For a dodge to be effective, the character must be able to move away from the source of possible injury. Most attacks — a fist, a sword, an arrow — are concentrated on a single point and are, thus, avoidable, but not all attacks are. Some attacks are so magically enhanced they are unavoidable, while others affect an area, perhaps encompassing sufficient space that a character doesn't have the speed to get clear before the blow lands. In such cases, the character would ordinarily be unable to dodge away from the attack. However, a Lunar who knows Flowing Body Evasion may attempt to cheat fate, using speed, agility and his shapeshifting nature to avoid harm. The exact method will vary — perhaps the Lunar puts on a burst of speed, dodges with godlike agility or squeezes into a tiny hole — but the end result is the same; a nearly perfect dodge. Properly used, this technique provides a nearly impenetrable defense. When the Lunar activates this Charm, his player must make a reflexive Dexterity + Dodge roll. If the player gets at least one success, the Exalt avoids the attack totally. If the roll fails, the attack affects the Lunar normally. This is a dodge action, so a Lunar who fails to make a dodge with this Charm cannot attempt to make an 'actual' dodge roll for the turn. This Charm cannot be placed in a Combo with any Charm that would cause the Lunar's player to automatically succeed on the Dexterity + Dodge roll. A Lunar can only use this Charm before he takes his action for the turn — he may postpone his action, but once he acts, he is unable to invoke Flowing Body Evasion.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 165}
+    "source": {"book": "The Lunars", "page": 165}
   },
   {
     "id": "lunar.defensive.pack-saving-method",
@@ -222,7 +222,7 @@
     "cost": {"raw": "2 or 3 motes"},
     "duration": "Instant",
     "description": "Using this Charm, a Lunar can use his preternatural abilities to help defend his associates. If an ally is attacked, the Lunar may abort his action and seek to wrest the friend out of harm's way. The associate must be within a number of yards equal to the Lunar's Dexterity for him to be able to use the Charm, and the Lunar must pay the Essence cost as soon as his player declares the action. The Essence cost is usually 3 motes per attempt, but if the ally is bound to the Lunar by the Charm Brotherhood of Lake and River, the cost is only 2 motes. The Lunar's player makes a Dexterity + Dodge roll, and if the player rolls but a single success, the original target avoids taking damage from the attack. The Lunar takes the attack instead, with the dodge roll applied as a normal defense. If the roll botches, both the Lunar and the target take the attack, and neither can make any further defense against it. Lunars may use this Charm more than once in a turn, but it must be used before they take their action for the turn. The Lunar can postpone his action, but once he has made his dice action, he can no longer use this Charm. The shielded character cannot decline the effects of this Charm.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 165}
+    "source": {"book": "The Lunars", "page": 165}
   },
   {
     "id": "lunar.defensive.running-through-the-herd",
@@ -240,7 +240,7 @@
     "cost": {"motes": 4, "willpower": 1, "raw": "4 motes, 1 Willpower"},
     "duration": "Instant",
     "description": "Using a mix of Dexterity, shapeshifting and illusion to confuse his opponent, a Lunar can employ this Charm to mislead an enemy into attacking the wrong person. To use this Charm, the Lunar must be in close proximity to his intended target (who must be less than the Lunar's Dexterity in yards away). The Lunar spends the Essence to activate the Charm, then his player reflexively rolls the Exalt's Dexterity + Dodge. For the Charm to take effect, the Lunar's player must get as many successes as the attacker's Perception. If the Lunar succeeds, the Lunar avoids damage, and the new target is subject to the attack. The new target may attempt to parry or dodge as normal if she has actions available. If the redirection attempt fails, the Lunar takes damage normally — he sacrificed his dodge attempt in the redirection effort. This Charm cannot be used to avoid counterattacks, nor is it compatible with Charms that cause the Lunar to gain automatic dodge successes.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 166}
+    "source": {"book": "The Lunars", "page": 166}
   },
   {
     "id": "lunar.defensive.hide-toughening-essence",
@@ -255,7 +255,7 @@
     "cost": {"raw": "1 mote per 2 points"},
     "duration": "One scene",
     "description": "Using this Charm, a Lunar's skin thickens and strengthens, providing the Lunar with additional soak against bashing damage. When this Charm is invoked, or as a simple action at any time later in the scene, the Lunar's player may purchase bonus points of bashing soak for his character. A player cannot purchase more points of bashing soak than his character has dots of Stamina. The player must purchase at least one point when the Charm is activated. The Lunar's outward appearance is largely unchanged, though closer examination will show the modifications to his hide. The Lunar can wear armor as normal while under the effects of this Charm. The Lunar's bashing soak cannot be raised above 12 by the combined effects of this Charm and Deadly Beastman Transformation's gifts and effects on the character's Stamina. Instead, the character may ignore bashing attacks that do less raw damage than the difference between 12 and what the character's soak would be without the limit. A character may never ignore attacks doing more than 12 points of raw damage, regardless of what his soak should be.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 166}
+    "source": {"book": "The Lunars", "page": 166}
   },
   {
     "id": "lunar.defensive.armor-forming-technique",
@@ -270,7 +270,7 @@
     "cost": {"raw": "1 mote per point"},
     "duration": "One scene",
     "description": "The Armor-Forming Technique creates bony plates in the Exalt's body and limbs and hides vital organs behind multiple sheets of moonsilver-laced bone. These defenses allow the character to bolster his resistance to even lethal damage. The bone grows up and around the character's armor, sealing his weak points and reinforcing his armor's strength. Thus, this Charm is compatible with the use of armor. When this Charm is invoked or at any time thereafter during the scene, the player may spend motes of Essence to purchase extra soak against lethal damage for his character. The maximum number of points of soak the player can purchase is equal to half (round down, minimum of 1) his character's Stamina Attribute. Unlike the Hide-Toughening Essence, the changes wrought by the Armor-Forming Technique are profound and immediately obvious to any observers. Furthermore, each point purchased with the Charm reduces the Lunar's Appearance by 1 (to a minimum of 0, at which point the character is hideous to behold). The Lunar's lethal soak cannot be raised above 12 by the combined effects of this Charm and Deadly Beastman Transformation's gifts and effects on the character's Stamina. Instead, the character may ignore bashing attacks that do less raw damage than the difference between 12 and what the character's soak would be without the limit. A character may never ignore attacks doing more than 12 points of raw damage, regardless of what his soak should be.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 166}
+    "source": {"book": "The Lunars", "page": 166}
   },
   {
     "id": "lunar.defensive.limb-shielding-growth",
@@ -285,7 +285,7 @@
     "cost": {"motes": 3, "raw": "3 motes"},
     "duration": "One scene",
     "description": "Using this Charm, the Lunar causes a large bony growth to appear on one of his arms (usually the off hand). He can use this 'shield' to protect his body from hand-to-hand and ranged attacks alike, gaining the benefits of a target shield, automatically reducing attackers' success dice by one. The Lunar does not suffer a mobility penalty for using Limb-Shielding Growth, nor does it add to his fatigue value, but any attacks made using the hand upon which the shield has grown are at -1 dice.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 167}
+    "source": {"book": "The Lunars", "page": 167}
   },
   {
     "id": "lunar.defensive.scales-of-the-dragon",
@@ -300,7 +300,7 @@
     "cost": {"motes": 6, "willpower": 1, "raw": "6 motes, 1 Willpower"},
     "duration": "One scene",
     "description": "Using this Charm, a Lunar can transform his skin to resemble the hide of a ferocious Celestial dragon. His body is covered with a series of overlapping moonsilver-reinforced scales that glisten coldly in the light and provide formidable protection against all forms of attack. It is as if the Lunar is swathed in articulated plate armor, and the Lunar gains a +9L/+9B soak bonus, while incurring only a -1 mobility penalty. The armor has no fatigue value, and it is not counted as armor for the purposes of attacks that ignore armor, but it does count as armor for the purposes of stopping aggravated damage. Unlike the other armor-enhancing Charms known to the Lunar Exalted, Scales of the Dragon is not compatible with the use of armor. However, the Lunar's player continues to add his character's Stamina (or one half Stamina against lethal damage) to his soak. The Lunar still gains the benefits of a shield (if carried) and can reinforce his defense with Hide-Toughening Essence and Armor-Forming Style. No combination of this Charm, those two Charms or the effects of Deadly Beastman Transformation can increase either of the character's natural soaks above 12. If the character's soak would rise above 12, then the character will ignore attacks that have a raw damage less than the difference between 12 and what the Lunar's soak should be, to a maximum of 12.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 167}
+    "source": {"book": "The Lunars", "page": 167}
   },
   {
     "id": "lunar.defensive.invulnerable-moonsilver-carapace",
@@ -318,6 +318,6 @@
     "cost": {"motes": 8, "willpower": 1, "raw": "8 motes per turn, 1 Willpower"},
     "duration": "One turn",
     "description": "By activating this Charm, the Lunar shields herself in a carapace of moonsilver, which appears to flow out of her pores to completely cover her body in shimmering plates. There are no gaps or weak points in this armor, which glistens fluidly as the Lunar moves. Though appearing to be liquid, the Invulnerable Moonsilver Carapace is nigh invulnerable to any form of attack. It adds 15B/15L to the Lunar's soak until the end of the turn. This Charm stacks with armor and cannot be circumvented by any stratagem, Charm or sorcery (this is a perfect effect) and is not armor for the purposes of Charms that do not stack with armor. Its Essence cost is, however, crippling. During turns when the Invulnerable Moonsilver Carapace is activated, the Lunar suffers a -3 penalty to her Dexterity and Perception, though this cannot reduce the Attributes below 1.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 167}
+    "source": {"book": "The Lunars", "page": 167}
   }
 ]

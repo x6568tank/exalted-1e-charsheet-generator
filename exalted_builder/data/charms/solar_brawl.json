@@ -234,7 +234,7 @@
     "duration": "Until used",
     "description": "A master warrior must have complete knowledge of his own skills and prowess. With a moment of focus, the Solar centers himself and secures his knowledge of victory. When the perfect opportunity to strike comes, the Solar will know and make full use of the opening. Unlike the meditative nature of martial arts, this technique is trance-like, similar to the perfect, blood-tinted awareness of victory that cold-eyed berserkers receive.\n\nThe Solar takes a moment to focus himself into his trance, letting his skill reach an instinctive level, and then, his player rolls the character’s Wits + Brawl, adding a number of successes equal to the Solar’s Essence. The Solar may spend a Willpower point on the roll for an automatic success, augment it with any appropriate Charms or use any other appropriate, normal method for improving the success of this roll. The Solar’s player notes the number of successes he received on the roll. At any time for the remainder of the scene, the Solar may reflexively replace the results of any single Brawl roll with the successes rolled during the activation of Inevitable Victory Meditation. Inevitable Victory Meditation replaces the previous roll in its entirety, and any bonuses that applied to the previous roll, including dice or successes gained from Charms, Virtues or Willpower points, are lost. After Inevitable Victory Meditation has replaced a Brawl roll, the Charm expires, and the character must activate it again if he wishes to reap its benefits once more. A Solar may freely end the Charm prematurely if, for example, his player rolls poorly upon activation and wishes to try again for a better result. While activating Inevitable Victory Meditation counts as the Solar’s Charm use for the turn, replacing the successes of a roll does not. A Solar may wait for his opponent to roll for his defense before replacing the successes of his attack roll. A Solar may not have more than one instance of this Charm active at any given time.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 100
     }
   },
@@ -260,7 +260,7 @@
     "duration": "Instant",
     "description": "A master warrior must have complete knowledge of his surroundings and the progression of the fight. For a Solar who has mastered this technique, the battle flows around him, and he makes instinctive use of everything that surrounds him and the constant, shifting nature of the fight to his advantage. Brawlers with this Charm have a reputation for foolhardy bravery and dumb luck, for they make use of surprising and spectacular aspects of the fight, turning seemingly hopeless situations to their advantage.\n\nAny time a Solar gains bonus dice from a stunt, the Solar may spend 3 motes per stunt die to convert each die into an automatic success. The die isn’t rolled and is simply counted as a success. To use this Charm, the stunt must make use of the Solar’s surroundings or some ongoing aspect of the fight (such as his opponent’s last attack), or the Solar must perform a surprisingly brave or foolhardy act. For the purposes of this Charm, the bonus dice gained from the Daredevil or Signature Style Merits count as stunt dice.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 100
     }
   },
@@ -286,7 +286,7 @@
     "duration": "Instant",
     "description": "A master warrior must have complete knowledge of his opponent, understanding the true extent of the danger he faces. The greatness of Solars can only manifest when faced with foes of equal greatness, and those who have mastered Dancing with Strife Technique understand this principle, throwing themselves at greater and greater foes to feel the joy of battle. Anytime the Solar successfully defends himself from an attack that received no less than (the Solar’s Essence or 5, whichever is higher) successes, he may activate this Charm and gain a temporary point of Willpower. This Charm does not allow the Solar to gain more temporary Willpower than his permanent rating.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 101
     }
   },
@@ -316,7 +316,7 @@
     "duration": "One scene or until used",
     "description": "A true warrior has mastered himself, his battlefield and his foes. Every movement, every attack, every action of his foes only increases the mastery of the Solar’s combat technique as he is driven to prove his supremacy upon the field of battle. Anytime an enemy takes an action against the Solar, either an attack or a defense, the Solar may reflexively activate Supremacy of War Method in response. The Solar may commit 1 mote per success his opponent made on his roll. At any time during the following scene, the Solar may add a number of dice to any Brawl roll up to the number of motes committed to Supremacy of War Method. Each die added reduces the Essence committed by 1 mote. A Solar must choose to add dice to his roll before, not after, he makes his roll.\n\nActivating Supremacy of War Method counts as a Charm use for the turn, but gaining bonus dice does not. For example: Michael is attacked by an Immaculate who scores seven successes on his attack roll. Michael spends 7 motes on Supremacy of War Method. On the following turn, he makes an attack, adds seven dice to his dice pool and chooses to activate Ferocious Jab.\n\nA Solar may activate Supremacy of War Method multiple times in a scene to increase his total committed motes, but he may never have more motes committed to Supremacy of War Method than his Wits + Brawl. Dice added through Supremacy of War Method are derived from a Charm and, thus, are subject to all associated limitations.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 101
     }
   },
@@ -345,7 +345,7 @@
     "duration": "One turn",
     "description": "By combining his pure, instinctive awareness of combat mastered through Supremacy of War Method with the raging fury mastered through Bloodthirsty Sword-Dancer Spirit, the Solar unlocks a deadly secret of his anima. In a fantastic display of power, the Solar’s anima flares to full totemic glory, and within that pillar of divine light, the Solar is reshaped, his body marked by his totem and the colors of his anima. A Night Caste with the totem of the wolf might gain a long, thick mane of grey hair, sharpened teeth and violet or golden eyes, and a Dawn Caste with the totem of the snake might gain a long, sinuous tattoo of a serpent upon his body and eyes of violent crimson. In this temporary state of power, the Solar’s player adds his character’s Essence in automatic successes to any combat rolls made, excluding damage rolls, though the number of successes he adds may not exceed the number of dice rolled, excluding bonus dice gained from Charms. This Charm lasts only a short time and threatens to enrage the character if sustained for too long. Once Ascendant Battle Visage has expired, the character may reflexively renew it. Doing so costs him no Essence or Willpower. Instead, for each turn he extends Ascendant Battle Visage, roll his highest Virtue. Each success increases his Limit by 1. Should the Solar suffer Limit Break during the use of this Charm, he frenzies as per Bloodthirsty Sword-Dancer Spirit, and Ascendant Battle Visage’s bonuses remain for the rest of the scene. The actual effects of the Limit Break itself, including the bonus to Willpower, begin after the scene ends.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 102
     },
     "extra_min_abilities": [
@@ -379,7 +379,7 @@
     "duration": "Instant",
     "description": "With greater skill and Essence comes greater power and control. This Charm allows the character to precisely gauge the amount of damage he is causing. Punches enhanced by this Charm cannot accidentally do lethal damage to the target. If the player rolls more health levels of damage than the target has remaining health levels, all remaining damage is ignored. If the damage rolled is insufficient to knock out the target, then the attacker can roll additional dice in an attempt to do enough damage to knock the target out. The character may buy additional damage dice at 2 motes per die. These dice are bought and rolled one at a time as a Reflexive Action, and a character can continue buying and rolling them for as long as he can pay for them. A character cannot buy dice to gain additional damage levels beyond those required to knock out the target.\n\nCharacters can easily run out of Essence if they use this Charm repeatedly. If a character runs out of Essence while using this Charm, count all damage dice that have been paid for. This Charm cannot be used if the character is wielding Tiger Claws or any other weapon or magical effect that causes his punches to do lethal damage.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 72
     }
   },
@@ -405,7 +405,7 @@
     "duration": "Instant",
     "description": "The character concentrates vast amounts of Essence around her hands, allowing her to inflict terrible wounds. The character's blow does lethal damage. In addition, when used against a living target, this Charm adds a bonus to the base damage of the attack equal to the attacking character's Permanent Essence. However, this Charm is far more effective when used against inanimate targets. If the character attacks an inanimate object, add a number of damage levels equal to four times the attacking character's Permanent Essence. A single such punch or kick can knock down a sturdy oak door or break a hole in a ship's hull large enough to walk through.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 72
     }
   },
@@ -434,7 +434,7 @@
     "duration": "One scene",
     "description": "Essence concentrates around the character's hands, infusing them with great and lasting power. For the next full scene, the character adds a number of damage equal to twice her Permanent Essence to all Brawling attacks. When this Charm is performed, the caster can also specify whether these attacks will do bashing or lethal damage. Using this Charm, the character can even choose to do bashing damage when wielding a weapon that would normally cause his blow to do lethal damage.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 72
     }
   }

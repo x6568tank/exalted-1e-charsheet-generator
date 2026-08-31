@@ -5,7 +5,7 @@
     "virtue": "compassion",
     "description": "The character can no longer bear to see those around her suffer unaided. When her Limit Breaks she throws herself into helping the sufferers in the most direct and obvious fashion possible — stepping into labouring convicts' places one by one so they can rest, or drawing their overseer's wrath onto herself. She will not resort to violence unless attacked (though if her Limit Breaks in combat she has little choice). Outside combat the episode of martyrdom may last as long in days as she has dots in Compassion.",
     "limit_break": "The character witnesses innocents suffering through no fault of their own.",
-    "source": "Exalted Core p.131"
+    "source": "Core p.131"
   },
   {
     "id": "virtue-flaw.heart-of-tears",
@@ -13,7 +13,7 @@
     "virtue": "compassion",
     "description": "The character can bear only so much. When his Limit Breaks he is no longer able to stand the sight of suffering and can only weep that the world contains such pain. In a stressful situation he is unable to function for the rest of the scene and attempts to flee if attacked; if he cannot flee he defends himself at a -2 dice penalty and seeks to flee at the first opportunity. Outside a stressful situation he is left weeping and distraught for a number of days equal to his Compassion, able to do no more than avoid human contact and perhaps find substances to numb himself to the pain of existence.",
     "limit_break": "The character witnesses innocents suffering and is unable to ameliorate their pain.",
-    "source": "Exalted Core pp.131-132"
+    "source": "Core pp.131-132"
   },
   {
     "id": "virtue-flaw.red-rage-of-compassion",
@@ -21,7 +21,7 @@
     "virtue": "compassion",
     "description": "The character is overcome with anger at the pain that surrounds him. He flies into a rage and attacks the most immediate source of suffering directly, without any consideration for himself or the situation. His rage is absolute — he is unlikely to think of even simple acts like putting down objects in his hands or drawing a weapon. Small consolation: he does not suffer wound penalties while in this state. With no obvious target to lash out against he rages for a number of hours equal to his Compassion, moving erratically from area to area, smashing objects without consideration for value and lashing out thoughtlessly at anyone foolish enough to interfere.",
     "limit_break": "The character sees innocents suffering and is unable to effectively intervene.",
-    "source": "Exalted Core p.132"
+    "source": "Core p.132"
   },
   {
     "id": "virtue-flaw.deliberate-cruelty",
@@ -29,7 +29,7 @@
     "virtue": "conviction",
     "description": "The character embraces the power of a cold heart and uses it indiscriminately as a weapon. For a number of days after her Limit Breaks equal to the character's Temperance, she deliberately closes her heart to pity and embraces cruelty. Perceived or exhibited weakness is met with derision or casual violence, and her conscience vanishes under a shadow of cruelty. Prisoners are tortured and mutilated to sow terror, and she contents herself with fear rather than respect. This probably causes a minimum penalty of -2 on all Social interactions that do not involve fear or intimidation — not that she will be making many.",
     "limit_break": "The character is subjected to severe stress, in dire straits or otherwise backed against the wall.",
-    "source": "Exalted Core p.132",
+    "source": "Core p.132",
     "notes": "⚠ Printed as-is: the duration is keyed to TEMPERANCE though the Flaw is a Conviction Flaw, and every other Flaw keys its duration to its own Virtue. Left exactly as the page prints it — the rules authority has not ruled on whether it is an erratum."
   },
   {
@@ -38,7 +38,7 @@
     "virtue": "conviction",
     "description": "The character's heart hardens to the point that no emotion can enter. For a number of days equal to his Conviction rating he feels and expresses no emotions. He is not robotic, but rather lacks all empathy and feeling. He considers little more than efficiency in choosing his course of action and, while not totally tactless, still suffers -2 on all Social rolls involving face-to-face interactions.",
     "limit_break": "The character is frustrated by the intemperate or childish nature of the world around him.",
-    "source": "Exalted Core p.132"
+    "source": "Core p.132"
   },
   {
     "id": "virtue-flaw.ascetic-drive",
@@ -46,7 +46,7 @@
     "virtue": "temperance",
     "description": "Similar to Contempt of the Virtuous, but much more self-focused. After the character's Limit Breaks she becomes convinced that she must seek tranquility and purification through withdrawal and meditation, immediately turning her back on worldly affairs however pressing (not to the extent of walking out on a battle, but everything up to that). She shaves her head, dresses in sackcloth or shows some similar sign of penitence, and seeks out a place of retreat to contemplate the ephemeral nature of life. If laden with material possessions like a mansion or many valuable goods, she may burn or destroy them so they will not distract her in her repose. If disturbed in her hermitage she is uncommunicative, and if the disturbance continues she becomes violent.",
     "limit_break": "The character is confronted by her own inadequacies or human weakness.",
-    "source": "Exalted Core pp.132-133"
+    "source": "Core pp.132-133"
   },
   {
     "id": "virtue-flaw.contempt-of-the-virtuous",
@@ -54,7 +54,7 @@
     "virtue": "temperance",
     "description": "When the character's Limit Breaks he loses all respect for those around him with less self-control and becomes driven to show them a better way of life. For a number of days equal to his Temperance he treats those he has previously witnessed overindulging or acting dishonourably as nonpersons. If he witnesses what he interprets as dishonourable or indulgent behaviour he will attempt to stop it, including physically intervening. He will also harangue those around him into a more upright way of life, trying to convince them to destroy or repudiate their vanities and indulgences, swear oaths of righteous behaviour and so on, using his Charms and other resources to further this personal crusade.",
     "limit_break": "The character is hindered in his actions by the self-indulgent and intemperate nature of others.",
-    "source": "Exalted Core p.133"
+    "source": "Core p.133"
   },
   {
     "id": "virtue-flaw.overindulgence",
@@ -62,7 +62,7 @@
     "virtue": "temperance",
     "description": "The character's self-control gives way in one massive binge of epic proportions. When her Limit Breaks she wallows as fully as possible in excess — sex, liquor, drugs and gluttony are all equally attractive, and she will not listen to reason or postpone her debauch. For a number of days equal to her Temperance she indulges in whatever vices come to hand, regardless of expense or long-term consequences. Without funds or isolated, she seeks to borrow money or make her way to a location where she can indulge. Characters of advanced age or poor health may have to make a Stamina check to avoid long-term negative consequences from such an episode.",
     "limit_break": "The character must pass a favorite pleasure or vice in order to act in a moral fashion.",
-    "source": "Exalted Core p.133"
+    "source": "Core p.133"
   },
   {
     "id": "virtue-flaw.berserk-anger",
@@ -70,7 +70,7 @@
     "virtue": "valor",
     "description": "When the character's Limit Breaks he simply loses all control. For the rest of the scene anything near him that moves, friend or enemy, is to be attacked and killed; if it runs it must be hunted and slain. He starts with the nearest hostile target and proceeds through victims until he is dead or there is no one left to murder. If he runs out of targets quickly or is not near other living beings he devastates his surroundings, doing his utmost to smash and ravage everything he can easily reach. Characters wrestled into restraint subside from their rage within a few hours.",
     "limit_break": "The character is insulted, belittled, demeaned or deliberately frustrated.",
-    "source": "Exalted Core p.133"
+    "source": "Core p.133"
   },
   {
     "id": "virtue-flaw.foolhardy-contempt",
@@ -78,6 +78,6 @@
     "virtue": "valor",
     "description": "After the character's Limit Breaks she knows no fear. For a number of days equal to her Valor she immediately seeks to place herself in the forefront of the battle, thoughtlessly challenges enemies to single combat and does not retreat under any circumstances.",
     "limit_break": "The character is fighting against losing odds, is challenged to single combat by a single foe or is otherwise given an opportunity where she can prove her bravery.",
-    "source": "Exalted Core p.133"
+    "source": "Core p.133"
   }
 ]

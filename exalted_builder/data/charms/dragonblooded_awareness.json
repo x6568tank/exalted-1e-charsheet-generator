@@ -15,7 +15,7 @@
     "duration": "Instant",
     "description": "Everything that walks, flies, or swims is connected to the earth in some way, and air and water both rest upon the firmament. By grounding her Essence into the earth, a Dragon-Blood greatly increases her sensitivity to her surroundings. Each mote invested enhances the character's Awareness by two dice for a single roll only; she cannot more than double her Awareness with this Charm.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 189
     }
   },
@@ -39,7 +39,7 @@
     "duration": "One scene",
     "description": "While under this Charm the character cannot be surprised by any means, magical or otherwise. It does not let her see the invisible \u2014 it simply means she cannot be struck by an attack she is unaware of. It can be extended to companions for 2 extra motes per person. It is not effective unless she is standing on the ground; she need not touch the earth itself (it works inside structures) but may not be flying, swimming, and so on \u2014 engaging in any of those breaks the Charm immediately.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 190
     }
   },
@@ -63,7 +63,7 @@
     "duration": "Instant",
     "description": "Attuning to the pulse of the Earth Dragon, the character senses the shape of things resting upon the earth and beings walking upon it. The player rolls Intelligence + Awareness: a simple success gives a complete but vague mental picture out to Awareness x 25 feet (including living beings), and further successes refine it (three successes might identify a guardroom with three club-wielding Wyld barbarians; five adds their armor and exact positions). To be sensed, an object or being must be touching the earth or something touching it \u2014 things floating in air or immersed in water are unaffected. The range doubles for every additional mote spent, and doubles again underground or in stone structures, where all details are perceivable.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 190
     }
   },
@@ -87,7 +87,7 @@
     "duration": "Five minutes",
     "description": "Earth is the most static and quiescent element, and this Charm lets an Earth Dynast infuse stone's somnolent stasis into another's mind, putting them to sleep. Some work it by speaking in a low, droning voice; others fix the victim's attention with a glittering gemstone. The character can only bury a mind if she keeps the target sitting still for five minutes, so it calls for guile. The player rolls Manipulation + Presence (difficulty = the target's Essence); a simple success makes the target sleep for an hour, each extra success adding an hour, and nothing \u2014 noise, light, or movement \u2014 will wake the victim during that time. At the end of the period he passes into normal slumber.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 191
     }
   },
@@ -111,7 +111,7 @@
     "duration": "Until disrupted",
     "description": "A Dragon-Blood in tune with the world can project her senses into others, riding along and perceiving from a distance. The book presents this as three Charms together covering all five senses (Sight; Hearing & Touch; Smell & Taste); this entry models the whole. The target must be visible when the Charm is activated but may leave sight afterward, up to a maximum range of permanent Essence in miles. On activation, the Dynast's Awareness + Essence is rolled against the target's in a reflexive opposed roll; she needs a single success (a tie has no effect). If the target is Exalted and beats her, his player gets a reflexive Awareness roll (difficulty 3) to notice; normal mortals get no such roll. While Sense Riding she may take no disruptive action; if the ridden target takes any health levels of damage, she takes an unsoakable level of bashing and the Charm is disrupted. Sight rides only through the target's eyes (no Charms/sorcery through the channel); Hearing & Touch does not grant understanding of unknown languages; Smell & Taste completes the picture.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 191
     }
   },
@@ -137,7 +137,7 @@
     "duration": "One turn per point of permanent Essence",
     "description": "A cluster of three Charms like (Sense)-Riding Technique, but instead of tapping the target's senses the character shuts them down (this entry models all three). The player makes an Essence + Awareness roll (difficulty = the target's Perception). Sight: each extra success subtracts one die from sight-related Awareness rolls and adds -1 to sight tasks; exceeding the target's Perception blinds him completely for the duration. Hearing & Touch: each success subtracts a die from those senses and lets him ignore one wound-penalty level; exceeding Perception renders him deaf but ignoring all wound penalties (some Dynasts use it on their own minions before combat). Smell & Taste: each success subtracts a die; exceeding Perception removes smell and taste entirely. A Dynast may not use this on herself. Effects linger for turns equal to the Exalt's permanent Essence.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 191
     }
   },
@@ -163,7 +163,7 @@
     "duration": "One turn per dot of permanent Essence",
     "description": "Having mastered suppressing another's physical senses, a skilled Earth Dynast can use his own Essence to suppress his victim's ability to perceive and manipulate Essence. He pays the base cost plus additional motes (max additional = permanent Essence). His player rolls Awareness + Essence (difficulty 3) to judge the patterns of Essence around the target, who must be in sight and no farther than 10 x permanent Essence in feet. On success he rolls Willpower + Essence against the target's Essence; each extra success adds 1 mote to the cost of all Charms and sorcery the target uses, up to a maximum penalty equal to the extra Essence he spent activating this Charm. The surcharge applies to every activation (multiple times per turn for reflexive Charms, and to every Charm in a Combo).",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 192
     }
   },
@@ -183,7 +183,7 @@
     "duration": "Instant",
     "description": "The character hesitates and looks more carefully, a quick flare of Essence pushing aside all distractions. Her player may reroll a single Awareness roll but must take the new results over the old. The Dragon-Blood cannot use this Charm more than once for the same action. If Unfailing Dragon Glance is part of a Combo, Essence must be spent to reactivate all the other Charms in that Combo when the reroll takes place. If those Charms have separate dice rolls associated with them, they are not rerolled.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   },
@@ -207,7 +207,7 @@
     "duration": "Indefinite",
     "description": "Sense Upon activating this Charm, cataracts like white jade cloud over the character's eyes, and he becomes blind for the duration of the effect. In exchange, the Dragon-Blood gains a preternatural awareness of vibrations echoing through the air and ground. He can \"see\" in any or all directions at once as desired, simultaneously perceiving the shape and exact location of all objects within half the range of his normal vision or his (Awareness x 10) yards, whichever is less. Beyond this range, objects and sounds blur together and have no coherent meaning. Darkness and environmental conditions impairing true vision do not normally hinder the \"vision\" granted by this Charm, although magical obfuscations and effects that muffle sound may create regions of murky vision. Within a radius of (Awareness + Essence) yards, the character can even see through and around thin walls and other blocking physical obstructions by sensing the vibrations passing through the interrupting objects. Thick walls obscure and disrupt echoes too much to allow vibration sight to peer around them without a substantial crack or flaw through which sounds can flow. This omnidirectional perception makes the character difficult to surprise, adding one automatic success to all Awareness rolls made to avoid ambush. Despite the obvious utility of sensing vibrations, the sense is not sight and cannot fully replace vision. Vibrations do not convey colors or shades, making it impossible to read or otherwise notice exclusively visual information. Characters can recognize people and objects they have \"viewed\" with vibration sight previously, using their memory of profiles and surface contours. Dragon-Blooded who know this Charm can reflexively spend four additional experience points as insurance against blindness. Should such characters ever become truly blind for any reason (whether temporarily as the result of magic or permanently from maiming), they gain the full effects of this Charm for the duration of their blindness without spending any Essence. This special benefit vanishes if a character regains her sight.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   },
@@ -231,7 +231,7 @@
     "duration": "One turn",
     "description": "The Dragon-Blood concentrates and spends 3 motes as a simple action, allowing his consciousness to flow down and outward through the Essence currents of the earth. For a moment, he experiences the land as an extension of his own body and perceives the unnatural wounds and blights of all shadowlands and Wyld zones within a number of miles equal to his permanent Essence. He cannot gauge the strength or direction of these tainted regions unless they are within a mile, in which case he can determine the rough size, shape and potency of the blights. The character can also sense all Manses and Demesnes within a mile, but only as wellsprings of power. He knows where these sites are and whether they are weak (rating 1-2) or strong (3-5), but he cannot differentiate between Manses and Demesnes or identify a site's type (Earth, Solar, Celestial, etc.). At the end of a turn, the mystical perception fades, and the character's senses withdraw back into his flesh. In addition to the Charm's active use, Pulse of the Dragon's Soul activates reflexively for a cost of 1 mote whenever a character crosses into a shadowland or Wyld zone without realizing it. The Charm does not activate itself if the character already knows the nature of his location. The character becomes immediately aware of the blighted energies of his new location and their overall type, but he does not gain the full awareness of the surrounding terrain as with conscious activation of the Charm.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   }

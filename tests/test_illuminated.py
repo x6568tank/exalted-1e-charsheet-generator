@@ -624,7 +624,7 @@ def test_a_standard_solar_gets_no_calling_discounts(rs):
 # Charms (p.100-106) — 20 Charms across 6 Abilities plus Falling Blossom Style
 # ============================================================================ #
 
-_ILL_BOOK = "Exalted 1e Cult of the Illuminated"
+_ILL_BOOK = "Cult of the Illuminated"
 
 
 def _ill_charms(rs):

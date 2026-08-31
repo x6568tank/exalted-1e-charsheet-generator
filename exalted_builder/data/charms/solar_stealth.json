@@ -152,7 +152,7 @@
     "duration": "Essence in minutes",
     "description": "This Charm allows the character to literally vanish from sight. She can become completely invisible. The only limit to this Charm is the fact that the character must move slowly and carefully (move no more than six yards per turn) and cannot engage in any form of combat or perform any other activity that involves rapid movement. Any such movements instantly disrupt the Charm and render the character visible. However, the character can walk slowly down a corridor, pour a dram of poison in someone's cup or steal a treaty from a table. Characters using Unseen Ghost Walk are not immaterial. They can be detected normally by touch, scent or hearing.\n\nEnemies' players may attempt a reflexive Perception + Awareness roll each turn for the enemies to spot the character. If the observer saw the character disappear, noticed the character last turn or witnessed an action performed by the character, the difficulty for the check is only 1. However, the difficulty increases by one every turn that the character remains undetected, to a maximum of 5. If the observer has some reason to believe that someone is around (a knocked over vase, footprints in the sand), the difficulty for spotting the character starts at 3 and scales up. Just looking casually for the invisible Exalted has a difficulty of 5. Even when spotted, any actions taken against the character are at a +2 difficulty.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 76
     }
   }

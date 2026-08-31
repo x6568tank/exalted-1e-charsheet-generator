@@ -29,10 +29,32 @@ def rs():
 
 
 def test_the_price_table_loaded(rs):
-    """56 rows: 43 off M&C p.123 and 13 Everyday Wonders off p.125."""
+    """93 rows: 43 off M&C p.123, 13 Everyday Wonders p.125, 22 phase-1, 15 phase-2.
+
+    2026-08-15, the phase-1 scan of the never-opened books — 20 off Kingdom of Halta
+    pp.89-93 and 2 off Bastions of the North (the ice weasel fur p.39, the glider
+    p.98). Five printed entries carry TWO Resources costs each, and the rules
+    authority ruled the encoding by WHY there are two (docs/status/phase-1-scan.md):
+    genuinely different products split into a row apiece (cat claws 2, ground charms
+    3, lucky rock 2), an open-ended "better versions cost more" tier stays ONE row at
+    the defined price (hunter's shirt), and a remoteness premium stays one row priced
+    OUTSIDE the region of origin (mother's moss, ice weasel fur, glider) — which is
+    what the other Haltan rows already carry, per the p.89 blanket rule that costs run
+    one dot lower within the Republic.
+
+    2026-08-15, phase 2 — 9 off Scavenger Sons: the Deep-Forest Drugs (pp.32-33) and
+    Southern Magical Gemstones (p.47) sections and the water shoes (p.55). The same
+    three-way encoding applies: soma and the water shoes are remoteness premiums priced
+    outside their region of origin, the life flowers and dreamstones are two products
+    apiece and split, and bright morning stays one row at the general price because its
+    higher Realm figure is a LEGALITY premium (the drug is illegal there), not a
+    remoteness one. The six Marukan horse breeds (p.88) are gear rows AND adversary-roster
+    templates on the rules authority's ruling. Creatures of the Wyld yielded nothing
+    — see phase-2-scan.md.
+    """
     gear = rs.gear_catalog
-    assert len(gear) == 56
-    assert sum(1 for g in gear.values() if g.kind == "goods") == 29
+    assert len(gear) == 93
+    assert sum(1 for g in gear.values() if g.kind == "goods") == 66
     assert sum(1 for g in gear.values() if g.kind == "service") == 27
 
 

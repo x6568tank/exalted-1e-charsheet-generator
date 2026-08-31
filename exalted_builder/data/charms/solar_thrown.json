@@ -213,7 +213,7 @@
     "duration": "Instant",
     "description": "The character can bounce any thrown weapon off of an object and have it hit its intended target without penalty. Each additional ricochet increases the cost of the Charm by one mote of Essence. Bouncing a weapon off of a wall behind a target normally allows the character to hit her target from behind, denying the target the protection of cover or shields. Multiple ricochets can even allow the character to hit targets hiding around corners. When using this Charm, rolls to hit targets that the character cannot see are at +1 difficulty if the target's exact position is known, or at difficulty +2 if the character is aiming by sound or intuition.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 74
     }
   },
@@ -239,7 +239,7 @@
     "duration": "Instant",
     "description": "When a character makes a Thrown attack using this Charm, the weapon ricochets from one target to the next, until it finally returns to the character's hand at the end of the turn. The weapon makes a number of separate attacks equal to the character's Thrown score. Each target must be in range and no target can be hit more than once per turn with this attack. Each attack is made at the character's normal Thrown dice pool, with no subtractions for multiple actions. If an attack misses, the weapon continues on to its next target. However, if any of these rolls botch, the weapon hits an unintended target and drops to the ground. Rolling a botch means that a character may be hit by her own weapon.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 75
     }
   },
@@ -265,7 +265,7 @@
     "duration": "One scene or special",
     "description": "Once thrown, a weapon using this Charm continues to strike targets for the duration of the scene. Bouncing off of trees, walls, targets and the ground, the weapon makes one attack on a target each turn. Once the weapon is in motion, the attacking character need not worry about it, and can act normally without any penalty. When the weapon is thrown, the character must decide whom it will attempt to strike each turn. This choice cannot be changed once made, and the weapon cannot be recalled once set in motion. If a target dies or moves out of range, the weapon continues on to its next target. Each attack is made at the attacking character's normal Thrown dice pool, at the character's initiative for the turn.\n\nThis Charm ends if the caster flees or dies, or once the weapon has failed to inflict damage on a number of attacks equal to the attacker's Permanent Essence score. Such failure may stem from the target's dodge or parry or because the weapon struck successfully but did no damage. The weapon can be attacked at difficulty 4; if successfully struck, it is batted from the air and its deadly rampage ends. If an attack roll for the weapon botches, the weapon strikes an unintended target — a person or an object — and the Charm fades. If the Charm is used on several successive turns, a character can fill the air around him with deadly blades.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 75
     }
   },
@@ -291,7 +291,7 @@
     "duration": "One scene",
     "description": "Any thrown weapon used by the character in this scene returns to his hand at the end of the turn in which it was thrown. Even if the weapon hits and damages an opponent, it flies from the wound to its owner's hand. Using this Charm, a character need not worry about running out of weapons to throw. However, a botch on any Thrown roll prevents that weapon from returning.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 76
     }
   }

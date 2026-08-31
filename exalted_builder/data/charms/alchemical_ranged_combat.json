@@ -14,7 +14,7 @@
     "duration": "Instant",
     "description": "A forehead sensor compensating for range, wind, cover, shields and poor light. Each mote removes one die of environmental/situational penalty from a ranged attack; every 2 motes cancel one point of difficulty or negate one subtracted success. Does not offset wound, fear, or multiple-action penalties.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 100
     },
     "exalt_type": "Alchemical",
@@ -40,7 +40,7 @@
     "duration": "Instant",
     "description": "A shaped force ray (range Strength x 10 yards) that crudely manipulates objects with telekinesis, substituting Essence for Dexterity and Strength (finesse Abilities still apply). Can grab or recall weapons, disarm (Essence + Brawl/Martial Arts, not attuned artifacts), suspend or winch the Exalt. One beam at a time.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 100
     },
     "exalt_type": "Alchemical",
@@ -150,7 +150,7 @@
     ],
     "description": "A torso reactor firing energy bolts the color of the Exalt's anima: range (Essence x 50) yards, accuracy +1, rate (Essence x installations), damage 2L per mote (max Strength + Essence motes). Each shot is a supplemental Charm use; bolts may be dodged or parried.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 100
     },
     "exalt_type": "Alchemical",
@@ -175,7 +175,7 @@
     "duration": "Instant",
     "description": "Shoot down projectiles. Mode one (2m): parry one missile within (Essence x 50) yards at Dexterity + Archery + Essence (+1 die with Guidance Ray; +3 difficulty to defend others). Mode two (3m): a full-parry trance against every perceived ranged attack, usable only if the Exalt has not yet acted. Size-limited to javelins below Essence 6.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 103
     },
     "exalt_type": "Alchemical",
@@ -202,7 +202,7 @@
     "duration": "Instant",
     "description": "The cannon fires an Essence net (Dexterity + Archery, range Essence x 20). On a hit, contest Strength + Essence; winning paralyzes the target in a crystalline aura (as a clinch), re-contested each turn for one unsoakable bashing per turn held. The aura reduces attacks against the victim by Essence and shocks melee attackers for Essence dice of piercing bashing.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 104
     },
     "exalt_type": "Alchemical",
@@ -228,7 +228,7 @@
     "duration": "Instant",
     "description": "A forearm compartment extrudes a missile of raw Essence (arrow, throwing dagger, throwing baton or chakram) that dissipates after (Essence) turns. Arrows auto-nock into a carried bow. Essence 6+ Exalts make warstrider-scaled ammunition.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 104
     },
     "exalt_type": "Alchemical",
@@ -270,7 +270,7 @@
     ],
     "description": "A forearm-mounted steam bow: base damage Strength (plus ammunition), accuracy Essence, range (100 x Essence) yards, unlimited rate, fed by the Protosynthetic Ammunition Replicator. Firing it is not a Charm activation. Loudly obvious when active.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 105
     },
     "exalt_type": "Alchemical",
@@ -297,7 +297,7 @@
     "duration": "Instant",
     "description": "The bow fires a crystal spike: accuracy Essence, range one mile, base damage [Strength + (Essence x 2)]L, piercing, unparryable without a stunt/Charm. It bores through a struck target (losing one die) and continues in a line; a concussive wave knocks human-sized victims back one foot per post-soak die.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 105
     },
     "exalt_type": "Alchemical",
@@ -324,7 +324,7 @@
     "duration": "Instant",
     "description": "The deployed bow sprays Essence darts across an arc up to 90 degrees. Roll Dexterity + Archery once, applied to every target in the swath (friend or foe); darts have range increment 100 yards and base lethal damage Essence, persisting to end of turn.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 105
     },
     "exalt_type": "Alchemical",
@@ -349,7 +349,7 @@
     "duration": "Instant",
     "description": "Neural vector-modulators let one projectile strike multiple targets, or a near-simultaneous volley of separate missiles. Mode one (3m): a single missile attacks up to (Essence + 1) targets in succession (full pool each, no target twice), optionally returning to hand for 1 mote. Mode two: release several different missiles under the same rules, each needing its own ammunition.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 106
     },
     "exalt_type": "Alchemical",
@@ -375,7 +375,7 @@
     "duration": "Instant",
     "description": "Imprints a target's Essence signature on a fired projectile, which dematerializes to ignore all intervening cover and cannot hit bystanders, rematerializing to strike only the intended target (armor still applies). Can attack through a wall if the Exalt can sense the victim beyond it.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 107
     },
     "exalt_type": "Alchemical",

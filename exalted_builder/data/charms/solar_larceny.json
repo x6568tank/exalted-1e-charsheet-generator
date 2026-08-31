@@ -192,7 +192,7 @@
     "duration": "Instant",
     "description": "None can challenge the ability of the Night Caste to walk among criminals, learn their methods and infiltrate their ranks. Likewise, when members of the Night Caste become corrupted, none can excel their ability as natural rulers of the underworld. It is said by many that, during the First Age, some among the Night Caste led organized criminal groups, which helped govern lawless areas and protect the vast cities of that era. It is unknown if this is true or simply history garbled by the propaganda of the Immaculates, however.\n\nThrough the use of this Charm, the Exalt can add 1 die per mote of Essence spent to any activities relating to navigating the criminal underworld, planning crimes, recruiting criminal underlings or comprehending the criminal mindset. The character cannot more than double his Attribute + Larceny dice pool. This Charm does not aid in technical larceny such as picking locks and pockets or actually executing con games and espionage rings. It simply allows the character preternatural skill as a crime boss or a scourge of crime.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 75
     }
   },
@@ -218,7 +218,7 @@
     "duration": "Special",
     "description": "Sometimes, locking a door is as valuable as opening one. With a single touch, the character can lock any door. Regardless of whether the door previously had a lock or not, it is impossible to open for a number of hours equal to the character's permanent Essence. A key that would ordinarily open the door will not work until after the scene is over. The only way to open the door in the meantime is to break it down. Doors that do not possess locks can be pushed open normally once this Charm ends, but lockable doors remain normally locked after the Charm ends.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 76
     }
   }

@@ -14,7 +14,7 @@
     "duration": "Instant",
     "description": "The thrown weapon leaps from her hand and turns in flight to pursue its prey: after the target declares a defense, subtract one die per mote from that defense roll (not below the target's Essence). Applies only to the first defense if the target has multiple.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 172
     }
   },
@@ -37,7 +37,7 @@
     "duration": "Instant",
     "description": "Plucks arrows and missile weapons from the air before they hit: reflexively parry any ranged attack she is aware of with full Dexterity + Thrown; no successes means she has caught the projectile. Cannot parry Essence bolts or purely mystical projectiles of Essence 3+. For 4 motes may instead deflect a ranged area attack (e.g. Death of Obsidian Butterflies) threatening her.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 172
     }
   },
@@ -60,7 +60,7 @@
     "duration": "Instant",
     "description": "Instinctively throws to deliver a fatal blow: attack normally but damage is doubled after rolling, and if that fails to kill outright the strike still inflicts one automatic unsoakable health level. The attack inflicts lethal (min 1L) and can be used with tiny/unconventional weapons (Range 10, Accuracy +0, Rate 3).",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 172
     }
   },
@@ -79,7 +79,7 @@
     "duration": "Instant",
     "description": "Buoys the weapon's flight with a spectral gust from the Underworld: its range increases by one factor per 2 motes spent (2 motes doubles, 4 triples, etc.). Cannot spend more 2-mote increments than permanent Essence.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 173
     }
   },
@@ -102,7 +102,7 @@
     "duration": "Instant",
     "description": "Extrudes a small, paralytic-venom-coated bone needle from palm or fingertip: base lethal damage and Accuracy equal to Essence, Range Essence×5 yards, no more than three needles per turn (needles do not add Strength). Poisoned needles force unarmored victims to reflexively roll Stamina + Resistance vs the Abyssal's Medicine; failure inflicts unsoakable lethal equal to Essence (UnExalted die after a day untreated). Requires Medicine 1. The Abyssal is immune to her own poison.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 173
     }
   },
@@ -127,7 +127,7 @@
     "duration": "Instant",
     "description": "Channels Essence through her entire skeleton, growing hundreds of bone needles that tear through her skin: everyone within five yards suffers lethal (soaked normally) equal to Stamina + Thrown + Essence, reduced by one die per further yard. Cannot be dodged/blocked without a stunt or Charm (each success reduces the damage 1L). Armored characters may not use this Charm.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 173
     }
   },
@@ -151,7 +151,7 @@
     "duration": "Varies",
     "description": "Flings a burrowing splinter of bone (statted as Ivory Spine Attack but not poisonous). On a hit it burrows toward the victim's heart, inflicting one die of unsoakable lethal each minute until the victim dies or the Abyssal wills it to stop (and may later resume). Removing it is surgery: Dexterity + Medicine, min difficulty 4, undivided action for 10 turns. Persists as long as Essence stays committed.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 173
     }
   },
@@ -177,7 +177,7 @@
     "duration": "Instant",
     "description": "The thrown weapon arcs and ricochets from target to target like a swooping bird of prey, making Thrown-score separate attacks at full pool with no multiple-action penalty. A miss moves it to the next target; a botch strikes an unintended victim and drops it. All targets must be in range when first thrown, and no target may be hit more than once per use.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 173
     }
   },
@@ -201,7 +201,7 @@
     "duration": "Instant",
     "description": "Duplicates Pitiless Scything Razor with two differences: the thrown weapon can attack the same target more than once, and it feeds on hit, absorbing 1 mote per health level of damage inflicted after soak. If no attack roll botches, the Abyssal gains all harvested motes when the weapon returns at turn's end. Soulsteel throwing weapons also drain motes per attack as normal.",
     "source": {
-      "book": "Exalted: The Abyssals",
+      "book": "The Abyssals",
       "page": 174
     }
   }

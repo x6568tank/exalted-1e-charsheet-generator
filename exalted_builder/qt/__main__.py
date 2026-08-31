@@ -11,10 +11,11 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 import exalted_builder
-from exalted_builder import persistence, rules_db
+from exalted_builder import branding, persistence, rules_db
 from exalted_builder.models.character import Character
 from exalted_builder.qt.main_window import MainWindow
 
@@ -47,6 +48,28 @@ def open_character(argv: list[str]) -> tuple[Character, Path, str]:
 
 def main() -> None:
     app = QApplication(sys.argv)
+    # ⚠ Wayland gets no icon pixels from setWindowIcon: KWin matches the surface's
+    # app_id to an installed .desktop entry, so with no identity set the title-bar
+    # falls back to a generic icon while the task-bar still shows ours. setting the
+    # desktop file name IS what supplies that app_id.
+    app.setApplicationName(branding.APP_NAME)
+    app.setOrganizationName(branding.ORG_NAME)
+    app.setDesktopFileName(branding.APP_ID)
+    branding.install_desktop_entry()      # returns None on failure; never fatal
+    # Set on the APPLICATION, not the window: every window inherits it, including
+    # the separate QMainWindow the party/ST screen opens. None when the file is
+    # absent, which leaves Qt's default and must stay non-fatal.
+    # ⚠ Build from the pre-rendered SQUARE sizes, not the master: the master is
+    # 500x502, and Qt keeps aspect ratio, so pixmap(16,16) off it is 15x16 and sits
+    # skewed in a square titlebar slot. addFile lets Qt pick the nearest rendering
+    # instead of crushing 500px to 16px in one step. Falls back to the master, then
+    # to Qt's default, so a missing asset costs the icon and never the app.
+    sizes = branding.app_icon_sizes() or [p for p in [branding.app_icon_path()] if p]
+    if sizes:
+        icon = QIcon()
+        for path in sizes:
+            icon.addFile(str(path))
+        app.setWindowIcon(icon)
     ruleset = rules_db.load_app_ruleset(_DATA_DIR)
     character, save_path, complaint = open_character(sys.argv)
     win = MainWindow(ruleset, character, save_path)

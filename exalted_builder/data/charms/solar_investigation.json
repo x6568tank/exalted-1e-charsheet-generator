@@ -154,7 +154,7 @@
     "duration": "Instant",
     "description": "By touching a weapon, the character can instantly determine the appearance of the person who was killed by it last and the appearance of the person who wielded it then. Similarly, if used on a corpse or even a fragment of bone or hair, the character can get an image of the person while she was alive and will know both her name and exactly how she died.",
     "source": {
-      "book": "Exalted 1e Caste Book: Night",
+      "book": "Caste Book: Night",
       "page": 71
     }
   },
@@ -180,7 +180,7 @@
     "duration": "Instant",
     "description": "When a character uses this Charm, he will perceive blood dripping from the hands of anyone within 10 yards of him who has killed someone within the last five days. The vision is momentary, but quite clear. The Charm lasts long enough for him to turn around and look all around him, though if someone takes pains to hide her hands, he will not be able to see any blood that might be there and judge whether or not she has killed. A target who has merely killed a single person will have simple bloodstains on her hands; an Exalted who has massacred a troop of guards will have hands dripping with gore. The Charm makes no distinctions on the basis of motives for killing or types of killing, but merely shows whether or not those close by have killed.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 70
     }
   },
@@ -206,7 +206,7 @@
     "duration": "Instant",
     "description": "This Charm allows the Exalted to scan a crowd of people or a landscape, as far as the eye can see, searching for a particular person or thing, focusing all his attention on his prey. If any part of his target is theoretically within his view — however great the distance — then he will see it as clearly as if he were only 10 yards away, together with the immediate surroundings for five yards around the target. This applies even if his target is camouflaged or partly concealed, in which case the visible part of the target will be identified as obviously part of the complete target. The only way to avoid this Charm is to be wholly concealed by some object between the target and the Exalt. However, the Exalted must know what he is looking for; attempts merely to look for \"something odd\" will be fruitless. Characters who are invisible cannot be detected with this spell, but even the cleverest of magical camouflage is penetrated by it.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 70
     }
   },
@@ -232,7 +232,7 @@
     "duration": "One scene",
     "description": "With this Charm, an Exalt can hear the private whispers of guilt that underlie most speech, betraying the dark secrets of an interrogated person. When invoked, it will allow the Solar to know the single thing about which the target feels guiltiest concerning the subject under discussion. The Solar will seem to hear the target's voice whispering his guilt and shame about the matter, while the target continues to speak of whatever he chooses and is not necessarily aware that he is revealing his hidden secrets. If the target refuses to say anything, then the Charm fails to provide any answers. Also, the Charm operates on the target's personal perceptions of guilt: If the target feels no guilt or shame about his private actions, then the Charm will not reveal them. Thus, a sincere and self-justified revolutionary might betray his shame in not speaking up publicly for his cause but not his private involvement in a recent assassination of a Terrestrial Exalted. Unfortunately, the Charm will not function on someone with an Essence equal to or greater than that of the user.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 70
     }
   }

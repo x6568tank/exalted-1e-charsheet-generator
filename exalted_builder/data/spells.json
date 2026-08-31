@@ -113,7 +113,7 @@
     },
     "description": "Binds the Essence of two or more Exalted (of any type) into a sworn brotherhood over an hour-long ritual (one additional hour per Exalt beyond the first two); the sorcerer need not be one of the bound. The caster's Intelligence + Occult successes set the brotherhood's level, which drives three linked effects: Loyalty (a Conviction roll beating that level is needed to act to harm a sworn sibling), Devotion (a once-per-story bonus dice pool equal to the oathbond rating when aiding a sworn sibling), and Familiarity (each knows a sworn sibling's location within rating x 10 yards, or its direction on an Essence roll beyond that).",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 161
     }
   },
@@ -269,7 +269,7 @@
     },
     "description": "Vomits forth a creature of liquid shadow that pursues one target in sight; it has Physical Attributes and Brawl equal to the caster's Essence and Stamina+Essence health levels, ignores kinetic damage, and clinches to crush its prey. Lasts one hour.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 224
     }
   },
@@ -282,7 +282,7 @@
     },
     "description": "Necromantic countermagic: 10 motes raises a personal shield negating hostile Shadowlands spells until the next turn's end (−2 to Physical actions while it persists); 20 motes extinguishes one Shadowlands spell within Essence×50 feet. May also oppose sorcery one circle higher.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 224
     }
   },
@@ -295,7 +295,7 @@
     },
     "description": "A ten-minute chant (minus the caster's Occult) ends with a blade-cut in the air that tears open a rift to the Labyrinth for Essence turns. Only lets a necromancer enter — she must find her own way out.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 225
     }
   },
@@ -308,7 +308,7 @@
     },
     "description": "Jagged Essence-lightning animates nearby corpses within 100 yards as common zombies (extras): one per 5 motes (permanent), or one per 3 motes for temporary zombies that fall at scene's end. Cannot mix permanent and temporary in one casting.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 225
     }
   },
@@ -321,7 +321,7 @@
     },
     "description": "An hour-long ritual paints a mortal's skin with blood-and-grave-soil glyphs that ensure she becomes a ghost upon death and alert the necromancer the instant she dies. Creates ghosts only; no control over them. No effect on Exalted or magical beings.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 225
     }
   },
@@ -334,7 +334,7 @@
     },
     "description": "Enchants a piece of bone jewelry to trap one hungry ghost it touches, holding it so long as the talisman is intact; breaking the prison frees the ghost (destroyed if broken by daylight). The Labyrinth version, Bauble of the Captive Soul, catches any ghost for 15 motes.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 225
     }
   },
@@ -347,7 +347,7 @@
     },
     "description": "Tattoos an unExalted mortal with a permanent rune granting the protection of a Ghost-Warding Glyph; removing it burns the mortal for the necromancer's Essence in lethal dice. Vanishes harmlessly if the bearer ever Exalts.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 225
     }
   },
@@ -360,7 +360,7 @@
     },
     "description": "An hour-long night/Underworld ritual (needs the ghost's name or a piece of her corpse) tears a portal for 10 motes; each extra 5 motes weakens the ghost by a die. An opposed Willpower+Essence contest binds her to a year-and-a-day of service, or she escapes for a year.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 226
     }
   },
@@ -373,7 +373,7 @@
     },
     "description": "Animates a pre-built undead siege engine (extended Intelligence+Craft (Necrosurgery) to construct): touching it and investing 5 motes per assembly success sets it serving its master. Spine-chain statistics on Exalted p300.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 226
     }
   },
@@ -386,7 +386,7 @@
     },
     "description": "Raises a single capable servant instead of a horde: a common zombie whose non-Appearance Attributes are at least 2, with Intelligence+Occult in Ability dots (none above the caster's own). Never decays, can speak in clipped phrases, and has full health levels.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 226
     }
   },
@@ -399,7 +399,7 @@
     },
     "description": "Exhales a blue fog that coalesces into hungry ghosts (extras), one per 2 motes, over the next turn. Useless by day (sunlight burns them to ash); survivors dissolve back into the caster at scene's end, freeing 2 committed motes per ghost lost.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 226
     }
   },
@@ -412,7 +412,7 @@
     },
     "description": "A shockwave of Essence raises dense spines of bone (max height Essence yards) over (Charisma+Occult)×10 square yards of any shape, inflicting unblockable 8L (dodge only) to all within and to anything hurled against them. The spikes last for Essence days.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 227
     }
   },
@@ -425,7 +425,7 @@
     },
     "description": "Flares the caster's anima to full and, for the rest of the scene, grants 1 mote for every sentient being that dies within a league (up to her maximum). The Void version, Blood from the Slaughter (35 motes), instead regenerates a health level per kill.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 227
     }
   },
@@ -438,7 +438,7 @@
     },
     "description": "A dying necromancer's final blast: after a turn concentrating, he expires as searing light, dealing everyone within Stamina yards his Essence in lethal dice plus one per remaining mote, bypassing armor (natural soak only). All plants within range wither; his corpse crumbles to dust.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 227
     }
   },
@@ -451,7 +451,7 @@
     },
     "description": "Inhales the life energy of every sentient being within Essence×5 yards, inflicting one lethal die (Stamina soak only) on each; every level actually dealt restores 1 mote to the necromancer.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 228
     }
   },
@@ -464,7 +464,7 @@
     },
     "description": "Grows a whip of solidified darkness with Speed/Accuracy/Defense equal to Essence, reach four times that, and Strength+Essence base damage that can grapple and kill at range. Reflexively spending 2 motes on a hit forces an Essence roll or the mortal victim drops dead.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 228
     }
   },
@@ -477,7 +477,7 @@
     },
     "description": "Until next sunrise, grants bashing and lethal soak equal to permanent Essence and negates any magic designed to deal extra damage or trauma to Abyssals, Deathlords, or Underworld denizens — the bonus effect vanishes, though the base attack still lands.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 228
     }
   },
@@ -490,7 +490,7 @@
     },
     "description": "Pacing a boundary on foot from sunset to before midnight consecrates that land to the Underworld: black clouds shroud it, and any mortal who dies violently there afterward rises at dusk as an uncontrolled hungry ghost (extra).",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 228
     }
   },
@@ -503,7 +503,7 @@
     },
     "description": "A geyser of the caster's blood builds over an hour into a mile-high cloud covering Essence miles in radius, then rains gore for Stamina hours — killing plants and small animals, sickening others (hourly Stamina+Endurance check), and drawing malevolent creatures for miles.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 228
     }
   },
@@ -516,7 +516,7 @@
     },
     "description": "A sunset-to-midnight ritual transforms a willing Solar into an Abyssal: she renounces her god, Caste Mark, Charms, and name, and at midnight her anima is swallowed by shadow. She gains matching Abyssal Charms and caste (Dawn→Dusk, etc.) and is thereafter a deathknight.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 229
     }
   },
@@ -529,7 +529,7 @@
     },
     "description": "After sacrificing at least 100 mortals into a pit dug in a shadowland and bleeding a health level into it, the earth falls away to the Labyrinth and a unique defensible fortress of obsidian and black basalt grinds up, its lowest chapel opening onto the dead gods below.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 229
     }
   },
@@ -542,7 +542,7 @@
     },
     "description": "For a full day the caster's Caste Mark glows red, letting her command any ghost, walking dead, or creature of death of lower permanent Essence, and barring any such creature from attacking her. No power over Abyssal Exalted or Deathlords.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 229
     }
   },
@@ -555,7 +555,7 @@
     },
     "description": "Fasting at a Demesne's heart for days equal to its rating dooms it to lose a rating point each month until, at zero, it shifts to an Abyssal aspect and slowly regains strength. Only Adamant Countermagic (at double cost) or an Incarna can arrest the decay.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 229
     }
   },
@@ -568,7 +568,7 @@
     },
     "description": "Seizes control of animated creatures, soulless intelligences and minor machine spirits (golems, zombies, automata, First Age devices) for one scene, overriding their programming. 5 motes takes one automaton; 15 motes takes (Essence x 2) automata or devices in a 10-yard radius. No effect on natural creatures, elementals, or machine spirits of Essence 3+. Countered by Emerald Countermagic, Essence Draining Defense, or an Alchemical whose permanent Essence exceeds the weaver's by 2+. Target: one nearby automaton, or all automata in a 30-foot radius. Minimum Clarity 3.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 147
     }
   },
@@ -581,7 +581,7 @@
     },
     "description": "Wraps the target instantly in extraordinarily tough silvery filaments (also known as Her Glistening Silvery Strands). Breaking free is a Strength + Athletics feat of strength totalling 10, but doing so makes the strands act as garrotes, inflicting soakable lethal damage equal to the weaver's Essence. Target: one person. Duration: indefinite. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 147
     }
   },
@@ -594,7 +594,7 @@
     },
     "description": "Identical to the sorcery spell Sleep of Stony Safety (Savant and Sorcerer p.117), except the protective containment is a crystal resembling a lotus flower. Minimum Clarity 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 147
     }
   },
@@ -607,7 +607,7 @@
     },
     "description": "Binds one individual in a mesh of luminous filaments that does not impair movement but injures them whenever they spend Essence — the weaver fixes the type at weaving: one bashing level per mote spent, or one lethal level per 2 motes. This damage is soaked only with the target's Essence rating; committed Essence and non-Essence activity are unaffected. Cannot target a being of greater Essence than the weaver. Duration: one scene or one hour, whichever is longer. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 147
     }
   },
@@ -620,7 +620,7 @@
     },
     "description": "Conjures a silent floating pocket of roiling shadow — a tenebrapede — that the weaver and companions ride, carrying 200 lbs of cargo/passengers per point of the weaver's Essence. Flies at 200 mph (~600 yards/turn), 25 health levels, soak 25L/35B, 90% hard cover; only one attack may be made against it or its occupants unless matched in flight. Target: weaver. Duration: (Essence x 4) hours, or until it reaches its destination, lands, or is dispelled. Minimum Clarity 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 148
     }
   },
@@ -633,7 +633,7 @@
     },
     "description": "From a seated meditative posture the weaver manifests a sphere of cold, airless, aphotic void of radius (Essence x 5) feet. It snuffs all fire, suffocates air-breathers, cuts visibility to heavy-snow-at-night, inflicts bonfire-level cold damage, and has no gravity; items entering lose all momentum. The weaver floats serenely at the center, immune to all effects but the visibility penalty, and regains Essence as if meditating. Breaking the posture ends it instantly. Target: area of effect. Duration: the longer of one hour or one scene. Minimum Clarity 5.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 148
     }
   },
@@ -646,7 +646,7 @@
     },
     "description": "Knocks all automata within (Essence x 10) yards offline: gremlins, golems, zombies and the like take the weaver's Essence in bashing damage and fall inert until the next scene, when they resume (often confused). Does not shut down warstriders/powered armor but deadens unshielded limbs — Artifact ••• armor takes -2 mobility, each further dot reduces it by 1 (Artifact ••••• unaffected). Target: all automata within range. Duration: one scene. Minimum Clarity 4.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 149
     }
   },
@@ -659,7 +659,7 @@
     },
     "description": "A reflexive counter (like Emerald Countermagic) that cancels Terrestrial Circle Sorcery, Man-Machine Protocols, and Shadowlands Circle Necromancy, absorbing the cancelled spell's Essence into the weaver's reservoir; excess above maximum is harmlessly vented as sparks. Target: special. Duration: instant. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 149
     }
   },
@@ -672,7 +672,7 @@
     },
     "description": "Identical to the sorcery spell Lightning Spider known to Creation's sorcerers; it is suspected Autochthon himself gave that spell to the Exalted. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 150
     }
   },
@@ -685,7 +685,7 @@
     },
     "description": "Surrounds the weaver with hundreds of whirling polished metal spheres acting as armor: effective hardness 5 and +10L/10B soak. Intercepted non-magical-material weapons risk shattering (Storyteller rolls 1d: normal weapon shatters on 7 or less, exceptional on 5 or less; perfect weapons immune), and even undamaged weapons need a Dexterity + Melee roll (difficulty 2) to keep hold. Unarmed attackers suffer 10 dice of soakable bashing damage. Target: weaver. Duration: 12 hours. Minimum Clarity 3.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 150
     }
   },
@@ -698,7 +698,7 @@
     },
     "description": "Raises a golem shell from the ground and binds an Autochthonian elemental into it to serve the weaver, with Traits/appearance by element (engine/glass/magnet/oil/smudge/steel golem) and two element-unique Charms that no foreign learner can acquire. Serves for (Essence) weeks before merging back into the Maker; the weaver may have as many active at once as points of Essence. Target: one conjured automaton. Duration: (Essence) weeks. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 150
     }
   },
@@ -711,7 +711,7 @@
     },
     "description": "The weaver and all willing participants become perfectly cooperative on one shared task (usually an extended action): each benefiting member gains one die per additional member of the group, up to (Wits + Essence) individuals. Ends when the task is accomplished. Target: the weaver and all willing targets in a 10-foot radius. Duration: the longer of one hour or one scene. Minimum Clarity 5.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 153
     }
   },
@@ -724,7 +724,7 @@
     },
     "description": "Expels an enormous net of phlogiston (sticky solid fire) covering 100 square feet per point of permanent Essence in a shape the weaver chooses. The net inflicts (Essence + 4) lethal health levels every turn. Cutting it needs a magical-material weapon and four successes on Strength + Melee, or a Strength + Athletics roll (difficulty 5) to break by force. Fire-immune characters take no damage. Target: area of effect. Duration: (Essence) turns. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 153
     }
   },
@@ -737,7 +737,7 @@
     },
     "description": "Identical to the spell Plague of Bronze Snakes (Savant and Sorcerer p.112), except the snakes wriggle out of the Alchemical weaver's own body at the protocol's commencement. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 153
     }
   },
@@ -750,7 +750,7 @@
     },
     "description": "Turns fate against the weaver's enemies: familiars rated under 3 flee, and hostile spirits of Essence under 2 must pass a Valor roll or flee for two turns per point of the weaver's Essence. For the duration, every afflicted enemy suffers +1 to all target numbers, 10s count as a single success, and each 1 negates a success. No effect on the weaver's allies. Target: enemies in a 10-yard radius. Duration: one hour or one scene, whichever is longer. Minimum Clarity 5.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 154
     }
   },
@@ -763,7 +763,7 @@
     },
     "description": "A devastating shriek that shakes bone, rattles teeth, makes hearing impossible, and deals glass/crystal objects 10 levels of bashing damage. In all other regards identical to the spell Thunder Wolf's Howl (Savant & Sorcerer p.122). Target: area of effect. Duration: (Essence) turns. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 154
     }
   },
@@ -776,7 +776,7 @@
     },
     "description": "Recaptures a loose ghost into a soulgem via a contested Willpower + Essence roll (5 motes per extra die). Souls so captured cannot escape until the death of their next incarnation. A classified protocol; learning it requires Backing 4 or more with the Luminors. Target: ghost. Duration: permanent. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 154
     }
   },
@@ -789,7 +789,7 @@
     },
     "description": "Drains (Essence x 2) motes from one Essence-gathering/storing device or item with committed Essence (Hearthstone, Essence gem, attuned weapon) into the weaver's tanks. Drained Hearthstones stop for (6 - Manse rating) hours; gems must be recharged and weapons reattuned. Cannot drain from an Essence-user's own pools. Target: one item. Duration: instant. Minimum Clarity 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 154
     }
   },
@@ -802,7 +802,7 @@
     },
     "description": "Exactly like the Terrestrial Circle spell Summon Elemental (Exalted p.219), but calls only the elementals common to Autochthonia — crystal, lightning, metal, oil, smoke and steam. Target: elemental. Duration: up to one month. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 154
     }
   },
@@ -815,7 +815,7 @@
     },
     "description": "Very similar to Summon Elemental (Exalted p.219) but captures a machine spirit chosen by any criteria via the same Willpower contest. Larger spirits, disliking multitasking, often send subroutine spirits to serve in their stead. Target: one machine spirit. Duration: instant. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 155
     }
   },
@@ -828,7 +828,7 @@
     },
     "description": "Reshapes the local techno-organic landscape at the weaver's gesture — sealing tunnels, raising room, pulling veins to the surface — moving 500 cubic feet of material per turn. In Creation it sculpts up to (Essence x 100) square feet of stone (trenches, mounds, tunnels, bridges) and can raise ore veins up to (Essence x 100) feet deep. Immuring an enemy is slow (5 turns) and resistable (Strength + Athletics, difficulty 2, +1 per shaping turn). Target: terrain. Duration: one scene. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 155
     }
   },
@@ -841,7 +841,7 @@
     },
     "description": "If the weaver has Charms on retainer at the Vats (Vats Background), this instantly swaps one currently installed Charm for one stored there, bypassing the usual need to return to the Vats. Target: one Alchemical Exalt. Duration: instant. Minimum Clarity 4.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 155
     }
   },
@@ -854,7 +854,7 @@
     },
     "description": "Spits forth a head-sized crystal dodecahedron into which the weaver speaks a message; functions exactly like the Terrestrial spell Infallible Messenger (Exalted p.218) except the recipient sees the speaker's image and background events in the crystal as well as hearing him. Target: one creature. Duration: one message. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 156
     }
   },
@@ -867,7 +867,7 @@
     },
     "description": "Reweaves an automaton or machine's pattern to a new destiny — mending, reactivating, or transforming it (gremlin to custodian, warstrider to airship, or into inert parts). Automatic if the weaver's Essence >= the target's, else a contested Essence roll. Can reconfigure a machine spirit of up to half the weaver's Essence (round up) into an Artifact of half the weaver's Essence (round up) or a familiar rated at the weaver's Essence; equal-power artifact conversions need (Artifact rating) successes on Intelligence + Lore. At Essence 7 the weaver alters multiple targets in line of sight (+5 motes each), but only their programming/behavior, and none may exceed permanent Essence 3. Target: one automaton. Duration: permanent. Minimum Clarity 6.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 156
     }
   },
@@ -880,7 +880,7 @@
     },
     "description": "Communing with the Core of the Machine God, the weaver prognosticates the optimal path to his goal and enacts it in perfect mechanized grace, adding (Essence) successes to every roll for the duration. Target: weaver. Duration: (Essence) turns. Minimum Clarity 6.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 156
     }
   },
@@ -893,7 +893,7 @@
     },
     "description": "Prepared up to a day ahead, this makes the weaver's Essence matrix highly reflective: all incoming protocols, sorcery spells and necromancy effects (except Solar Circle Sorcery and Void Circle Necromancy) targeting her or any area including her are turned back on their source, as are Essence weapon effects (implosion bows, Essence cannons). Target: weaver. Duration: one day. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 156
     }
   },
@@ -906,7 +906,7 @@
     },
     "description": "Grasping the strands of a being's pattern, the weaver unravels it Trait by Trait (she must stay within (Essence) feet and do nothing else, or it terminates). After a first turn of dawning panic, the target loses one Attribute dot per turn from highest down; once all Attributes reach 1 she loses health levels, growing transparent, and at the last level fades from the pattern entirely, her soulgem dropping empty. Unwoven Traits do not return on their own, though the weaver may reweave them at 5 motes per dot within one day. Weavers usually obtain this from the Divine Ministers or design weavers. Target: one individual. Duration: varies. Minimum Clarity 6.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 157
     }
   },
@@ -919,7 +919,7 @@
     },
     "description": "Separates the weaver's forearms into hovering attack drones (down one health level per drone until they refuse). Drones use the weaver's Traits, gain the weaver's Essence in Brawl, keep brawling-aid benefits, and hover at twice her movement rate; each can take three health levels, and a destroyed drone leaves the weaver permanently down one health level until the limb is replaced at the Vats or healed as aggravated damage. Target: weaver. Duration: one scene. Minimum Clarity 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 157
     }
   },
@@ -932,7 +932,7 @@
     },
     "description": "The weaver metamorphoses into a living nightmare war form comparable to a Lunar's, combining aspects of any beasts or plants; the mechanical nature vanishes. Grants hardness 10 and +10 soak vs bashing and lethal, +2 Strength and +2 Stamina (even above 5), bestial weapons as Artifact •• magical-material weapons (no material bonus) with +3 speed/+1 accuracy and Strength + 6 lethal (Strength + 8 in a clinch), and reach out to (Essence) yards. Incompatible with armor and weapons. For 5 extra motes the form also gains wings, flying at three times land speed. Target: weaver. Duration: (Essence) hours. Minimum Clarity 2 (Maximum Clarity 7).",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 157
     }
   },
@@ -945,7 +945,7 @@
     },
     "description": "Identical to the spell Travel Without Distance (Exalted p.221), except the Alchemical sinks into the substance of the Great Maker in one place and emerges from the ground at the destination the next instant. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 157
     }
   },
@@ -958,7 +958,7 @@
     },
     "description": "From an asana at the center of the area, the weaver attunes a spherical space to his own Essence flow to the exclusion of all others, making it proof against sorcery and protocols. In all other respects equivalent to Mercury's Deliverance (Savant and Sorcerer p.131). Target: area of effect. Duration: five shifts. Minimum Clarity 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 157
     }
   },
@@ -971,7 +971,7 @@
     },
     "description": "Like the Maker's Basic Defense Array but with a sphere of whirling adamant shuriken: effective hardness 10 and +20L/20B soak. Weapons that strike it shatter — non-magical-material on 1-9, magical-material only on 1 (Storyteller rolls 1d) — and even undamaged weapons need a Dexterity + Melee roll (difficulty 3) to keep hold. Unarmed Brawl/Martial Arts attackers suffer 10 dice of soakable lethal damage, and any attacker taking more than two health levels loses the attacking limb. Target: weaver. Duration: 12 hours. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 158
     }
   },
@@ -984,7 +984,7 @@
     },
     "description": "Equivalent to the spell Blood of Boiling Oil (Exalted p.220), except the target's blood simply boils and denatures in the veins rather than becoming oil. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 158
     }
   },
@@ -997,7 +997,7 @@
     },
     "description": "Interweaves the weaver's pattern with up to (half permanent Essence, round up) willing individuals, who occupy the same space and are telepathically linked; only the weaver may act. Passengers' Strength, Stamina, Soak and Resistance stack onto the weaver's, and all damage is split evenly among weaver and passengers. A spirit passenger must first Materialize; a hosting weaver cannot be possessed. Target: the weaver and passenger(s). Duration: one day. Minimum Clarity 3.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 158
     }
   },
@@ -1010,7 +1010,7 @@
     },
     "description": "The Alchemical version of Eternal Crystalline Encasement (Savant and Sorcerer p.127): the weaver wraps the target object in a scintillating cocoon of spun diamond fiber, then spins a pearl of gem-stuff whose touch ends the protocol and resumes pattern function. Minimum Clarity 0.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 158
     }
   },
@@ -1023,7 +1023,7 @@
     },
     "description": "A wave of dynamic order radiates 10 feet per turn, transmuting solids and liquids to faceted elemental crystal (existing crystal/adamant unaffected; artifacts resist for (Artifact rating) turns, N/A items for 10, Maker-forged items are immune). Caught creatures take the weaver's Essence in aggravated damage per turn and become crystal statues if Incapacitated; healing requires cutting the crystal from living flesh first. Heals blight zones and reclaims shadowlands within the Maker. Target: (Essence x 10)-foot radius. Duration: permanent. Minimum Clarity 6.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 159
     }
   },
@@ -1036,7 +1036,7 @@
     },
     "description": "Expands all five senses to fill a 60-yard-diameter sphere, sensing through solid objects (and through the Maker's veins) as if touching, examining and closely hearing everything, with full processing of the data. The weaver cannot be surprised, detects even invisible intruders by weight/air/heartbeat/scent, and gains her Essence rating as automatic successes on Perception rolls within range. Target: weaver. Duration: one scene. Minimum Clarity 4.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 159
     }
   },
@@ -1049,7 +1049,7 @@
     },
     "description": "Spins order out of the Wyld: each hour of prayer and mudra formats reality in a 20-yard radius (weavable for as many hours as the weaver has Stamina), dealing Fair Folk in the area the weaver's permanent Essence in aggravated damage. It strangles every raksha within (Essence) miles (doubled in the Deep Wyld). Targeting a raksha noble directly forces a contested Willpower + Essence roll; on a loss he is reformatted into a torpid Jadeborn soul in an egg of jade. Target: nearby Wyld areas. Duration: permanent. Minimum Clarity 10.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 159
     }
   },
@@ -1062,7 +1062,7 @@
     },
     "description": "The character's eyes glow with iridescent flame, holding the attention of a victim with whom he makes eye contact and compelling him to stunned silence. The character must meet his target's eyes, and the target's player must achieve a number of successes on an opposed Willpower + Occult roll equal to the sorcerer's permanent Essence. If the target loses, then he will fall into a light trance state and will be intensely suggestible, believing everything that he is told as the truth, even if he should be able to see that such is evidently not the case. If the target's player rolls a number of successes equal or greater than the sorcerer's Essence, then the target is unaffected by the spell, and it fades away. The spell will last for five minutes after the character breaks eye contact with the target. After it has finished, the target will still believe whatever he was told while the spell lasted to be the truth, unless there is clear evidence to the contrary.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 74
     }
   },
@@ -1075,7 +1075,7 @@
     },
     "description": "With this spell, a character can rouse the very plants and trees to speak to him and to answer his questions. A wind will rise and ruffle the leaves and grasses, till they whisper audibly. Plants speak Old Realm and no other tongues. They will be conscious of what has taken place around them, though only in vague visual terms: A bush could describe a warrior in red with a sword and a scar but would not necessarily be able to identify him as the character's enemy. The spell will last for the length of a conversation, however long that takes: During it, the character may question all the plants and trees within 10 yards of him. Grass will only remember a few days back, while herbs and small bushes may remember events from several weeks ago, and trees may remember happenings from years ago or even centuries. Bearing a naked flame near the plants during the conversation will make them extremely nervous, and they will constantly request that it be put out while they talk.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 74
     }
   },
@@ -1088,7 +1088,7 @@
     },
     "description": "This malicious spell is used in moments of hatred, bitterness and spite. It causes the target to betray someone she loves, either by action or inaction. It must be cast during the hours of darkness. The ritual involves two hours of chanting, the shedding of blood and the speaking of the target's name. At that moment, the sorcerer's player makes a Willpower + Occult roll and totals the number of successes he achieves. For each 5 additional motes of Essence he spends, he may add another die to the pool. If the sorcerer achieves at least one success, at that moment, wherever she may be, the target of the spell will hear the sorcerer speak her name in tones of rage and hatred.\n\nThe effects are not immediate and may be delayed for days — or even years. However, when the targeted character is next in a position involving the safety of someone whom she loves or whom she is honor-bound to obey, the curse will attempt to work. The target's player must make a Willpower + Conviction roll and compare the total to the number of successes achieved earlier by the sorcerer. If she gains more successes or an equal number, then the curse fails, and a distant scream will echo in the sorcerer's ears as it dissipates. Should the target gain fewer successes than the sorcerer, then the curse will affect her and will blind or deafen her at some critical moment, causing her to betray her lord or loved one. Battle orders may be misheard, the identity of another combatant may be tragically mistaken, or a plea for help may go unnoticed. Whatever the case, terrible tragedy for the loved one will result.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 75
     }
   },
@@ -1101,7 +1101,7 @@
     },
     "description": "With this spell, an Exalt can invoke the attention of one of the seven Hidden Judges of the Secret Flame, mysterious spirits who are said to attend each Calibration and prevent open strife among the powers of the year. One may be invoked to guard a place (which it will do until the next Calibration) or to hunt down an enemy. However, a Hidden Judge will not pursue someone who is innocent by its definitions — the target must have offended against divine law in some way or broken a bargain with a spirit. (Attacking a Solar does not count as an offense against divine law!)\n\nAs with the summoning of demons, this spell requires a complex ritual that must be begun at dawn and finished at sunset but can be cast at any time of the year except for Calibration. No contest is required between the sorcerer and the Hidden Judge: If the sorcerer requests one of the above services, the Judge will do as required without argument. Requesting any other service from the Judge involves a Willpower + Essence contest between the sorcerer and the Judge: Should the sorcerer fail, the Judge will strike at him once with his sword before vanishing.\n\nThe Hidden Judges manifest as beings with the bodies and stature of tall men, draped in long, hooded dark cloaks that leave a trail of charred dust behind them. Only their hands and forearms are visible, bones blackened like charred skeletons. Those who have dared to look at their faces have declared that the Hidden Judges have no heads, only a single iridescent blue flame, which burns continually in the shadow of their hoods. Each Hidden Judge bears a great two-handed sword. Although the Hidden Judges are not known by name, their weapons each have a particular name, which must be used when summoning one of the spirits. Known names of the swords include Hekateron, Amantythae, Sebelle, Kasimodente and Pheberester. A Hidden Judge may only be wounded by a blade that has been dipped in the blood of one who has never broken the laws of Heaven or by a magical weapon such as a daiklave or powerbow.\n\nHIDDEN JUDGE — Nature: Judge. Attributes: Strength 4, Dexterity 3, Stamina 5, Charisma 0, Manipulation 2, Appearance 0, Perception 4, Intelligence 4, Wits 4. Virtues: Compassion 1, Conviction 5, Temperance 4, Valor 4. Abilities: Awareness 3, Brawl 3, Dodge 4, Endurance 4, Linguistics 5, Lore 5, Melee 5 (Sword +1), Occult 5, Presence 5, Resistance 3. Backgrounds: Allies 5 (Other Judges), Contacts 5 (Court of Seasons), Influence 3, Resources 3. Charms: Essence Bite, Geas, Imprecation, Instill Obedience, Landscape Travel, Malediction, Materialize, Principle of Motion, Scourge, Tiny Damnation. Cost To Materialize: 50. Base Initiative: 7. Attack — Claw: Speed 7 Accuracy 7 Damage 6L Defense 7; Sword: Speed 9 Accuracy 13 Damage 9L Defense 12. Dodge Pool: 7. Soak: 9L/10B (Enchanted cloak, 6L/6B). Willpower: 9. Health Levels: -0/-0/-0/-1/-1/-1/-1/-1/-1/-2/-2/-2/-2/-2/-2/-4/Incap. Essence: 5. Essence Pool: 100.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 75
     }
   },
@@ -1114,7 +1114,7 @@
     },
     "description": "When the Exalt is done gathering the Essence for this spell, she takes a deep breath and shouts the 11 syllables of this spell in a voice that can be heard for a mile around. A buzz of aggressive confusion immediately overtakes the area around him, affecting all except those who had their ears covered. The players of all those affected must make an immediate reflexive roll of their characters' Willpower against a difficulty equal to the sorcerer's Essence. Those whose players fail the roll will instantly begin to argue with the nearest convenient target and may even begin to fight if they have weapons convenient to hand. Old quarrels are exacerbated, and new annoyances promptly shift from being minor inconveniences to full grievances. Mothers within earshot shake their wailing babies, children tussle, workers brawl, and soldiers turn their weapons on each other. This spell is hard to shake off, once it has affected a target. For each subsequent minute, the players of all those affected should continue to roll their characters' Willpower: Once they accumulate more successes than the sorcerer's Peripheral Essence, the spell is lifted for their characters, and they may act freely. Note that the sorcerer himself may be a target for those enraged by the spell unless he quickly removes himself from the vicinity.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 76
     }
   },
@@ -1127,7 +1127,7 @@
     },
     "description": "With this puissant spell, one of the Exalted can turn a large body of water into pure fire that requires no fuel in order to remain alight and will flow and move as did the water but burns with the heat of normal flame. If he works this spell upon a fountain, the fire will spray in all directions. If a river is transformed, then the fire rushes downstream, but also continues to transmute water at the point of invocation for the duration of the spell. The flames will not be affected by any water that touches them, but will actually float on its surface, like oil upon normal water. The flames burn like the living fires of Hesiesh himself, doing six levels of aggravated damage per turn to all those struck by them, soaked as normal for damage of that type. The spell will change a body of water up to the size of a small lake or medium-sized river, and works upon magically created water as well as on the normal element. The spell lasts for a number of hours equal to the character's Essence, after which point, all the flames return to water. The caster himself is immune to the flames, as are his personal belongings, and he may freely wade through them without coming to harm.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 76
     }
   },
@@ -1140,7 +1140,7 @@
     },
     "description": "This spell permits an Exalted to call forth the mirror image of another person and to imprison the original within the mirror. To do this, he must be in the presence of his target, and there must also be a mirror of some shape or size within 10 yards. Both the player of the sorcerer and the player of his victim make reflexive opposed Willpower + Essence rolls. The victim must be conscious and able to see the mirror but may be drugged or otherwise bespelled. If the sorcerer fails, then the mirror explodes into a hundred pieces, and the sorcerer's player suffers a penalty of -2 to all Mental and Willpower rolls for the next 24 hours, due to the sorcerous backlash. If the sorcerer and the target score an equal number of successes, then the mirror shatters, but there is no other reaction. If the sorcerer scores more successes than the target, then the target is trapped inside the mirror.\n\nThe victim's mirror reflection has the same physical abilities, Charms, items and so forth as the victim but is a complete moral opposite. She is as intelligent as the victim and will act as her morals dictate — and to prevent herself from being returned to the mirror. She is also the sorcerer's willing slave and will do exactly as the magician commands. The victim herself is trapped in the mirror world, which is a shadowy reflection of the real world and only peopled by others trapped like her. Whenever her escaped reflection is mirrored by any surface (whether natural, such as a pool of water, or unnatural, such as a mirror), she is able to look out into the real world through the same mirror. The victim is not obliged to follow her reflection's movements — she can wave her hands, mouth appeals for help and so on. For this reason, most escaped reflections tend to avoid mirrors at all costs. The only known way to break this spell is to force the escaped reflection to touch the real victim, by touching a reflective surface. If this is done, then the two will resume their proper places.",
     "source": {
-      "book": "Exalted 1e Caste Book: Twilight",
+      "book": "Caste Book: Twilight",
       "page": 76
     }
   },
@@ -1153,7 +1153,7 @@
     },
     "description": "The sorcerer summons a horde of sorcerous birds driven by an unquenchable hunger. These birds look like mortal gulls, save for their steel beaks, their glowing topaz eyes and their twice-normal size. They descend on their target, and devour all the non-living organic material that they can find. They will eat a man's clothes from his body while leaving the flesh beneath untouched and peck the silk ribbons out of a woman's hair. More to the point, they will happily chew the wood and rope and sails of a ship that is their target. This spell endures for as many turns as the casting sorcerer has points of permanent Essence, during which time the gulls attack the hull of the target ship. The flock's gnawing and clawing reduces the ship's hull soaks (both bashing and lethal) by a cumulative point per turn, until either the flock is driven away or the spell ends. The damage to the hull remains until it is mended. Thus, 1 point on the first turn, 2 points on the second turn and so on. The birds can be attacked comparatively easily, as they make no attempt to defend themselves from the humans or to attack in return, only going so far as to dodge if attacks are being rained on them. The flock remains bunched together. It has, as a whole, health levels, Dexterity and Dodge equal to those of the sorcerer who summoned it, a bashing soak equal to that of the sorcerer's Perception and a lethal soak equal to the sorcerer's Intelligence, and it dodges reflexively with its full dodge pool if attacked. The birds draw their strength from their summoner's spirit, and a weak sorcerer produces a poor flock of gulls. They may be made to attack any boat within their summoner's field of vision.",
     "source": {
-      "book": "Exalted 1e The Outcaste",
+      "book": "The Outcaste",
       "page": 93
     }
   },
@@ -1166,7 +1166,7 @@
     },
     "description": "When using this spell, the Exalt calls to the figurehead of the ship on which he stands with such command and authority that the ship's very spirit wakes and takes control of the vessel through the figurehead. The ship will obey the Exalt's verbal commands for the duration of the scene, to the best of its ability — it can't suddenly accomplish the impossible, leap into the sky or turn into orichalcum. However, the sails and ropes can set and tack of their own accord, and the wheel and rudder can both manage themselves as the Exalt commands. Oars are unaffected by this sorcery. If the Exalt moves more than 100 yards from the ship, then it will attempt to follow him, whatever orders he may have given, and will pursue him to the limits of its ability until the spell lapses. This spell won't function on a ship that doesn't have a figurehead. It endures until the next dawn or dusk, whichever comes first, at which point, the figurehead closes its eyes and the ship becomes normal once again. There have been recorded cases where sustained use of this spell caused the ship's spirit to awaken permanently.",
     "source": {
-      "book": "Exalted 1e The Outcaste",
+      "book": "The Outcaste",
       "page": 95
     }
   },
@@ -1179,7 +1179,7 @@
     },
     "description": "This spell permits a ship to literally sail upon the clouds, ascending from the ocean below to the mists above. It is Terrestrial Circle, but not in general use, as the Dragon-Blooded tend to prefer more efficient ways to move fleets rather than single ships. The spell requires that, at some point, the mists or clouds touch the sea itself. The caster of the spell must be present on the ship while casting it, though she need not be the steersman or captain. After the words have been recited and the gestures made, the ship will move up through the mists, as though rising from wave to wave, until it reaches the heights of the sky and sails atop the clouds there, as though they were merely the foam of heavenly waves. The ship can be steered as it would normally, even to the extent of tacking against the wind, but is as vulnerable to a lack of wind as it would be on the seas below. The spell endures for 12 hours. At the end of this time, it may be recast. If it is not renewed, then the ship descends gently to the ocean below, landing upon the waves as softly as a feather. The ship is not protected in any way from dragons or from other spirits or gods of the high air. If it is traveling above islands or bodies of earth at the point that the spell runs out, the ship will land softly but may be stranded miles from water.",
     "source": {
-      "book": "Exalted 1e The Outcaste",
+      "book": "The Outcaste",
       "page": 95
     }
   },
@@ -1192,7 +1192,7 @@
     },
     "description": "Upon incanting this rediscovered First Age spell, a long whip of braided copper wire with a dark oak handle appears in the caster's hand. It will continue to exist until used or until the next dawn. In either case, the whip dissolves into nothingness, leaving a thin pile of copper powder behind. To use it, the caster cracks the whip in the direction of the target, which must be within half a mile or less. The sorcerer's player makes a Perception + Thrown roll to determine the accuracy of the blow, against a difficulty of 3. The whip transforms into a bolt of lightning, which skips across the surface of the water until it strikes the target. Human-size targets may attempt to dodge as they would a normal missile, but ships have more difficulty. The whip can be parried. If the target fails to dodge, then it is struck by the lightning. The bolt of lightning does 5L structural damage per success scored by the caster to any ship that it strikes and three health levels of aggravated damage (burns and shock) to any living beings within five yards of the point of impact. This spell, unfortunately, only works on a body of open water. If a caster attempts to use it while on land, the lightning grounds itself while leaping toward the target and is lost.",
     "source": {
-      "book": "Exalted 1e The Outcaste",
+      "book": "The Outcaste",
       "page": 95
     }
   },

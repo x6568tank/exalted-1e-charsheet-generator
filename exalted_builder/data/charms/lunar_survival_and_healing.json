@@ -12,7 +12,7 @@
     "cost": {"raw": "2 motes per die"},
     "duration": "Instant",
     "description": "A Lunar's ties to the wild allow him to survive in conditions where others would suffer great hardship. By using this Charm, the Lunar taps into his bestial nature, using instinct and cunning rational thought to guide his actions. When attempting any form of Survival roll that involves Wits, the Lunar's player may purchase additional dice up to his character's unmodified Wits score.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 168}
+    "source": {"book": "The Lunars", "page": 168}
   },
   {
     "id": "lunar.survival-and-healing.whale-breath-technique",
@@ -27,7 +27,7 @@
     "cost": {"motes": 3, "raw": "3 motes"},
     "duration": "Stamina x 10 minutes",
     "description": "Using this Charm, a Lunar replicates the breath control of a diving whale and need not breathe for a considerable period of time (Stamina x 10 minutes). The Lunar can survive underwater, in poison gas or even where there's no air at all. However, the Lunar cannot speak without compromising the effects of the Charm — doing so requires him to expel air from his lungs. The Lunar may speak a few words, perhaps a short sentence, but if he does so, the duration of the Charm decreases to one minute. If he speaks a longer sentence or speaks again, the duration decreases to five turns. A third attempt at speech or any form of longer communication cancels the Charm. As part of activating the Charm, the Lunar must take a deep breath and so cannot simply reactivate it in hostile conditions.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 168}
+    "source": {"book": "The Lunars", "page": 168}
   },
   {
     "id": "lunar.survival-and-healing.gill-breathing-technique",
@@ -42,7 +42,7 @@
     "cost": {"motes": 5, "raw": "5 motes"},
     "duration": "One day",
     "description": "By activating this Charm, the Lunar manipulates his body to form gills. This allows him to breathe in water as well as in air for the rest of the day. A character existing underwater may simply commit 5 motes to this Charm to keep gills indefinitely.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 168}
+    "source": {"book": "The Lunars", "page": 168}
   },
   {
     "id": "lunar.survival-and-healing.sealskin-endurance",
@@ -57,7 +57,7 @@
     "cost": {"motes": 4, "raw": "4 motes"},
     "duration": "One day",
     "description": "By activating this Charm, the Lunar protects himself from cold conditions. The exact method differs from Lunar to Lunar — some may grow a layer of blubber, others a pelt of warm fur. Regardless, the effects are the same. For the duration of the Charm, the Lunar can exist in relative comfort even in the coldest conditions. He does not suffer from hypothermia, frostbite or immersion, nor does he suffer the effects of snow blindness. He is not, however, protected from the harshest rigors of the Elemental Poles, nor from magically conjured cold.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 168}
+    "source": {"book": "The Lunars", "page": 168}
   },
   {
     "id": "lunar.survival-and-healing.heat-adapting-method",
@@ -72,7 +72,7 @@
     "cost": {"motes": 4, "raw": "4 motes"},
     "duration": "One day",
     "description": "This Charm has the opposite effect of Sealskin Endurance, resulting in a lean, sleek Lunar adapted to the rigors of warm environments. His body becomes highly efficient at conserving water and adept at radiating excess heat without the need for sweating. For the duration of the Charm, the Lunar can exist in relative comfort in even the warmest conditions. He does not suffer heatstroke or sand blindness, nor does his skin blister and burn after exposure to the sun. The Heat Adapting Method does not protect the Lunar from the effects of fire.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 169}
+    "source": {"book": "The Lunars", "page": 169}
   },
   {
     "id": "lunar.survival-and-healing.fire-walking-prana",
@@ -87,7 +87,7 @@
     "cost": {"motes": 5, "raw": "5 motes"},
     "duration": "10 turns",
     "description": "By means of this Charm, the Lunar can — for a short time — resist the effects of fire. He may walk through flames and across burning coals without suffering ill effects. He is not, however, immune to the effects of prolonged heat. The character adds his Essence to his soak against magical fire. While under the protection of this Charm, the character is also immune to the effects of smoke inhalation and to overheating caused by exposure to flames.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 169}
+    "source": {"book": "The Lunars", "page": 169}
   },
   {
     "id": "lunar.survival-and-healing.unerring-den-finding-sense",
@@ -102,7 +102,7 @@
     "cost": {"motes": 4, "raw": "4 motes"},
     "duration": "One scene",
     "description": "Using this Charm, a Lunar can unerringly find shelter for himself and a number of associates. The exact sort of shelter will depend on the environment — in rocky terrain, the Lunar's senses may lead him to a cave or cleft, while, in a forest, he may divine a hollow tree of suitable size. The Lunar's player makes a Perception + Survival roll, each success indicating the capacity for one person, irrespective of the environmental conditions. However, this protection merely shields the characters from the elements — it does not guarantee there is firewood or food in the vicinity.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 169}
+    "source": {"book": "The Lunars", "page": 169}
   },
   {
     "id": "lunar.survival-and-healing.food-scenting-method",
@@ -117,7 +117,7 @@
     "cost": {"motes": 4, "raw": "4 motes"},
     "duration": "Varies",
     "description": "By using this Charm, a Lunar will never go hungry. If he is traveling during the day in hospitable terrain, the Lunar is guaranteed to find enough nuts, berries, ants and fungi to keep him well fed. If he actively forages for food (see Exalted, p.245), he may gather sufficient food to feed a number of people equal to his Perception + Survival, though doing so will take approximately an hour of his time. In harsher conditions, the Lunar is still able to feed himself, though the Storyteller may wish the Lunar's player to roll his character's Perception + Survival, perhaps even at an increased difficulty level, to determine how many people he can feed. In no case should the difficulty increase above 3, unless the Lunar is stranded on pack ice, in the midst of a vast loose-sand desert or in some other wildly hostile environment.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 170}
+    "source": {"book": "The Lunars", "page": 170}
   },
   {
     "id": "lunar.survival-and-healing.water-providing-technique",
@@ -132,7 +132,7 @@
     "cost": {"motes": 5, "raw": "5 motes"},
     "duration": "Varies",
     "description": "Using this Charm, a Lunar can find sufficient water to meet his needs for a day. This moisture may be gathered from concealed springs, condensation on leaves or the pulp of vegetation. Lunars in dire straits have gathered the film of moisture from around individual grains of sand, so sensitive are their tongues. If the Exalt seeks water for others, he may gather sufficient moisture to meet the needs of a number of people equal to his Perception + Survival, though harsh conditions may require his player to roll against a difficulty depending on the circumstances, each success indicating sufficient water for a person. Finding water takes 30 minutes per person (including the Lunar), and as with the Food-Scenting Method above, the difficulty of the roll to find water should never rise above 3.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 170}
+    "source": {"book": "The Lunars", "page": 170}
   },
   {
     "id": "lunar.survival-and-healing.wolf-endurance-method",
@@ -150,7 +150,7 @@
     "cost": {"motes": 6, "raw": "6 motes"},
     "duration": "Until released",
     "description": "Many wild beasts can go for days without nourishment, and the Wolf Endurance Method allows the Lunar Exalted to do likewise. On a day that the Charm is active, the Lunar does not need to eat or drink and does not suffer any hunger pangs. However, while Essence can support the body for a short while, it is very inefficient at powering the metabolism of an Exalted. As a result, the Wolf Endurance Method can be used for a number of weeks equal to the character's Stamina. After that point, the Lunar must temporarily lose a point of Strength or Stamina for each additional week. Attribute points lost in this manner cannot be recovered until the Charm is discontinued and the character has had several square and nutritious meals.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 170}
+    "source": {"book": "The Lunars", "page": 170}
   },
   {
     "id": "lunar.survival-and-healing.bear-sleep-technique",
@@ -165,7 +165,7 @@
     "cost": {"motes": 3, "raw": "3 motes, 1 Stamina"},
     "duration": "1 month",
     "description": "By activating this Charm, the Lunar can place himself in a deep sleep, during which time he need not eat and drink. Instead, Essence and body fat reserves sustain the Lunar. The character may place himself in this hibernation for a number of months up to his Stamina score, paying 3 motes of Essence and 1 point of temporary Stamina to maintain his body during this time. However long he sleeps, the Lunar will be ravenous upon waking. The character must have a solid meal within 24 hours of waking, or else, he loses an additional point of Stamina each day until he does. The Wolf Endurance Method cannot offset this Stamina loss — after or during hibernating, the Lunar is beyond mere hunger. If his Stamina declines to 0, the Lunar dies. Every day after waking during which he eats properly allows the character to recover one of the points of Stamina (including the one spent when activating the Charm).",
-    "source": {"book": "Exalted 1e The Lunars", "page": 170}
+    "source": {"book": "The Lunars", "page": 170}
   },
   {
     "id": "lunar.survival-and-healing.fortitude-of-the-aurochs",
@@ -180,7 +180,7 @@
     "cost": {"motes": 10, "raw": "10 motes"},
     "duration": "One day",
     "description": "Constant activity places a great strain on the body, and even Exalts become fatigued after prolonged activity. By using Fortitude of the Aurochs, a Lunar can reinvigorate his body with Essence, manipulating the muscles and blood of his body to allow him to remain active. With this Charm in use, a Lunar can work for 24 hours without worry of fatigue, nor can he become fatigued as a result of Charms, sorcery or other effects. Fortitude of the Aurochs does not eliminate any penalties already in effect as a result of fatigue, nor does it negate the need for sleep, only weariness from labor. Fortitude of the Aurochs also negates the need to make fatigue rolls for wearing armor, irrespective of environmental conditions.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 171}
+    "source": {"book": "The Lunars", "page": 171}
   },
   {
     "id": "lunar.survival-and-healing.ever-waking-method",
@@ -195,7 +195,7 @@
     "cost": {"motes": 3, "raw": "3 motes"},
     "duration": "One day",
     "description": "By using Essence to reinvigorate his limbs, a Lunar can go for 24 hours without sleep and suffer no penalties (see Exalted, p.241, for the normal penalties). He remains fully alert during this time and can keep acting, though the Charm does nothing to alleviate the symptoms of fatigue. The character can activate this Charm every day, but doing so for a prolonged period of time is not recommended — after a number of days equal to the character's Stamina, Essence alone is not sufficient to reinvigorate the Lunar. Each day thereafter, he must also spend a temporary Willpower, which he cannot recover without a prolonged period of sleep. After the Charm is discontinued, the Lunar must sleep for six hours for each day he was awake.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 171}
+    "source": {"book": "The Lunars", "page": 171}
   },
   {
     "id": "lunar.survival-and-healing.pain-numbing-prana",
@@ -210,7 +210,7 @@
     "cost": {"motes": 1, "raw": "1 mote"},
     "duration": "Varies",
     "description": "By utilizing this Charm, a Lunar can suppress superficial feelings of pain for a short period of time, overriding his nervous system. The duration of this Charm is equal in turns to twice the Exalt's Stamina + Endurance, during which time he may ignore any wound penalties imposed by bashing damage. However, he still suffers the effects of lethal and aggravated damage and is still rendered unconscious if his wounds (of any type) reach incapacitated.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 172}
+    "source": {"book": "The Lunars", "page": 172}
   },
   {
     "id": "lunar.survival-and-healing.will-of-the-stoic-warrior",
@@ -225,7 +225,7 @@
     "cost": {"motes": 2, "raw": "2 motes"},
     "duration": "Varies",
     "description": "Will of the Stoic Warrior allows the Lunar to suppress moderate to severe pain, such as the result of severe trauma, allowing him to ignore the dice pool penalties imposed by bashing or lethal damage. However, he still suffers the penalties imposed by aggravated damage and is still rendered unconscious if his wounds (of any type) reach incapacitated. The effects of this Charm last for a number of turns equal to the Exalt's Stamina + Endurance.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 172}
+    "source": {"book": "The Lunars", "page": 172}
   },
   {
     "id": "lunar.survival-and-healing.lunas-fortitude",
@@ -240,7 +240,7 @@
     "cost": {"motes": 4, "raw": "4 motes"},
     "duration": "One turn",
     "description": "By calling on Luna's Fortitude, a Lunar ignores all wounds, period. Any wounds already present remain, and he may sustain new ones, but he suffers no action penalties while the Charm is in effect and is not rendered unconscious (or killed) no matter how far past incapacitated his injuries would take him. A character may sustain use of this Charm for a number of turns equal to his Stamina but must pay for the Charm in each turn. When the Charm ends, all wound effects immediately come into play; if the Lunar has suffered more points of lethal damage than he has health levels (including the health levels below Incapacitated provided by his Stamina), he dies immediately.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 172}
+    "source": {"book": "The Lunars", "page": 172}
   },
   {
     "id": "lunar.survival-and-healing.infection-resisting-method",
@@ -255,7 +255,7 @@
     "cost": {"raw": "1 mote per die"},
     "duration": "Instant",
     "description": "Though diseases and infections are rarely a problem for the Exalted, the harsh lifestyles of the Lunar Exalted expose them to a wide variety of contagions, and so, they have learned to use Essence to fortify their metabolisms. When making a roll to resist disease or infection, the Lunar's player may convert Stamina dice into automatic successes. He may convert as many dice into successes as the Lunar has points of Stamina. The Infection-Resisting Method only helps to avoid disease; it does not help resist or to cure disease once the Lunar has become infected.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 173}
+    "source": {"book": "The Lunars", "page": 173}
   },
   {
     "id": "lunar.survival-and-healing.disease-purging-essence",
@@ -270,7 +270,7 @@
     "cost": {"raw": "1 mote per die"},
     "duration": "Instant",
     "description": "Using this Charm, a Lunar Exalted can purge his body of even the foulest plagues and infections. When rolling Stamina + Endurance to determine if the Lunar can overcome an infected wound or a disease, the Lunar's player can purchase additional dice up to the value of the character's Stamina Attribute.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 173}
+    "source": {"book": "The Lunars", "page": 173}
   },
   {
     "id": "lunar.survival-and-healing.bruise-relief-technique",
@@ -285,7 +285,7 @@
     "cost": {"raw": "1 mote per health level"},
     "duration": "Instant",
     "description": "The minor contusions represented by bashing damage are of almost negligible concern to a Lunar Exalted, who, by exploiting his shapechanging abilities, can quickly repair bruises, sprains and related injuries. By expending Essence to power this Charm, the Exalt can cause her malleable flesh to repair damage. For every mote spent, the Exalt may remove one health level of bashing damage per point of Stamina, at a cost of 1 mote of Essence per health level. The Lunar does not have to repair all of his bashing damage with this Charm — he may leave some to heal naturally. To an observer, bruises and other superficial injuries simply fade away to leave unblemished skin. Characters may activate this Charm even if unconscious.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 173}
+    "source": {"book": "The Lunars", "page": 173}
   },
   {
     "id": "lunar.survival-and-healing.lick-wound",
@@ -300,7 +300,7 @@
     "cost": {"raw": "2 motes per die"},
     "duration": "Instant",
     "description": "Using this Charm while licking a subject's wounds or breathing vapors into her face allows the Lunar to use his own Essence to fortify his ally's resistance to infection. The player may purchase dice up to his character's Stamina and add them to the subject's efforts to resist infection or disease or her player's rolls to overcome illness or disease.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 173}
+    "source": {"book": "The Lunars", "page": 173}
   },
   {
     "id": "lunar.survival-and-healing.halting-the-scarlet-flow",
@@ -315,7 +315,7 @@
     "cost": {"raw": "2 motes per health level"},
     "duration": "Instant",
     "description": "By exploiting his shapeshifting abilities, a Lunar Exalted is able to quickly deal with cuts and other wounds, causing the flesh around gashes to flow together and broken bones to magically reknit. The Exalt may spend 2 motes to transform a level of lethal damage into bashing damage. A Lunar cannot heal more lethal damage in a turn than he has points of Stamina. In addition, if even one health level is healed, any bleeding wounds automatically close, preventing the loss of further health levels. The Lunar does not have to repair all of his lethal damage with this Charm — he may leave some to heal naturally. Observers will see the blood flow cease, wounds knit together and swelling subside. All that remains are scratches and bruising. Wounds healed with this Charm do not scar. Characters may activate this Charm even if unconscious and dying of mortal injury but cannot activate it if they are actually dead.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 173}
+    "source": {"book": "The Lunars", "page": 173}
   },
   {
     "id": "lunar.survival-and-healing.mothers-touch",
@@ -333,6 +333,6 @@
     "cost": {"raw": "2 or 3 motes per health level, or 3 motes + 1 Willpower per health level"},
     "duration": "Instant",
     "description": "By infusing his hands with Essence and touching a subject's wounds, a Lunar is able to heal or alleviate those wounds. These healing hands can remove bashing damage and transform lethal wounds into bashing. Mother's Touch also closes bleeding wounds, preventing the loss of additional health levels. Each level of bashing damage healed costs 2 motes of Essence, each level of lethal transformed costs 3 motes. Mother's Touch can be used to transform aggravated damage (into lethal), but each health level removed costs 3 motes and a temporary Willpower point. With each use of Mother's Touch, the Lunar may transform/cure as many levels of damage as he has points of Stamina.",
-    "source": {"book": "Exalted 1e The Lunars", "page": 173}
+    "source": {"book": "The Lunars", "page": 173}
   }
 ]

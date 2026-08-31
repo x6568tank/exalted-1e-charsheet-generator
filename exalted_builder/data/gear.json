@@ -673,5 +673,449 @@
       "page": 125
     },
     "notes": "Printed exactly so. Its three siblings are named '… charm' (Found warding charm, Created warding charm, Created good luck charm) and this row is not; the word appears nowhere else in the book. CONFIRMED by the rules authority 2026-08-13: the entry is just 'Created walkaway' — whether the book dropped a word is unknown and unknowable from the page. Do not complete it."
+  },
+  {
+    "id": "gear.halta-blood-berries",
+    "name": "Blood berries",
+    "kind": "goods",
+    "category": "Halta — Plants and Medicines",
+    "resources_cost": 2,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 89
+    },
+    "notes": "Printed cost: '•• for a packet of 50 berries'. Eating a dozen a day halves the time to heal one lethal wound that caused heavy blood loss. Dried berries keep for a year, then lose potency."
+  },
+  {
+    "id": "gear.halta-coldvine",
+    "name": "Coldvine",
+    "kind": "goods",
+    "category": "Halta — Plants and Medicines",
+    "resources_cost": 4,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 89
+    },
+    "notes": "Printed cost: '•••• for a five-foot segment'. Harvest is dangerous because of the biting insects that live on the vines."
+  },
+  {
+    "id": "gear.halta-deathlords-breath",
+    "name": "Deathlord's breath",
+    "kind": "goods",
+    "category": "Halta — Plants and Medicines",
+    "resources_cost": 4,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 90
+    },
+    "notes": "Printed cost: '•••• for one dose'. Sprinkled around an area it repels the dead — a ghost must succeed in a Valor roll (difficulty 3) to cross, and the dust holds potency for one month, the difficulty then falling by one per week. On living flesh it is a poison: Stamina + Resistance (difficulty 5) or the victim takes one die of lethal damage per day until dead, the corpse then walking (not a true zombie — the Zenith anima power does not affect it). An Exalt or God-Blood may fight it off with seven consecutive daily Stamina + Resistance rolls (difficulty 4). Legal to make, but its discovery draws Haltan interrogation."
+  },
+  {
+    "id": "gear.halta-iron-bush",
+    "name": "Iron bush",
+    "kind": "goods",
+    "category": "Halta — Plants and Medicines",
+    "resources_cost": 4,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 90
+    },
+    "notes": "Printed cost: '•••• for three leaves'. Designed in the First Age as a biological weapon against the Fair Folk."
+  },
+  {
+    "id": "gear.halta-liars-mushroom",
+    "name": "Liar's mushroom",
+    "kind": "goods",
+    "category": "Halta — Plants and Medicines",
+    "resources_cost": 2,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 90
+    },
+    "notes": "Printed cost: '•• for one dose. The sale and use of liar's mushroom is technically illegal within the Kingdom of Halta.'"
+  },
+  {
+    "id": "gear.halta-message-seed",
+    "name": "Message seed",
+    "kind": "goods",
+    "category": "Halta — Plants and Medicines",
+    "resources_cost": 0,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 90
+    },
+    "notes": "Printed cost: 'None within Halta. From Descending Fire to Descending Air the seeds are everywhere. They have no value outside Halta.' Free by the page, hence 0 — not an omission."
+  },
+  {
+    "id": "gear.halta-succor-blossom",
+    "name": "Succor blossom",
+    "kind": "goods",
+    "category": "Halta — Plants and Medicines",
+    "resources_cost": 5,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 91
+    },
+    "notes": "Printed cost: '••••• for one dose'. One of the most highly prized plant specimens in the East — the book notes bidding wars, theft and murder over it."
+  },
+  {
+    "id": "gear.halta-totem-leaf",
+    "name": "Totem leaf",
+    "kind": "goods",
+    "category": "Halta — Plants and Medicines",
+    "resources_cost": 2,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 91
+    },
+    "notes": "Printed cost: '••'. The leaves are coated with an oil that induces mild hallucinations, used to seek one's totem animal or tree. Harvestable nearly year round, but not during the season of Water."
+  },
+  {
+    "id": "gear.halta-wyld-seeds",
+    "name": "Wyld seeds",
+    "kind": "goods",
+    "category": "Halta — Plants and Medicines",
+    "resources_cost": 4,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 92
+    },
+    "notes": "Printed cost: '•••• for a single seed, but the sale of Wyld seeds is highly illegal.' They develop in any tree, bush, root or even animal growing too close to a Wyld area."
+  },
+  {
+    "id": "gear.halta-young-monkey",
+    "name": "Young Monkey",
+    "kind": "goods",
+    "category": "Halta — Plants and Medicines",
+    "resources_cost": 2,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 92
+    },
+    "notes": "Printed cost: '•• for a box of 20 doses'. The most common tea in Halta, blended from no fewer than 16 leaves, roots and insect shells. A mild muscle relaxant; lifetime use relaxes the joints, and arthritis is extremely uncommon in the Republic."
+  },
+  {
+    "id": "gear.halta-bark-skin-charm",
+    "name": "Bark-skin charm",
+    "kind": "goods",
+    "category": "Halta — Talismans",
+    "resources_cost": 1,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 92
+    },
+    "notes": "Printed cost: '• for one dose'. Consumed, usually in tea. Grants NO soak bonus — the page is explicit — but prevents insect bites and any poison plant that needs skin contact. Lasts one lunar month."
+  },
+  {
+    "id": "gear.halta-cat-claws-initiative",
+    "name": "Cat claws talisman (initiative)",
+    "kind": "goods",
+    "category": "Halta — Talismans",
+    "resources_cost": 2,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 92
+    },
+    "notes": "Printed cost: '•• for the initiative bonus version, ••• for the Dexterity bonus version' — split into one row per version. Adds two to the wearer's base initiative while worn. Claws taken from an arboreal hunting cat; the cat need not have been the wearer's, nor a trained one."
+  },
+  {
+    "id": "gear.halta-cat-claws-dexterity",
+    "name": "Cat claws talisman (Dexterity)",
+    "kind": "goods",
+    "category": "Halta — Talismans",
+    "resources_cost": 3,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 92
+    },
+    "notes": "Printed cost: '••• for the Dexterity bonus version'. The page calls these 'more powerful versions' and says they 'confer an extra die to Dexterity rolls'; whether that REPLACES or ADDS TO the initiative version's +2 base initiative is not stated on the page."
+  },
+  {
+    "id": "gear.halta-ground-charm-iron",
+    "name": "Ground charm (iron)",
+    "kind": "goods",
+    "category": "Halta — Talismans",
+    "resources_cost": 2,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 93
+    },
+    "notes": "Printed cost: '•• for a warding charm or iron nutshell'. Small chunks of scrap iron or nails worked into interesting shapes — 'these usually have the same effects as warding charms (see Exalted, p. 337)'. Ground charms ward off the Fair Folk, who are a lethal risk to any Haltan on the forest floor."
+  },
+  {
+    "id": "gear.halta-ground-charm-nutshell",
+    "name": "Ground charm (iron nutshell)",
+    "kind": "goods",
+    "category": "Halta — Talismans",
+    "resources_cost": 2,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 93
+    },
+    "notes": "Printed cost: '•• for a warding charm or iron nutshell' — same price as the iron charm, different effect, hence its own row. A small nutshell placed under the tongue: if its taste turns bitter and iron while the user stands on the ground, the fey are near and he should climb."
+  },
+  {
+    "id": "gear.halta-ground-charm-amber",
+    "name": "Ground charm (worked amber)",
+    "kind": "goods",
+    "category": "Halta — Talismans",
+    "resources_cost": 3,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 93
+    },
+    "notes": "Printed cost: '••• for an amber charm. The fact that they aren't totally effective prevents their cost from rising any higher.' The most valuable ground charm: supposedly the Fair Folk will accept it in exchange for leaving the holder unharmed — but not always, and the page is explicit that it is unreliable (Marika's followers accept them; Yseult's raiders laugh at them)."
+  },
+  {
+    "id": "gear.halta-lucky-rock",
+    "name": "Lucky rock",
+    "kind": "goods",
+    "category": "Halta — Talismans",
+    "resources_cost": 0,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 93
+    },
+    "notes": "Printed cost: 'Nothing for rocks' — free by the page, hence 0, not an omission. A naturally occurring favourite thrown stone that always finds its way back to its owner's possession within a few hours of being thrown. No other effect."
+  },
+  {
+    "id": "gear.halta-lucky-thrown-weapon",
+    "name": "Lucky javelin or boomerang",
+    "kind": "goods",
+    "category": "Halta — Talismans",
+    "resources_cost": 3,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 93
+    },
+    "notes": "Printed cost: '••• for javelins or boomerangs' — the deliberately created counterpart to the free lucky rock, hence its own row. Confers a one- or two-die accuracy bonus IN ADDITION to never being lost."
+  },
+  {
+    "id": "gear.halta-hunters-shirt",
+    "name": "Hunter's shirt",
+    "kind": "goods",
+    "category": "Halta — Talismans",
+    "resources_cost": 2,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 93
+    },
+    "notes": "Printed cost: '•• , ••• for more powerful or artistically crafted versions'. Authored at the defined price: the dearer version is left open by the page — 'truly old or powerful such talismans might confer additional dice or actually attract prey animals' — so there is no second product to price. Adds one die to all Stealth rolls made while hunting. Woven fabric is rare and expensive in Halta and these become family heirlooms. ⚠ Its heading came out of the extractor as a SHATTERED HEADING marker ('H UNTER ’ S SHIRT'); the rules authority ruled the name legible and cleared it for authoring, 2026-08-15."
+  },
+  {
+    "id": "gear.halta-mothers-moss",
+    "name": "Mother's moss",
+    "kind": "goods",
+    "category": "Halta — Plants and Medicines",
+    "resources_cost": 4,
+    "source": {
+      "book": "Kingdom of Halta",
+      "page": 91
+    },
+    "notes": "Printed cost: '•••• for a three-foot-by-three-foot sheet outside of Halta… A similar sheet would only cost •• in Halta.' Priced at the general-Creation figure, consistent with every other Haltan row and with the p.89 blanket rule that costs are one lower within the Republic. A rust-coloured moss that holds heat — a few minutes near a fire makes a strip into a hot pack. Retains its properties only about a week untreated; herbalists preserve it for a year with a daily Intelligence + Lore roll (difficulty 2)."
+  },
+  {
+    "id": "gear.ice-weasel-fur",
+    "name": "Ice weasel fur",
+    "kind": "goods",
+    "category": "Clothing and Jewelry",
+    "resources_cost": 4,
+    "source": {
+      "book": "Bastions of the North",
+      "page": 39
+    },
+    "notes": "Printed cost: 'Resources ••• to purchase in the North and Resources •••• elsewhere' — priced at the figure outside the region of origin. Particularly soft, warm and very effective at repelling water; among the most expensive furs in Creation because of their scarcity. ⚠ This prices the FUR, not the animal: the ice weasel itself is a beast (Str/Dex/Sta 4/6/4, Bite 6/9/6L, dodge/soak 12/6L/10B) used as a hunting hound by the Winter Folk, and belongs on the adversary roster rather than in a shop."
+  },
+  {
+    "id": "gear.glider",
+    "name": "Glider",
+    "kind": "goods",
+    "category": "Ships and Property",
+    "resources_cost": 3,
+    "source": {
+      "book": "Bastions of the North",
+      "page": 98
+    },
+    "notes": "Printed cost: '(Resources ••, ••• outside the North)' — priced at the figure outside the region of origin. Standard equipment on every ship of the Wind Fleet. Feather steel, laminated wood and woven spider silk; takes 16 turns to assemble and 10 to fold away, and launching needs a cliff or flight deck at least five yards high. Carries a pilot and one passenger. A Haslanti with Ride 2+ can fly one; anyone else needs Ride 1 and a 'Glider' specialty. Most glider rolls are difficulty 1. ⚠ The page also prints a vehicle stat block (Speed 3, Maneuver 3, Armor 3L/5B, Health Levels 10, Repair 2) which this build has no model for. The rarer Folding Gliders are in Caste Book: Night p.78."
+  },
+  {
+    "id": "gear.ss-death-sap",
+    "name": "Death sap",
+    "kind": "goods",
+    "category": "Deep-Forest Drugs",
+    "resources_cost": 3,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 32
+    },
+    "notes": "Printed cost: '••• for a small bottle containing six doses of either type of death sap.' The most deadly poison known — a thick azure liquid boiled from the bright blue berries of a vine in the farthest East, almost tasteless and easily masked in dark ale. Ingested it is certain death for mortals; against the Exalted the Stamina + Resistance roll to withstand it is difficulty 4, inflicting 10L on a failure and 5L if resisted, duration 1 minute, penalty -1. It turns the victim's lips bright blue. Used to envenom a weapon it drops the Resistance difficulty to 2 without reducing the damage, stays deadly only twelve hours after application, affects only the first target damaged, and needs the weapon to do one or more levels of lethal damage; it leaves a bright blue stain around the wound. Some herbalists distil a non-lethal paralytic version that is just as toxic but causes only bashing damage."
+  },
+  {
+    "id": "gear.ss-soma",
+    "name": "Soma",
+    "kind": "goods",
+    "category": "Deep-Forest Drugs",
+    "resources_cost": 4,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 32
+    },
+    "notes": "Printed cost: '••• per dose in the East, •••• elsewhere' — priced at the figure outside the region of origin. A potent drug of the far-Eastern Wyld tribes, lately popular in Nexus. Temporarily grants +1 Strength, +3 Stamina and three dots of Endurance, and negates ALL penalties for damage, for a number of hours equal to the user's normal Stamina. It dulls the mind: +1 difficulty to every Intelligence, Charisma and Manipulation roll while in effect. Afterwards the user loses one Willpower and one point from every physical Attribute until she has eaten a large meal and slept ten hours. Taken again within a week it demands a Stamina + Resistance roll at difficulty equal to the number of doses taken that week — failure permanently costs one Stamina, a botch two, and a character reduced to Stamina 0 dies."
+  },
+  {
+    "id": "gear.ss-bright-morning",
+    "name": "Bright morning",
+    "kind": "goods",
+    "category": "Deep-Forest Drugs",
+    "resources_cost": 3,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 33
+    },
+    "notes": "Printed cost: '••• (•••• in the Realm) per dose'. Also called vision dust: a purple powder of various Eastern berries including the rare skullweed. Smoked, it gives mild hallucinations and euphoria and lets the user perceive spirits, ghosts and Essence flows — an ordinary human may wield the Spirit Sight and Strike Spirit Charms with no Essence cost and no rolls, and an Exalted user gets Spirit Sight, Strike Spirit and Magic Sight the same way. Lasts three hours, during which all MUNDANE Perception and Wits rolls are at +2 difficulty (magical perceptions are unaffected). Illegal in the Realm — hence the higher price there, a legality premium rather than a remoteness one, so the general figure is the row's cost. Addictive: more than one use a week calls for a Stamina + Resistance roll to avoid addiction; an addict loses a dot of Perception, and must take at least two doses a week or lose another Perception dot and two Willpower and take three levels of bashing that will not heal until the next dose or the addiction breaks. Kicking it takes several weeks and either a Willpower roll at difficulty 3 or no access for a full month."
+  },
+  {
+    "id": "gear.ss-life-flower-blue",
+    "name": "Life flower (blue)",
+    "kind": "goods",
+    "category": "Deep-Forest Drugs",
+    "resources_cost": 4,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 33
+    },
+    "notes": "Printed cost: '•••• (blue flower)' — split from the purple flower, which is a rarer species with a stronger effect. The dried blossom of a rare glowing blue orchid found only in the darkest depths of the Eastern forest where the trees grow miles tall. Ingesting one makes wounds heal three times as fast and cures all but the most dire illnesses and infections. ⚠ The benefit applies ONLY to wounds the character incurred BEFORE eating the blossom."
+  },
+  {
+    "id": "gear.ss-life-flower-purple",
+    "name": "Life flower (purple)",
+    "kind": "goods",
+    "category": "Deep-Forest Drugs",
+    "resources_cost": 5,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 33
+    },
+    "notes": "Printed cost: '••••• (purple flower)'. An even rarer species glowing soft purple, growing only in the most distant portions of the East. So potent that it cures ALL known diseases, and those who ingest it recover from all injuries at five times the normal rate. ⚠ As with the blue flower, the benefit applies only to wounds incurred before ingestion."
+  },
+  {
+    "id": "gear.ss-dreamstone-small",
+    "name": "Dreamstone (small)",
+    "kind": "goods",
+    "category": "Southern Magical Gemstones",
+    "resources_cost": 3,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 47
+    },
+    "notes": "Printed cost: '••• (small stones)' — split from the large stone, which records more. Also known as dream opal: a greenish stone that records the dreams of any sleeper in physical contact with it. An acorn-sized stone records only the dreamer's FIRST dream of the night. Any waking person who touches a charged stone to her forehead will have the recorded dreams next time she sleeps, or may experience them as a vivid waking vision by sitting quietly and holding it. Dreams replay any number of times but the stone must be erased before it can record again, which requires a special meditation that rarely takes more than a few hours to learn. Weight 0.1 lbs."
+  },
+  {
+    "id": "gear.ss-dreamstone-large",
+    "name": "Dreamstone (large)",
+    "kind": "goods",
+    "category": "Southern Magical Gemstones",
+    "resources_cost": 4,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 47
+    },
+    "notes": "Printed cost: '•••• (large stones)'. A thumb-sized dream opal, which records EVERY dream in a given night rather than only the first. ⚠ No stone yet found can hold more than a single night's worth of dreams. Weight 0.1 lbs."
+  },
+  {
+    "id": "gear.ss-yasal-crystal",
+    "name": "Yasal crystal",
+    "kind": "goods",
+    "category": "Southern Magical Gemstones",
+    "resources_cost": 5,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 47
+    },
+    "notes": "Printed cost: '•••••'. An extraordinarily valuable yellow gemstone that can capture minor spirits and newly made ghosts. To imprison one the user must touch the spirit and spend a point of temporary Willpower; the spirit may not have Essence greater than 2, though some very large and rare stones can hold up to Essence 3. A captive can speak with anyone touching the stone but cannot escape or use its own Charms, and whoever holds the stone may use the spirit's powers as if they were his own — but ONLY with the spirit's permission, so the holder must usually bargain. Simulate the bargain with a Charisma + Bureaucracy roll at difficulty equal to the spirit's Essence: every extra success grants two uses of its powers, a failure grants one, and a botch means the spirit is angered and will never work for him. One spirit per stone; the holder may free it at will. Weight 0.1 lbs."
+  },
+  {
+    "id": "gear.ss-water-shoes",
+    "name": "Water shoes",
+    "kind": "goods",
+    "category": "Clothing and Jewelry",
+    "resources_cost": 3,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 55
+    },
+    "notes": "Printed cost: '•• (••• outside the West)' — priced at the figure outside the region of origin. Yard-wide, dish-shaped pieces of zeelawood bark coated with wax boiled from lion shark flesh, letting the wearer walk on water; an item unique to the West. Near-useless in any but the calmest seas and most used in inlets, bays and sheltered environs, but invaluable on the open ocean for repairing external damage to a ship's hull. The wearer may move no faster than a walk. If he falls he must discard the shoes and swim — once lost it is impossible to regain footing on water while wearing them — and they must be removed before walking on land, where the wearer moves one yard per turn and damages them severely. Weight 5 lbs."
+  },
+  {
+    "id": "gear.marukani-rider",
+    "name": "Marukani rider",
+    "kind": "goods",
+    "category": "Slaves and Animals",
+    "resources_cost": 3,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 88
+    },
+    "notes": "Bred for intelligence, demeanor, loyalty and good looks, and popular with nobles — a Marukani rider is the first horse of many a prince and princess. Printed pricing note (p.88): 'All Marukan horses cost ••• except battle mounts, which cost ••••, and finest, which cannot normally be purchased (but would cost •••• – •••••, depending on the situation).' Stat block on the adversary roster as adv.beast_marukani_*."
+  },
+  {
+    "id": "gear.marukani-dray",
+    "name": "Marukani dray",
+    "kind": "goods",
+    "category": "Slaves and Animals",
+    "resources_cost": 3,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 88
+    },
+    "notes": "A large hauler, capable of pulling heavy loads. Printed pricing note (p.88): 'All Marukan horses cost ••• except battle mounts, which cost ••••, and finest, which cannot normally be purchased (but would cost •••• – •••••, depending on the situation).' Stat block on the adversary roster as adv.beast_marukani_*."
+  },
+  {
+    "id": "gear.marukani-swift",
+    "name": "Marukani swift",
+    "kind": "goods",
+    "category": "Slaves and Animals",
+    "resources_cost": 3,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 88
+    },
+    "notes": "A fast runner, able to outpace almost anything on four legs. Printed pricing note (p.88): 'All Marukan horses cost ••• except battle mounts, which cost ••••, and finest, which cannot normally be purchased (but would cost •••• – •••••, depending on the situation).' Stat block on the adversary roster as adv.beast_marukani_*."
+  },
+  {
+    "id": "gear.marukani-scout",
+    "name": "Marukani scout",
+    "kind": "goods",
+    "category": "Slaves and Animals",
+    "resources_cost": 3,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 88
+    },
+    "notes": "Smart and rugged, smaller than the other breeds but persevering and hardy. Printed pricing note (p.88): 'All Marukan horses cost ••• except battle mounts, which cost ••••, and finest, which cannot normally be purchased (but would cost •••• – •••••, depending on the situation).' Stat block on the adversary roster as adv.beast_marukani_*."
+  },
+  {
+    "id": "gear.marukani-battler",
+    "name": "Marukani battler",
+    "kind": "goods",
+    "category": "Slaves and Animals",
+    "resources_cost": 4,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 88
+    },
+    "notes": "A powerful warhorse trained to fight, strong and strong-willed; needs a steady, firm and respectful master. The 'battle mount' of the printed pricing note. Printed pricing note (p.88): 'All Marukan horses cost ••• except battle mounts, which cost ••••, and finest, which cannot normally be purchased (but would cost •••• – •••••, depending on the situation).' Stat block on the adversary roster as adv.beast_marukani_*."
+  },
+  {
+    "id": "gear.marukani-finest",
+    "name": "Marukani finest",
+    "kind": "goods",
+    "category": "Slaves and Animals",
+    "resources_cost": 4,
+    "source": {
+      "book": "Scavenger Sons",
+      "page": 88
+    },
+    "notes": "A rare and prized bloodline — even the richest breeders own only a handful each, and few Marukani will part with one for less than a kings' ransom, though they are sometimes given as a gift to an honored guest or ally. ⚠ CANNOT normally be purchased; the printed range is •••• – ••••• 'depending on the situation' and this row carries the low figure. Printed pricing note (p.88): 'All Marukan horses cost ••• except battle mounts, which cost ••••, and finest, which cannot normally be purchased (but would cost •••• – •••••, depending on the situation).' Stat block on the adversary roster as adv.beast_marukani_*."
   }
 ]

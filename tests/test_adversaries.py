@@ -514,16 +514,47 @@ def test_every_shield_reference_resolves(ruleset, catalog):
             assert t.shield_id in shield_ids, f"{t.name}: {t.shield_id}"
 
 
+# Beasts whose own page prints mental Attributes, overriding the p.317 default.
+# Scavenger Sons p.88: "The scout, finest, and rider all have Wits 4 and Perception 3.
+# The finest has an Intelligence of 2, as do 40 percent of riders."
+STATED_OTHERWISE = {
+    "adv.beast_marukani_rider": {"intelligence": 1, "perception": 3, "wits": 4},
+    "adv.beast_marukani_scout": {"intelligence": 1, "perception": 3, "wits": 4},
+    "adv.beast_marukani_finest": {"intelligence": 2, "perception": 3, "wits": 4},
+}
+
+
 def test_beasts_carry_the_p317_default_attributes(catalog):
-    """p.317: assume Intelligence 1, Perception 2 and Wits 3 unless stated."""
+    """p.317: assume Intelligence 1, Perception 2 and Wits 3 **unless stated**.
+
+    ⚠ This test used to assert the default on EVERY beast, which held only because
+    every beast in the build then came from a book that printed no mental Attributes.
+    The rule's own wording carries the exception and the assertion did not — the
+    "a test can encode a one-book sample as a rule" trap, and the Marukani horses
+    (Scavenger Sons p.88) are the first beasts to state otherwise.
+
+    The override list is explicit rather than a blanket skip, so a beast that drifts
+    off the default by ACCIDENT still fails here.
+    """
     beasts = [t for t in catalog.values() if "Beast" in t.categories]
     assert len(beasts) >= 20
     for b in beasts:
-        assert b.attributes["intelligence"] == 1
-        assert b.attributes["perception"] == 2
-        assert b.attributes["wits"] == 3
+        expected = STATED_OTHERWISE.get(b.id, {"intelligence": 1, "perception": 2, "wits": 3})
+        for attr, value in expected.items():
+            assert b.attributes[attr] == value, f"{b.id}: {attr}"
         # and the three the table actually prints
         assert {"strength", "dexterity", "stamina"} <= set(b.attributes)
+        if b.id in STATED_OTHERWISE:
+            # An override is only legitimate if the page said so — and the note is
+            # where a later reader finds out which page.
+            assert "printed note" in b.notes, b.id
+
+
+def test_every_overriding_beast_still_exists(catalog):
+    """The allowlist above must not outlive its subjects — a stale id would silently
+    stop covering anything, which is this repo's recurring negative-control failure."""
+    for beast_id in STATED_OTHERWISE:
+        assert beast_id in catalog, beast_id
 
 
 def test_a_beast_with_no_printed_dodge_has_none(catalog):

@@ -194,7 +194,7 @@
     "duration": "One day",
     "description": "This Charm summons a horse of pure Essence, much like Phantom Steed, except the Chosen's mount is also capable of flying through the air at its normal rate of movement, allowing its rider to traverse obstacles with ease.",
     "source": {
-      "book": "Exalted 1e Caste Book: Eclipse",
+      "book": "Caste Book: Eclipse",
       "page": 76
     }
   },
@@ -220,7 +220,7 @@
     "duration": "Instant",
     "description": "The Exalted infuses Essence into her mount, lightening its steps and distributing its weight. The mount leaves no tracks, even in snow or soft sand, and can run across any surface — even mud, quicksand or water — at its normal speed without sinking. Note that the mount's hooves do still touch the surface, so a mount cannot run across dangerous liquids such as molten lava or acid without harm. The Chosen must spend Essence for each turn the mount passes over the surface, or it will sink, meaning this Charm is only useful for crossing short distances.",
     "source": {
-      "book": "Exalted 1e Caste Book: Eclipse",
+      "book": "Caste Book: Eclipse",
       "page": 76
     }
   },
@@ -246,7 +246,7 @@
     "duration": "Instant",
     "description": "When the Chosen uses this Charm, her mount can run on the empty air between two solid surfaces as if there were a solid, invisible bridge there. This lets the Exalt bridge gaps such as canyons and chasms, allowing horse and rider to cross. The mount moves at its normal speed, and the Exalted must spend Essence each turn of the crossing, or gravity takes hold once again, usually with regrettable results.",
     "source": {
-      "book": "Exalted 1e Caste Book: Eclipse",
+      "book": "Caste Book: Eclipse",
       "page": 76
     }
   },
@@ -275,7 +275,7 @@
     "duration": "One scene",
     "description": "This Charm infuses the Exalted's mount with Essence, granting it extraordinary speed. The mount can run at a maximum speed of ([it's Stamina + the Exalt's Essence] x 10) miles per hour. The mount still tires at the normal rate (unless also under the effects of a Charm such as Flashing Thunderbolt Steed), it simply moves at a greater rate of speed during that time.",
     "source": {
-      "book": "Exalted 1e Caste Book: Eclipse",
+      "book": "Caste Book: Eclipse",
       "page": 76
     }
   }

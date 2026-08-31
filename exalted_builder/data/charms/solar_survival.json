@@ -237,7 +237,7 @@
     "duration": "One day",
     "description": "When invoking this Charm, the Exalted names a single breed of animal, which may include “human.” He then crafts a snare appropriate for trapping the species of interest. For each mote invested in the Charm, the Survival roll to create the snare is increased by one die. In addition, for each mote invested, the targeted breed suffers a one-die penalty to detect or escape the trap. The trap will not be triggered by any species other than the one named. This trap cannot be used to snare a specific specimen, but instead, affects the first member of the species that encounters it.\n\nGame-Snaring Huntsman’s Method cannot be used to create a trap that will innately do damage, such as spike-pits or deadfalls. It can only be used to enhance snares, pit traps and other such traps that hinder or ensnare, rather than wound or kill. However, traps empowered by Game-Snaring Huntsman’s Method may inflict incidental damage upon a target while it attempts to escape (a cage, for example, could be spiked to discourage meddling with the bars), so long as the primary purpose of the trap isn’t the wounding of its intended prey.",
     "source": {
-      "book": "Exalted 1e Cult of the Illuminated",
+      "book": "Cult of the Illuminated",
       "page": 106
     }
   },
@@ -263,7 +263,7 @@
     "duration": "One day",
     "description": "This Charm protects the invoker from the adverse affects of natural weather. The Exalted may move through heavy winds without being impeded by them, travel through a sand- or snowstorm without being blinded or spend a stormy night with no shelter without fear of becoming waterlogged. The Chosen's anima deflects these conditions, providing a nearly skintight zone of protection for the Exalted and any possessions worn against her body. This Charm does not protect against damage from temperature extremes.",
     "source": {
-      "book": "Exalted 1e Caste Book: Zenith",
+      "book": "Caste Book: Zenith",
       "page": 75
     }
   },
@@ -289,7 +289,7 @@
     "duration": "Instant",
     "description": "Through the use of this Charm, the Exalted can light small, controlled fires. These are normal fires in every way. They can cause no damage by themselves, but if allowed to blaze out of control, they can be as dangerous as any other fire. The fires this Charm can light are limited to normally flammable materials. The Charm is useless against water-soaked wood or other noncombustible substances.",
     "source": {
-      "book": "Exalted 1e Caste Book: Zenith",
+      "book": "Caste Book: Zenith",
       "page": 75
     }
   },
@@ -315,7 +315,7 @@
     "duration": "Instant",
     "description": "When all the available wood is soaked or, worse, when there is no wood to be found, even the most skilled survivalist can find herself forced to live without heat and flame. This Charm allows the Exalted to cause a fire of up to bonfire size to spring into existence with but a gesture. The fire will burn for a complete scene, even in high winds or driving rain, but it will not spread unless normally flammable materials are introduced. This power cannot be used as a direct attack.",
     "source": {
-      "book": "Exalted 1e Caste Book: Zenith",
+      "book": "Caste Book: Zenith",
       "page": 75
     }
   },
@@ -341,7 +341,7 @@
     "duration": "Instant",
     "description": "Through the use of this Charm, the Exalted rains down solar fire upon a single opponent. After investing the required Essence, make a Willpower roll. The fire does a number of points of lethal damage equal to the Exalted's Survival score, plus one point of damage per success on the character's Willpower roll. This power can strike at a range of line of sight. Against demons, ghosts or other creatures of the night, the damage is aggravated. This attack cannot normally be blocked or dodged, but targets may have Charms that allow them to do either in their defense.",
     "source": {
-      "book": "Exalted 1e Caste Book: Zenith",
+      "book": "Caste Book: Zenith",
       "page": 75
     }
   },
@@ -367,7 +367,7 @@
     "duration": "One week",
     "description": "The Devil-Pit Technique functions in many ways like the Game-Snaring Huntsman's Method. The Exalted names a breed of animal to be targeted by the trap. The roll for creating the trap is increased by one die for every 2 motes invested in the Charm, and the targeted breed suffers a like number of dice in penalty for rolls to detect or escape the trap. The trap will not be triggered by any species other than the named one, nor can it be set to trap a specific individual.\n\nUnlike Game-Snaring Huntsman's Method, Devil-Pit Technique can be used to enhance traps that are designed to cause damage or death to their targets, rather than restrain them. A trap enhanced by the Devil-Pit Technique does one die of soakable lethal damage per 2 motes invested in the Charm. This damage is in addition to any damage a normal trap of the design might do.",
     "source": {
-      "book": "Exalted 1e Caste Book: Zenith",
+      "book": "Caste Book: Zenith",
       "page": 76
     }
   },

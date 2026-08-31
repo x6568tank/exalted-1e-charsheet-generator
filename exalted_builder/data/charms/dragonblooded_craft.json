@@ -15,7 +15,7 @@
     "duration": "One hour",
     "description": "The Terrestrial Exalted's connection with the things of the earth gives great facility in manipulating the raw stuff of the world; the most basic trick any Exalted craftswoman learns is that tools are, to a large extent, an illusion \u2014 it is force of will that drives creation, not the material items. While the Charm is in effect, one of the character's hands may perform the function of any one normal tool she chooses on activation \u2014 pick axe, hatchet, hammer \u2014 with her bare hand, taking no damage a normal tool wouldn't and performing any function that tool can, while she can still use the hand normally. The hand does not change appearance. It emulates only the selected tool; to switch functions she must reactivate. Both hands can be enchanted separately.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 192
     }
   },
@@ -39,7 +39,7 @@
     "duration": "Instant",
     "description": "Extremely popular with Earth-aspected Exalts because it is the prerequisite for so many others. It lets the character split stone with uncanny precision \u2014 useful in siege craft, breaching walls, and making all manner of useful items out of stone. She must spend at least a full minute carefully striking the stone (most use a hammer, pick, or chisel, but a sword pommel or another rock works, and martial artists may strike bare-handed); at the end of the minute she strikes a final blow and the excess rock shatters, leaving behind the shape she wanted.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 192
     }
   },
@@ -63,7 +63,7 @@
     "duration": "One scene",
     "description": "The Dragon-Blooded of Earth include superb rock-climbers. A character using this Charm can cling to a rock face like a limpet and leaves indentations in the rock that serve as hand- and footholds for those who follow. She climbs a sheer stone wall at 10 feet per turn, and 20 feet or more per turn up a rough cliff-face or a surface with existing handholds, with no Ability roll needed; those following up the cliff gain two automatic successes for any climbing check. Surfaces worse than sheer (overhangs) call for multiple successes.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 194
     }
   },
@@ -83,7 +83,7 @@
     "duration": "One minute",
     "description": "By studying any crafted item, object, or structure, the Dragon-Blooded determines its weakest point \u2014 knowledge used to locate and eliminate flaws, or to exploit and destroy the object. She must study it for at least a full minute; handling or touching it costs a single mote, studying from a distance costs 3 motes. Once the flaw is found she can eliminate it (roll Intelligence + Craft and spend 1 Willpower; success repairs even serious flaws without tools, though badly broken things may have many) or damage the item: the next successful physical attack on it does double normal damage; against armor or a weapon, treat it as doubling the extra successes of a disarming attempt, and on success the weapon or armor is destroyed.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 194
     }
   },
@@ -107,7 +107,7 @@
     "duration": "Instant",
     "description": "Allows a Dynast to disassemble an object or structure without damaging its components \u2014 a steel-bound wooden door becomes a stack of timbers, steel bands, and rivets. Disassembled items are useless until reassembled; enchanted items are neutralized until reconstructed (the Charm does not permanently disrupt enchantments). The player rolls Essence + Craft: difficulty 1 for crudely made items, 3 for competently made, 5 for masterfully made, +1 if enchanted (so most enchanted items are 6). Maximum volume equals permanent Essence in cubic yards. It won't work on any item made in one piece (a vase, a stone carving), but will undo knots and reduce chains to their links. It is time-consuming \u2014 the Exalt must remain in contact for turns equal to the unmaking difficulty \u2014 and cannot be done as a combat maneuver.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 194
     }
   },
@@ -132,7 +132,7 @@
     "duration": "Instant",
     "description": "Like Lesser Unmaking but far more dramatic: rather than being taken apart, the item is reduced back to its raw materials \u2014 sword blades melt into hunks of raw iron, timbers become freshly cut logs, gemstones return to their uncut state, fine pottery melts to clay. Roll Essence + Craft (difficulty 1 for normal items, 3 for exceptional, 5 for items forged from the Five Magical Materials); the Exalt must remain in contact for turns equal to the difficulty. Only effective against items made of materials derived from the earth. Unmade items are completely destroyed and must be remade from scratch, though the raw materials retain their inherent value.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 195
     }
   },
@@ -160,7 +160,7 @@
     "duration": "Instant",
     "description": "Not every project can have a top-notch savant on hand to oversee it at every stage, and many of the most skilled savants are kept far too busy to personally attend to every detail of execution, even of the projects they do supervise. Through the use of this Charm, a savant may produce a detailed and comprehensive report and set of instructions that encapsulate the research and design phases of a project. This plan may then be given to the person or people actually per-forming the work, who will benefit from the expertise of the planning savant. The character using Diligent Engineer Discipline, after familiarizing herself appropriately with the details of the proposed undertaking, pays for the activation of the Charm and takes the normal amount of time to prepare a plan, the player rolling her character's Intelligence + Craft at a difficulty of 2. Anyone faithfully working from this plan can avoid a total number of difficulty penalties during the undertaking equal to the number of successes rolled by the planning savant. In addition, he cannot fail to at least achieve at least minimal success on the finished project so long as no circumstances arise that would result in difficulty penalties greater than those the Charm's effects cancel. /* * enchanted items begin here; feel free to ignore anything * that's not an arm or armor */",
     "source": {
-      "book": "Exalted 1e Aspect Book: Air",
+      "book": "Aspect Book: Air",
       "page": 67
     },
     "extra_min_abilities": [
@@ -188,7 +188,7 @@
     "duration": "Instant",
     "description": "A Dragon-Blooded with this Charm learns to apply divine majesty to his chosen art, developing a signature style of breathtaking prowess. The character may convert specialty dice for any Craft roll into automatic successes for a cost of 3 motes per die converted. Exalted may use this Charm to benefit any Craft they have a rating in, provided they are exercising a specialty for that Craft.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     },
     "prerequisite_counts": [
@@ -218,7 +218,7 @@
     "duration": "Instant",
     "description": "The Dragon-Blood stamps hard or smites the earth with his fist, and a shockwave of Essence and force ripples across the ground from the point of impact. This shockwave can crudely shape and pack one cubic yard of soil for every mote spent, but the continuous structure must have at least one edge within a yard of its creator. Ramparts of Obedient Earth can only shape soil, but it may affect mud, sand and even hard-packed dirt liberally strewn with pebbles. The Charm has no effect on solid rock of any density. Dragon-Blooded chiefly use this Charm on the battlefield to quickly erect cover for themselves or others (using the standard rules for cover on pages 229-230 of Exalted), though creative applications can wreak havoc on a cavalry charge and disrupt formations of infantry. Anyone unfortunate enough to be standing on the ground when it buckles or collapses into a sinkhole suffers no damage unless an extremely deep excavation prompts an injurious fall, but such characters suffer immediate knockdown unless their players make a successful Dexterity + Athletics roll at standard difficulty. Outside of combat, this Charm has considerable utility for excavation work of all kinds, especially since the heavy compression of displaced earth allows for the creation of extremely stable tunnels. In general, walls of packed earth roughly a yard thick have a soak of 5L/8B and require 20 health levels to damage and 30 to destroy outright. These statistics will fluctuate wildly depending on a given structure's thickness and architectural stability. Characters may only use this Charm once per turn.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   },
@@ -242,7 +242,7 @@
     "duration": "Instant",
     "description": "The Dragon-Blood holds a Hearthstone in his hand and crushes the gem in his fist. Such is the power and exacting skill of this grip that the stone shatters. Use of this Charm requires a Wits + Craft (Jewelry) roll against a difficulty of the Hearthstone's rating + 2. A botch causes the stone to explode, inflicting dice of unsoakable aggravated damage to the Exalt equal to the difficulty of the Craft roll. If the character suffers two or more levels of damage from a botch, the explosion of Essence also costs him the hand holding the gem. On a failure, the Hearthstone remains undamaged. Success breaks the gem safely, releasing its store of Essence in a surge of power. If attuned to the Manse producing the Hearthstone, the Exalt regains a number of motes equal to the rating of the Hearthstone x 10. If this surge would bring his Essence pool above maximum, the excess motes bleed into his anima banner as if spent from his Peripheral pool. The act of shattering a Hearthstone with this Charm manifests as a deafening thunderclap and a flash of light brighter than the noonday sun. This Charm is chiefly intended to break Hearthstones removed from settings. It cannot be used in combat or against Hearthstones still in their settings. Breaking a Hearthstone has negative effects on the geomancy of the Manse. Dragon-Blooded Dynasts who use this Charm to cannibalize family Hearthstones without an extremely good reason may not be permitted to reclaim the gems when they reform. Soldiers of Lookshy can expect even harsher sanctions from their superiors. Other outcastes may or may not suffer social ramifications for use of this Charm, depending on who owns the Manse generating the Hearthstone they destroyed.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   }

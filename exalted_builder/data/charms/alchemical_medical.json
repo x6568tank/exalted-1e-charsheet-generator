@@ -18,7 +18,7 @@
     "duration": "Permanent / One minute",
     "description": "An optimized digestion: no waste, and required food divided by Essence. Essence 5+ can forgo food entirely, synthesizing nutrients for 5 motes/day upkeep. Secondary mode bleeds a bland nutrient paste (5 motes + a minute per mortal meal) that carries little Essence.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 130
     },
     "exalt_type": "Alchemical",
@@ -45,7 +45,7 @@
     "duration": "Indefinite",
     "description": "Power down into a death-like regenerative torpor (a Perception + Medicine difficulty 4 detects faint life). Specify a wake time; the Exalt wakes early only if threatened with damage. Torpor rests by a factor of Essence (an Essence 4 Exalt compresses a night into two hours) and speeds Willpower recovery (one Conviction roll per 25 hours).",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 130
     },
     "exalt_type": "Alchemical",
@@ -72,7 +72,7 @@
     "duration": "One hour",
     "description": "Chemical filters add Essence automatic successes to all Stamina rolls/soak against toxins and purge alcohol and recreational drugs; rolling over twice the needed successes negates a poison entirely. Auto-activates against toxins (can be suppressed), otherwise preventing the Exalt from getting drunk or high.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 130
     },
     "exalt_type": "Alchemical",
@@ -98,7 +98,7 @@
     "duration": "Instant",
     "description": "On a natural surface in Autochthonia, Primordial capillaries weave a cocoon (soak 10L/15B, 10 health levels) that heals and restores Essence as if resting in a Vat Complex, even under starvation. The Exalt can track recovery while unconscious and dismiss the cocoon at will.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 130
     },
     "exalt_type": "Alchemical",
@@ -125,7 +125,7 @@
     "duration": "Indefinite",
     "description": "Spider automatons swarm wounds, regenerating Essence bashing levels per turn, one lethal per turn, one aggravated per 10 hours. Amputated organs regrow (a limb = three aggravated levels), and Charms in the lost area regrow if they were installed at the time of injury.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 131
     },
     "exalt_type": "Alchemical",
@@ -152,7 +152,7 @@
     "duration": "Until analysis completed",
     "description": "Fingertip sensors scan a living target within Essence yards (one turn), the data held while Essence is committed. Interpreting it (Intelligence + Medicine, five minutes per roll, extended) reveals from alive/well (1 success) up to full disease profiling and magical/mundane nature (5 successes).",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 132
     },
     "exalt_type": "Alchemical",
@@ -179,7 +179,7 @@
     "duration": "One hour",
     "description": "Diagnostic lenses show animating Essence glowing: add each target's Essence to Perception rolls to spot hidden beings, negate darkness/fog penalties, scan through a yard of matter, and pierce concealment Charms of equal/lesser Essence (opposed roll). Study a being (Perception + Medicine) to read health levels, wound/fatigue penalties, Essence, Stamina/Endurance/Resistance, injuries, pregnancy, parasites or disease.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 133
     },
     "exalt_type": "Alchemical",
@@ -208,7 +208,7 @@
     "duration": "One day or indefinite",
     "description": "A touch (or won clinch) induces a stabilizing coma (Stamina + Resistance vs Essence to resist): infections/poisons halt, bleeding stops, the mortally wounded hold at Incapacitated for a day. Reflexively (3 motes + a Stamina dot), an Exalt taking lethal past Incapacitated survives at Incapacitated in coma for at least an hour, repeatable until Stamina 1 or out of Essence.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 133
     },
     "exalt_type": "Alchemical",
@@ -340,7 +340,7 @@
     ],
     "description": "A two-yard needle-tentacle injecting drugs synthesized from Essence (Dexterity + Medicine as an attack vs the unwilling; harmful drugs allow a Stamina + Resistance roll vs Essence). Comes with any TWO formulas free; each additional costs 2 bonus points or 4 experience. (The 'two free' allotment is not auto-tracked here.)",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 134
     },
     "exalt_type": "Alchemical",
@@ -368,7 +368,7 @@
     "duration": "Indefinite or instant",
     "description": "Inject a mortal (via the Hypodermic) so they heal and resist poison/disease as an Exalt while the Exalt commits 10 motes. Secondary: transfer motes through the needle - donate up to (Stamina + Essence) motes, or siphon (2 motes; Intelligence + Medicine; 2 motes per success, Peripheral first).",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 136
     },
     "exalt_type": "Alchemical",
@@ -396,7 +396,7 @@
     "duration": "Indefinite",
     "description": "Inject a physical-enhancement drug (no resistance): 3 motes raises a Physical Attribute, Appearance, Perception or Wits by a dot; 1 mote per dot raises Athletics/Awareness/Endurance/Resistance. No trait past (Exalt's Essence - patient's Essence) dots, doubled original, or Ability 5. Lasts while Essence is committed; week-long carriers may pay XP to keep gains. Highly addictive to mortals.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 136
     },
     "exalt_type": "Alchemical",

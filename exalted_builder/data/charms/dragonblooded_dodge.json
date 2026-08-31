@@ -15,7 +15,7 @@
     "duration": "Instant",
     "description": "Ordinarily a dodging defender needs ample space to move. Using this stance the character can dodge attacks while keeping his balance and his feet in one place, his torso and limbs flickering back and forth like a candle flame in high wind. He cannot dodge while entirely immobilized, but so long as he has some freedom to move he uses his full Dodge pool \u2014 whether standing on a tree limb, hemmed in by walls, shin-deep in quicksand, or dangling by his arms from a great height.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 205
     }
   },
@@ -39,7 +39,7 @@
     "duration": "Instant",
     "description": "The Dragon-Blooded's dives to avoid attack become pronounced: when he succeeds in dodging an attack he may leap, dive, or tumble up to his normal running pace (half of (Dexterity + 12) yards). In hand-to-hand combat this usually carries him out of range after a single attack unless the attacker can move and continue attacking, effectively letting him evade many multiple-attack Charms.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 205
     }
   },
@@ -63,7 +63,7 @@
     "duration": "Instant",
     "description": "An altruistic Charm: when he notices an attack coming toward a companion, the Dragon-Blood dives toward that friend and shoves him out of the way. The companion must be within leaping distance (ordinarily 5 yards). The attack almost always misses the companion; the Dynast's player then rolls his own dodge against the attack as though he were its original target, and if he does not get enough successes to make it miss outright it hits him instead \u2014 but if he rolls no successes on his dodge, the attack strikes the original target.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 205
     }
   },
@@ -83,7 +83,7 @@
     "duration": "Instant",
     "description": "The character's outline blurs as his movements accelerate. He improves his Dodge dice pool at a cost of one mote for every two dice added for this dodge attempt; as with most such Charms, no more dice can be added than his Dodge Trait.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 205
     }
   },
@@ -107,7 +107,7 @@
     "duration": "One scene",
     "description": "The Exalt conjures a visual distraction \u2014 smoke, a flaring campfire, anything to distract opponents and help allies dodge. He spends 1 mote per ally subjected, plus 1 mote per two dice added to the allies' Dodge pools. He may not contribute more dice than his Dodge Trait, and allies cannot more than double their own Dodge regardless of dice contributed. He cannot use it on more allies than his Essence.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 205
     }
   },
@@ -131,7 +131,7 @@
     "duration": "Instant",
     "description": "Like Virtuous Negation Defense, the Dragon-Blooded moves toward another person as an attack comes in \u2014 but here to make the attack strike that person instead (ideally a well-armored foe absorbing blows on the Exalt's behalf). The new target must be within three yards. Rather than a standard dodge, the player rolls Dexterity + Dodge needing a total of four successes; on success the new target is struck (treat the attack as aimed at him all along, and he may attempt his own dodge) and the user avoids it. A character cannot force an enemy to attack himself.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 206
     }
   },
@@ -155,7 +155,7 @@
     "duration": "One scene",
     "description": "A coruscating aura of fire radiates a few feet around the Exalt, destroying wooden projectiles and weakening other blows. Arrows automatically fail to harm him \u2014 the shaft is consumed by fire before it reaches him (at most a harmless arrowhead bounces off). He also gains +2 soak against metal and wooden weapons. Only hard stone weapons and gear of the Five Magical Materials are unaffected. Anyone making an unarmed attack against him while it is active takes 3L fire damage each time she attacks, soaked normally.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 206
     }
   },
@@ -185,7 +185,7 @@
     "duration": "Instant",
     "description": "The character can instantly strike back at any enemy whose hand-to-hand attack he has successfully avoided. When attacked at close range, if the attacker fails to achieve any net successes on his attack roll (he cleanly misses, or the defender's dodge successes reduce it to a miss), the defender may spend Essence and immediately make a reflexive hand-to-hand attack at his full dice pool. It cannot be used to respond to a counterattack launched with this or any other Charm.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 207
     }
   },
@@ -209,7 +209,7 @@
     "duration": "Instant",
     "description": "Perhaps the most difficult of all the Dodge Charms known to the Dragon-Blooded, Unassailable Body of Flame Defense momentarily turns the character's body to pure flame where an enemy's weapon touches it, generally allowing the weapon to pass harmlessly through the character's body. The Fire Aspect must have his fiery elemental anima ignited in order to use this Charm. Only then can he become sufficiently attuned to the element of fire that he can transform his own body into insubstantial flames. In any turn in which the character has used this Charm, he can dodge all physical attacks with his full Dexterity + Dodge pool.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Fire",
+      "book": "Aspect Book: Fire",
       "page": 74
     }
   }

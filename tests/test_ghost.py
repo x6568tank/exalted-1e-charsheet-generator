@@ -647,7 +647,7 @@ def _abyssals_arcanoi(rs) -> list:
     """Only the E:Ab CH6 set. The assertions below count THAT source's printed shape;
     Book of Bone and Ebony adds its own Arcanoi and must not move these numbers."""
     return [c for c in _arcanoi(rs)
-            if c.source and c.source.book == "Exalted: The Abyssals"]
+            if c.source and c.source.book == "The Abyssals"]
 
 
 def test_all_fifty_six_arcanoi_are_authored(rs) -> None:
@@ -688,7 +688,7 @@ def test_every_arcanos_carries_its_page(rs) -> None:
     """Never-author-from-memory means every value is traceable. The pages run
     p.234-253, the span of CH6's Arcanoi."""
     for c in _abyssals_arcanoi(rs):
-        assert c.source and c.source.book == "Exalted: The Abyssals", c.id
+        assert c.source and c.source.book == "The Abyssals", c.id
         assert 232 <= c.source.page <= 253, (c.id, c.source.page)
 
 

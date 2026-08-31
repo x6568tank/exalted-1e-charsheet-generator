@@ -2002,7 +2002,7 @@ def test_the_autochthonian_machine_spirit_charms(rs):
     that reads the opening line of each block finds Crystallize and misses it.
     """
     auto = [c for c in rs.charms.values()
-            if c.source.book == "Exalted 1e The Autochthonians"
+            if c.source.book == "The Autochthonians"
             and c.category == "spirit_templates"]
     assert len(auto) == 10
     assert all(c.exalt_type == "Spirit" for c in auto)

@@ -55,6 +55,7 @@ multiprocessing.freeze_support()
 
 from nicegui import app, ui  # noqa: E402
 
+from exalted_builder import branding  # noqa: E402
 from exalted_builder.ui import builder  # noqa: E402
 
 # Loopback only: a desktop app should not be reachable from the LAN, and the
@@ -100,8 +101,9 @@ def run() -> None:
 
     # show=True opens the default browser; reload=False is required when frozen
     # (and is also what makes app.shutdown() able to stop the server).
+    icon = branding.app_icon_path()
     ui.run(title="Exalted 1e — Solar Builder", reload=False, show=True,
-           host=_HOST, port=_PORT)
+           host=_HOST, port=_PORT, favicon=str(icon) if icon else None)
 
 
 # Guard covers PyInstaller's multiprocessing re-import (__mp_main__).

@@ -16,7 +16,7 @@
     "duration": "One scene",
     "description": "By means of this Charm, a Lunar can 'see' spirits in his immediate vicinity, gaining an approximate idea of their forms and actions. Provided he is circumspect, and no Charms aid the spirit, this observation is undetectable. Furthermore, this Charm allows the Lunar to sense the true form of a materialized spirit — a Lunar will know that a spirit masquerading as or possessing a human is not what it seems. The Charm does not allow the Lunar to communicate with or clearly comprehend the spirit. A Lunar who wishes to speak with gods, demons and elementals should learn Old Realm.",
     "source": {
-      "book": "Exalted 1e The Lunars",
+      "book": "The Lunars",
       "page": 191
     }
   },
@@ -39,7 +39,7 @@
     "duration": "One scene",
     "description": "Using this Charm, a Lunar can adapt his senses to detect the flows and patterns of Essence in the world around him, as well as any dematerialized spirits present. The Exalt can instinctually sense the direction and strength of flows, as well as the locations and power of loci such as Manses and Demesnes. Ascertaining more detailed information requires a Perception + Occult roll. A single success grants the Lunar basic information about the examined Essence, such as identifying the nature of a sorcery or the general geomancy of a region. Additional successes provide more in-depth and specific information. For example, three successes might allow the Lunar to judge the age and power of a Manse, while additional successes provide more depth and specific information. For example, three successes might allow the Lunar to judge the age and power of a sorcery, while with five, he may identify the sorcerer by 'signature' traits. Likewise, three successes provides the sort of detailed survey information necessary to construct a Manse, while five allows a near-perfect comprehension of an area's geomancy.",
     "source": {
-      "book": "Exalted 1e The Lunars",
+      "book": "The Lunars",
       "page": 192
     }
   },
@@ -63,7 +63,7 @@
     "duration": "One scene",
     "description": "Using the Devil-Restraining Grip Charm, a Lunar can immobilize a spirit with a snare of Essence, binding it to her as if with a leash. If the spirit is dematerialized, she can drive it into the material world, and once the spirit is in physical form, it is prevented from dematerializing. To use this Charm, the Exalt's player makes a Manipulation + Occult roll against a difficulty equal to the spirit's Essence. The Lunar must be within (the Lunar's Essence x 10) yards of the spirit. If she succeeds, the spirit cannot move further from the Exalt than its Essence Trait in yards and must materialize if it does not have the Essence to materialize. If both the spirit and the Lunar cannot pay for their reserves, then the Essence is wasted, and the spirit remains immaterial. If the spirit is already further away from the Lunar than its Essence in yards, it may only move toward the Lunar. The Charm does not protect the Lunar from the spirit's actions, though each success beyond that needed to ensnare the spirit imposes a -1 die penalty to all of the spirit's actions. The spirit is held for a number of minutes equal to the Lunar's Essence.",
     "source": {
-      "book": "Exalted 1e The Lunars",
+      "book": "The Lunars",
       "page": 192
     }
   },
@@ -87,7 +87,7 @@
     "duration": "Instant",
     "description": "If an encounter with a spirit goes wrong or if the being is intrinsically hostile, then the Lunar may have to fight it, a difficult proposition against a possibly incorporeal foe. The Spirit-Maiming Essence Attack is one of the Lunar's most potent weapons in such a conflict, allowing the Exalt to use his strength of will to bolster his material attacks. The Lunar must activate this Charm before he attacks. If the attack is successful, the damage caused by the Charm is aggravated. In addition, the Lunar's player also reflexively rolls a number of dice equal to the Lunar's Manipulation + Essence and adds a bonus to the base damage of the attack equal to the number of successes rolled. Spirits destroyed with this Charm are gone forever, and they can sense Exalts who know it and threaten them with the same wary respect reserved for those who can slay gods. Attacks enhanced with this Charm may explicitly be part of Combos with Charms of other Attributes.",
     "source": {
-      "book": "Exalted 1e The Lunars",
+      "book": "The Lunars",
       "page": 192
     }
   }

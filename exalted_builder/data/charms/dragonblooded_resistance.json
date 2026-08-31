@@ -16,7 +16,7 @@
     "duration": "One scene",
     "description": "A notable trait of Earth is its strength and resistance to damage. After a short meditation holding and concentrating on the Essence within a pebble, the character becomes stronger and tougher, gaining one dot each of Strength and Stamina for the next five minutes. To include others, they must all hold hands in a circle with a pebble between each pair of palms. A character can benefit from only one application of Strength of Stone Technique at a time.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 200
     }
   },
@@ -40,7 +40,7 @@
     "duration": "One scene",
     "description": "The Dragon-Blood's skin gains the toughness of native rock; swords and arrows glance off as if from a cliff face. Every mote invested gives the character two points of additional soak against lethal and bashing damage, but the soak bonus cannot exceed her Essence. This Charm is weak against Essence \u2014 it does not apply to damage caused by sorcery or by attacks enhanced with Charms.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 200
     }
   },
@@ -64,7 +64,7 @@
     "duration": "One turn",
     "description": "Links the Dragon-Blooded's Essence to the Essence within any great mass; by inverting the principles of resistance against the mass, he exerts vastly magnified strength. After a moment's concentration he can hurl boulders, topple pillars, start a landslide, or perform other momentary feats. For one turn his Strength increases by 5, but he can only apply the extra Strength to objects of earth or stone; it may be used in an attack (e.g. throwing a boulder for Strength-based damage), and jade-alloy weapons such as daiklaves count as 'stone' enough to benefit.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 200
     }
   },
@@ -88,7 +88,7 @@
     "duration": "One scene",
     "description": "A cluster of five separate Charms, each protecting from the element of one of the Five Immaculate Dragons (this entry models the set; each must be bought separately, and a character may apply her own elemental attunement discount when learning her element's version). While in effect, the character gains a bonus to lethal and bashing soak equal to her Essence when attacked by an appropriate source of elemental damage, applying to attacks and to environmental damage (drowning, crushing rock, molten lava). For this Charm, metal counts as earth and fists, teeth, and natural attacks as wood. Like Impervious Skin of Stone Meditation, this protection is brittle \u2014 no extra resistance against Charm-enhanced attacks or sorcery.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 201
     }
   },
@@ -113,7 +113,7 @@
     "duration": "One scene",
     "description": "The Dynasts of Earth, paragons of stability, combat the roiling energies of the Wyld. For the rest of the scene the Dynast may ignore the warping effects of the Wyld; both his person and his gear are protected and cannot be mutated or changed by Wyld effects. He can extend the protection to others by paying the full cost of the Charm and touching them.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 201
     }
   },
@@ -138,7 +138,7 @@
     "duration": "One scene",
     "description": "The most powerful Terrestrial Exalted shield themselves from the magic of the Anathema. For the rest of the scene the Dynast may add her Essence to the difficulty of magical attacks made against her by the Anathema, including Charm-enhanced attacks and sorcery; these act as automatic successes to avoid the attack and are additive with dodges and parries. It offers no protection against more subtle effects such as mind control.",
     "source": {
-      "book": "Exalted 1e Dragon-Blooded",
+      "book": "The Dragon-Blooded",
       "page": 201
     }
   },
@@ -162,7 +162,7 @@
     "duration": "One scene",
     "description": "The Exalt focuses, invoking the durability of the Earth as an enchantment upon his armor. The degree of benefit depends on the composition of his armor according to the table below. The Exalt can extend this Charm to any ally within his (Essence x 3) yards by paying the same cost, and a character may simultaneously evoke protection on as many allies within range as his Essence reserves permit. Characters may only benefit from one application of this Charm at a time and immediately lose the enchantment if they remove their armor for any reason. Soak bonus by armor type \u2014 Non-Magical Armor 1L/2B; Magical Armor 2L/2B; Jade Armor 2L/3B; White Jade Armor 3L/3B.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   },
@@ -187,7 +187,7 @@
     "duration": "One scene",
     "description": "Like the lesser (Element) Protection Form upon which this Charm builds, Mantle of (Element) Invulnerability is actually a cluster of five separate Charms that must be purchased separately. Each confers unsurpassed protection, allowing the Exalt to completely ignore all non-magical sources of injury associated with the respective element and adding the character's permanent Essence to her soak against magical attacks involving the element. This Charm uses the same guidelines for determining the elemental association of a damage source as (Element) Protection Form (see Exalted: The Dragon-Blooded, p. 201). Dragon-Blooded always consider the Mantle of (Element) Invulnerability for their own element to be a favored Charm, even if they do not actually have Resistance as an Aspect or Favored Ability. However, because this Charm is still based on Resistance, Earth Aspects never pay an elemental surcharge to use any of the five elemental permutations.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   },
@@ -211,7 +211,7 @@
     "duration": "One scene",
     "description": "Invulnerability Charms The Exalt dons the fivefold aegis of the Elemental Dragons, his anima roaring out in a gale of destructive power as if he had spent 16+ motes of Peripheral Essence. For the rest of the scene, the character is at one with the harmony of the elements and suffers no damage from any non-magical object or force native to the Tapestry of Creation. Beings and forces from outside of Fate can hurt the character normally by mundane means, but all others must use magically enhanced attacks or weapons of the Five Magical Materials to harm the Exalt. Unlike the individual Mantle of (Element) Invulnerability Charms, Perfected Scales of the Dragon offers no additional soak versus damage sources that penetrate its limited perfection.",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   },
@@ -235,7 +235,7 @@
     "duration": "Instant",
     "description": "The Dragon-Blood kneels in humble supplication to the Elemental Dragons, briefly setting aside his authority as a Prince of the Earth to become a vessel of greater divinity. As the Charm activates, a sphere of living Essence spreads from the Chosen's heart and grows to envelop a radius of her Essence in yards. Taint-Cleansing Technique cannot be placed in a Combo but may be used synergistically. In order to obtain the synergistic benefit, all participant Dragon-Blooded must stand in an outward-facing circle with each no more than five yards from all other participants. The total number of participants cannot exceed the Essence + Performance + applicable specialty (usually Leadership) of the Exalt leading the combined effort. A synergistic use of this Charm combines the spheres of Essence from each character into a single sphere emerging from the center of the participant circle. This sphere has a radius in yards equal to the (highest Essence in the group) x (the number of participants). Within the radius of the sphere, the energy of the Wyld is completely displaced, turning the affected area into a bubble of perfect and inviolate stability. Every decade of contact with the Wyld erodes one foot of radius from the protected region. Fair Folk and Wyld mutants can freely enter regions of stability created with Taint-Cleansing Technique without suffering any more harm than they experience in any other part of Creation. /* * as with before, artifacts & enchanted items begin here * feel free to ignore anything that isnt an arm or armor */",
     "source": {
-      "book": "Exalted 1e Aspect Book: Earth",
+      "book": "Aspect Book: Earth",
       "page": 71
     }
   }

@@ -1,5 +1,5 @@
 {
-  "book": "Exalted Core",
+  "book": "Core",
   "pdf": "Exalted.pdf",
   "problem": "Thirteen subsetted fonts, none with a ToUnicode map, so every character extracts as a bare glyph index. EACH FONT IS ITS OWN CIPHER: the body face is 89% of the text and the sidebar/quote/table faces are separate substitutions. Decoding everything with the body font's mapping yields clean English for 89% and confident nonsense for the rest.",
   "cipher": "bands_per_font",

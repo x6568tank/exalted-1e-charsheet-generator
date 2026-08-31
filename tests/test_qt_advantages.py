@@ -381,6 +381,26 @@ def test_a_dialog_chip_narrows_the_offer_to_that_category(qtbot, ruleset):
     assert shown == {"Physical"}
 
 
+def test_a_merits_rules_text_is_printed_WHOLE_in_the_detail_pane(qtbot, ruleset):
+    """⚠ The pane clamped the printed text at 320 characters and put the rest in a
+    TOOLTIP — a leftover from when this was a card in a stack with no room. It is now
+    the scrolling half of a splitter, and the Backgrounds pane beside it has always
+    printed its blurb in full, so a long Merit read as truncated for no reason
+    (human, 2026-08-30). Picks the LONGEST description in the rule set so the test
+    cannot rot into probing a short one."""
+    longest = max(ruleset.merits_flaws.values(),
+                  key=lambda m: len(m.description or ""))
+    assert len(longest.description) > 320, "no entry long enough to prove the clamp gone"
+    page = _page(ruleset, _solar(merits_flaws=[MeritFlawPurchase(merit_id=longest.id)]))
+    qtbot.addWidget(page)
+    _pick(page, "Merits & Flaws")
+    printed = " ".join(_labels(page))
+    whole = " ".join(longest.description.split())
+    assert whole in printed
+    # ...and the tooltip is not where the tail lives any more.
+    assert "…" not in printed
+
+
 def test_a_two_sided_row_offers_the_side_control(qtbot, ruleset):
     mp = MeritFlawPurchase(merit_id=MUTATION)
     page = _page(ruleset, _solar(merits_flaws=[mp]))

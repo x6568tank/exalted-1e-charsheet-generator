@@ -19,7 +19,7 @@ from pathlib import Path
 
 from nicegui import ui
 
-from .. import persistence, rules_db
+from .. import branding, persistence, rules_db
 from ..models.character import Character
 from ..models.rules import RuleSet
 from . import theme
@@ -431,7 +431,9 @@ def main() -> None:
     def index() -> None:
         render_sheet(view)
 
-    ui.run(title=f"Exalted 1e — {view.name}", reload=False, show=args.show, port=args.port)
+    icon = branding.app_icon_path()
+    ui.run(title=f"Exalted 1e — {view.name}", reload=False, show=args.show, port=args.port,
+           favicon=str(icon) if icon else None)
 
 
 if __name__ in {"__main__", "__mp_main__"}:

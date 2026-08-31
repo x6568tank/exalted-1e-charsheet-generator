@@ -280,7 +280,7 @@
     "duration": "Instant",
     "description": "The character pulls a bolt of fiery Essence across his bow. The character makes a normal Dexterity + Archery roll, but the base damage is equal to the character's Permanent Essence. This damage is aggravated. The bolt moves as quickly as a stroke of lightning. Its deadly power is not subject to penalties for range or wind, though poor visibility can hamper shooting. These bolts can be fired to a distance of (firing character's Essence x 100) yards.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 71
     }
   },
@@ -309,7 +309,7 @@
     "duration": "One scene",
     "description": "The character can fight an entire battle without needing to worry about arrows. For the rest of the scene, every time the character shoots her bow, she fires a bolt of concentrated solar Essence that does the same base damage as any type of arrow she desires. These arrows are not subject to penalties for range or wind, though poor visibility can hamper shooting. These bolts have the normal range for arrows fired from the type of bow the character is using.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 71
     }
   },
@@ -335,7 +335,7 @@
     "duration": "Instant",
     "description": "The character's Essence propels the arrow at the speed of thought. Environmental penalties do not apply to the character's Archery attack, be they for range, high winds, bad weather, bad ammunition, exceedingly difficult called shots or any other external factors. In addition, this shot has no range limitations. As long as the firing character can see the target, even if it is only a tiny dot near the horizon, the shot can hit this distant goal. If the character enhances her sight with a Charm such as Unsurpassed Sight Discipline (see Exalted, page 196), she can literally shoot the hat off of the head of a target five miles away. As with the Charm There Is No Wind, splitting a dice pool for multiple actions is not considered an environmental penalty.",
     "source": {
-      "book": "Exalted 1e Caste Book: Dawn",
+      "book": "Caste Book: Dawn",
       "page": 71
     }
   }

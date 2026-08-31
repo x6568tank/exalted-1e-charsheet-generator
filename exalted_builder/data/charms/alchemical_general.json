@@ -16,7 +16,7 @@
     "duration": "Instant",
     "description": "One of the nine Transitory Augmentation Charms (one per Attribute), purchased and installed separately. Temporarily boosts Strength: add one dot per mote spent for a single instant-duration action, but never more dots than the Attribute's base rating. Installed for a Caste or Favored Attribute, it also reduces the anima die-boost cost from 3 motes to 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -37,7 +37,7 @@
     "duration": "Instant",
     "description": "One of the nine Transitory Augmentation Charms (one per Attribute), purchased and installed separately. Temporarily boosts Dexterity: add one dot per mote spent for a single instant-duration action, but never more dots than the Attribute's base rating. Installed for a Caste or Favored Attribute, it also reduces the anima die-boost cost from 3 motes to 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -58,7 +58,7 @@
     "duration": "Instant",
     "description": "One of the nine Transitory Augmentation Charms (one per Attribute), purchased and installed separately. Temporarily boosts Stamina: add one dot per mote spent for a single instant-duration action, but never more dots than the Attribute's base rating. Installed for a Caste or Favored Attribute, it also reduces the anima die-boost cost from 3 motes to 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -79,7 +79,7 @@
     "duration": "Instant",
     "description": "One of the nine Transitory Augmentation Charms (one per Attribute), purchased and installed separately. Temporarily boosts Charisma: add one dot per mote spent for a single instant-duration action, but never more dots than the Attribute's base rating. Installed for a Caste or Favored Attribute, it also reduces the anima die-boost cost from 3 motes to 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -100,7 +100,7 @@
     "duration": "Instant",
     "description": "One of the nine Transitory Augmentation Charms (one per Attribute), purchased and installed separately. Temporarily boosts Manipulation: add one dot per mote spent for a single instant-duration action, but never more dots than the Attribute's base rating. Installed for a Caste or Favored Attribute, it also reduces the anima die-boost cost from 3 motes to 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -121,7 +121,7 @@
     "duration": "Instant",
     "description": "One of the nine Transitory Augmentation Charms (one per Attribute), purchased and installed separately. Temporarily boosts Appearance: add one dot per mote spent for a single instant-duration action, but never more dots than the Attribute's base rating. Installed for a Caste or Favored Attribute, it also reduces the anima die-boost cost from 3 motes to 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -142,7 +142,7 @@
     "duration": "Instant",
     "description": "One of the nine Transitory Augmentation Charms (one per Attribute), purchased and installed separately. Temporarily boosts Perception: add one dot per mote spent for a single instant-duration action, but never more dots than the Attribute's base rating. Installed for a Caste or Favored Attribute, it also reduces the anima die-boost cost from 3 motes to 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -163,7 +163,7 @@
     "duration": "Instant",
     "description": "One of the nine Transitory Augmentation Charms (one per Attribute), purchased and installed separately. Temporarily boosts Intelligence: add one dot per mote spent for a single instant-duration action, but never more dots than the Attribute's base rating. Installed for a Caste or Favored Attribute, it also reduces the anima die-boost cost from 3 motes to 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -184,7 +184,7 @@
     "duration": "Instant",
     "description": "One of the nine Transitory Augmentation Charms (one per Attribute), purchased and installed separately. Temporarily boosts Wits: add one dot per mote spent for a single instant-duration action, but never more dots than the Attribute's base rating. Installed for a Caste or Favored Attribute, it also reduces the anima die-boost cost from 3 motes to 2.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -205,7 +205,7 @@
     "duration": "N/A",
     "description": "One of the nine Sustained Augmentation Charms (one per Attribute), installed separately. Grants one additional dot of Strength (part of the natural rating) and raises the Attribute's maximum by one. No single Attribute may be augmented this way more than once, but any number of different Attributes may be.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -226,7 +226,7 @@
     "duration": "N/A",
     "description": "One of the nine Sustained Augmentation Charms (one per Attribute), installed separately. Grants one additional dot of Dexterity (part of the natural rating) and raises the Attribute's maximum by one. No single Attribute may be augmented this way more than once, but any number of different Attributes may be.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -247,7 +247,7 @@
     "duration": "N/A",
     "description": "One of the nine Sustained Augmentation Charms (one per Attribute), installed separately. Grants one additional dot of Stamina (part of the natural rating) and raises the Attribute's maximum by one. No single Attribute may be augmented this way more than once, but any number of different Attributes may be.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -268,7 +268,7 @@
     "duration": "N/A",
     "description": "One of the nine Sustained Augmentation Charms (one per Attribute), installed separately. Grants one additional dot of Charisma (part of the natural rating) and raises the Attribute's maximum by one. No single Attribute may be augmented this way more than once, but any number of different Attributes may be.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -289,7 +289,7 @@
     "duration": "N/A",
     "description": "One of the nine Sustained Augmentation Charms (one per Attribute), installed separately. Grants one additional dot of Manipulation (part of the natural rating) and raises the Attribute's maximum by one. No single Attribute may be augmented this way more than once, but any number of different Attributes may be.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -310,7 +310,7 @@
     "duration": "N/A",
     "description": "One of the nine Sustained Augmentation Charms (one per Attribute), installed separately. Grants one additional dot of Appearance (part of the natural rating) and raises the Attribute's maximum by one. No single Attribute may be augmented this way more than once, but any number of different Attributes may be.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -331,7 +331,7 @@
     "duration": "N/A",
     "description": "One of the nine Sustained Augmentation Charms (one per Attribute), installed separately. Grants one additional dot of Perception (part of the natural rating) and raises the Attribute's maximum by one. No single Attribute may be augmented this way more than once, but any number of different Attributes may be.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -352,7 +352,7 @@
     "duration": "N/A",
     "description": "One of the nine Sustained Augmentation Charms (one per Attribute), installed separately. Grants one additional dot of Intelligence (part of the natural rating) and raises the Attribute's maximum by one. No single Attribute may be augmented this way more than once, but any number of different Attributes may be.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   },
@@ -373,7 +373,7 @@
     "duration": "N/A",
     "description": "One of the nine Sustained Augmentation Charms (one per Attribute), installed separately. Grants one additional dot of Wits (part of the natural rating) and raises the Attribute's maximum by one. No single Attribute may be augmented this way more than once, but any number of different Attributes may be.",
     "source": {
-      "book": "Exalted 1e The Autochthonians",
+      "book": "The Autochthonians",
       "page": 91
     }
   }
