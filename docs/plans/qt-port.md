@@ -17,6 +17,128 @@ makes "one engine, two thin shells" tractable.
 different widget toolkit is not a feature; it is the foundation a 2.0 native app is built
 on, offered alongside the existing webapp.
 
+---
+
+# STANDING RULES FOR THE PORT — read these before touching `qt/`
+
+Moved here from `CLAUDE.md` on 2026-09-01 to keep that file an index. These are not
+milestone history; they are the rules that still bind every change to `exalted_builder/qt/`.
+Run it with `python -m exalted_builder.qt [path]`.
+
+## Where the port stands
+
+⚠ **THE PORT IS FEATURE-COMPLETE (2026-08-27).** Milestones 1–6 (the shell +
+Edit/Charms/Sheet; the left-rail shell + Identity/Traits; Advantages; Gear with Combos
+moving under Charms; Advantages rebuilt as a collection; the Play tab) plus the **ST
+Options**, **Custom** and **Combos** tabs, all shipped and human-clicked on the real
+display. So did the **Party / ST window** — the one thing that was a DESIGN QUESTION
+rather than a port (`qt/party.py`, `qt/adversaries.py`, `qt/trackers.py`). Its four
+design answers, taken as recommended: a **second `QMainWindow`** · **sub-tabs Party /
+Adversaries / Reference, with mixed layouts** · **"Open in builder" retargets the ONE
+builder** · **the ST reference screen lives on that window**. **The Party window is
+HUMAN-CLICKED (2026-08-28, commit 617c5d9)** — the roster cards, both scroll fixes, the
+card toolbar and reflow.
+
+⚠ Three builder⇄party interplay checks were NOT exercised and are named in
+`docs/status/handoff.md`; group 4's five per-splat Charm surfaces are still unclicked
+too, a low-priority sweep rather than an owed verification.
+
+⚠ **The rail was never the measure of what was left** — the Combos sub-tab never appeared
+on it and the within-tab gaps never could.
+
+## ⚠ The gap list was a LOWER bound every single time — SEVEN for seven
+
+The Party window's "~1,100 lines" missed the **ST reference screen** (in no Qt module at
+all), the **roster mutations having no engine home**, and four layout defects only a
+render could show. Item 1 turned up a stale shell readout on no list; item 2 a `reload()`
+that never pinged the shell and a `_combo` degrading enum keys, then three more at
+click-through; item 3 a detail pane missing five cost-relevant flag lines and a QSS with
+no `QPushButton:disabled` rule, which made every disabled button in the WHOLE port look
+clickable; ST Options, listed as one placeholder module, four more — including the SAME
+hole for `QCheckBox`, again port-wide and older than the tab; Custom, four more again —
+including the SAME hole a third time, for `QDialog` and `QPlainTextEdit`; and "the Combos
+sub-tab, 423 lines" turned out to be TWO systems, Combos *or* Arrays.
+
+**A defect one widget class over is still your defect: when you add a rule for one widget
+class, add it for every interactive class in the QSS.** **Audit each remaining tab
+against its `ui/` counterpart before trusting the list, click it before believing it, and
+render it offscreen and LOOK** — both stylesheet defects were invisible to every one of
+the 2,857 tests.
+
+⚠ **A QSS rule is invisible to the whole suite, so guard it by RENDERING.**
+`tests/test_qt_theme.py` exists for this and its first version was worthless: it compared
+whole-widget images with `!=` and passed against the very defect it was named for,
+because Qt dims disabled TEXT on its own. Cropping to the indicator was still not
+enough — antialiasing makes the two drawings unequal, and the real brightness gap was
+**7 of 255, inverted for a ticked box.** **Negative-control a rendering test by deleting
+the rule it guards.**
+
+## ⚠ A Qt tab is a COLLECTION, and there is ONE layout — with THREE written exceptions
+
+Settled by the human 2026-08-21 after the `qt_advantages` spike: toolbar for actions ·
+sub-tab per category where a tab has more than one · a sortable table with a header · a
+splitter with the selected entry's editor in a detail pane. Charms, Gear and Advantages,
+ST Options and Custom all have it — **do not re-litigate per tab.**
+
+⚠ **THREE exceptions are stated, and all are WRITTEN DOWN** — an exception that is
+written down is not drift; an unwritten one is.
+
+1. **Play** (human, 2026-08-22) is a live TRACKER, not a list — a health track you click
+   to mark, mote pools, the dice-pool sidebar — so there is nothing to select and a
+   detail pane would hide numbers you glance at mid-roll. Toolbar over panels;
+   `qt/play.py` is built that way.
+2. **Identity + Traits** (human, 2026-08-22) KEEP their card scroll. Asked, spiked six
+   ways — including a `QTreeWidget` collection exactly like Gear's — and declined: *"the
+   way it is right now works best for this information specifically."* A trait surface is
+   a fixed FORM, not a collection; there is nothing to select. **Do not re-propose a
+   Traits redesign** — `spikes/qt_traits/` records what lost.
+3. **The PARTY tab** (human, 2026-08-27), for Play's reason — the member cards are live
+   trackers with nothing to select. ⚠ The **Adversaries** tab in the same window IS a
+   collection, because its entries are edited as well as tracked: **two shapes in one
+   window is the design.** ⚠ **The ADVERSARIES are drawn on BOTH** (human, 2026-08-28):
+   tracker cards under the members on the Party tab, because a fight is run off one
+   screen, and the collection on their own tab, which stays the only place an entry is
+   EDITED. **Where a thing is tracked and where it is edited are two questions.**
+
+**ST Options omits the TOOLBAR only**, because the rules are fixed by the books and there
+is nothing to add, buy or delete. Written into `qt/storyteller.py`'s docstring; it keeps
+every other part of the layout and is not a fourth exception.
+
+Gear was built TWICE because its first version ported the webapp's structure by reflex
+(floating button, accordion expanders, card stack) and was rejected on sight with every
+test green. **Copy `qt/gear.py` or `qt/advantages.py`; never transliterate `ui/<tab>.py`.**
+
+## The gotchas that re-bite
+
+- ⚠ **Tear a layout down with `qt/layout.py::clear_layout`** — never a fresh loop.
+  `item.widget()` is None for a nested `QLayout` and `deleteLater()` is deferred, and
+  the hand-written version has now got that wrong on five separate outings — most
+  recently leaving the details popover's old rows painting over its new ones.
+- ⚠ **An ancestor stylesheet BEATS a set palette, every time.** Setting a stylesheet
+  on the window hands the stylesheet renderer every descendant, and it ignores
+  `QPalette`. Bitten three times in different disguises: a `QTextEdit` in a `_Panel`
+  painting the card shade; the Gear and Advantages **trees rendering white on the dark
+  page for two shipped, human-clicked milestones**; and small buttons inside a card
+  going invisible because the QSS gives every `QPushButton` `background:CARD`. **The
+  only fix is an inline stylesheet on the widget itself** — and if a widget class is
+  not named in `qt/theme.py::qss`, assume it is unstyled.
+- ⚠ **The two shells' tab sets differ deliberately.** Combos is a **sub-tab of Charms**
+  in Qt and a top-level tab on the webapp. `view.visible_tabs` still names it — the Qt
+  shell discards that one answer and `CharmsPage` runs `has_combos_tab` itself. Do not
+  "fix" the presenter to match the rail.
+- The port is cheap only because nothing outside `ui/` imports `nicegui` and
+  `ui/view.py` is a pure presenter. **Keep it that way** — prefer derived state in
+  `view.py` over inline computation in a widget module.
+- **Theme is settled** (the human's desktop direction): one unified dark base, the
+  splat as a light accent. The dark printed accents are invisible on dark; do not
+  reintroduce them. ⚠ **That includes the DOCUMENT surfaces** — the Sheet tab and the
+  Party window's Reference tab went dark on 2026-08-28 (a white page between dark tabs
+  is a flashbang); only the PRINTED sheet is still ink on paper. `qt/sheet.py`'s
+  `print_colors` / `screen_colors` are the two sets, and `sheet_html` defaults to
+  paper so nothing picks up the dark page by omission.
+
+---
+
 ## Why it is feasible — the measured baseline
 
 Measured 2026-08-10 at 2,092 passing tests; LOC re-measured 2026-08-20 (suite is 2,455,

@@ -60,150 +60,28 @@ Solar values. If unsure, ask human.
 - **Run the `preflight` skill before booking browser time.** Project skills:
   `preflight`, `close-out`, `add-splat`, `run-server`.
 
-### 📝 The comment standard (human, 2026-08-17) — applies to ALL new code
+### 📝 The comment standard → `docs/comment-standard.md`
 A docstring carries **input, output, and how it gets from one to the other. Nothing
-else.** No decision-making logs, no chain of thought, no dated narration of how the code
-reached its shape. *"Commit messages are fine to be wordy… we do want a log, but that
-shouldn't bloat the code."* Put the reasoning, the alternatives and the
-bugs-found-along-the-way in the commit message and `docs/status/`.
+else** (human, 2026-08-17) — reasoning and war stories go in the commit message and
+`docs/status/`. Three things STAY: **page citations**, **⚠ records of behavioural traps**,
+and the contract itself. Which packages have had the pass, and how to run one safely, are
+in the file.
 
-Three things STAY: **page citations** ("core p.104", or a short undated "human's ruling"
-where no page exists); **⚠ records of behavioural traps** — *"those are important to
-anyone working on this"*, and a trap buried in narration should come OUT as an explicit
-⚠, not be deleted with it; and the contract itself.
-
-`engine/validate/` has had this pass (2026-08-17). Not yet done, in size order as
-measured THEN: **`ui/`** (3,676 prose lines, 24%), **`models/`** (2,672, 61% — densest in
-the build), **`engine/` outside validate** (2,496, 38%) — plus **`qt/`**, which did not
-exist at that measurement and has never had the pass. ⚠ Re-measure before acting on those
-numbers; `ui/` in particular has shrunk as the port moved logic into `engine/` and
-`view.py`. Use `prose_guard.py`'s method: strip all docstrings,
-compare the AST (byte-identical ⇒ no code changed), then assert no page citation and no
-⚠ marker was lost. ⚠ **Judge such a pass by what the prose IS, never by line count** —
-validate's only went 35% → 34% and that was the correct outcome.
-
-### The house bug — stated once
-A rule that IS implemented, sitting where it does not run when it matters. It has
-appeared in three species; all three keep recurring.
-
-1. **Wired to the wrong phase.** Three M&F instances, then mortal magic access wired to
-   chargen only, then the XP tab's hardcoded trait ceiling. `preflight`'s read-site audit
-   reports single-site fields as healthy — **a single read site is as suspect as none
-   when the read sits in the phase that wrote it. Test the buy path, not the effect.**
-2. **Zero read sites, and still looks healthy**, because something else does its job by
-   accident (`heritage_traits.magic_track`; the Ghost catalogue holds no sorcery, so
-   Charm access happened to produce the right answer while both Half-Castes were broken).
-   **Correct behaviour in the case you tested is not evidence the mechanism exists.**
-3. **The switch is player-editable to a value that switches it off.** A custom M&F row
-   keyed on `custom_name` being truthy — and the name input writes that field on every
-   keystroke. **A discriminator must be a field nothing on the screen can edit.** When
-   you add a "kind" flag, ask which widget can write it.
+### The house bug, and the lessons → `docs/lessons.md`
+**The house bug: a rule that IS implemented, sitting where it does not run when it
+matters.** Three species, all recurring — (1) wired to the wrong phase; (2) zero read
+sites and still looks healthy, because something else does its job by accident; (3) the
+switch is player-editable to a value that switches it off. **Test the buy path, not the
+effect. Correct behaviour in the case you tested is not evidence the mechanism exists. A
+discriminator must be a field nothing on the screen can edit.**
 
 The mechanical sweep for all three is `docs/delegated-authoring.md` — **read it before
 delegating a splat to a cheap model, and run its four checks before booking browser
-time.** (Godblooded was authored end to end by DeepSeek V4 Flash; the review found four
-defects, every one of them the house bug.)
+time.**
 
-### Lessons that generalise past their own area
-Each is written up in full where it happened; these are the reusable one-liners.
-
-- **"Missing from the build" is not "should be authored."** A gap diff cannot see a human
-  ruling — grep `docs/status/` and `tests/` for an entry name first.
-- **A search shaped like what you expect proves nothing about a thing shaped
-  differently.** Before trusting a sweep, ask which shapes it **cannot see** (rituals
-  print no stat block; one has no heading at all).
-- **A fuzzy gap count is a LOWER bound on the work.** When a name match fails, match on
-  **book + page** — but keep the name check too; entries printed in two books slip a
-  page-keyed check.
-- **A permission toggle must move the OFFER as well as the bar.** A granted-but-unfindable
-  Background is worse than no toggle.
-- **A predicate that answers "True, not applicable" outside its subject is a grant waiting
-  to happen.**
-- **When you teach one formatter a new fact, grep for its siblings.** Per-module display
-  helpers touch no engine code, so containment tests never see them.
-- **When a structural invariant is relaxed, name where it moved TO in the same change.**
-- **An exemption keyed on a basename is an exemption anything can claim** — key on path.
-- **Check sign conventions against `data/`** before consuming a field (`Armor.mobility_penalty`
-  is stored NEGATIVE; a consumer reading it as a magnitude adds dice).
-- **A GUI toolkit can silently degrade a value you hand it and hand back.** Qt stores
-  combo item data as a QVariant, and a `str`-valued Enum returns from `currentData()` as
-  a plain `str`; with no `validate_assignment` on the model, writing it succeeds and
-  fails later somewhere else. **Never read a key back out of a widget — index the dict
-  you built the widget from.**
-- **A gap-list entry can name the wrong MODULE, not just the wrong size.** Downtime sat
-  under "Edit's deferred panels" for two sessions and is a shell control. Check where
-  the webapp puts a thing before porting it to where the list says it is.
-- **A "free" ruling that contradicts the book's price language needs the human's intent
-  confirmed** — a mistaken "free" ships as a silent under-charge.
-- **When a tool closes a blocker, the prose describing the blocker is part of the change.**
-  A stale "page-blocked" line reads exactly like a live one.
-- **Negative controls go stale silently and keep passing.** After authoring content that
-  used to be missing, grep the tests for the names you just added; when no real subject
-  remains, rebuild the control on a synthetic fixture — never delete it. **Moving a
-  feature stales them too** — once Combos left the rail, "a ghost's rail has no Combos"
-  passed for every splat and proved nothing.
-- **When code copies one model into another field by field, derive the field set from the
-  models.** A hand-written copy list documents the fields someone thought of: `ui/gear.py`
-  carried `from_artifact` across a catalogue re-pick because a comment warned about it,
-  and silently dropped `acquired` — re-charging the Artifact budget for a cash-bought
-  item. `gear_actions._owned_fields` is the complement of `_catalogue_stats`, so neither
-  half can be forgotten.
-- **A page added to a shell inherits a HOOK CONTRACT from its sibling pages** — diff the
-  constructor calls, not the page. `CharmsPage` was built without the `on_change` every
-  other Qt page passes, so spending on it never moved the shell's readout bar; the tab's
-  own local readout updated fine, which is what hid it.
-- **Address a widget by name, never by position in a `findChildren` list.** A test that
-  grabbed `findChildren(QSpinBox)[0]` got the row's quantity box instead of the stat it
-  meant, and passed a wrong assertion into existence.
-- **A guard in a DISPATCHER can shadow a more careful guard one layer down, turning
-  implemented support into dead code.** `charm_actions.learn_charm` refused any owned
-  Charm post-lock with a bare `in character.charms`; `advancement.learn_charm` beneath
-  it had supported the repeatable case all along, cap check and page citation included.
-  Both shells go through the dispatcher, so nothing could reach it. **When you write a
-  broad refusal, check what the layer below already handles more precisely.**
-- **A cross-shell parity audit needs THREE axes, and each one's conclusion is a lower
-  bound on the next.** Names by shell, handler functions per tab pair, and printed page
-  citations per tab pair — the third exists to catch what the first two declare they
-  cannot see (a panel that renders FEWER LINES), and it found the only gap outside the
-  panel the other two had agreed was the whole story.
-- **A cross-shell parity audit needs TWO axes, and the answer's SHAPE is the finding.**
-  Scoring every `view.py`/`engine/` name by which shell uses it found three holes;
-  comparing handler functions per tab pair found three more, and all six were in ONE
-  panel — the one where the port collapsed a four-column page into a tree plus a shared
-  detail pane. **When a port compresses a surface's shape, that surface is where its
-  missing controls are.** Both axes are blind to a control that exists in both shells
-  but is disabled in one, to a panel with fewer lines, and to a different default —
-  three more defects turned up in the same code, found only by fixing the others and
-  looking at the render.
-- **A compensation you reasoned your way to is a HYPOTHESIS until someone uses it.** The
-  Qt roster replaced the webapp's card grid with a table and argued in three documents
-  that the Damage column bought back what cards did better. It did not — six damage cells
-  are not six health tracks you click, and *"gming combat is a challenge"* was the
-  verdict. **Write the compensation down as a claim to be tested, not as a closed
-  trade**, and note that no test can fail on it: all 3,065 were green, because they all
-  addressed the surface that DID exist.
-- **A click that rebuilds its own button throws the focus and drags the scroll with it.**
-  Qt hands focus to whatever inherits it, and an enclosing `QScrollArea` scrolls to
-  follow. **A live tracker REPAINTS** (`qt/trackers.py::restyle`); only a change that
-  re-lengthens a track may rebuild. ⚠ **Do not verify this with `QPushButton.click()`** —
-  a programmatic click takes no focus, so the bug does not reproduce and the test passes
-  against it. `show()`, `waitExposed`, `setFocus(MouseFocusReason)`, *then* click.
-- **Tests, then a render, then a LAUNCH — each catches what the last could not.** The
-  adversary roster card passed 3,083 tests, then two rounds of offscreen renders, and
-  still shipped clipped mid-word text the moment it was opened with the real catalogue.
-  **A render shows you geometry; only real data shows you what the geometry has to
-  hold** — and ⚠ **self-authored fixtures agree with the bug**, because every test
-  adversary is called "Bandit" and no line in the suite is long enough to reach a card
-  edge. When a surface's job is to display real content, render it with real content.
-- **A word-wrapped `QLabel` answers `heightForWidth` and `QGridLayout` does not honour
-  it**, so a card in a grid is laid out too short, and the only children that cannot
-  shrink gracefully — fixed-size boxes — get painted through whatever is under them. No
-  word-wrap on a card a grid lays out, and a hard `setMinimumHeight` on the fixed part;
-  a `QSizePolicy.Fixed` alone does not save you. Invisible to every test.
-- **A test's SUBJECT can quietly become the wrong subject.** The Qt "Add another" tests
-  used a Charm that later turned out to be a variant menu, not a generic repeatable.
-  They were green throughout and proved nothing about the case they named. When a
-  thing's classification changes, grep the tests that named it.
+`docs/lessons.md` also carries the ~25 one-liners that generalise past where they
+happened — sweeps and gap lists, engine code, tests, cross-shell parity, Qt widgets.
+**Read it before a sweep, a parity audit, or any change you expect tests to cover.**
 
 ## Architecture, layout and data conventions → `docs/ARCHITECTURE.md`
 **Read that file before touching the engine, the loader, the models or the data
@@ -283,120 +161,18 @@ pool calculation.
   and **Haltan pets** (Scavenger Sons p.28 — a bonus-point rule with no origin axis to
   hang it on). A sweep that lists any of them as unauthored is counting a deferral as an
   oversight. **Do not offer them as follow-ups.**
-- **The Qt port** — **COMMITTED as decision 0018 (2026-08-20)**: branch and rebuild the
-  UI on **PySide6/Qt** as the bedrock of a 2.0, offered alongside the NiceGUI webapp.
-  Plan and build record: **`docs/plans/qt-port.md`**. The two spikes (`spikes/qt_tree/`
-  + `spikes/qt_sheet/`, built and human-approved 2026-08-20) answered the port's open
-  questions: `QGraphicsView` fits the charm-tree picker; the sheet becomes a
-  `QTextDocument` (on-screen and print from one source); and retained-mode widgets
-  test well with pytest-qt (28 + 14 tests, offscreen). **Milestones 1–3 have shipped
-  and are human-clicked on the real display** (the shell + Edit/Charms/Sheet; the
-  left-rail shell + Identity/Traits; the Advantages tab). **Milestones 4 and 5 — the Gear tab
-  with Combos moving under Charms, and Advantages rebuilt as a collection — have
-  shipped and are human-clicked.** **Milestone 6 — the Play tab (`qt/play.py`) — has
-  shipped and is human-clicked (2026-08-22).** Run it
-  with `python -m exalted_builder.qt [path]`; the code is `exalted_builder/qt/`. **What
-  each milestone contains, and every trap it cost, is in `docs/plans/qt-port.md` — read
-  that before touching the port rather than re-deriving it here.**
-
-  ⚠ **THE PORT IS FEATURE-COMPLETE (2026-08-27).** Every tab shipped, and so did the
-  **Party / ST window** — the one thing that was a DESIGN QUESTION rather than a port
-  (`qt/party.py`, `qt/adversaries.py`, `qt/trackers.py`). Its four design answers, taken
-  as recommended: a **second `QMainWindow`** · **sub-tabs Party / Adversaries /
-  Reference, with mixed layouts** · **"Open in builder" retargets the ONE builder** ·
-  **the ST reference screen lives on that window**. ⚠ **The rail was never the measure of
-  what was left** — the Combos sub-tab never appeared on it and the within-tab gaps never
-  could. **The Party window is HUMAN-CLICKED (2026-08-28, commit 617c5d9)** — the roster
-  cards, both scroll fixes, the card toolbar and reflow. ⚠ Three builder⇄party interplay
-  checks were NOT exercised and are named in `docs/status/handoff.md`; group 4's five
-  per-splat Charm surfaces are still unclicked too, a low-priority sweep rather than an
-  owed verification.
-
-  ⚠ **The gap list was a LOWER bound every single time — SEVEN for seven.** The Party
-  window's "~1,100 lines" missed the **ST reference screen** (in no Qt module at all),
-  the **roster mutations having no engine home**, and four layout defects only a render
-  could show. Item 1
-  turned up a stale shell readout on no list; item 2 a `reload()` that never pinged the
-  shell and a `_combo` degrading enum keys, then three more at click-through; item 3 a
-  detail pane missing five cost-relevant flag lines and a QSS with no
-  `QPushButton:disabled` rule, which made every disabled button in the WHOLE port look
-  clickable; ST Options, listed as one placeholder module, four more — including the
-  SAME hole for `QCheckBox`, again port-wide and older than the tab; Custom, four more
-  again — including the SAME hole a third time, for `QDialog` and `QPlainTextEdit`; and
-  "the Combos sub-tab, 423 lines" turned out to be TWO systems, Combos *or* Arrays.
-  **A defect one widget class over is still your defect: when you add a rule for one
-  widget class, add it for every interactive class in the QSS.** **Audit each
-  remaining tab against its `ui/` counterpart before trusting the list, click it before
-  believing it, and render it offscreen and LOOK — both stylesheet defects were
-  invisible to every one of the 2,857 tests.**
-
-  ⚠ **A QSS rule is invisible to the whole suite, so guard it by RENDERING.**
-  `tests/test_qt_theme.py` exists for this and its first version was worthless: it
-  compared whole-widget images with `!=` and passed against the very defect it was
-  named for, because Qt dims disabled TEXT on its own. Cropping to the indicator was
-  still not enough — antialiasing makes the two drawings unequal, and the real
-  brightness gap was **7 of 255, inverted for a ticked box.** **Negative-control a
-  rendering test by deleting the rule it guards.**
-
-  Four things that affect work NOW, so they live here:
-  - ⚠ **A Qt tab is a COLLECTION, and there is ONE layout — with THREE written
-    exceptions now.** Settled by the human
-    2026-08-21 after the `qt_advantages` spike: toolbar for actions · sub-tab per
-    category where a tab has more than one · a sortable table with a header · a
-    splitter with the selected entry's editor in a detail pane. Charms, Gear and
-    Advantages, ST Options and Custom all have it — **do not re-litigate per tab.**
-    ⚠ **THREE exceptions are stated, and all are WRITTEN DOWN** —
-    an exception that is written down is not drift; an unwritten one is. (**ST Options
-    omits the TOOLBAR only**, because the rules are fixed by the books and there is
-    nothing to add, buy or delete. Written into `qt/storyteller.py`'s docstring; it
-    keeps every other part of the layout and is not a third exception.)
-    **Play** (human, 2026-08-22) is a live TRACKER, not a list — a health track you
-    click to mark, mote pools, the dice-pool sidebar — so there is nothing to select and
-    a detail pane would hide numbers you glance at mid-roll. Toolbar over panels;
-    `qt/play.py` is built that way.
-    **The PARTY tab** (human, 2026-08-27) is the third, and it is Play's exception for
-    Play's reason — the member cards are live trackers with nothing to select. ⚠ The
-    **Adversaries** tab in the same window IS a collection, because its entries are
-    edited as well as tracked: **two shapes in one window is the design.** ⚠ **The
-    ADVERSARIES are drawn on BOTH** (human, 2026-08-28): tracker cards under the members
-    on the Party tab, because a fight is run off one screen, and the collection on their
-    own tab, which stays the only place an entry is EDITED. **Where a thing is tracked
-    and where it is edited are two questions.**
-    **Identity + Traits** (human, 2026-08-22) KEEP their card scroll. Asked, spiked six
-    ways — including a `QTreeWidget` collection exactly like Gear's — and declined:
-    *"the way it is right now works best for this information specifically."* A trait
-    surface is a fixed FORM, not a collection; there is nothing to select. **Do not
-    re-propose a Traits redesign** — `spikes/qt_traits/` records what lost.
-    Gear was built TWICE because its first version ported the
-    webapp's structure by reflex (floating button, accordion expanders, card stack) and
-    was rejected on sight with every test green. **Copy `qt/gear.py` or
-    `qt/advantages.py`; never transliterate `ui/<tab>.py`.**
-  - ⚠ **Tear a layout down with `qt/layout.py::clear_layout`** — never a fresh loop.
-    `item.widget()` is None for a nested `QLayout` and `deleteLater()` is deferred, and
-    the hand-written version has now got that wrong on five separate outings — most
-    recently leaving the details popover's old rows painting over its new ones.
-  - ⚠ **An ancestor stylesheet BEATS a set palette, every time.** Setting a stylesheet
-    on the window hands the stylesheet renderer every descendant, and it ignores
-    `QPalette`. Bitten three times in different disguises: a `QTextEdit` in a `_Panel`
-    painting the card shade; the Gear and Advantages **trees rendering white on the dark
-    page for two shipped, human-clicked milestones**; and small buttons inside a card
-    going invisible because the QSS gives every `QPushButton` `background:CARD`. **The
-    only fix is an inline stylesheet on the widget itself** — and if a widget class is
-    not named in `qt/theme.py::qss`, assume it is unstyled.
-  - ⚠ **The two shells' tab sets differ deliberately.** Combos is a **sub-tab of Charms**
-    in Qt and a top-level tab on the webapp. `view.visible_tabs` still names it — the Qt
-    shell discards that one answer and `CharmsPage` runs `has_combos_tab` itself. Do not
-    "fix" the presenter to match the rail.
-  - The port is cheap only because nothing outside `ui/` imports `nicegui` and
-    `ui/view.py` is a pure presenter. **Keep it that way** — prefer derived state in
-    `view.py` over inline computation in a widget module.
-  - **Theme is settled** (the human's desktop direction): one unified dark base, the
-    splat as a light accent. The dark printed accents are invisible on dark; do not
-    reintroduce them. ⚠ **That includes the DOCUMENT surfaces** — the Sheet tab and the
-    Party window's Reference tab went dark on 2026-08-28 (a white page between dark tabs
-    is a flashbang); only the PRINTED sheet is still ink on paper. `qt/sheet.py`'s
-    `print_colors` / `screen_colors` are the two sets, and `sheet_html` defaults to
-    paper so nothing picks up the dark page by omission.
+- **The Qt port** — **COMMITTED as decision 0018 (2026-08-20)**, and ⚠ **FEATURE-COMPLETE
+  (2026-08-27)**: a PySide6 native app offered alongside the NiceGUI webapp, every tab
+  plus the **Party / ST window** shipped and human-clicked. Run it with
+  `python -m exalted_builder.qt [path]`; the code is `exalted_builder/qt/`.
+  **⚠ `docs/plans/qt-port.md` opens with STANDING RULES FOR THE PORT — read that section
+  before touching `qt/`, rather than re-deriving any of it here.** In one line each, what
+  is in there: the ONE tab layout and its **three written exceptions** (Play,
+  Identity+Traits, the Party tab) · **the gap list was a lower bound all SEVEN times**, so
+  audit each tab against its `ui/` counterpart, click it, and render it offscreen and
+  LOOK · **an ancestor stylesheet beats a set palette** · **a defect one widget class over
+  is still yours** · `clear_layout`, the deliberate tab-set difference, and the settled
+  dark theme. What each milestone contains and every trap it cost is in the same file.
 
 ## Stack
 - Python + pydantic v2 + pytest. Frontend: **NiceGUI** (chosen over Reflex), the optional
@@ -442,41 +218,13 @@ each finished splat needed BEYOND data (Charm Slots, Colleges, Attribute-keyed C
 the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief among
 them.
 
-## The test suite
-**3,083 passing, 1 skipped** (2026-08-28, main PC, the `qt-port` branch after the
-adversary roster cards and the repaint-don't-rebuild fixes — includes the Qt-port tests in `tests/test_qt_*.py`,
-`tests/test_charm_actions.py`, `tests/test_gear_actions.py` and
-`tests/test_variant_purchases.py`).
-
-- ⚠ **The Qt tests need the OPTIONAL `qt` extra, and SKIP without it** (522 of them,
-  fourteen whole modules). `pytest.importorskip("PySide6")` guards each; before that guard
-  a bare import was a COLLECTION ERROR, which takes the entire run down rather than
-  those tests. **A count 522 lower on a webapp-only machine is that working**, not
-  tests going missing — install with `.venv/bin/pip install -e '.[qt]'`.
-
-- ⚠ **A Qt test that touches fonts without a QApplication ABORTS the interpreter**, and
-  it looks like a native crash on the machine, not a test failure. Laying a
-  QTextDocument out for the printer is enough. Such a test passes in a full run — some
-  earlier module's `qtbot` made the app — and takes the whole run down when its file is
-  run alone. `test_print_pdf_writes_a_real_file` did that for months; the fix is to take
-  the `qapp` fixture even when the test builds no widget.
-- ⚠ **Quote the RUN's numbers, not `--collect-only`'s** — the two have disagreed by one
-  here and the cause was not chased. The run is what tells you the suite is green.
-- ⚠ **Read the "passed" count off a run that was GREEN.** `2674 passed` on a line that
-  also says `1 failed` is not the suite's number, and it went into three docs on
-  2026-08-21 before the fix put the real figure one higher. Check the failure count
-  before you copy the pass count.
-- ⚠ **The SKIP is conditional and healthy, not a disabled test:**
-  `test_buy_merit_prices_the_tier_against_the_characters_own_menu` skips when no Merit
-  tier exists that is generic-but-not-Solar.
-- ⚠ **The COUNT is machine-dependent, by dozens of tests** — the `images/`-presence
-  deferral pattern showing up in COLLECTION rather than outcomes. **Do not treat a lower
-  count as tests having been deleted**, and do not "reconcile" two machines' numbers.
-  Record the number you measured, where and when.
-- ⚠ **One test is machine-dependent in OUTCOME, and that is the point:**
-  `test_every_description_matches_the_source_text` **defers** entries whose source
-  chapter is absent, and fails them where the chapter is present. **Neither outcome is a
-  regression**, and do not "fix" it by editing a path. `docs/status/godblooded.md`.
+## The test suite → `docs/testing.md`
+**3,083 passing, 1 skipped** (2026-08-28, main PC). ⚠ **The count is machine-dependent by
+DOZENS of tests, and by 522 more where the optional `qt` extra is missing** — a lower
+number is that working, not tests going missing. **Do not "reconcile" two machines'
+numbers.** ⚠ **One SKIP and one FAILURE are conditional and healthy.** `docs/testing.md`
+has those two by name, how to read a run's numbers honestly, and the Qt-font trap that
+looks like a machine crash.
 
 ## The record → `docs/status/`
 One file per topic. **Read the relevant file before touching that area.** The rows below
@@ -487,6 +235,9 @@ are pointers only; the traps and history live in the files.
 | **Session handoff — rewritten each session** | `status/handoff.md` |
 | How it works: module boundaries, lifecycle, invariants | `ARCHITECTURE.md` |
 | Why: closed decisions, one record each | `decisions/` |
+| The house bug's three species + every lesson that generalises | `lessons.md` |
+| The comment standard, and which packages have had the pass | `comment-standard.md` |
+| The suite — the count, why it moves per machine, the two healthy oddities | `testing.md` |
 | The rules data — conventions, what the loader checks | `content.md` |
 | Implementing a splat — honest cost, from the eleven done | `adding-a-splat.md` |
 | Delegating a splat to a cheap model — the four-check audit | `delegated-authoring.md` |
@@ -570,8 +321,8 @@ Each is written up where it landed; these are the ones that catch people mid-tas
   authored — optional, loader falls back to model defaults.
 - A per-session XP-grant ledger; state-reconciliation of hand-edited
   current-vs-snapshot drift (the read-only lock guards normal use).
-- The comment pass on `ui/`, `models/` and `engine/` outside validate (see **The comment
-  standard**).
+- The comment pass on `ui/`, `models/` and `engine/` outside validate
+  (`docs/comment-standard.md`).
 
 ## Background
 - **Merits & Flaws were ripped out 2026-06-15** (the old system bundled balance-wrecking
