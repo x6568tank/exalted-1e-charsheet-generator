@@ -6,7 +6,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Conjures a cascade of razor-sharp obsidian butterflies that slash everyone in a roughly 10-yard area; defended against as a hand-to-hand attack with the caster's Perception + Occult successes.",
+    "description": "Calls forth a cascade of sculpted obsidian butterflies with razor-sharp wings in a pattern approximately 30 yards wide, 100 yards long and 10 yards high. Brush, grass and small trees are cut off near the ground, larger trees and wooden structures suffer serious damage, and stone is defaced but structurally unharmed. The caster's player rolls Perception + Occult and adds automatic successes equal to the sorcerer's permanent Essence. Everyone in the pattern not behind an inch or more of stone or several inches of wood is subject to attack, and defends as though against a hand-to-hand attack that scored as many successes as that roll. The butterflies have a raw damage of 8, plus extra successes on the attack roll, and the damage is lethal. The shattered glass remains in the area afterward.",
     "source": {
       "book": "Core",
       "page": 217
@@ -19,7 +19,7 @@
     "cost": {
       "raw": "20+ motes"
     },
-    "description": "Summons and binds a first-circle demon to the sorcerer's service over a night's ritual begun at sunset.",
+    "description": "Summons and binds one of the lesser inhabitants of the demon realm. Casting is a ritual of many hours that must begin at sundown and end at the stroke of midnight, involves many ritual implements and protective sigils, and is difficult outside a dedicated ritual space; the spell itself costs 20 motes. Once summoned, sorcerer and demon make opposed Willpower + Essence rolls, once per turn, until one leads by three successes; during the casting the character may spend Essence in 5-mote increments to reduce the demon's pool by one die each. If the character wins, the demon serves loyally for a year and a day, or performs one task of possibly indefinite duration. If the demon wins, the character's player rolls Wits + Occult at difficulty 3 to banish it back to Malfeas; on a failure the demon is free of the protective diagram, which typically means the sorcerer's death. Demons are favored tools because their actions cost no Essence and their capture does not outrage the Celestial Hierarchy.",
     "source": {
       "book": "Core",
       "page": 218
@@ -32,7 +32,7 @@
     "cost": {
       "raw": "10 or 20 motes"
     },
-    "description": "Dispels Terrestrial Circle sorcery; can also be used to counter a spell as it is cast.",
+    "description": "Protects against hostile sorcery of the Terrestrial Circle. For 10 motes the caster secures her own person: until the end of the next turn any hostile Terrestrial Circle magic that attempts to affect her shatters and is wasted, but she must partly maintain her defensive stance and suffers a -2 penalty on combat, athletics and similar actions during her next turn. For 20 motes she instead halts Terrestrial Circle spells within (permanent Essence x 50) feet: spells in the midst of being cast are shattered, and spells already in effect are undone. It is fast and requires no shaping, taking effect as soon as the Willpower is spent. It cannot banish demons or other spirits. The process is not clean: bystanders may take minor flashburns, small fires may be kindled, and weak echo effects of the disrupted spell may wash over the area.",
     "source": {
       "book": "Core",
       "page": 218
@@ -45,7 +45,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "Raises a barrier of intense magical cold that damages and hampers those who try to cross it.",
+    "description": "A thin, cold blue-gray plume of mist issues from the magician, extending 10 to 15 feet depending on wind and temperature, swirling about incoming missiles to drag them off course or cushion them. For the next 20 minutes, ranged attacks against the sorcerer or anyone standing in the mist suffer a difficulty penalty equal to twice the sorcerer's permanent Essence rating. The mists cannot stop attacks from large weapons such as ballista bolts and hurled boulders.",
     "source": {
       "book": "Core",
       "page": 218
@@ -58,7 +58,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "Sends a short spoken message to anyone the sorcerer has met, delivered by a tiny figure of Essence.",
+    "description": "Conjures a cherub, a minor spirit of pure Essence a few feet tall with six blue-chrome wings. The sorcerer whispers a message no longer than a few minutes into its ear and names and describes a target. Travelling hundreds of miles an hour, the cherub can traverse the world in less than a day; unless the target's location is mystically obscured it will find the recipient, deliver the message perfectly to her ear (even in the original sender's voice), then dissipate.",
     "source": {
       "book": "Core",
       "page": 218
@@ -71,7 +71,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "Hardens the sorcerer's skin to add +6 soak against lethal damage and +12 against bashing.",
+    "description": "Until the sun next crosses the horizon, the character's skin hardens into shining bronze, as supple as silk but as invulnerable as metal. He gains +6 soak against lethal damage and +12 against bashing, and if the damage is totally absorbed by the Skin (under 6 dice of lethal or 12 dice of bashing) the attacker rolls no damage dice at all. He inflicts an extra two dice of bashing damage bare-handed and weighs an extra 100 or so pounds. The spell does not impede his motions or slow him, but caution is advised near bodies of water and deep mud.",
     "source": {
       "book": "Core",
       "page": 218
@@ -84,7 +84,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Wraps the sorcerer in a controllable dust-devil vortex that carries her at great speed and cushions falls.",
+    "description": "Wraps the sorcerer in a dust devil, a tornado-like vortex that flies low and usually just touches the ground. It can jump obstacles 50 feet wide or 30 feet high but cannot actually fly. It survives falls of 30 feet, completely protecting the sorcerer and any other contents, and dissipates on impact if it falls farther; it completely absorbs the damage of falls up to 60 feet and treats longer falls as 60 feet shorter for damage. The vortex carries the sorcerer and 200 pounds per point of her Essence at speeds of nearly 100 miles an hour and is immensely maneuverable. Flying it consumes the sorcerer's attention. The roaring winds add 2 to the difficulty of missile attacks into or out of the vortex and render speech nearly impossible. The first time the character sets foot on the ground, the vortex and the magic dissipate.",
     "source": {
       "book": "Core",
       "page": 219
@@ -97,7 +97,7 @@
     "cost": {
       "raw": "10+ motes"
     },
-    "description": "Summons and binds an elemental to service; like Demon of the First Circle but castable any time and with gentler terms.",
+    "description": "Summons and binds an elemental. Much like Demon of the First Circle and using generally the same rules, with four exceptions: it can be cast at any time, the ritual taking four hours and needing neither to start at sunset nor end at midnight; the roll to banish the elemental if the binding fails is at regular difficulty, not at +2 difficulty; the elemental will not serve for more than a lunar month, and any task set to it cannot take longer than a year and a day; and the kidnap and enslavement of elementals can outrage the Celestial Hierarchy, so characters who mistreat their servants or bind the subjects of a powerful spirit entity are likely to earn the ire of the spirit world.",
     "source": {
       "book": "Core",
       "page": 219
@@ -124,7 +124,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "Transforms the hands into gnarled oaken claws dealing Strength + 4 lethal damage and able to block lethal attacks.",
+    "description": "Until the character wishes otherwise, her hands warp into huge gnarled claws of oak. The character does Strength + 4 lethal damage in unarmed combat and can harmlessly block lethal attacks with his Dexterity + Brawl pool, though the spell offers no protection against aggravated attacks. His clinches automatically do Strength + 2 lethal damage rather than bashing, and holds do 2 points of lethal damage per turn, soaked as normal. The hands genuinely become thorny paws several times their normal size: fine manipulation is impossible, and attempts to hold or carry anyone automatically inflict 2 points of lethal damage, soaked as normal.",
     "source": {
       "book": "Core",
       "page": 220
@@ -137,7 +137,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "Hurls a sphere of searing Essence that boils a living victim's blood, dealing aggravated damage.",
+    "description": "The sorcerer gathers a sphere of Essence that vanishes and leaves her hands covered with glowing scarlet characters. The spell persists for a number of minutes equal to her Essence, or until the first time she touches a living creature. If she lays a hand on a living being, his blood is transmuted to boiling oil. To resolve it she must make a successful unarmed attack, which may be combined with a regular attack, a Charm or a Combo; on the first such success her player immediately makes a reflexive Charisma + Occult roll, and for every success the target takes the sorcerer's Essence in levels of lethal damage. This damage is applied before any other damage from the attack and can be soaked only by the victim's Stamina. Against an Exalted target, or a similar target such as one of the Fair Folk or an embodied spirit, subtract the target's Essence from the successes before determining damage; if this reduces them to 0 or less the magic dissipates harmlessly. The sorcerer cannot touch herself by accident, but can accidentally touch an unintended target. The spell has no effect on unliving creatures.",
     "source": {
       "book": "Core",
       "page": 220
@@ -150,7 +150,7 @@
     "cost": {
       "raw": "30+ motes"
     },
-    "description": "Summons and binds a more powerful second-circle demon; similar to Demon of the First Circle but mightier and more dangerous.",
+    "description": "Summons and binds a demon of the second circle, a being far more powerful and dangerous than a mere servant of darkness. As with Demon of the First Circle it is a complex ritual that must start at sundown and end at the stroke of midnight, but it can only be cast on the night of the new moon or during the Calibration, and the spell itself costs 30 motes. Sorcerer and demon engage in the same contest of Willpower + Essence, save that reducing the demon's dice pool costs 10 motes per die rather than 5. The roll to send the demon back is still difficulty 3, though the Exalt is much less likely to survive a failed summoning. Demons of the second and higher circles are vengeful, intelligent creatures and will avenge cruelty or enslavement if ever given the opportunity.",
     "source": {
       "book": "Core",
       "page": 220
@@ -163,7 +163,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "A defensive nimbus of mystical energy that reflects ranged and hand-to-hand attacks back at the attacker.",
+    "description": "Hundreds of bands of mystical energy swirl around the caster in a cocoon that fades from view within seconds. The effect persists for as long as the caster maintains his defensive stance and lingers for a number of minutes afterward equal to twice his permanent Essence. Until it ends, any missile attack on the character is caught, whirled around her and hurled back at its attacker; the sorcerer's player makes a reflexive Wits + Occult roll for each reflected attack, which acts as the attack roll, and the original attacker may dodge as if it were a normal attack. Reflected attacks are made without range penalties and do their original base damage. Unlike Impenetrable Frost Barrier it affects large missiles such as ballista bolts and trebuchet-hurled boulders. It has no effect on attacks composed of Essence, such as Solar Spike, but does affect Essence-spawned material attacks such as Death of Obsidian Butterflies or Phantom Arrow Technique. It has no effect on hand-to-hand attacks.",
     "source": {
       "book": "Core",
       "page": 220
@@ -176,7 +176,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "Grows the sorcerer's body into a living arsenal of blades and barbs, raising Strength and Stamina and dealing lethal damage.",
+    "description": "For a number of hours equal to her Essence score, the character transforms into an automaton of rust-streaked black iron. She need not breathe and is immune to poison and to the effects of extreme temperatures. She gains +10 soak against both bashing and lethal damage, and if an attack does less than 10 dice of raw damage not a single damage die is rolled. Her Strength and Stamina both increase by 2, even above 5. Her body sprouts spikes, blades, spears and a chain-fired projectile at will: she does Strength + 8 lethal damage in a clinch, and may make Speed +3, Accuracy +1 hand-to-hand attacks using Brawl, Martial Arts or Melee that do Strength + 6 lethal damage, out to a range in yards equal to her permanent Essence. The spell is not compatible with armor or weapons, which fade into her form. She moves at normal speed and weighs no more than normal, unlike Invulnerable Skin of Bronze, but cannot swim.",
     "source": {
       "book": "Core",
       "page": 221
@@ -189,7 +189,7 @@
     "cost": {
       "raw": "15 or 20 motes"
     },
-    "description": "Dispels Celestial Circle (and lower) sorcery; can also counter a spell as it is cast.",
+    "description": "As Emerald Countermagic, save that it protects against spells of the second circle. Other than its increased cost in Essence and Willpower and that increased reach, it is identical. The side effects of countering are greater, because more Essence is released, and can even cause damage where the countered spell is very powerful. In addition, Sapphire Countermagic overpowers Terrestrial Circle magic totally: a Terrestrial Circle spell countered with it is hushed instantly, with no collateral damage from the released Essence.",
     "source": {
       "book": "Core",
       "page": 221
@@ -202,7 +202,7 @@
     "cost": {
       "motes": 25
     },
-    "description": "Instantly transports the sorcerer across any distance to a place she can clearly picture.",
+    "description": "The character gathers a corona of Essence, is wrapped in whirling clouds, and is gone. He can reappear in any location he has seen before, either with his own eyes or through scrying, so long as it is within 10 miles per point of his permanent Essence and is not warded against magical travel and spying. Both departure and arrival take two full turns, during which he is vulnerable to attack. If he is disrupted on arrival there is no chance of a botch, since the spell's Essence has already been expended carrying him, but he is disoriented at -2 to all actions for (6 - his Stamina) hours. Travel is safe: rather than appearing inside furniture or in midair, he is displaced to the nearest stable, open space with solid footing.",
     "source": {
       "book": "Core",
       "page": 221
@@ -215,7 +215,7 @@
     "cost": {
       "raw": "20 or 25 motes"
     },
-    "description": "The most powerful countermagic; dispels sorcery of any circle up to and including the Solar Circle, and protects against lower-circle countermagic.",
+    "description": "As Emerald or Sapphire Countermagic, save that it is more expensive and protects against spells of the third circle. The side effects of countering Solar Circle spells are themselves as powerful as many first circle spells, and can kill unprotected mortals and lay waste to the countryside. In addition, Adamant Countermagic overpowers magic of the Terrestrial or Celestial Circles totally: a first or second circle spell countered with it is stifled totally, without any side effects from the thwarted Essence.",
     "source": {
       "book": "Core",
       "page": 222
@@ -228,7 +228,7 @@
     "cost": {
       "raw": "40+ motes"
     },
-    "description": "Summons and binds one of the mighty third-circle demon princes; an extremely difficult and dangerous ritual.",
+    "description": "Calls up one of the demons of the third circle, the powerful and dangerous beings who serve as the chief lieutenants and generals of the Yozis; the demon princes themselves cannot be summoned, for the power of the gods imprisons them. As with Demon of the First Circle it is a complex ritual, difficult to perform outside a specially prepared ritual space, which must start at sundown and end at the stroke of midnight, and it can only be performed during the Calibration. The casting itself costs 40 motes. Sorcerer and demon engage in the same contest of wills, and as with Demon of the Second Circle reducing the demon's dice pool costs 10 motes per die rather than 5. The roll to send the demon back to Malfeas if the binding fails is difficulty 5.",
     "source": {
       "book": "Core",
       "page": 222
@@ -241,7 +241,7 @@
     "cost": {
       "motes": 60
     },
-    "description": "Calls down a corrosive, venomous rain over a vast area that sears and poisons everything it touches.",
+    "description": "Calls down a supernatural storm over a vast area: corrosive venom falls in sheets from dusk till dawn while sickly green lightning lashes the ground. Those exposed to the rain must soak one point of lethal damage on the first turn, two on the second, three on the third and so on; after leaving the rain the damage stops increasing and stays steady at the last turn's level, continuing until the character removes her soaked clothing (generally a single turn's dice action). Armor adds to soak but takes its regular time to remove. Anything not made from Essence or one of the Five Magical Materials is ruined. Characters exposed to the runoff take lethal damage only once, from 1 die when splashed with diluted runoff up to 20 or more when fully immersed in pure venom. Players of unExalted characters who contact the rain or runoff must roll Stamina + Resistance at difficulty 2 or succumb to a painful, convulsive death over the next several hours. Characters outdoors have a 1 in 10 chance per turn of being hit by lightning, suffering 12 dice of lethal damage soaked only with Stamina. Casting takes three turns and must be performed after the sun has touched the horizon; the sorcerer must then immediately travel on foot or by mount, not flying or transporting himself magically, circumnavigating the area of effect without recrossing his path and reaching his starting point before night falls fully (about an hour), or the magic is wasted. The land is blighted for years or decades afterward.",
     "source": {
       "book": "Core",
       "page": 222
@@ -254,7 +254,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "A single spoken word of pure malice that strips dots from every Ability, Attribute, and Virtue of its target; the sorcerer also permanently loses one dot from each of her own.",
+    "description": "A single word so sharp-edged and hateful that a tongue can give it voice only once in a lifetime, which sears and twists the soul of the target and of the sorcerer both. Casting is near-instant, and a sorcerer with sufficient Willpower and Essence can pronounce it as a reflexive action so long as she is able to speak. The target must be within earshot, though he need not hear the words, and even magical stillness will not prevent him hearing the curse in his heart. It can target only a single individual, and only one who is less than a god, a Yozi or a Malfean. The target's player rolls the value of each of his character's Abilities, Attributes and Virtues, including Essence and Willpower, that he possesses a score in, one at a time; the player cannot botch these rolls, and 10s do not count as two successes. Every success retains one dot; every die that does not succeed is a dot lost immediately and forever. A character left without any dots in Wits or Intelligence is reduced to a mindless vegetable; without Perception, deprived of all senses; without Willpower, a will-less automaton; and a character whose Essence is reduced to zero dies. An Exalt whose Essence and Abilities fall below a Charm's minimums cannot use it until he raises them back. The sorcerer pronouncing the Rune loses one dot in every Attribute, Ability and Virtue in which she possesses a score.",
     "source": {
       "book": "Core",
       "page": 223

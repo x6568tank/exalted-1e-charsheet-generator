@@ -62,7 +62,7 @@ existing entries exactly:
   "name": "Death of Obsidian Butterflies",
   "circle": "Terrestrial",
   "cost": { "motes": 15 },
-  "description": "Conjures a cascade of razor-sharp obsidian butterflies that slash everyone in a roughly 10-yard area; defended against as a hand-to-hand attack with the caster's Perception + Occult successes.",
+  "description": "Calls forth a cascade of sculpted obsidian butterflies with razor-sharp wings in a pattern approximately 30 yards wide, 100 yards long and 10 yards high. […] The butterflies have a raw damage of 8, plus extra successes on the attack roll, and the damage is lethal.",
   "source": { "book": "Core", "page": 217 }
 }
 ```
@@ -75,9 +75,23 @@ existing entries exactly:
 - **`cost`** — `{"motes": 15}` when it is a plain mote number. When it is anything more
   complex — "20 or 25 motes", "10 motes + 2 motes per additional hour", a Willpower
   component — use `{"raw": "<the printed text verbatim>"}`. Do not try to parse it.
-- **`description`** — **your own one-or-two-sentence summary of the printed effect**,
-  not the full printed text. Match the length and register of the existing entries.
-  Every number in it must come from the page.
+- **`description`** — **your own summary of the printed effect**, not the full printed
+  text. Every number in it must come from the page.
+
+  ⚠ **This clause said "one-or-two-sentence" until 2026-09-01, and that length cap is
+  what cost us the 19 Core spells.** Held to literally it drops mechanics: Death of
+  Obsidian Butterflies lost its damage (8L), its automatic successes and its real area,
+  and shrank a 30x100x10-yard pattern to "a roughly 10-yard area" — a wrong number, not
+  a short one. Blood of Boiling Oil came out saying *aggravated* where the page says
+  lethal. **A description is not length-capped: it is done when every mechanical clause
+  on the page is in it.** Flavour compresses freely; numbers, durations, dice pools,
+  soak, damage types and the conditions attached to them do not compress at all. The
+  Core spells were re-transcribed on 2026-09-01 and are now the length reference.
+  ⚠ **The same cap is still written into both artifact briefs** (`delegation-brief-
+  artifacts.md` line 86 and `-artifacts-2.md` line 94, each "1-4 sentences"), and 330
+  artifacts were authored under it. Whether they get this edit — and whether the
+  artifact catalogue needs the same audit the Core spells just had — is the human's
+  ruling, not a sweep to run unasked.
 - **`source.book`** — exactly `"Book of Bone and Ebony"` or `"Savant and Sorcerer"`.
   `source.page` is an integer; for a spell spanning `125-126`, use the first page.
 

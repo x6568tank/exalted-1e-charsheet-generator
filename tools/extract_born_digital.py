@@ -178,13 +178,17 @@ def columns(page, min_gutter=8.0):
     # falls back to one column, and interleaves the two columns line by line — which
     # reads as fluent prose and is nonsense. That is how Ruins of Rathess came out
     # welding "…a vast and" to "looting areas. This supplement".
+    # ⚠ Every "no gutter here" exit below falls through to _gutter_by_vertical_run
+    # rather than returning one column. Returning early is what let the Charm-tree
+    # pages interleave in silence — see that function for why the whole-page profile
+    # cannot see their gutter.
     floor = min(counts)
     if floor > 0.35 * typical:
-        return [words]
+        return _split_at(words, _gutter_by_vertical_run(words, lo, hi, step))
     ceiling = max(floor + 0.05 * typical, 1.0)
     band = [x for x, n in profile if n <= ceiling]
     if not band:
-        return [words]
+        return _split_at(words, _gutter_by_vertical_run(words, lo, hi, step))
     runs, cur = [], [band[0]]
     for a, b in zip(band, band[1:]):
         if b - a <= step * 1.5:
@@ -195,15 +199,71 @@ def columns(page, min_gutter=8.0):
     runs.append(cur)
     best = max(runs, key=len)
     if (best[-1] - best[0]) < min_gutter:
-        return [words]
+        return _split_at(words, _gutter_by_vertical_run(words, lo, hi, step))
     split = (best[0] + best[-1]) / 2
-    # A split that leaves one side nearly empty is not a gutter, it is a margin.
-    lo = sum(1 for w in words if (w["x0"] + w["x1"]) / 2 < split)
-    if not (0.15 < lo / len(words) < 0.85):
+    return _split_at(words, split)
+
+
+def _split_at(words, split):
+    """Partition words by centroid about `split`, or refuse.
+
+    Returns [words] unchanged when `split` is None, or when one side holds under 15%
+    of the words — that is a margin being mistaken for a gutter, not a two-column page.
+    """
+    if split is None:
+        return [words]
+    lo_n = sum(1 for w in words if (w["x0"] + w["x1"]) / 2 < split)
+    if not (0.15 < lo_n / len(words) < 0.85):
         return [words]
     left = [w for w in words if (w["x0"] + w["x1"]) / 2 < split]
     right = [w for w in words if (w["x0"] + w["x1"]) / 2 >= split]
     return [c for c in (left, right) if c]
+
+
+def _gutter_by_vertical_run(words, lo, hi, step):
+    """Find a gutter that is clear down a CONTIGUOUS RUN of lines, not the whole page.
+
+    Takes the page's words and the middle-third x-range to scan; returns the x to split
+    at, or None. Groups words into lines by rounded top, then for each candidate x walks
+    the lines in reading order and measures the longest unbroken run in which no word
+    straddles x. The best candidate wins if its run covers at least half the page's
+    lines; ties resolve to the median x, which centres the split in the gutter.
+
+    ⚠ This exists because the whole-page profile above asks whether a gutter is clear
+    for EVERY line, and a Charm-tree page is not: core pp.154-292 put a boxes-and-arrows
+    tree at the top of ~37 pages, whose node labels sit at arbitrary x and straddle the
+    gutter a dozen times. Twelve straddles out of forty lines lift the floor past the
+    0.35-of-typical test, so no gutter is found, one column is returned, and the BODY
+    text below the diagram interleaves — silently, because `looks_two_column` reads the
+    same scattered label edges and also says no, so no COLUMN SPLIT FAILED marker fires
+    either. Both detectors agreeing is what made it look healthy. Anything with a short
+    full-width intrusion (a heading, a pull-quote, a table) fails the old test the same
+    way; the vertical run is indifferent to where the intrusion sits.
+    """
+    lines = collections.defaultdict(list)
+    for w in words:
+        lines[round(w["top"] / 4)].append(w)
+    order = [lines[k] for k in sorted(lines)]
+    if len(order) < 8:
+        return None
+    best_run, best_xs = 0, []
+    x = lo
+    while x < hi:
+        run = longest = 0
+        for line in order:
+            if any(w["x0"] < x < w["x1"] for w in line):
+                run = 0
+            else:
+                run += 1
+                longest = max(longest, run)
+        if longest > best_run:
+            best_run, best_xs = longest, [x]
+        elif longest == best_run:
+            best_xs.append(x)
+        x += step
+    if best_run < 0.5 * len(order):
+        return None
+    return statistics.median(best_xs)
 
 
 def _wtext(w, decode):

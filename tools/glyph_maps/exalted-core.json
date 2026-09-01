@@ -31,9 +31,11 @@
     "ZTR41CC.tmp,Bold": {
       "space": 2,
       "lower": 130,
-      "upper": 125,
-      "punct": 119,
-      "share": "1.6%"
+      "upper": [[124, 65, 80], [125, 82, 90]],
+      "punct": [[117, 38, 38], [118, 40, 41], [119, 43, 46], [120, 48, 59], [123, 63, 63]],
+      "share": "1.6%",
+      "note": "The run-in bold head face — it draws the Charm Type labels ('Simple', 'Extra Action', 'Reflexive'), 'Specialties:', 'Sample Charms:' and proper nouns in body prose, across 104 pages. ⚠ CORRECTED 2026-09-01: `upper` was a single 125 and `punct` a single 119, and BOTH were one too high across part of their range. Symptom was fluent nonsense in exactly the way this file already warned about — 'Extra Action' extracted as 'Fxtra Bction', 'Specialties:' as 'Specialties9'. Found while re-transcribing the Core Charms, by reading the output rather than by any test.",
+      "why_split_bands": "Same shape as ZTR41D0, and for the same reason: 'Q' is not in the subset, so A-P solve at 124 and R-Z at 125. The single constant 125 was right for R-Z — which is why 'Realm', 'Solar', 'Threshold' and 'Wyld' all looked perfect — and wrong by one for every capital A-P. Cribs: 'Exalted' (E=55), 'Creation' (C=57), 'Dragon-Blooded' (D=56, B=58), 'Immaculate Order' (I=51, O=45), 'Blessed Isle', 'Hawkmoon' (H=52), 'Nights Master' (N=46, M=47), 'First Age' (F=54, A=59), 'Gaia' (G=53) against 'Realm' (R=43), 'Specialties' (S=42), 'Threshold' (T=41), 'Wyld' (W=38). Punctuation splits four ways on the same principle, with '*' and '/' absent: '&' at 117; '(' ')' at 118; '+' ',' '-' '.' at 119; digits, ':' and ';' at 120; '?' at 123. Confirmed on 'Strength + Athletics', 'Crouching Tiger, Hidden Dragon', 'K-Street', 'a total of six successes' and 'What do the players want to do?'."
     },
     "ZTR41D0.tmp,Bold": {
       "space": 2,
@@ -43,6 +45,32 @@
       "share": "2.5%",
       "note": "The entry-name / table-header display face — it draws the NAMES on the Wonders pages, which is why the artifact catalogue could not be authored past the eight entries that came off page images. Solved 2026-08-12 by crib, not by the band solver: the solver anchors on the commonest 3-letter word being 'the', and this face sets names and column headers where it is not. The cribs are the five magical-material run-in heads on core p.338 (Orichalcum:/Moonsilver:/Jade:/Starmetal:/Soulsteel:), which pin all 26 lowercase letters, nine capitals and the colon between them.",
       "why_split_bands": "This face is the reason `upper` and `punct` may be a LIST of [k, lo_ord, hi_ord] bands rather than one constant. A subset drops unused glyphs and every id after the gap shifts, so a face with a mid-alphabet gap needs two constants. Here 'Q' is not in the subset: A-P solve at 123 and R-Z at 124, proved by 'Poleaxe' (p.328) and 'Resources' (the weapon-table header) — decoding both with one constant turns one of them into 'Qoleaxe' or 'Sesources'. The punctuation splits the same way: ',' '-' '.' '/' 0-9 ':' at 118, and '(' ')' '*' at 117."
+    },
+    "ZTR41DC.tmp,Bold": {
+      "space": 2,
+      "lower": [],
+      "upper": [[91, 65, 73], [93, 76, 80], [94, 82, 89]],
+      "punct": [[42, 39, 39], [79, 48, 51], [84, 57, 57]],
+      "share": "0.03%",
+      "note": "The SPELL-NAME display face, drawn on five pages only (219-223, the sorcery spell list) — which is why the band solver could not anchor it: 424 glyphs and not one 'the'. Solved 2026-09-01 by crib, the same route as ZTR41D0. The section heading THE CELESTIAL CIRCLE (p.220) fixes 15 of the 22 letters self-consistently, and all 19 Core spell names then decode exactly, as do the four page footers 219/220/222/223. ⚠ The names render as TWO overlapping runs — big caps at one size, the rest at another — so a naive line grouping yields 'S R' / 'TORMWINDIDER' rather than garbage; that is layout, not a bad cipher.",
+      "why_split_bands": "The subset holds the alphabet minus J, K, Q and Z, in REVERSE order and consecutive: A=26 down to Y=5, exactly 22 letters over cids 5-26. The two interior gaps (J/K, then Q) are what put A-I, L-P and R-Y on three constants one apart. Digits are their own reversed run with 4-8 absent: 0=31, 1=30, 2=29, 3=28, then 9=27. There is no lowercase in the face at all, so `lower` is empty ON PURPOSE — a lowercase cid must mark itself rather than borrow a band."
+    },
+    "ZTR41DE.tmp,Bold": {
+      "space": null,
+      "lower": [[118, 115, 116], [115, 111, 111]],
+      "upper": [[72, 67, 67]],
+      "punct": [[64, 58, 58]],
+      "share": "0.005%",
+      "note": "The COST-LABEL face for the sorcery spell list, and nothing else in the book. Five glyphs, used 13 times, always the same sequence (5,4,3,2,6), on pp.219-223 — exactly the 13 spells on those pages, one label each, each sitting directly under a ZTR41DC heading. That one-for-one count IS the crib: the label is 'Cost:', giving C=5, o=4, s=3, t=2, ':'=6. The face contains no other glyph, so nothing else can ever be drawn with it. `space` is null because the face has no space glyph. Solved 2026-09-01."
+    },
+    "ZTR41E0.tmp,Bold": {
+      "space": null,
+      "lower": [[106, 104, 104], [104, 101, 101], [103, 99, 99], [102, 97, 97]],
+      "upper": [],
+      "punct": [],
+      "share": "0.0003%",
+      "note": "The italic-emphasis face, and the smallest in the book: FOUR glyphs, ONE occurrence, core p.223, setting the emphasised word in Rune of Singular Hate — 'rolls the value of *each* of his character's Abilities, Attributes and Virtues'. Not solvable by crib: one occurrence constrains nothing. Resolved 2026-09-01 by the HUMAN reading the page and supplying the word (they are the rules authority; the word sets the spell's scope, so it was never ours to guess). The four singleton bands are just a=5, c=4, e=3, h=2 written in the schema's form — no two letters are ord-adjacent, so none of them merge.",
+      "why_it_matters_beyond_this_word": "This face is the THIRD independent confirmation of the ordering rule for this book's display subsets — cid ascends as codepoint DESCENDS — after ZTR41DC and ZTR41DE. The rule had predicted, before the human ruled, that the cid sequence 3,5,4,2 forces letter ranks w4>w1>w3>w2; 'each' satisfies that exactly (h>e>c>a). ⚠ That prediction was still not sufficient to author on, and the gap between 'the only candidate I could find' and 'the printed word' is the whole reason it went to the human. Use the rule to NARROW candidates and to check a crib, never to fill a slot."
     }
   },
   "singles": {
@@ -65,9 +93,12 @@
     "ZTR41D0.tmp,Bold cids 4, 5, 6": {
       "note": "Three glyphs of the otherwise-solved display face. 4 and 5 are a quote pair with ONE occurrence each in the whole book (p.13's 'over the top' pull-quote) and 6 is a separator ornament (77 uses: 'Familiar ? ', 'Step 1 ? Apply Bonuses:') that could be a bullet, an em dash or a diamond. Their band is not constrained by any crib, so they stay U+FFFD rather than get a plausible guess — none of them carries a game value."
     },
-    "ZTR41E6/DC/C8 and five tinier faces": {
+    "ZTR41DC.tmp,Bold cid 4": {
+      "note": "The running-head separator in CHAPTER FIVE ? CHARMS AND SORCERY — 3 uses, all three on the running head. It sits at the cid directly below Y=5, exactly where Z would fall if the subset held one, which is the reason it is NOT called Z: the slot reads as a separator, not a letter. No crib constrains it and it carries no game value, so it stays U+FFFD."
+    },
+    "ZTR41E6/C8 and the tinier faces": {
       "share": "0.3%",
-      "note": "UNSOLVED — too little text to anchor. Left as U+FFFD."
+      "note": "UNSOLVED — too little text to anchor. Left as U+FFFD. (DC was in this bucket until 2026-09-01, when a crib took it; see `fonts`.)"
     }
   },
   "measured": "2026-08-11 after the per-font fix: 1,383,330 chars, 340 pages, 3.00% undecoded (the unsolved faces, every glyph marked U+FFFD). 337 of 340 pages read as English; the three that do not are the contents page, a creature stat table and the blank character sheet. 237 of 276 Core entries already authored FROM PAGE IMAGES are found, 188 of them on exactly their recorded page (up from 103 when a single font's mapping was applied to all thirteen)."

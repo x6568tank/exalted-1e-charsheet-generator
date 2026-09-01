@@ -143,7 +143,7 @@ async def test_sheet_shows_charm_and_spell_descriptions(user: User) -> None:
     await user.should_see("Fire and Stones Strike")
     await user.should_see("Adds an extra die of damage")     # the Charm's description
     await user.should_see("Death of Obsidian Butterflies")
-    await user.should_see("razor-sharp obsidian")            # the spell's description
+    await user.should_see("a raw damage of 8")               # the spell's description
 
 
 @pytest.mark.asyncio
@@ -204,7 +204,7 @@ async def test_picker_spells_page_lists_descriptions_inline(user: User) -> None:
     toggle.set_value("spells")
     await user.should_see("Terrestrial Circle")
     await user.should_see("Death of Obsidian Butterflies")
-    await user.should_see("razor-sharp obsidian")        # description, inline
+    await user.should_see("a raw damage of 8")           # description, inline
     await user.should_see("needs a Charm granting the Terrestrial Circle")   # locked reason
 
 
