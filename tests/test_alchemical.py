@@ -19,6 +19,7 @@ from exalted_builder import rules_db
 from exalted_builder.engine import (advancement, costs, derive, lifecycle, refit,
                                     validate)
 from exalted_builder.models.character import (Array, BackgroundEntry, Character,
+                                             MeritFlawPurchase,
                                              PlayState,
                                              SubmodulePurchase)
 from exalted_builder.models.rules import AbilityName as A
@@ -346,6 +347,21 @@ def test_installation_cost_capped_by_personal_pool(rs):
     c.charms = thirteen                             # 13 Charms * 1 mote install = 13 > 12
     c.dedicated_charm_slots = 13                    # so slot count itself isn't the blocker
     assert _codes(validate.validate_chargen(rs, c), "charm-installation-over-personal")
+
+
+def test_installation_cost_draws_on_the_merged_pool(rs):
+    """Beacon of Power (PG p.41) leaves Personal 0 by rule and puts every mote in one
+    pool, so installation is checked against that whole pool — comparing against
+    Personal alone would refuse to install any Charm at all."""
+    c = _alchemical()
+    c.charms = CF_CHARMS[:4] + NONCF_CHARMS[:4]
+    c.merits_flaws = [MeritFlawPurchase(merit_id="mf.beacon-of-power")]
+    personal, peripheral = derive.essence_pools(rs, c)
+    assert personal == 0                            # merged: everything is Peripheral
+    assert derive.charm_installation_pool(rs, c) == peripheral
+    assert not _codes(validate.validate_chargen(rs, c),
+                      "charm-installation-over-personal")
+    assert refit.slot_load(rs, c).free_motes >= 0
 
 
 # --------------------------------------------------------------------------- #

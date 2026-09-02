@@ -2335,8 +2335,8 @@ def charm_slot_budget(ruleset: RuleSet, character: Character) -> Optional[SlotBu
         return None
     g, d, _bg, _bd = validate.charm_slot_counts(ruleset, character)
     installed, noncf, motes = validate.charm_slot_usage(ruleset, character)
-    personal, _peripheral = derive.essence_pools(ruleset, character)
-    return SlotBudget(g, d, installed, noncf, motes, personal)
+    return SlotBudget(g, d, installed, noncf, motes,
+                      derive.charm_installation_pool(ruleset, character))
 
 
 # --- Variant-menu packages (Ox-Body, Deadly Beastman Transformation) -------- #

@@ -492,6 +492,20 @@ def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
     return personal, peripheral
 
 
+def charm_installation_pool(ruleset: RuleSet, character: Character) -> int:
+    """The motes an Alchemical's installed Charms may commit against (CH2 p.62): the
+    Personal Essence pool, or the WHOLE pool when the two are merged into one.
+
+    ⚠ A merged pool (Beacon of Power p.41, a ghost's splat) leaves Personal at 0 by
+    rule, so a caller comparing installation motes against `essence_pools(...)[0]`
+    reports that nothing fits — the pool the Charms actually draw on is the single
+    merged one. Ask here rather than unpacking `essence_pools` at the call site."""
+    personal, peripheral = essence_pools(ruleset, character)
+    if essence_pool_is_merged(ruleset, character):
+        return personal + peripheral
+    return personal
+
+
 def health_track(character: Character,
                  ruleset: Optional[RuleSet] = None) -> list[HealthLevelView]:
     """The base wound levels plus any Charm-granted bonus levels, ordered from

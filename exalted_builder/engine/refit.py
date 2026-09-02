@@ -43,7 +43,7 @@ class SlotLoad:
     installed: int        # Slots currently occupied
     noncf: int            # of those, Charms needing a General Slot
     motes: int            # committed installation cost
-    personal: int         # the Personal Essence pool those motes come from
+    personal: int         # the pool those motes come from (merged pool when merged)
 
     @property
     def total_slots(self) -> int:
@@ -99,9 +99,9 @@ def slot_load(ruleset: RuleSet, character: Character) -> SlotLoad:
         ruleset, _slot_charms(ruleset, character) + ([ob.id] * len(character.ox_body)
                                                      if ob is not None else []),
         character.arrays)
-    personal, _peripheral = derive.essence_pools(ruleset, character)
     return SlotLoad(general=g, dedicated=d, installed=installed, noncf=noncf,
-                    motes=motes, personal=personal)
+                    motes=motes,
+                    personal=derive.charm_installation_pool(ruleset, character))
 
 
 def install_block_reason(ruleset: RuleSet, character: Character, charm_id: str) -> str:

@@ -1016,12 +1016,14 @@ def _chargen_charm_issues(ruleset: RuleSet, character: Character, b, charms, spe
                 message=f"{noncf} non-Caste/Favored Charms need General Slots, but only "
                         f"{g} exist; Dedicated Slots hold only Caste/Favored-Attribute Charms.",
             ))
-        personal, _peripheral = derive.essence_pools(ruleset, character)
-        if install_motes > personal:
+        pool = derive.charm_installation_pool(ruleset, character)
+        if install_motes > pool:
+            merged = derive.essence_pool_is_merged(ruleset, character)
+            where_from = "the Essence pool is" if merged else "Personal Essence is"
             issues.append(Issue(
                 code="charm-installation-over-personal",
-                message=f"Installed Charms commit {install_motes} motes, but Personal "
-                        f"Essence is only {personal}; they will not all fit.",
+                message=f"Installed Charms commit {install_motes} motes, but "
+                        f"{where_from} only {pool}; they will not all fit.",
             ))
     else:
         # Per-pick path. Standard: >=charm_min_caste_favored of the picks are
