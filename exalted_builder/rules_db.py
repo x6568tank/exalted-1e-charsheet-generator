@@ -30,6 +30,7 @@ Expected layout:
       weapons.json           array of WeaponType      (optional)
       natures.json           array of NatureType      (optional)
       virtue_flaws.json      array of VirtueFlawType  (optional)
+      trait_descriptions.json  TraitDescriptions object (optional)
       costs_bonus.json       BonusPointCosts object   (optional -> defaults)
       costs_xp.json          ExperienceCosts object   (optional -> defaults)
       chargen_budgets.json   ChargenBudgets object    (optional -> defaults)
@@ -46,7 +47,9 @@ from pydantic import BaseModel, ValidationError
 from . import custom_content
 from .models.adversary import Adversary
 from .models.rules import (
+    AbilityName,
     AttributeName,
+    VirtueName,
     ArmorType,
     GearType,
     ArtifactType,
@@ -76,6 +79,7 @@ from .models.rules import (
     RuleSet,
     Spell,
     StScreen,
+    TraitDescriptions,
     ThaumaturgicArt,
     ThaumaturgicFormula,
     ThaumaturgicRitual,
@@ -359,6 +363,28 @@ def _check_elemental_powers(powers: dict, merits: dict, problems: list[str]) -> 
             if mid not in merits:
                 problems.append(
                     f"elemental power '{p.id}' references unknown required merit '{mid}'")
+
+
+def _check_trait_descriptions(td, problems: list[str]) -> None:
+    """Every member of the three trait vocabularies must have a row, and no row may
+    name a trait twice.
+
+    The file is optional and absent means "no reference text anywhere", which is fine.
+    But a file that is PRESENT and short is the failure this catches: the text is
+    display-only, so a missing Attribute would show as an empty panel on one trait out
+    of nine and nothing else — no error, no test, no symptom the player can name.
+    Coverage is checkable because the vocabularies are closed enums, so it is checked."""
+    if td is None:
+        return
+    for label, rows, vocab in (("attribute", td.attributes, AttributeName),
+                               ("ability", td.abilities, AbilityName),
+                               ("virtue", td.virtues, VirtueName)):
+        seen = [r.id for r in rows]
+        for dup in {i for i in seen if seen.count(i) > 1}:
+            problems.append(f"trait_descriptions.json: duplicate {label} row '{dup.value}'")
+        for missing in sorted(set(vocab) - set(seen), key=lambda m: m.value):
+            problems.append(
+                f"trait_descriptions.json: no {label} row for '{missing.value}'")
 
 
 def _check_merits_flaws(merits: dict, problems: list[str]) -> None:
@@ -780,6 +806,8 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
     xp_costs = _load_keyed_table(data_dir / "costs_xp.json", ExperienceCosts, problems)
     budgets = _load_keyed_table(data_dir / "chargen_budgets.json", ChargenBudgets, problems)
     st_screen = _load_object(data_dir / "st_screen.json", StScreen, problems)
+    trait_descriptions = _load_object(data_dir / "trait_descriptions.json",
+                                      TraitDescriptions, problems)
 
     # referential integrity — only meaningful once the rows themselves parsed
     _check_prereqs(charms, problems)
@@ -789,6 +817,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
     _check_thaumaturgy(thaum_arts, thaum_sciences, thaum_formulas, problems)
     _check_merits_flaws(merits_flaws, problems)
     _check_elemental_powers(elemental_powers, merits_flaws, problems)
+    _check_trait_descriptions(trait_descriptions, problems)
 
     if problems:
         raise RuleDataError(problems)
@@ -832,6 +861,7 @@ def load_ruleset(data_dir: str | Path, custom_dir: str | Path | None = None) -> 
         xp_costs=xp_costs,
         budgets=budgets,
         st_screen=st_screen,
+        trait_descriptions=trait_descriptions,
         custom_problems=custom_problems,
     )
 

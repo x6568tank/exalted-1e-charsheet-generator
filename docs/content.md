@@ -41,6 +41,9 @@ data/
     callings.json        ┘
     thaumaturgy/         arts, sciences, rituals, formulas — cross-splat
     st_screen.json       Static Storyteller reference tables; pure display
+    trait_descriptions.json  Chapter Four's prose for Attributes / Abilities /
+                         Virtues; pure display. ⚠ The three families print
+                         DIFFERENT shapes — status/trait-descriptions.md
 ```
 
 Every file except `castes.json` is optional as far as the loader is concerned: absent

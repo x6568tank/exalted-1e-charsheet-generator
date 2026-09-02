@@ -256,6 +256,7 @@ are pointers only; the traps and history live in the files.
 | Merits & Flaws — the centralized calc (decision 0011), all 100 authored | `status/merits-flaws.md` |
 | M&F mechanical-effect triage — what was modelled, what was skipped and why | `status/merits-flaws-triage.md` |
 | Backgrounds — per-splat catalogues, the dot ladder, the numeric rules | `status/backgrounds.md` |
+| Trait reference text — the ⓘ beside every dot row; ⚠ the three families print DIFFERENT shapes, and Abilities have no per-Ability ladder | `status/trait-descriptions.md` |
 | Thaumaturgy — cross-splat Arts/Sciences/Rituals/Formulas | `status/thaumaturgy.md` |
 | Custom content — user-authored Charms/styles/spells/**rituals**/gear, the `/custom` page | `status/custom-content.md` |
 | Dice pools — decision 0016, the Play-tab sidebar | `status/dice-pools.md` |

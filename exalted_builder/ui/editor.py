@@ -180,6 +180,26 @@ def panel_card(pal, title: str):
     return card
 
 
+def trait_info_button(pal, make_info, key: str) -> None:
+    """The ⓘ beside a trait's dot row, opening that trait's core-book reference text.
+
+    `make_info` is a no-arg callable returning a `viewmod.TraitInfo` or None. It is
+    called once now to decide whether there is anything to show (a ruleset with no
+    `trait_descriptions` renders no button at all) and AGAIN on each click, so the
+    highlighted rung is the character's rating at click time rather than at build time.
+
+    `key` is the trait's enum value, which becomes the element's `trait-info-<key>`
+    marker — an icon button carries no text for a test to find it by."""
+    if make_info() is None:
+        return
+    def _open(_=None) -> None:
+        info = make_info()
+        if info is not None:
+            cataloguemod.trait_reference_dialog(pal, info)
+    ui.button(icon="info_outline", on_click=_open).props(
+        "flat dense round size=sm color=grey-6").classes("shrink-0").mark(f"trait-info-{key}")
+
+
 def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                  *, with_header: bool = True, on_theme_change=None):
     """Render the whole editor for `character`. Pure-ish wiring: every control
@@ -928,6 +948,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                 mark = "●" if a in caste_attributes else ("✦" if a in favored_attrs else "")
                                 ui.label(mark).classes("text-xs w-3").style(f"color:{pal.accent}")
                                 ui.label(_label(a.value)).classes("text-sm w-24")
+                                trait_info_button(pal, lambda a=a: viewmod.attribute_info(
+                                    ruleset, a, character.attributes[a]), a.value)
                                 _breed_pts = breed_bonus.get(a, 0)
                                 if _breed_pts:
                                     ui.label(f"+{_breed_pts} breed").classes(
@@ -972,9 +994,14 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                                     if a == AbilityName.CRAFT:
                                         # Craft is per-focus (p.136) — edited in its own panel below.
                                         ui.label("Craft").classes("text-sm flex-1 truncate")
+                                        # No single rating to highlight: the rungs are
+                                        # per focus, so the ladder shows unmarked.
+                                        trait_info_button(pal, lambda a=a: viewmod.ability_info(ruleset, a), a.value)
                                         ui.label("↓ per-focus").classes("text-xs text-gray-400")
                                         continue
                                     ui.label(_label(a.value)).classes("text-sm flex-1 truncate")
+                                    trait_info_button(pal, lambda a=a: viewmod.ability_info(
+                                        ruleset, a, character.abilities[a]), a.value)
                                     dots(lambda a=a: character.abilities[a],
                                          lambda v, a=a: character.abilities.__setitem__(a, v),
                                          0, abil_trait_cap,
@@ -1000,6 +1027,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
                 for v in VirtueName:
                     with ui.row().classes("w-full items-center gap-2 no-wrap"):
                         ui.label(_label(v.value)).classes("text-sm w-28")
+                        trait_info_button(pal, lambda v=v: viewmod.virtue_info(
+                            ruleset, v, character.virtues[v]), v.value)
                         dots(lambda v=v: character.virtues[v],
                              lambda val, v=v: character.virtues.__setitem__(v, val),
                              1, virtue_cap, target=f"virtues.{v.value}")

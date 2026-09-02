@@ -1,0 +1,417 @@
+{
+  "source": {"book": "Core", "page": 127},
+
+  "ability_ladder": {
+    "0": "Unskilled: No training in the Ability. Characters attempting to perform an action without the appropriate Ability use just the Attribute and suffer a -2 penalty to their dice pools to simulate their utter lack of training.",
+    "1": "Novice: A basic grasp of the Ability — the character is a dabbler.",
+    "2": "Practiced: General familiarity with the Ability's applications — the character can practice the skill at a professional level.",
+    "3": "Competent: Detailed comprehension of the Ability's potential — the character is a respected professional.",
+    "4": "Expert: Profound understanding of virtually all of the Ability's aspects — the character is one of the top talents in the field.",
+    "5": "Master: Utter command of every possible way in which the Ability could be used — the character has peerless mastery of the subject. She is a living legend."
+  },
+
+  "attributes": [
+    {
+      "id": "strength",
+      "name": "Strength",
+      "category": "Physical",
+      "description": "Strength rates physical power, including the capacity to lift objects and cause damage. This Attribute is used to resolve jumping, lifting and other actions that draw on raw physical power. Strength also determines the base number of damage dice rolled for successful physical attacks.",
+      "ladder": {
+        "1": "Poor: Weakling (dead lift 80 lbs.).",
+        "2": "Average: That about says it all (dead lift 160 lbs.).",
+        "3": "Good: Doughty laborer (dead lift 200 lbs.).",
+        "4": "Exceptional: Village strongman (dead lift 250 lbs.).",
+        "5": "Superb: The bards sing of your might (dead lift 450 lbs.)."
+      }
+    },
+    {
+      "id": "dexterity",
+      "name": "Dexterity",
+      "category": "Physical",
+      "description": "Dexterity measures both agility and hand-eye coordination. It describes how fast a character runs, how precisely he aims at a target and everything else that relates to speed, grace and control. Dexterity also helps determine the base number of dice rolled to hit in combat, and it is combined with Wits to calculate a character's initiative.",
+      "ladder": {
+        "1": "Poor: Oaf.",
+        "2": "Average: You can dance without stepping on your partner's toes.",
+        "3": "Good: You have a good deal of natural athletic potential.",
+        "4": "Exceptional: You can juggle knives with flair.",
+        "5": "Superb: You can climb a sheer cliff while blindfolded."
+      }
+    },
+    {
+      "id": "stamina",
+      "name": "Stamina",
+      "category": "Physical",
+      "description": "Stamina indicates your character's health, tolerance for pain and how long she can sustain physical exertion. It encompasses endurance, physical will to live and sheer toughness. Stamina determines the character's base soak pool.\n\nNote: Only Exalted characters can soak lethal damage with their Stamina.",
+      "ladder": {
+        "1": "Poor: The merest breeze makes you ill (1 bashing soak, 0 lethal soak).",
+        "2": "Average: You stay in moderately good health (2 bashing soak, 1 lethal soak).",
+        "3": "Good: You can perform hard labor without tiring (3 bashing soak, 1 lethal soak).",
+        "4": "Exceptional: You can fight from dawn to dusk (4 bashing soak, 2 lethal soak).",
+        "5": "Superb: You can shrug off a strong man's punch (5 bashing soak, 2 lethal soak)."
+      }
+    },
+    {
+      "id": "charisma",
+      "name": "Charisma",
+      "category": "Social",
+      "description": "Charisma is used to charm others and to gain trust through natural appeal — your character's \"force of personality,\" if you will. It reflects an air of confidence or social grace when dealing with people. Charisma defines how likable your character is to others and whether they actively seek her company.",
+      "ladder": {
+        "1": "Poor: People drift away when you approach.",
+        "2": "Average: You make friends if you put forth the effort.",
+        "3": "Good: You make friends even without a particular effort.",
+        "4": "Exceptional: Even your enemies respect you.",
+        "5": "Superb: You could build an empire."
+      }
+    },
+    {
+      "id": "manipulation",
+      "name": "Manipulation",
+      "category": "Social",
+      "description": "Manipulation measures your ability to influence others. This ability represents aggressive rather than passive persuasiveness, and it can be subtle or blatant. Manipulation covers everything from leading others to tricking them, from being sly to dominating. No one likes being fooled, though — failing a Manipulation roll has risks.",
+      "ladder": {
+        "1": "Poor: You rarely get what you want.",
+        "2": "Average: You fool some of the people some of the time.",
+        "3": "Good: You'd make a good imperial courtier.",
+        "4": "Exceptional: You can talk your way past the Legion of Silence.",
+        "5": "Superb: You can talk a Wyld spirit into doing your bidding."
+      }
+    },
+    {
+      "id": "appearance",
+      "name": "Appearance",
+      "category": "Social",
+      "description": "Appearance is a combination of physical attractiveness and innate appeal. It is your character's ability to make a good first impression or simply to generate an instinctive response in others.",
+      "ladder": {
+        "1": "Poor: People suppress a cringe when they see you.",
+        "2": "Average: Just that — another face in the crowd.",
+        "3": "Good: Local villagers squabble for your affections.",
+        "4": "Exceptional: A celebrated beauty, even in the imperial court.",
+        "5": "Superb: Rural folk mistake you for an incarnate deity."
+      }
+    },
+    {
+      "id": "perception",
+      "name": "Perception",
+      "category": "Mental",
+      "description": "Perception covers alertness and comprehension. It determines not only your character's attentiveness to the world around him, but also how clearly he interprets it.",
+      "ladder": {
+        "1": "Poor: Addle-headed.",
+        "2": "Average: You keep abreast of general goings on.",
+        "3": "Good: You pick up on subtle subtext in books and conversations.",
+        "4": "Exceptional: Your keen eye can pick out even the most minute of flaws.",
+        "5": "Superb: Sherlock Holmes was an amateur compared to you."
+      }
+    },
+    {
+      "id": "intelligence",
+      "name": "Intelligence",
+      "category": "Mental",
+      "description": "Intelligence measures raw mental processes — memory, retention, judgment, reasoning and imagination, as well as your character's ability to find connections between seemingly unrelated pieces of information or analyze complex ideas. This Attribute is not a measure of how fast your character thinks, but of how clearly and well he thinks.",
+      "ladder": {
+        "1": "Poor: Dullard (IQ 80).",
+        "2": "Average: You remember family birthdays (IQ 100).",
+        "3": "Good: Your friends describe you as \"bright\" (IQ 130).",
+        "4": "Exceptional: You're not just bright, you're downright brilliant (IQ 160).",
+        "5": "Superb: Genius (IQ 180+)."
+      }
+    },
+    {
+      "id": "wits",
+      "name": "Wits",
+      "category": "Mental",
+      "description": "Wits describes how quickly your character reacts to new situations and indicates general \"grace under fire.\" This Attribute describes inherent common sense and how well your character thinks on the fly. Wits combines with Dexterity to determine base initiative.",
+      "ladder": {
+        "1": "Poor: You never doubt your betters.",
+        "2": "Average: You know when to pull out of a bad dice game.",
+        "3": "Good: You keep your cool in a duel.",
+        "4": "Exceptional: You always have the perfect comeback.",
+        "5": "Superb: You can make deals with demons and come out ahead."
+      }
+    }
+  ],
+
+  "virtues": [
+    {
+      "id": "compassion",
+      "name": "Compassion",
+      "description": "The Compassion Virtue measures the character's ability to empathize with and forgive those he cares for or regards as \"his people.\"\n\nAlthough Compassion can be a painful Trait in a dark and brutal world, not having any Compassion is worse still. Compassion aids the character in helping those in need and fighting against injustice. Characters with a high Compassion are fast friends to the weak or sickly and deadly enemies of the wicked or oppressive.",
+      "ladder": {
+        "1": "You'd sell your mother into slavery.",
+        "2": "Capable of some feeling, especially for family and friends.",
+        "3": "You'd succor a stranger, if need beckoned.",
+        "4": "You'd risk your life to defend a person who reviled you.",
+        "5": "Your nobility of spirit equals that of the storied heroes."
+      },
+      "aids_in": "Protecting or aiding the sick, innocent or oppressed. Fighting for justice, or attempting to bring aid to the needy. Fighting for or engaging in romantic love.",
+      "must_fail_check_to": "Allow an enemy to perish miserably. Ignore the pleas of the oppressed or the impoverished. Abandon the diseased to their afflictions. Jilt or throw over a lover."
+    },
+    {
+      "id": "conviction",
+      "name": "Conviction",
+      "description": "The balancing Virtue to Compassion, Conviction measures the character's ability to withstand and (if necessary) inflict hardships and atrocities. A character's Conviction aids him in situations where he must persevere against great adversity, take harsh measures when there is no alternative and helps him to regain temporary Willpower.",
+      "ladder": {
+        "1": "Sniveling worm.",
+        "2": "You can be hard-minded when you must.",
+        "3": "You are inured to hardships and necessary evils.",
+        "4": "You could watch a village burn without flinching.",
+        "5": "You could put a nation to the sword, if there was need."
+      },
+      "aids_in": "Withstanding hardship, disease and oppression. Exercising command and leadership in times of hardship or woe. Fighting in hopeless situations or against the odds. Regaining Willpower.",
+      "must_fail_check_to": "Abandon a cause they have committed themselves to. Give up in the face of hardship or disease. Abandon their companions in times of need."
+    },
+    {
+      "id": "temperance",
+      "name": "Temperance",
+      "description": "The Temperance Virtue is what spells the difference between wise men (or women) and fools. Characters with high Temperance act with iron self-control and keep their cool despite extraordinary provocation. Temperance helps a character resist taunting, seduction and even magical attempts to affect her emotions.",
+      "ladder": {
+        "1": "Hothead.",
+        "2": "You bite your tongue around the provincial tax collector.",
+        "3": "Villagers ask you to arbitrate disputes.",
+        "4": "You could resist the advances of an imperial concubine.",
+        "5": "A living saint, you see the world and are unswayed."
+      },
+      "aids_in": "Withstanding temptation, taunting and other forms of baiting. Keeping your tongue when intoxicated. Fighting the effects of befuddlement, illusions, drugs, poisons and mind control.",
+      "must_fail_check_to": "Act dishonestly or show bias in a matter of importance. Overindulge themselves. Throw themselves into a situation without deliberation. Break oaths or abuse trusts."
+    },
+    {
+      "id": "valor",
+      "name": "Valor",
+      "description": "The Valor Virtue is a measure of a character's courage and resolve in the face of danger. Valor helps characters resist fear and horror, whether from a magical spell, a monstrous creature or simple intimidation. Valor also helps characters who are fighting in battle, particularly against terrible odds.",
+      "ladder": {
+        "1": "Puling coward.",
+        "2": "You'll stand your ground if insulted.",
+        "3": "You can march against the barbarians without showing fear.",
+        "4": "You can march against the dead without showing fear.",
+        "5": "You'd face down one of the Five Dragons if you had to."
+      },
+      "aids_in": "Heroism in battle and single combat. Withstanding magical fear and horror. Feats of daring, physical or otherwise.",
+      "must_fail_check_to": "Turn down a duel of honor or a call to single combat. Flee a battle. Swallow an insult without seeking retribution. Turn down a dare or challenge."
+    }
+  ],
+
+  "abilities": [
+    {
+      "id": "archery",
+      "name": "Archery",
+      "description": "The use of bows, from small self bows to bone and steel reinforced war bows. Archers in the world of Exalted practice both \"Occidental\" (aimed) and \"Oriental\" (reflexive) archery — for the purposes of the game mechanics, they are treated the same, but don't let that obstruct you in describing how your character does things. It is worth noting that the crossbow does not exist in the world of Exalted, though crossbow-like siege engines, such as ballistae, do.",
+      "specialties": ["Flaming Arrows", "When Using Archery Charms", "From Horseback", "Woodland Environments", "Ambushes"],
+      "standard": "Shoot an apple off someone's head at 20 paces.",
+      "challenging": "Shoot an apple off someone's head at 20 yards with a warped arrow.",
+      "legendary": "Shoot an apple off someone's heat at 50 yards with a warped arrow, at night."
+    },
+    {
+      "id": "brawl",
+      "name": "Brawl",
+      "description": "This Ability covers styles of unarmed combat that rely more on power than on speed — they range from tavern brawling to scientific wrestling. Unless the character is using a brawling weapon, Brawl inflicts bashing damage — while it can cause a fair amount of pain, it isn't usually fatal. Brawl also covers fighting with improvised weapons such as kegs of brandy, barstools, small opponents and the like. Characters using weapons of this sort may choose to use their Brawl or Melee Abilities — whichever they prefer.",
+      "specialties": ["Blind Fighting", "Combinations", "Dirty Maneuvers", "Multiple Opponents", "Fighting While Drunk"],
+      "standard": "Punch through a door.",
+      "challenging": "Punch through a six-inch oak door.",
+      "legendary": "Punch through a steel-sheathed oak gate in a dozen mighty blows."
+    },
+    {
+      "id": "martial_arts",
+      "name": "Martial Arts",
+      "description": "This fighting Ability covers the formalized fighting styles found throughout the world, particularly among the Realm's Immaculate Order, as well as less formalized fighting styles based on speed and agility. Unless the character is using a martial arts weapon, Martial Arts attacks inflict bashing damage. While it favors speed over power, this Ability is as dangerous as any Brawl style.",
+      "specialties": ["Fighting Against Other Martial Artists", "Opponents in Armor", "Multiple Opponents", "Showing Off"],
+      "standard": "Perform the Seven Leaping Dragon form flawlessly, break a board with your bare hands.",
+      "challenging": "Perform the Seven Leaping Dragon form flawlessly on a carriage rolling over bumpy roads, break a brick with your bare hands.",
+      "legendary": "Perform the Seven Leaping Dragon form flawlessly while being attacked by several opponents, and work their attacks into your demonstration of the form. Break a steel bar with your bare hands."
+    },
+    {
+      "id": "melee",
+      "name": "Melee",
+      "description": "This Ability reflects the characters' skill with weapons of all types, from swords and spears to axes, hammers, maces and exotic martial arts weapons of various types. Because they inflict lethal damage and do not generally run out of ammunition, melee weapons are the predominate weapons in the world of Exalted.",
+      "specialties": ["Sword", "Axe", "Fighting With Two Weapons", "Fighting With a Shield", "Gladiatorial Combats"],
+      "standard": "Cut your initial on an opponent.",
+      "challenging": "Cut your initial on an opponent in the middle of a fight.",
+      "legendary": "Hang upside down from a tree branch to cut your initial on an opponent as she gallops by on her charger."
+    },
+    {
+      "id": "thrown",
+      "name": "Thrown",
+      "description": "The ability to use weapons that are hurled toward their target without mechanical assistance. These include throwing knives, throwing axes, chakram, javelins and improvised thrown weapons such as rocks and bottles.",
+      "specialties": ["Improvised Weapons", "Shuriken", "Assassinations", "While Leaping", "Multiple Attacks", "Knocking Other Weapons Out Of The Air"],
+      "standard": "Cut a rope with a thrown knife.",
+      "challenging": "Sever a rope with a thrown knife as you fall past the rope.",
+      "legendary": "Sever a rope with a thrown knife you hurl with only your fingertips and the twist of your body as you fall, bound and gagged, past the rope."
+    },
+    {
+      "id": "endurance",
+      "name": "Endurance",
+      "description": "This talent represents the character's ability to endure long-term exposure to severe conditions. This Ability differs from Resistance in that Endurance sustains your character's energy level over long periods of time. For example, a character would make Endurance rolls to stay awake for days at a time, to endure unhealthy conditions without becoming ill or to march in armor without suffering heat prostration.",
+      "specialties": ["Fasting", "Holding Breath", "Long-Distance Running", "Sleep Deprivation"],
+      "standard": "Run five miles nonstop.",
+      "challenging": "Run 25 miles nonstop.",
+      "legendary": "Run 250 miles nonstop."
+    },
+    {
+      "id": "performance",
+      "name": "Performance",
+      "description": "Performance covers the gamut of live artistic expression, from public speaking to musicianship to dancing to acting (including impersonating someone else) as well as the theatrics of large-scale leadership. This Ability also imparts knowledge of the society surrounding a particular art form, as well as how well your character fits into it.",
+      "specialties": ["Acting", "Dance", "Female Impersonation", "Oration", "Singing", "Specific Instrument (Flute, Lyre, Tambour, Zither)"],
+      "standard": "Sway a friendly crowd into making generous donations and putting you and your friends up for a week. Lead 100 men.",
+      "challenging": "Sway a hostile crowd to the point of ecstatic episodes — speaking in tongues, convulsions, spontaneous conversions, the whole nine yards. Lead 1,000 men.",
+      "legendary": "Sway the crowd at your execution so that they overrun the guards, cut you down and become your liberating army. Hold a nation in your thrall."
+    },
+    {
+      "id": "presence",
+      "name": "Presence",
+      "description": "Presence is the ability to lead and intimidate through force of personality. Performance covers oratory and mass persuasion, but Presence determines effective, long-term leadership and one-on-one interactions. What a character's Presence stems from varies — he could lead through respect, fear, persuasion or demonstrated skill. Presence can be used to cow enemies and threaten or frighten individuals into cooperation, as well as to lead.",
+      "specialties": ["Threats", "Just Governance", "Persuasion", "When Impassioned", "Coalition Leadership", "Against All Odds", "Brainwashing Conversion"],
+      "standard": "Inspire a group of defeated troops to excel in an upcoming battle. Convince a thug that he should tell you who sent him.",
+      "challenging": "Inspire a group of untrained and terrified volunteers to excel in an upcoming battle. Convince the head of the Society of Assassins that he had better tell you who put the contract on your head.",
+      "legendary": "Turn a group of prisoners of war, condemned convicts and bandits into an highly motivated unit in just a few weeks. Convince the head of the Guild that he should back off from his assassination attempts and join your cause if he knows what's good for him."
+    },
+    {
+      "id": "resistance",
+      "name": "Resistance",
+      "description": "Resistance allows your character to combat the effects of physical pain, plagues or drugs. This Ability can also be used to resist interrogation.",
+      "specialties": ["Ignore Pain", "Resist Disease", "Resist Drugs", "Resist Interrogation"],
+      "standard": "Drink a quart of liquor and remain coherent. Laugh off a serious wound.",
+      "challenging": "Drink all night and remain coherent. Laugh off a critical wound.",
+      "legendary": "Drink for a week and remain coherent. Fight on with an amputated limb."
+    },
+    {
+      "id": "survival",
+      "name": "Survival",
+      "description": "Survival enables your character to survive in wilderness environments. He knows how to find shelter, set traps, forage for food and water, build fires and separate dangerous flora and fauna from beneficial ones. This Ability is absolutely essential to subsist for any length of time in a wilderness region. Survival also includes the character's affinity with animals and his ability to tame, train and handle domestic and wild animals.",
+      "specialties": ["Fire-Building", "Forage", "Hunt", "Navigation", "Set Snares", "Track"],
+      "standard": "Find food and shelter in the woods at night. Tame a wolf or hawk.",
+      "challenging": "Find food and shelter in the savage jungles of the Threshold, despite the fact that you have only a knife and are unfamiliar with the terrain. Tame a bear or tiger.",
+      "legendary": "Find food and shelter after being abandoned, naked, in the icy reaches of the North in the middle of a blizzard. Note that the Storyteller will probably make you roll out the combat where you beat the polar bear to death with your bare hands. Tame sharks, gryphons or other \"untamable\" animals."
+    },
+    {
+      "id": "craft",
+      "name": "Craft",
+      "description": "Craft is the Ability to perform skilled labor. Smithing, farming, leatherworking, gem-cutting and the like are all examples of different crafts. High levels of the Craft Ability enables a character to produce masterworks, though without the influence of Charms, such things take time and resources. A character must choose what her Craft Ability is in — a master blacksmith, for example, does not necessarily know anything about farming. Characters who wish to master multiple crafts must take this Ability multiple times.",
+      "specialties": ["Working in Haste", "Field Expediencies", "When in a Well-Equipped Workshop", "Repairs", "Form Over Function", "Taking Extra Time"],
+      "standard": "Make a fine sword from good raw materials.",
+      "challenging": "Make an excellent sword (+1 to damage) from excellent raw materials. Make a fine sword from poor materials.",
+      "legendary": "Make a perfect blade (+1 die to Melee pool, +2 to damage, +3 to initiative) out of the finest materials in the world. Make an excellent sword from poor raw materials. Forge fine swords from scrap iron and broken plowshares."
+    },
+    {
+      "id": "investigation",
+      "name": "Investigation",
+      "description": "Often possessed by magistrates and censors, Investigation is the skill of searching for clues and information, whether at a crime scene, in a library or through speaking to witnesses. Characters with this Ability can perform research in an effective manner, as well as collect evidence and reconstruct events to gain insight into what really happened at a scene.",
+      "specialties": ["Analysis", "Concealed Objects", "Deduction", "Interviews", "Quick Search", "Research"],
+      "standard": "Reconstruct a fresh event with moderate evidence. Quickly locate a passage among the contents of a modest library in just a few days of searching.",
+      "challenging": "Reconstruct a stale event (2-3 weeks old) from moderate evidence. Locate a single passage among the contents of an impressive library in a long day of research.",
+      "legendary": "Reconstruct a months-old scene from only fragmentary evidence. Find a single passage out of all the books in the Imperial Library of the Realm with just a night of research."
+    },
+    {
+      "id": "lore",
+      "name": "Lore",
+      "description": "Once, men understood the workings of the world, and lived in an Age of wonders beyond understanding. Characters with the Lore Ability have learned some scraps of that knowledge and are educated in history, geography, literature, philosophy and similar scholarly pursuits. High levels of Lore enable characters to decipher ancient scripts, identify First Age artifacts, know the nature of legendary creatures and similar feats.\n\nIf you wish your character to be able to read and write, you must purchase at least one dot in Lore. Once so purchased, a character may read the script of any language she can speak.",
+      "specialties": ["Understanding Other Cultures", "Current Events", "Geography", "History", "Law", "Government", "Philosophy", "Religion", "The First Age"],
+      "standard": "Recognize a foreign script. Recognize an important personage or recall a historical detail from the post-Contagion past. Recognize and operate a simple First Age device.",
+      "challenging": "Recognize script in the forgotten hand of the First Age. Recognize a historical personage or recall a historical detail from the days before the Contagion. Recognize and operate more complex First Age devices.",
+      "legendary": "Read First Age script. Repair simple First Age devices. Recognize a historical personage or recall a historical event from the time before the usurpation of the Dragon-Blooded. Operate the most complex First Age items, such as War Striders and the defense system of the Realm."
+    },
+    {
+      "id": "medicine",
+      "name": "Medicine",
+      "description": "This Ability covers knowledge of how the human body works as well as how to repair it in case of injury. Medicine includes a basic understanding of poultices, herbal tonics and their use, along with the diagnosis and treatment of diseases and injuries. Obviously, in the world of Exalted, this knowledge is limited — even the best physicians can be stymied by injuries that would be child's play to doctors in our world. Characters trying to treat anything beyond fevers, flesh wounds, minor diseases and small burns will have a difficult time doing so. Any sort of internal surgery has a difficulty of at least +3.\n\nMedicine can be used to harm as well as heal. Characters may use Medicine to perform torture, to apply harmful drugs (or helpful drugs in lethal doses) or even to spread a plague throughout a village. Such attempts should be attended closely by the Storyteller.",
+      "specialties": ["Amputation", "Broken Bones", "Fever", "Plague", "Poultices"],
+      "standard": "Amputate a mangled limb. Treat influenza. Stitch together simple tissue damage. Debride and dress small burns. Sterilize medical equipment. Disinfect wounds and make water potable.",
+      "challenging": "Treat serious diseases such as malaria, yellow fever, dysentery, smallpox, syphilis and cholera. Perform internal surgery to remove or repair failing and damaged organs.",
+      "legendary": "Treat incurable illnesses such as tuberculosis, the plague and cancer."
+    },
+    {
+      "id": "occult",
+      "name": "Occult",
+      "description": "This Ability represents the character's familiarity, to whatever degree, with magic and the supernatural. It represents her magical aptitude and her familiarity with the ways of supernatural creatures such as spirits, Fair Folk and the dead. The character is also familiar with the many cults and heresies that permeate the Realm and the Threshold.",
+      "specialties": ["Cults", "Ghosts", "Spirits", "Superstitions", "Undead", "Wyld Beasts"],
+      "standard": "Recognize and deal politely with a minor local spirit. Recognize a simple Charm or sorcery at work.",
+      "challenging": "Recognize and deal politely with a major spirit of the area — the spirit of the local haunted forest or mountain. Work very simple hedge magic (impotence cures, good luck charms, minor curses). Recognize complex or subtle sorcery at work.",
+      "legendary": "Recognize and deal politely with the Elemental Dragons, the servants of the Celestines, the demon princes and the Deathlords. Summon an elemental or demon of the First Circle without being one of the Exalted. Perform more powerful hedge magic (curses that visibly work, talismans that make even the most barren woman fertile, simple enchantment)."
+    },
+    {
+      "id": "athletics",
+      "name": "Athletics",
+      "description": "A measure of fitness, this Ability measures the character's developed physical ability — how well he applies his natural aptitudes. Athletics is the Ability that governs feats of strength, balance, coordination and reflexes. Athletics also covers skill in various sports and village games, knowing how to jump and tumble and being able to climb mountains and cliffs.",
+      "specialties": ["Acrobatics", "Climbing", "Specific Sports", "Tumbling and Jumping"],
+      "standard": "Lift 200 pounds. Leap 10 feet from a standing start. Maintain your balance while fighting on a narrow ledge.",
+      "challenging": "Lift 700 pounds. Leap 20 feet from a standing start. Maintain your balance while fighting on a narrow, icy ledge in high winds.",
+      "legendary": "Lift a ton. Leap 50 feet from a standing start. Maintain your balance while fighting on an icy tightrope in high winds."
+    },
+    {
+      "id": "awareness",
+      "name": "Awareness",
+      "description": "This Ability measures how much the character notices about her surroundings. It's an overall indicator of how detailed the character's idea of what's physically nearby is, covering input from all five senses. Awareness is useful for picking out a face in a crowd or for anticipating surprises that wait around a corner.",
+      "specialties": ["Acute Hearing", "Keeping Watch", "Sharp Sight", "Smell", "Spot Ambush", "Track"],
+      "standard": "Identify someone by the sound of his footfalls. Pick someone's face out of a crowded bazaar with a quick glance. Read lips. Detect concealed weapons. Case a location for burglary in just a few minutes. See 100 yards on a clear, moonlit night.",
+      "challenging": "Identify someone by scent. Pick someone's face out of a battlefield with a quick glance. Case a location for burglary just by just walking by it. See 100 yards on a cloudy night with a waning moon.",
+      "legendary": "Track by scent. Read with your eyes closed by feeling the texture of the ink on the paper. Listen in on a conversation a mile away on a windy day. Spot someone 100 yards away on an overcast, moonless night."
+    },
+    {
+      "id": "dodge",
+      "name": "Dodge",
+      "description": "Dodge measures the character's ability to evade blows. Characters skilled in Dodge are also generally agile and can evade environmental hazards such as falling trees and landslides as well as attacks launched by other characters.",
+      "specialties": ["Ranged Attacks", "Natural Hazards", "On Battlefields", "When Unarmed", "Full Dodge", "Animal Attacks"],
+      "standard": "Dodge a rolling boulder or a windblown branch.",
+      "challenging": "Dodge through a hail of rolling boulders or a flurry of windblown debris.",
+      "legendary": "Pass through an avalanche or hurricane unscathed."
+    },
+    {
+      "id": "larceny",
+      "name": "Larceny",
+      "description": "Larceny is a measure of the character's knowledge of the technical aspects of crime and of the criminal lifestyle. It also gauges the character's mastery of legerdemain, sleight of hand, gambling, pickpocketing, lock picking, con games and the other necessary skills for survival outside the law.",
+      "specialties": ["Lock Picking", "Con Games", "A Specific City", "Cheating At Dice", "Fencing Stolen Goods", "Scoring Drugs", "Female Marks", "Organized Crime"],
+      "standard": "Pick someone's pocket in a crowded street. Pick a simple lock. Run a floating crap game. Find drugs. Sell stolen goods. Contact the local thieves' guild, if one exists.",
+      "challenging": "Forge a Guild letter of credit. Pick an alert mark's pocket when the two of you are alone in a room. Sell extremely hot items. Find rare and potent drugs from halfway around the world. Make a stellar impression on the local thieves' guild.",
+      "legendary": "Forge an Imperial Signet of the Realm. Filch the ruby from a god-king's forehead during conversation. Fence the crown jewels of the local ruler for their actual value the day after you steal them. Run a vanity con on the Fair Folk."
+    },
+    {
+      "id": "stealth",
+      "name": "Stealth",
+      "description": "Stealth covers the ability to avoid notice, move quietly, trail someone and generally evade detection. Stealth rolls are made usually as resisted actions against another character's Awareness. Individuals characters attempting to hide in less than optimal conditions should have the difficulty of their Stealth rolls increased accordingly.",
+      "specialties": ["Ambush", "Camouflage", "Hiding in Shadows", "Sneak", "Trail", "Hiding in Plain Sight"],
+      "standard": "Evade notice by hiding in deep shadow. Walk silently across a marble floor. Sneak up on an alert guard.",
+      "challenging": "Evade notice by standing a foot behind a person searching for you and moving when he turns. Walk silently across a floor covered with walnut hulls. Sneak up on an alert dog.",
+      "legendary": "Evade notice by simply standing still. Run silently across a floor covered with small bells. Sneak up on an alert guardian demon."
+    },
+    {
+      "id": "bureaucracy",
+      "name": "Bureaucracy",
+      "description": "This Ability measures the character's skill at negotiating political, governmental and economic systems. Characters with Bureaucracy are capable of making their livings as merchants or government officials. Note that though this Ability allows the character to be an effective merchant or bureaucrat — there are countless businesses and governments whose staff taken as a whole has few or no dots of Bureaucracy.",
+      "specialties": ["Foot-Dragging", "Expediting Paperwork", "Illegal Business", "Commodities", "Wheeling and Dealing", "A Particular Bureau"],
+      "standard": "Bribe an honest official. Rig a bid. Learn who really controls the local marketplace. Turn a large starting stake into a fortune in just a few months, or turn a small starting stake into a fortune in several years.",
+      "challenging": "Reform the bureaucracy of a corrupt and decadent city state. Maneuver yourself to a position of primacy among local merchants. Turn a large starting stake into a fortune in just a few weeks, or turn a tiny starting stake into a fortune over months.",
+      "legendary": "Reform the bureaucracy of the Realm. Outmaneuver the Guild in the mercantile arena. Turn a tiny starting stake into a fortune in just a few days."
+    },
+    {
+      "id": "linguistics",
+      "name": "Linguistics",
+      "description": "This Ability determines the number of languages the character speaks fluently, as well indicating a basic understanding of how languages work. Because there are many languages and each is a very complicated system, the character does not automatically understand all languages. Each character knows one language family as his native tongue. Each dot of Linguistics indicates a fluent understanding of a language family beyond the character's native one. Characters with high Linguistics will be able to express basic needs and desires in most languages, but cannot express complex concepts or understand even simple idioms.\n\nEach language family comprises several dialects, but for simplicity's sake, its assumed that a character knowledgeable in a language family can comprehend dialects within the family. Linguistics rolls are needed only to understand complex writing or speech, although a high Linguistics rating should reduce this necessity.\n\nIn the world of Exalted, the following language families exist:\n\nHigh Realm: The language of the Dragon-Blooded nobles and their servitors. Also spoken by spirits, demons and the Fair Folk.\nLow Realm: The speech of the Realm's commoners.\nRiverspeak: The language of the Scavenger Lands. Also the lingua franca of the Threshold, full of loan words and used by almost every trader and merchant.\nSkytongue: A language family spoken in the Threshold regions of the North.\nFlametongue: A language family spoken in the Threshold regions of the South.\nSeatongue: A language family spoken in the Threshold archipelagoes of the West.\nForest-tongue: A language family spoken in the Threshold region of the East.\nTribal Tongues (various): Languages spoken by groups of barbarians. For each dot purchased, a character may know a number of tribal tongues equal to her Intelligence.\nGuild Cant: A secret language spoken only by members of the Guild. (Characters must have Backing \"Guild\" at ••• or higher to know this language.)\nOld Realm: The language of the Old Realm. This is the language of many oral and written spells, as well as the language of First Age tomes. Characters must have Lore • or greater to purchase this language. Old Realm is also the language of choice for spirits, demons and the Fair Folk.\n\nNote that without the Lore Ability, characters may not read or write, regardless of how many languages they speak. Some languages, such as the barbarian tribal tongues, have no written language. Most Threshold written languages use variants or bastardizations of Old Realm glyphs.",
+      "specialties": [],
+      "specialties_note": "Specialties in Linguistics must be taken in an individual language group and indicate expressive talent with that language. A character with just the basic mastery of the language can hold normal conversation and even understand and use idiomatic expressions, but she hasn't mastered the internal poetry of the language. A character with a single specialization in a language group can make a living as a respected writer, poet or some other sort of composer in the language. Characters with multiple specialties in a language group are increasingly able to exploit its internal beauty and produce beautiful written or spoken works. Storytellers may wish to allow characters to add their Linguistics specialties to communication-related tasks (Presence, Larceny, Leadership, Socialize), particularly when delivering set piece speeches, writing letters and so forth."
+    },
+    {
+      "id": "ride",
+      "name": "Ride",
+      "description": "Ride measures the character's proficiency when riding a horse, ox or similar creature. This Ability gives your character the ability to break wild horses and engage in tricky maneuvers, including coaxing a horse to jump, galloping over broken terrain and fighting while mounted.",
+      "specialties": ["Wild Horses", "Racing", "Riding in Battle", "Jumps", "Rough Terrain", "Nursing Mounts", "Camels"],
+      "standard": "Jump a stone wall. Ride a horse through a smoky battlefield. Break a wild stallion.",
+      "challenging": "Jump a high stone wall with a panicked horse. Ride a horse through a smoky battlefield full of undead horrors. Break a wild stallion in a single attempt.",
+      "legendary": "Jump a tremendous chasm on an old nag. Ride a horse through a wall of magical fire full of screaming faces. Have a legendary, untamable wild horse accept you without the need for breaking."
+    },
+    {
+      "id": "sail",
+      "name": "Sail",
+      "description": "The world of Exalted lies around the great Inland Sea, and the entirety of the West is a great sea, full of archipelagos and islands. Sea travel is vitally important to trade, warfare and communication. This Ability measures the character's skill at seamanship and in handling both fresh and saltwater craft.",
+      "specialties": ["Piracy", "Small Ships", "Galleys", "Open Ocean", "Chases", "Weathering Storms", "Dangerous Passages", "Uncharted Waters"],
+      "standard": "Sail a ship through a moderate blow. Outrun a pirate ship. Navigate a dangerous reef.",
+      "challenging": "Sail a ship through a hurricane. Outrun a pirate chaser. Navigate an uncharted reef at night.",
+      "legendary": "Sail a galley through the storm of the century. Outrun a pirate fleet in a garbage scow. Navigate a deadly, uncharted reef while fogged in and under full sail."
+    },
+    {
+      "id": "socialize",
+      "name": "Socialize",
+      "description": "Socialize is the ability to sense and understand people's feelings, to understand and maneuver in social situations and to engage in politics, social climbing and various similar sorts of subterfuge. Note that Socialize covers blackmail and similar political dirty tricks, but Larceny is the Ability used to actually perform thefts, burglaries, evidence planting and so forth — Socialize only handles the political end. This Ability is not a magic power — it uses your character's own understanding of emotions and people to get an accurate reading of what others are feeling.",
+      "specialties": ["Discern Motivation", "Discern Truth", "Emotional State", "Intent"],
+      "standard": "Cast aspersions at those who deserve them. Arrange an affair. Obtain a paid position in a court through political means.",
+      "challenging": "Cast aspersions at the undeserving and make them stick. Arrange an affair with the grand dame of local society, and her daughter. Obtain an influential and well-paid position (inspector-general, exchequer, major domo) through maneuvering alone.",
+      "legendary": "Cast aspersions at paragons of virtue and topple them. Arrange an affair with the local ruler, her beloved spouse and their daughter. Become the heir designate for the local throne through political maneuvering."
+    }
+  ]
+}

@@ -1680,6 +1680,92 @@ class NatureType(BaseModel):
     description: str = ""
 
 
+class AttributeDescription(BaseModel):
+    """The reference text for one Attribute (core pp.127-128): the prose, plus the
+    printed 1-5 rung ladder keyed by rating.
+
+    `ladder` values carry the printed rung LABEL inline ("Poor: Weakling (dead lift
+    80 lbs.)."), because that is how the page reads and the label is worthless apart
+    from its text. Display-only — nothing in engine/ reads this."""
+    model_config = ConfigDict(frozen=True)
+
+    id: AttributeName
+    name: str
+    category: str = ""                 # "Physical" / "Social" / "Mental"
+    description: str = ""
+    ladder: dict[int, str] = Field(default_factory=dict)
+
+
+class AbilityDescription(BaseModel):
+    """The reference text for one Ability (core pp.133-140): the prose, the printed
+    sample specialties and the three example feats.
+
+    ⚠ Abilities have NO per-Ability dot ladder in 1e — the rungs are generic and shared
+    (`TraitDescriptions.ability_ladder`). What varies per Ability is the difficulty
+    tiers: `standard` is 1 success, `challenging` 3, `legendary` 5 (p.132). Linguistics
+    prints neither feats nor a specialty LIST — its specialties are a paragraph, which
+    is what `specialties_note` holds; both are empty for every other Ability."""
+    model_config = ConfigDict(frozen=True)
+
+    id: AbilityName
+    name: str
+    description: str = ""
+    specialties: list[str] = Field(default_factory=list)
+    specialties_note: str = ""
+    standard: str = ""
+    challenging: str = ""
+    legendary: str = ""
+
+
+class VirtueDescription(BaseModel):
+    """The reference text for one Virtue (core pp.129-130): the prose, the 1-5 ladder,
+    and the two printed lists of what the Virtue aids and what a character must FAIL a
+    check against it to do.
+
+    Unlike the Attribute ladder the rungs carry no labels — the page prints bare prose
+    per dot, so `ladder` values are that prose verbatim."""
+    model_config = ConfigDict(frozen=True)
+
+    id: VirtueName
+    name: str
+    description: str = ""
+    ladder: dict[int, str] = Field(default_factory=dict)
+    aids_in: str = ""
+    must_fail_check_to: str = ""
+
+
+class TraitDescriptions(BaseModel):
+    """Chapter Four's reference text for the three rated trait families, in one object
+    because `ability_ladder` — the generic Novice/Practiced/Competent/Expert/Master
+    rungs every Ability shares (p.132) — belongs to no single Ability.
+
+    Purely descriptive: the editor shows it beside the dot tracks so a player can read
+    what a rating MEANS. No engine module reads it, and an absent file simply means the
+    dot tracks carry no reference text, as they did before."""
+    model_config = ConfigDict(frozen=True)
+
+    source: Source = Field(default_factory=Source)
+    # Keyed by rating, and unlike the other ladders it starts at 0 — "Unskilled"
+    # is a printed rung for Abilities (with its -2 penalty) and has no Attribute or
+    # Virtue counterpart.
+    ability_ladder: dict[int, str] = Field(default_factory=dict)
+    attributes: list[AttributeDescription] = Field(default_factory=list)
+    virtues: list[VirtueDescription] = Field(default_factory=list)
+    abilities: list[AbilityDescription] = Field(default_factory=list)
+
+    def attribute(self, name: AttributeName) -> AttributeDescription | None:
+        """The row for `name`, or None when the file is absent or omits it."""
+        return next((a for a in self.attributes if a.id == name), None)
+
+    def ability(self, name: AbilityName) -> AbilityDescription | None:
+        """The row for `name`, or None when the file is absent or omits it."""
+        return next((a for a in self.abilities if a.id == name), None)
+
+    def virtue(self, name: VirtueName) -> VirtueDescription | None:
+        """The row for `name`, or None when the file is absent or omits it."""
+        return next((v for v in self.virtues if v.id == name), None)
+
+
 class VirtueFlawType(BaseModel):
     """One of the book's SAMPLE Virtue Flaws — the Great Curse's named perversions of
     a Virtue (core pp.131-133).
@@ -2856,6 +2942,10 @@ class RuleSet(BaseModel):
         default_factory=lambda: {"default": ChargenBudgets()})
     # Optional read-only GM reference screen (data/st_screen.json). None when absent.
     st_screen: Optional[StScreen] = None
+    # Chapter Four's descriptive text for Attributes, Abilities and Virtues
+    # (data/trait_descriptions.json). None when absent — the editor then shows the dot
+    # tracks with no reference text beside them.
+    trait_descriptions: Optional[TraitDescriptions] = None
     # Everything wrong with the user's custom library (custom_content.py), one string
     # per dropped row. Book-data problems are fatal and never reach here — these are
     # non-fatal by design, so the UI shows them as a warning and the app still runs.

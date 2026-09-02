@@ -1058,3 +1058,43 @@ def test_the_ceiling_note_is_a_mortals_only_clause(ruleset, qtbot):
     page = _traits(ruleset, char)
     qtbot.addWidget(page)
     assert _ceiling_note(page) == ""
+
+
+# --------------------------------------------------------------------------- #
+# the trait reference ⓘ (core ch.4 text)
+# --------------------------------------------------------------------------- #
+
+def _info_buttons(page):
+    return [b for b in page.findChildren(QPushButton)
+            if b.toolTip() == "What this rating means (core rulebook)"]
+
+
+def test_traits_page_offers_an_info_button_on_every_rated_trait(ruleset, qtbot):
+    # 9 Attributes + 25 Abilities (Craft included, per-focus though it is) + 4 Virtues.
+    char = Character(id="c.info", exalt_type="Solar", caste="dawn")
+    page = _traits(ruleset, char)
+    qtbot.addWidget(page)
+    assert len(_info_buttons(page)) == 38
+
+
+def test_the_info_button_disappears_without_trait_text(ruleset, qtbot):
+    """The negative control for the button's own switch: the feature is optional data,
+    so a ruleset lacking the file must render no ⓘ rather than an empty dialog."""
+    char = Character(id="c.noinfo", exalt_type="Solar", caste="dawn")
+    page = _traits(ruleset.model_copy(update={"trait_descriptions": None}), char)
+    qtbot.addWidget(page)
+    assert _info_buttons(page) == []
+
+
+def test_the_trait_dialog_shows_the_ladder_and_bolds_the_characters_rung(ruleset, qtbot):
+    from PySide6.QtWidgets import QLabel
+    from exalted_builder.qt.editor import _build_trait_dialog
+
+    info = viewmod.attribute_info(ruleset, AttributeName.STRENGTH, 3)
+    dialog = _build_trait_dialog(None, info, "#000000")
+    qtbot.addWidget(dialog)
+    texts = [w.text() for w in dialog.findChildren(QLabel)]
+    assert "Doughty laborer" in " ".join(texts)
+    bolded = [w.text() for w in dialog.findChildren(QLabel)
+              if "font-weight:700" in w.styleSheet() and w.text().startswith("Good:")]
+    assert len(bolded) == 1, "exactly the character's own rung is bolded"

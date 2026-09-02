@@ -293,3 +293,49 @@ def catalogue_dialog(
     dialog.on_value_change(lambda e: dialog.clear() if not e.value else None)
 
     dialog.open()
+
+
+# --------------------------------------------------------------------------- #
+# The trait reference dialog
+# --------------------------------------------------------------------------- #
+
+def trait_reference_dialog(pal: theme.Palette, info: viewmod.TraitInfo) -> None:
+    """Open a read-only modal showing one trait's core-book text (`viewmod.TraitInfo`).
+
+    Renders the description, then the rung ladder with the character's own rating
+    highlighted, then the trait's ordered (heading, body) sections. Purely
+    descriptive — nothing here edits the character; the dot row beside the ⓘ does that.
+    """
+    with ui.dialog() as dialog, ui.card().classes(
+            f"w-[40rem] max-w-[92vw] max-h-[85vh] flex flex-col p-4 gap-2 {pal.card_solid}"):
+        ui.label(info.title).classes("text-base font-bold").style(f"color:{pal.accent}")
+        ui.label(info.subtitle).classes("text-xs text-gray-600")
+
+        with ui.scroll_area().classes("w-full flex-1 min-h-0"):
+            for para in info.description.split("\n\n"):
+                if para.strip():
+                    ui.label(para).classes("text-sm whitespace-pre-line")
+            if info.ladder:
+                ui.separator().classes("my-2")
+                for rating, text, current in info.ladder:
+                    with ui.row().classes("w-full items-start gap-2 no-wrap"):
+                        # Rung 0 is "Unskilled", which prints as a cross on the page
+                        # rather than as no dots — an empty cell would read as a
+                        # missing value instead of a rung.
+                        pips = "●" * rating if rating else "✕"
+                        ui.label(pips).classes("text-sm w-16 shrink-0").style(
+                            f"color:{pal.accent}")
+                        label = ui.label(text).classes("text-sm flex-1")
+                        if current:
+                            label.classes("font-bold")
+            for heading, body in info.sections:
+                ui.separator().classes("my-2")
+                ui.label(heading).classes("text-xs font-semibold").style(
+                    f"color:{pal.accent}")
+                ui.label(body).classes("text-sm whitespace-pre-line")
+
+        ui.button("Close", on_click=dialog.close).props(f"flat dense color={pal.button}")
+
+    # Same lifecycle as `catalogue_dialog`: close only hides, so delete on any dismissal.
+    dialog.on_value_change(lambda e: dialog.clear() if not e.value else None)
+    dialog.open()

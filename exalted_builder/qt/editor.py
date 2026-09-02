@@ -55,6 +55,75 @@ _TINY_BUTTON = (f"background:{INPUT}; color:#e8e6e1; border:none; border-radius:
                 f"padding:0px; font-weight:700;")
 
 
+def _trait_reference_dialog(parent, info, accent_colour: str) -> None:
+    """Open `_build_trait_dialog` modally. Split from the builder only so a headless
+    test can assemble the dialog without `exec()` blocking the run."""
+    _build_trait_dialog(parent, info, accent_colour).exec()
+
+
+def _build_trait_dialog(parent, info, accent_colour: str) -> QDialog:
+    """Build the read-only modal showing one trait's core-book text (`viewmod.TraitInfo`).
+
+    The Qt twin of `ui.catalogue.trait_reference_dialog`: same TraitInfo, same order
+    (description, rung ladder with the character's rung bolded, then the sections), so
+    the two shells cannot describe a trait differently.
+
+    ⚠ Every wrapped label sets its colour inline. A parent stylesheet outranks a set
+    palette, and the editor's is on an ancestor of this dialog."""
+    dialog = QDialog(parent)
+    dialog.setWindowTitle(f"{info.title} — {info.subtitle}")
+    dialog.resize(560, 620)
+    outer = QVBoxLayout(dialog)
+
+    title = QLabel(info.title)
+    title.setStyleSheet(f"font-size:15px; font-weight:700; color:{accent_colour};")
+    outer.addWidget(title)
+    subtitle = QLabel(info.subtitle)
+    subtitle.setStyleSheet(f"color:{MUTED};")
+    outer.addWidget(subtitle)
+
+    inner = QWidget()
+    lay = QVBoxLayout(inner)
+    lay.setSpacing(8)
+    for para in info.description.split("\n\n"):
+        if para.strip():
+            text = QLabel(para)
+            text.setWordWrap(True)
+            lay.addWidget(text)
+    for rating, rung, current in info.ladder:
+        row = QHBoxLayout()
+        # Rung 0 is "Unskilled", which the page prints as a cross rather than as no
+        # dots — an empty cell would read as a missing value instead of a rung.
+        pips = QLabel("●" * rating if rating else "✕")
+        pips.setFixedWidth(64)
+        pips.setAlignment(Qt.AlignTop)
+        pips.setStyleSheet(f"color:{accent_colour};")
+        row.addWidget(pips)
+        text = QLabel(rung)
+        text.setWordWrap(True)
+        text.setStyleSheet("font-weight:700;" if current else "")
+        row.addWidget(text, 1)
+        lay.addLayout(row)
+    for heading, body in info.sections:
+        head = QLabel(heading)
+        head.setStyleSheet(f"font-weight:700; color:{accent_colour};")
+        lay.addWidget(head)
+        text = QLabel(body)
+        text.setWordWrap(True)
+        lay.addWidget(text)
+    lay.addStretch(1)
+
+    scroll = QScrollArea()
+    scroll.setWidgetResizable(True)
+    scroll.setWidget(inner)
+    outer.addWidget(scroll, 1)
+
+    close = QPushButton("Close")
+    close.clicked.connect(dialog.accept)
+    outer.addWidget(close)
+    return dialog
+
+
 class _Pip(QLabel):
     """One clickable pip of a dot track. Emits its 1-based pip index on click."""
 
@@ -618,6 +687,22 @@ class _EditorPage(QWidget):
     def remove_college(self, idx: int) -> None:
         del self._char().colleges[idx]
         self.reload()
+
+    def _info_button(self, row, make_info, accent_colour: str) -> None:
+        """Append the ⓘ that opens a trait's core-book reference text to `row`.
+
+        `make_info` returns a `viewmod.TraitInfo` or None. Called once now to decide
+        whether the button exists at all (a ruleset with no trait text grows none) and
+        AGAIN on click, so the highlighted rung is the rating at click time."""
+        if make_info() is None:
+            return
+        btn = QPushButton("i")
+        btn.setFixedSize(18, 18)
+        btn.setStyleSheet(_TINY_BUTTON)
+        btn.setToolTip("What this rating means (core rulebook)")
+        btn.clicked.connect(
+            lambda _=False: _trait_reference_dialog(self, make_info(), accent_colour))
+        row.addWidget(btn)
 
     def _specialty_rows(self, group, ability: AbilityName, locked: bool) -> None:
         """One indented child row per specialty GROUP under its Ability's dot row.
@@ -1241,6 +1326,8 @@ class TraitsPage(_EditorPage):
                 name = QLabel(_label(a.value))
                 name.setMinimumWidth(80)
                 row.addWidget(name, 1)
+                self._info_button(row, lambda a=a: viewmod.attribute_info(
+                    ruleset, a, char.attributes[a]), accent)
                 if extra is not None:
                     row.addWidget(extra)
                 cap = self._cap_for(mf, a, b, attr_trait_cap)
@@ -1305,6 +1392,10 @@ class TraitsPage(_EditorPage):
                         m.setStyleSheet(f"color:{accent};")
                         row.addWidget(m)
                         row.addWidget(QLabel("Craft"), 1)
+                        # No single rating to highlight: the rungs are per focus, so
+                        # the ladder shows unmarked.
+                        self._info_button(row, lambda a=a: viewmod.ability_info(ruleset, a),
+                                          accent)
                         row.addWidget(QLabel("↓ per-focus"))
                         group.addLayout(row)
                         continue
@@ -1316,6 +1407,8 @@ class TraitsPage(_EditorPage):
                     name = QLabel(_label(a.value))
                     name.setMinimumWidth(80)
                     row.addWidget(name, 1)
+                    self._info_button(row, lambda a=a: viewmod.ability_info(
+                        ruleset, a, char.abilities[a]), accent)
                     t = track(lambda a=a: char.abilities[a],
                               lambda v, a=a: char.abilities.__setitem__(a, v),
                               0, abil_trait_cap, target=f"abilities.{a.value}")
@@ -1366,6 +1459,8 @@ class TraitsPage(_EditorPage):
         for v in VirtueName:
             row = QHBoxLayout()
             row.addWidget(QLabel(_label(v.value)))
+            self._info_button(row, lambda v=v: viewmod.virtue_info(
+                ruleset, v, char.virtues[v]), accent)
             row.addWidget(track(lambda v=v: char.virtues[v],
                                 lambda val, v=v: char.virtues.__setitem__(v, val),
                                 1, virtue_cap, target=f"virtues.{v.value}"))
