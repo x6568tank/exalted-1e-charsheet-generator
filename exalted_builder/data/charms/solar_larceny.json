@@ -5,13 +5,13 @@
     "category": "larceny",
     "type": "Simple",
     "min_ability": 3,
-    "min_essence": 2,
+    "min_essence": 1,
     "prerequisites": [],
     "cost": {
       "motes": 10
     },
     "duration": "One day",
-    "description": "Grants preternatural intuition about criminal subcultures, fences, and the underworld.",
+    "description": "This Charm grants a character preternatural intuition with regard to criminal subcultures. While under its influence he can easily pick out criminal establishments — pawnshops willing to operate as fences, taverns that are thieves' havens and so on — and can easily pick out those actively interested in buying or selling illegal goods and services, spotting police and officials who will accept bribes and individuals interested in selling or buying drugs, sex or information. He can also read lines of power, differentiating important organized crime figures from small-time operators and quickly tracking down the true thrones and powers of the local underworld. In short, characters with this Charm are at home in any criminal subculture. It does not grant the ability to spot agents provocateurs and informers.",
     "source": {
       "book": "Core",
       "page": 199
@@ -33,7 +33,7 @@
       "motes": 7
     },
     "duration": "One day",
-    "description": "Alters the character's appearance, voice, and scent into a flawless disguise.",
+    "description": "By means of this Charm the character can disguise her appearance, her voice and even her scent. She may not imitate a specific individual, but may alter her apparent age by as much as 20 years (minimum 16), her ethnicity, her height by as much as six inches, and her gender. It is impossible to see through the disguise via mundane means. Characters using this Charm can sometimes be detected via Unsurpassed (Sense) Discipline or All-Encompassing Sorcerer's Sight — in those cases the matter is resolved as normal for disguise attempts, an opposed roll of the disguised character's Wits + Larceny against the Perception + Awareness of the character attempting to detect her.",
     "source": {
       "book": "Core",
       "page": 199
@@ -56,7 +56,7 @@
       "willpower": 1
     },
     "duration": "One hour",
-    "description": "Perfectly imitates a specific person the character knows well, fooling even their intimates.",
+    "description": "This Charm allows a character to perfectly imitate someone she is very familiar with: while it is active, not even the target's pets, intimates and close friends will be able to tell her from the real individual. The character must know the target well to perfectly mirror him — at least well enough to imitate him through mundane disguise. While the Charm covers small mannerisms, responses to in-jokes and so forth, it does not grant access to the mirrored character's memories, so she will not be able to use passwords she does not know, recall facts she is not familiar with and so forth.",
     "source": {
       "book": "Core",
       "page": 200
@@ -74,7 +74,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Picks pockets and palms small objects flawlessly, without chance of detection.",
+    "description": "With this Charm, one of the Chosen can pick someone's pocket flawlessly, with no chance of detection. He must be able to touch the target, though no one will notice him do so, and must have a pouch, pocket or other hiding place large enough to put the stolen items into if he does not wish to end the theft with the filched item simply palmed.",
     "source": {
       "book": "Core",
       "page": 200
@@ -96,7 +96,7 @@
       "motes": 6
     },
     "duration": "Instant",
-    "description": "Steals an object even while it is watched, drawing no notice to the act.",
+    "description": "Much like Flawless Pickpocketing Technique, this Charm allows a character to steal an item without any chance of being caught in the act — but from plain view: a brooch from a table, a key from a jailer's keyring, a sword from its scabbard. Unless attention is somehow drawn to the act (a guard will notice his sword was stolen if he attempts to draw it, a jailer will notice a missing key if he attempts to unlock a door), the theft goes unnoticed for at least a number of turns equal to the character's Essence rating. As with Flawless Pickpocketing Technique, the character must be close enough to touch the object she wishes to steal, and the item cannot be actively in use when it is stolen — this Charm cannot steal the pen or sword out of someone's hand.",
     "source": {
       "book": "Core",
       "page": 200
@@ -119,7 +119,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Steals an object from a distance, with no notice drawn to the theft.",
+    "description": "This Charm is similar to Stealing From Plain Sight Spirit, allowing objects to be stolen from plain view without their loss being noticed for a number of turns equal to the Essence score of the character using it, unless some special notice is drawn to the fact that the object is no longer present. However, Magpie's Invisible Talon allows the character to steal an object from up to one yard away per point of her Essence score. As with Stealing From Plain Sight Spirit, the character cannot steal an object that is actively in use.",
     "source": {
       "book": "Core",
       "page": 200
@@ -131,7 +131,7 @@
     "category": "larceny",
     "type": "Simple",
     "min_ability": 3,
-    "min_essence": 2,
+    "min_essence": 1,
     "prerequisites": [
       [
         "solar.larceny.flawless-pickpocketing-technique"
@@ -141,7 +141,7 @@
       "motes": 5
     },
     "duration": "Instant",
-    "description": "Opens any lock instantly with a touch, as though it were unlocked.",
+    "description": "Through this Charm the character can instantly pick any lock. He needs no tools — all he need do is strike or rap it sharply and it pops open. The character must use this Charm once per lock, so doors with many locks can exhaust an Exalted thief who relies only on it. Lock-Opening Touch works on all locks, not just those built into doors, and can be used to open locked shackles or chests as well.",
     "source": {
       "book": "Core",
       "page": 201
@@ -164,7 +164,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Passes through locked doors and closed portals as though they stood open.",
+    "description": "Some doors do not have locks to pick, being bound closed with bars or sorcery; others are equipped with too many locks to easily pick, even with the assistance of Charms. With this Charm an Exalt can simply step through a locked portal, closed gate, dropped portcullis or other closed portal: the character places her hand against the portal, steps forward and appears on the other side. This Charm also works on windows, sewer grates and other aperture closures, but it does not allow the character to pass through walls, or to stick a hand into a locked chest and fish around.",
     "source": {
       "book": "Core",
       "page": 201

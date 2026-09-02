@@ -11,7 +11,7 @@
       "motes": 4
     },
     "duration": "One scene",
-    "description": "Writes or copies text at supernatural speed with flawless accuracy.",
+    "description": "Through this Charm a character can write or copy with superhuman speed. This does not allow her to write creative works much faster than normal, since the physical act of writing rarely slows a creator, but she can write quickly enough to copy even a large book in a single day, or make an accurate transcript of a rapid conversation containing multiple parties. Pens are not destroyed by the speed, but wear down at the regular rate, and the writing consumes the regular amount of ink. The product is a copy of the work in question, not a perfect facsimile: it is written in the character's own hand, contains as many errors as if she had done it at normal speed without a Charm, and is otherwise an imperfect rendering of the original.",
     "source": {
       "book": "Core",
       "page": 205
@@ -33,7 +33,7 @@
       "motes": 6
     },
     "duration": "One day",
-    "description": "Produces a perfect, indistinguishable copy of any document.",
+    "description": "Sometimes a character needs more than a copy of a document — sometimes he needs a perfect facsimile. Flawless Brush Discipline allows exactly that: the character copies at her regular writing speed, but the result is a perfect replica of the original, indistinguishable from it. A character without colored inks trying to copy illuminated text will produce a carefully shaded monotone replica. Flawless Brush Discipline copies only text and illustrations; it does not allow the character to forge seals or impressions affixed to a document.",
     "source": {
       "book": "Core",
       "page": 206
@@ -55,7 +55,7 @@
       "motes": 6
     },
     "duration": "Instant",
-    "description": "Hides a secret message within an innocuous document, readable only by the intended recipient.",
+    "description": "By carefully injecting allusions, subtle stresses and loaded word choices, the character can embed a secret message in a document of seemingly innocuous character — a shopping list, a bill of lading, even a quickly dashed note. The intended recipient, who must be very familiar to the Exalt using this Charm, is the only one who will be able to comprehend the message, though an Exalt using Sagacious Reading of Intent will be able to detect the technique's use. The hidden message can be no longer, in words, than one-half the length of the \"cover\" document.",
     "source": {
       "book": "Core",
       "page": 206
@@ -81,7 +81,7 @@
       "willpower": 1
     },
     "duration": "One hour",
-    "description": "Reads damaged, erased, or faded text by its faintest traces.",
+    "description": "The character can make out the minute traces of writing that was once readable but has since been damaged or erased — palimpsests, water-soluble inks left in the rain, stone inscriptions rendered unreadable by purposeful vandalism or the action of the elements. Writing of which effectively no traces remain, such as writing on paper burnt to ash or on stone smashed to gravel, cannot be recovered. Discerning Savant's Eye does not give the character the ability to understand a language she cannot normally read, though she may use Flawless Brush Discipline to make a perfect copy of the material as it originally appeared, for later translation.",
     "source": {
       "book": "Core",
       "page": 206
@@ -99,7 +99,7 @@
       "motes": 6
     },
     "duration": "Instant",
-    "description": "Discerns the author's true intent and opinions behind a written text.",
+    "description": "This Charm allows a character reading a letter, book or other form of written text to understand the author's biases, opinions and hidden agendas. Characters using it when reading a book will immediately discern whether, and in what direction, the material is slanted — and this works even if the author is unaware of her own biases. In addition to the obvious uses, the Charm is very useful for detecting literary forgeries.",
     "source": {
       "book": "Core",
       "page": 207
@@ -121,7 +121,7 @@
       "motes": 3
     },
     "duration": "One scene",
-    "description": "Speaks or writes with such eloquence that listeners are moved and swayed.",
+    "description": "Exalted with this Charm can convey ideas and concepts through pantomime, their gestures carrying far more meaning than any normal mortal's. While there is little room for subtlety or poetry, the character can communicate even complex concepts across the language barrier — for example, \"He offended my honor, and I pursue him to seek redress in an honorable duel. Surrender him to me or face my wrath.\" A character is unlikely, however, to succeed in acquiring a lover, unless \"I am attracted to you and desire a sexual encounter\" is all the wooing the potential partner requires.",
     "source": {
       "book": "Core",
       "page": 207
@@ -132,7 +132,7 @@
     "name": "Twisted Words Technique",
     "category": "linguistics",
     "type": "Simple",
-    "min_ability": 5,
+    "min_ability": 4,
     "min_essence": 2,
     "prerequisites": [
       [
@@ -147,7 +147,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Weaves words with hidden meanings, conveying a secret subtext beneath the surface.",
+    "description": "Twisted Words Technique allows one of the Exalted to weight certain words or meanings in a speech or written work in order to sway the listener or reader to a particular way of thinking. Characters with a permanent Willpower lower than the Exalt's Essence score who read or listen to her words will come to agree with the idea she presents. Players whose characters possess a Willpower less than twice the Exalt's Essence must make a Willpower roll or have their characters swayed into a favorable view of the matter. The concealed message must be germane to the topic at hand, but the character can seem to advocate an idea on the surface while the subtext is negative, or vice versa.",
     "source": {
       "book": "Core",
       "page": 207
@@ -172,7 +172,7 @@
       "raw": "8 motes, 1 health level per hour"
     },
     "duration": "Special",
-    "description": "Entrances listeners with an irresistibly captivating recitation that holds them spellbound.",
+    "description": "A character using this Charm can speak in such a magnetic and engaging fashion that listeners simply cannot do anything but pay attention to what he is saying. When he activates it, his player makes a Manipulation + Linguistics roll; thereafter, players of characters with an Essence less than the Exalt's who hear him speak must make a reflexive Willpower roll at a difficulty equal to the number of successes on that roll. Those who fail are entranced by the character's voice and held enraptured until he ceases speaking for more than a few seconds. It is not necessary to speak the Exalt's language to succumb. Attack or other obvious open hostility ends the effect, but only direct physical danger will disrupt it: a brave or suicidal Exalt could use this Charm to keep a platoon of guards in a burning building with him until it was fully aflame, but they would not stand there listening as the flaming timbers started crashing down around them.",
     "source": {
       "book": "Core",
       "page": 207

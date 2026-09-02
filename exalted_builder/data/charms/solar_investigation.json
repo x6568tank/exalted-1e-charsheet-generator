@@ -11,7 +11,7 @@
       "motes": 3
     },
     "duration": "One scene",
-    "description": "Attunes to ambient Essence, adding the character's Essence in automatic successes to Investigation rolls.",
+    "description": "The character attunes himself to the world's ambient Essence and becomes preternaturally aware of the order of and links between objects. For the remainder of the scene, add his Essence score in automatic successes to any Investigation rolls.",
     "source": {
       "book": "Core",
       "page": 185
@@ -33,7 +33,7 @@
       "motes": 5
     },
     "duration": "Instant",
-    "description": "Reconstructs the physical process behind an event from its undisturbed physical evidence.",
+    "description": "By examining the undisturbed physical evidence of an event, the character can reconstruct the physical process behind it — finding a body with a knife wound, for example, he can tell what sort of knife was used, from what direction the blow was struck and so on. This need not be limited to bodies and the scenes of crimes: characters can likewise reconstruct the evidence left behind by liaisons, examine the details of a camp site and so forth. The event must have left significant physical evidence to analyze; if the evidence has been disturbed significantly, the Charm does not function automatically, and the player must instead make a Perception + Investigation roll at a difficulty determined by the amount of disturbance, with success indicating that the character can reconstruct the events.",
     "source": {
       "book": "Core",
       "page": 185
@@ -55,7 +55,7 @@
       "motes": 6
     },
     "duration": "One scene",
-    "description": "Infallibly detects whether a specific person is lying (it detects deliberate falsehoods only).",
+    "description": "This Charm allows the character to tell if a specific individual is lying to her. It is infallible within its limits: if the target refuses to answer or answers in an unclear fashion, the Charm will not indicate him as having lied, and it can only detect lies the target knows to be lies — if he sincerely believes something to be the case, the Charm will not detect him as having lied. This Charm in no way compels or reveals the truth; it only detects falsehoods.",
     "source": {
       "book": "Core",
       "page": 185
@@ -78,7 +78,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Builds a psychological profile of a person from the possessions and evidence they leave behind.",
+    "description": "By sorting through possessions, physical evidence and so on left by a particular individual, an Exalt using this Charm may construct a psychological profile of the character who left the evidence. The clarity of the profile is determined by the amount of material available — the more material, the more likely the character is to derive an accurate picture — and the Investigation Charm Crafty Observation Method is extremely beneficial as an aid to it. If there is material mixed in that does not actually belong to the target of analysis, the Exalt's picture of the target will be distorted.",
     "source": {
       "book": "Core",
       "page": 185
@@ -89,7 +89,7 @@
     "name": "Irresistible Questioning Technique",
     "category": "investigation",
     "type": "Simple",
-    "min_ability": 2,
+    "min_ability": 3,
     "min_essence": 2,
     "prerequisites": [
       [
@@ -100,7 +100,7 @@
       "motes": 5
     },
     "duration": "One scene",
-    "description": "Compels a target to answer a question truthfully, at the cost of their Willpower.",
+    "description": "An Exalt using this Charm can make her questions impossible to resist. During the extended interrogation of a target whose Willpower is equal to or less than her Essence, she may wring him utterly dry — he is unable to lie, dissimulate or otherwise prevaricate. If the target has Willpower equal to or less than twice the Exalt's Essence, her player may make a Manipulation + Investigation roll, and for every success the target must truthfully and to the best of his ability answer a single question; Ten Magistrate Eyes cannot be used to gain extra successes on this roll. The Charm does not work on targets whose Willpower is higher than twice the Exalt's Essence, and it loses its effectiveness with repeated use — if used on the same target more than once during a period equal to the target's Willpower in weeks, it has no effect.",
     "source": {
       "book": "Core",
       "page": 186
@@ -111,7 +111,7 @@
     "name": "Unknown Wisdom Epiphany",
     "category": "investigation",
     "type": "Simple",
-    "min_ability": 3,
+    "min_ability": 5,
     "min_essence": 3,
     "prerequisites": [
       [
@@ -126,7 +126,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Mentally reconstructs and relives a past event by reading the evidence it left behind.",
+    "description": "By visiting the scene of an event and attuning himself to local Essence flows and residues, the Exalt can psychically reenact history, reconstructing the event to the point of gaining insight he could not normally receive from evidence alone. The character must have time alone to go over the scene, touch and examine the largely undisturbed evidence and \"get into the shoes\" of one of the people involved. He then experiences flashbacks of the event from the perspective of the person he is emulating, and gains insight into that person's persona, including her Nature and her superficial feelings and attitudes over the course of the reenacted event. Characters involved in reenacting an event are rarely dangerous, but if disturbed they may very briefly cling to the adopted persona before snapping back to the current moment.",
     "source": {
       "book": "Core",
       "page": 186

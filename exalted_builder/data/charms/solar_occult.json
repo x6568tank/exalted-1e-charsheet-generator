@@ -13,7 +13,7 @@
     },
     "duration": "Instant",
     "grants_circle": "Terrestrial",
-    "description": "Lets the character learn and cast spells of the Terrestrial (First) Circle. Each spell also has its own Essence cost, listed in the spell. Cannot be placed in a Combo.",
+    "description": "While some mortals can manage, by supreme effort, to perform magical rituals, magic is simply another, more draining way of channeling Essence to the Exalted. Characters who have learned this Charm are able to hone their will into the needle-sharp focus needed to perform magic of the so-called First Circle. The cost of the Charm is only to enable the character to cast a single spell; the spell itself has an Essence cost, often very high, that the character must pay to actualize it, listed in the spell's description. Terrestrial Circle Sorcery can never be part of a Combo.",
     "source": {
       "book": "Core",
       "page": 191
@@ -32,12 +32,12 @@
       ]
     ],
     "cost": {
-      "willpower": 1,
-      "raw": "1 Willpower (per spell; each spell also has an Essence cost)"
+      "willpower": 2,
+      "raw": "2 Willpower (per spell; each spell also has an Essence cost)"
     },
     "duration": "Instant",
     "grants_circle": "Celestial",
-    "description": "Lets the character learn and cast spells of the Celestial (Second) Circle, the magic of the Celestial Exalted. Cannot be placed in a Combo.",
+    "description": "Similar to but more powerful than magic of the Terrestrial Circle, Celestial Circle magic is mighty indeed. Dragon-Blooded and mortals are unable to practice this form of magic, but Celestial Exalted can. There are only a handful of individuals in the world who know the secrets of Celestial Circle magic, and characters who wish to learn magic of this circle will have to find these entities and convince them to share their wisdom. Celestial Circle Sorcery can never be part of a Combo.",
     "source": {
       "book": "Core",
       "page": 191
@@ -61,7 +61,7 @@
     },
     "duration": "Instant",
     "grants_circle": "Solar",
-    "description": "Lets the character learn and cast spells of the Solar (Third) Circle, the most powerful sorcery, available only to the Solar Exalted. Cannot be placed in a Combo.",
+    "description": "The most powerful form of magic available to the Exalted: sorcery of the Solar Circle rivals the anger of the Five Elemental Dragons in its power. Only the Solar Exalted can practice magic of this magnitude, and most of it was lost after the murder of the Solars many centuries ago, so there are practically no spells of the Solar Circle left outside the Imperial Library. Characters who wish to reclaim this legacy without centuries of magical research will have to either search far and wide for magic or bargain with the Yozis and Deathlords for such scraps of power as they can be persuaded to part with. Solar Circle Sorcery can never be part of a Combo.",
     "source": {
       "book": "Core",
       "page": 191
@@ -82,7 +82,7 @@
     "grants_circle": "Shadowlands",
     "description": "The necromancy of the First Circle, binding the dark energies of the Underworld — potent but limited in scope. Invoking this Charm enables the character to cast a single Shadowlands Circle Necromancy spell; the spell's own Essence cost (listed in its description) must also be paid. Shadowlands Circle Necromancy can never be part of a Combo. (Solars may learn Shadowlands and Labyrinth Circle Necromancy, but never the Void Circle.)",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 197
     }
   },
@@ -105,7 +105,7 @@
     "grants_circle": "Labyrinth",
     "description": "The necromancy of the Second Circle — the stuff of nightmares and dreams best left to dead gods, offering great and terrible power. Enables the character to cast a single Labyrinth Circle Necromancy spell; the spell's own Essence cost must also be paid. Labyrinth Circle Necromancy can never be part of a Combo.",
     "source": {
-      "book": "Core",
+      "book": "The Abyssals",
       "page": 198
     }
   },
@@ -121,7 +121,7 @@
       "motes": 3
     },
     "duration": "One scene",
-    "description": "Perceives unmanifested spirits, gods, ghosts, and demons that would otherwise be invisible.",
+    "description": "This Charm allows the character to perceive unmanifested spirits. Normally spirits must manifest (appear but remain intangible) or materialize (appear in physical form) to be perceived; characters with this Charm can see them when they have done neither. Spirits in their natural form appear much as they do when manifested or materialized, though the character can clearly distinguish them from those that are actually visible. This Charm does not make the character any more able to strike or harm spirits, though it does make it much easier for her to direct her attacks.",
     "source": {
       "book": "Core",
       "page": 192
@@ -143,7 +143,7 @@
       "motes": 2
     },
     "duration": "Instant",
-    "description": "Lets the character's attacks strike and harm dematerialized spirits.",
+    "description": "This Charm allows the character to launch a single attack at an unmanifested spirit; for the purposes of that attack, she attacks the spirit as if it were manifested normally. Characters who do not have Spirit-Detecting Glance active, or who are not using some other means of perceiving spirits, will be attacking blind — a +2 difficulty modifier. Spirits killed via Spirit-Cutting Attack will eventually regenerate, but the process takes some time, potentially decades, and is quite unpleasant for the spirit. Spirit-Cutting Attack is explicitly permitted to be part of a Combo with Charms of other Abilities.",
     "source": {
       "book": "Core",
       "page": 192
@@ -165,7 +165,7 @@
       "motes": 5
     },
     "duration": "Instant",
-    "description": "Devours a slain ghost's Essence, permanently destroying it and feeding the character's pools.",
+    "description": "This Charm is similar to Spirit-Cutting Attack, but the character's blows are much more dangerous. Name aside, the character does not actually place the spirit into her mouth, though she does consume its Essence, and its death at her hands is permanent. A blow struck using this Charm does aggravated damage to unmaterialized spirits and drains away motes of the spirit's Essence equal to twice the character's permanent Essence, which are added to her own store; drained motes that would take her above her normal maximum are still drained, but dissipate without benefit. Spirits that have materialized are no longer vulnerable to the Ghost-Eating Technique. This Charm is the weapon by which the Exalted slew the enemies of the gods, and spirits hate and fear it. It is explicitly permitted to be part of a Combo with Charms of other Abilities.",
     "source": {
       "book": "Core",
       "page": 192
@@ -187,7 +187,7 @@
       "motes": 10
     },
     "duration": "One scene",
-    "description": "Inscribes a diagram that bars spirits from an area or holds a bound spirit at bay.",
+    "description": "Through this Charm characters can drive unmaterialized spirits away from an area and bar them from entry. The character spreads her arms and a blazing circle of gold-white light erupts, a number of yards in radius equal to her Essence. All unmaterialized spirits within the diagram who have a lower maximum Essence pool than the character must either flee the warded area or materialize. Unmaterialized spirits outside the diagram with maximum Essence pools lower than the character's may not use their Charms to affect those within it, nor may they enter it. Spirits that have materialized are no longer subject to the diagram.",
     "source": {
       "book": "Core",
       "page": 193
@@ -198,7 +198,7 @@
     "name": "All-Encompassing Sorcerer's Sight",
     "category": "occult",
     "type": "Simple",
-    "min_ability": 2,
+    "min_ability": 5,
     "min_essence": 2,
     "prerequisites": [
       [
@@ -209,7 +209,7 @@
       "motes": 6
     },
     "duration": "One scene",
-    "description": "Perceives the flow of Essence in the world, identifying enchantments, Manses, and demesnes.",
+    "description": "This powerful Charm allows a character to perceive the flows of Essence at work in the world around him. Far more detailed than Spirit-Detecting Glance or the intuition for magic that every sorcerer possesses, it allows characters to actually see the Essence of the world: not only spirits, but the great gauzy rivers of the dragon tracks and the shatteringly brilliant fountains and spires of Manses and Demesnes. Exalted using this Charm can distinguish the diamond-bright lattices of Charms and sorcery at work, allowing them to spot most enchantments without the need for any roll. With a successful Intelligence + Occult roll, a character can even identify the kind of enchantment and — if he is sufficiently familiar with her handiwork — the Exalt who caused the magic to come into existence.",
     "source": {
       "book": "Core",
       "page": 193

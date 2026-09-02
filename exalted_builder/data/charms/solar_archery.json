@@ -11,7 +11,7 @@
       "raw": "1 mote per die"
     },
     "duration": "Instant",
-    "description": "Adds one die per mote to a single Archery attack (up to double the Dexterity + Archery pool); the arrow curves to find its target.",
+    "description": "The character extends her anima into the world around her and joins archer, target and arrow into a single being. For each mote of Essence the player spends, he may add one die to an Archery attack roll, but the number of bonus dice added to any single roll cannot exceed her normal Dexterity + Archery dice pool. The player must declare how much Essence she is going to use prior to making the attack roll.",
     "source": {
       "book": "Core",
       "page": 154
@@ -33,7 +33,7 @@
       "motes": 1
     },
     "duration": "Instant",
-    "description": "Senses the target without sight, negating penalties from darkness, cover, or invisibility (heavy weather still applies).",
+    "description": "The character opens her eyes not to the visual world but to the world of Essence, and senses her target in that fashion. She may make an Archery attack without penalty for visual conditions. Other negative modifiers — high winds, range and so forth — still impose their regular penalties.",
     "source": {
       "book": "Core",
       "page": 154
@@ -56,7 +56,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Makes an Archery attack out to the bow's maximum range with absolute certainty the shot hits.",
+    "description": "The character extends her sense of the local Essence flows to greater heights and can now shoot with perfect assurance. She may make an Archery attack out to the maximum range of the bow with absolute certainty that the shot will hit: the player rolls to attack as normal, but if he rolls insufficient successes for his character to hit the target, she still hits it, doing the arrow's base damage. The Charm can also be used to hit small objects, to cut cords and ropes and for other trick shots. It does not, however, allow the archer to negate the target's armor via a called shot to the eye, throat or what have you.",
     "source": {
       "book": "Core",
       "page": 154
@@ -78,7 +78,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "The arrow flies with perfect grace, ignoring all environmental attack penalties such as wind and rain.",
+    "description": "The character's Essence flows into the bow and arrow, and he fires with a perfect, supple grace. The character may make an Archery attack without any environmental penalties of any sort, be they for range, high winds, bad weather, bad ammunition or what have you — the Charmed shot is absolutely flawless. Splitting a dice pool for multiple actions is not an environmental penalty.",
     "source": {
       "book": "Core",
       "page": 155
@@ -89,7 +89,7 @@
     "name": "Trance of Unhesitating Speed",
     "category": "archery",
     "type": "Extra Action",
-    "min_ability": 4,
+    "min_ability": 3,
     "min_essence": 1,
     "prerequisites": [
       [
@@ -100,7 +100,7 @@
       "raw": "Varies"
     },
     "duration": "Instant",
-    "description": "Looses extra arrows as additional attacks (motes per extra attack, up to the character's Dexterity), each at the full pool.",
+    "description": "The character flows with soft and unhesitating grace through the motions of firing her weapon. Before the character takes her first action for the turn, the player must declare how many attacks the character will make this turn. Each extra attack costs a number of motes of Essence equal to twice the total number of attacks the character has made so far, including the attack the character is buying — so three extra attacks (four in total) cost 18 motes: 4 for the first extra attack, 6 for the second and 8 for the third. The player must decide how many attacks the character will make and pay for them all before he makes any attack rolls. A character cannot attack more times than she has ammunition.",
     "source": {
       "book": "Core",
       "page": 155
@@ -123,7 +123,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Releases a storm of arrows in a single action, attacking many targets at once.",
+    "description": "The character's motions become smooth and economical, optimized for the release of arrows with a minimal expenditure of effort. So long as the character hits (she need not do damage) with an attack, she may make another attack immediately thereafter. Each attack must be at a different target, and the character cannot make more attacks than she has ammunition. This Charm ends when the character misses or when she has hit every possible target once.",
     "source": {
       "book": "Core",
       "page": 155
@@ -134,14 +134,14 @@
     "name": "Fiery Arrow Attack",
     "category": "archery",
     "type": "Supplemental",
-    "min_ability": 3,
+    "min_ability": 2,
     "min_essence": 2,
     "prerequisites": [],
     "cost": {
       "motes": 2
     },
     "duration": "Instant",
-    "description": "Sets the arrow ablaze, igniting flammable targets and adding the character's Essence to its damage.",
+    "description": "The character concentrates Essence in an arrow and then launches it, causing it to burst into flame in mid-flight. Not only will the arrow ignite flammable materials it hits, it also adds dice equal to the character's Essence score to the arrow's damage. Arrows that have had this Charm used on them are burnt to cinders and cannot be recovered. Indiscriminately firing burning arrows in a forest or grassland during the dry season is generally a bad idea.",
     "source": {
       "book": "Core",
       "page": 156
@@ -163,7 +163,7 @@
       "raw": "1 mote per 2 damage"
     },
     "duration": "Instant",
-    "description": "The flaming arrow bursts into a blinding flare on impact, dazzling foes near its target.",
+    "description": "The character pours greater amounts of Essence into an arrow, and it roars and flashes with Essence as it streaks toward its target. The arrow flies faster and straighter than normal, adding one die to the character's Archery pool. For every mote of Essence the character spends on the Charm, it adds two points to the base damage of the arrow. The Exalted cannot spend more motes activating this Charm than her permanent Essence rating, and must spend at least one mote — the Charm cannot be activated \"for free\" to gain the bonus die. If fired on a high arc through the air, the arrow forms a beacon that can be seen for miles. Arrows used with this Charm are burned to fine gray ash and cannot be recovered.",
     "source": {
       "book": "Core",
       "page": 156
@@ -185,7 +185,7 @@
       "raw": "1 mote per arrow"
     },
     "duration": "Instant",
-    "description": "Conjures arrows of solidified Essence, removing dependence on physical ammunition.",
+    "description": "The bane of the archer is his dependence on ammunition. Through this Charm the Exalted can transcend the need for it, at least while he possesses the Essence to power the Charm: as the character draws his bow, he shapes a mote of Essence into a glittering arrow. This arrow has normal range and damage, but winks out of existence a few seconds after impact. The Essence arrow can be Comboed with Charms such as Dazzling Flare Attack or Rain of Feathered Death, allowing a character to conjure powerful attacks from thin air.",
     "source": {
       "book": "Core",
       "page": 156
@@ -207,7 +207,7 @@
       "raw": "1 mote per 2 dice of damage"
     },
     "duration": "Instant",
-    "description": "Fires a blazing spike of Essence that adds damage and can strike incorporeal creatures of the night.",
+    "description": "The character pulls a blazing bolt of Essence across her bow. It is fired as a normal arrow, but does a base damage of twice the number of motes the character spent conjuring it; she cannot spend more motes on a Solar Spike than she has dots in the Archery Ability. The Spike moves as quickly as a flash of lightning and is not subject to penalties for range or wind, though poor visibility can hamper shooting, and it can be fired out to (the firing character's Essence x 100) yards. Regardless of the target's soak, Solar Spikes that strike demons, undead and other creatures of the night always roll at least as many dice of damage as the firing character's Essence. Solar Spike is not compatible with arrow-enhancing Charms such as Fiery Arrow Attack and Rain of Feathered Death; its damage is determined only by the motes spent and the extra successes rolled on the attack — the bow's damage is not added.",
     "source": {
       "book": "Core",
       "page": 157
@@ -230,7 +230,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Conjures a radiant bow of pure Essence for a scene; it carries no ammunition of its own (use Phantom Arrow Technique).",
+    "description": "The Exalted can substitute his Essence not only for ammunition but for his weapon as well, shaping Essence into a deadly bow. As an extension of the character's anima, each bow is unique to the Exalt who conjured it; all, however, have the same statistics — they do the character's Strength + Essence damage and have the range of a compound bow. The Immaculate Golden Bow does not come with ammunition, so characters without arrows will need to use Phantom Arrow Technique.",
     "source": {
       "book": "Core",
       "page": 157
@@ -252,7 +252,7 @@
       "raw": "3 motes per duplicate"
     },
     "duration": "Instant",
-    "description": "Multiplies one arrow into a rain of duplicates that strike multiple targets, or one target many times.",
+    "description": "The character bundles Essence tightly around the arrow as she fires, and as the shaft arcs toward the target it is multiplied. Use one attack roll for all the arrows, but apply the damage from each of them separately. The character cannot create more duplicate arrows than her Essence score, and all the arrows in the Rain of Feathered Death must attack the same target.",
     "source": {
       "book": "Core",
       "page": 157

@@ -11,7 +11,7 @@
       "motes": 5
     },
     "duration": "One scene",
-    "description": "Commands the respect and attention of an audience during a performance.",
+    "description": "This Charm allows a character to command the respect of an audience. While they may not be swayed by his arguments or impressed by his performance, they will pay him heed and refrain from heckling him or leaving the venue in significant numbers prior to the end of the performance.",
     "source": {
       "book": "Core",
       "page": 172
@@ -34,7 +34,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "A commanding rebuke that disperses an unruly or hostile crowd.",
+    "description": "Violent mobs can endanger even the Exalted, and their numbers can drag down even the mightiest of the Chosen — but those who compose the mob are probably not normally so violent or dangerous, and the riot has likely begun over some legitimate grievance, so laying about with lethal force is likely to cause serious repercussions. Through this Charm a character can deliver a stern rebuke and shatter the inertia holding an angry mob together; without significant further impetus, the crowd will disperse. This Charm does nothing to an organized or disciplined force.",
     "source": {
       "book": "Core",
       "page": 172
@@ -57,7 +57,7 @@
       "willpower": 1
     },
     "duration": "3 turns",
-    "description": "A rallying gesture that halts a panicked rout and steadies fleeing allies.",
+    "description": "A stampeding crowd or a routing unit is a danger to everyone in the vicinity: the crush of a panicked crowd will clog a door and leave no room for escape, and a routing unit will shatter, leaving its members vulnerable to attacks that could never have been pressed home against the formation. Using this Charm, the character burns with an incandescent blaze of Essence, radiating power and reassurance. All those within a radius of (10 x the Exalt's Essence rating) yards are immediately steadied: those who have failed Valor checks can roll again, and characters who must make new Valor checks are assumed to succeed. Rout-Stemming Gesture can even overcome supernatural panic, such as that caused by the Terrifying Apparition of Glory Charm or by the anima power of a Dawn Caste Solar.",
     "source": {
       "book": "Core",
       "page": 172
@@ -80,7 +80,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Whips a crowd into a fury, inciting them to riot or violence.",
+    "description": "The persuasive power of an Exalt channeling Essence into Social Charms can raise mobs as well as disperse them. With 10 to 20 minutes of haranguing a crowd on nearly any subject, an Exalt can whip the listeners into an angry mob. A mob raised in this fashion lasts a number of hours equal to the character's Essence rating, but — like a natural mob — will disperse if subjected to organized opposition that cannot be immediately overwhelmed, or if left idle without things to smash or burn for more than 10 or 20 minutes.",
     "source": {
       "book": "Core",
       "page": 173
@@ -103,7 +103,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Inspires troops to deeds of great heroism, boosting morale and combat rolls.",
+    "description": "The Solar Exalted can inspire far more than simple mob violence. An Exalt in battle can radiate the confidence and surety of the Unconquered Sun, lifting the souls of those around her and inspiring them to feats of great heroism. All friendly troops within a radius equal to (the character's Essence x 100) yards are affected: assume that individual soldiers all operate with a bonus die to all combat-related dice pools from improved morale, and do not fail Valor rolls. The effect on the overall outcome of the battle is up to the Storyteller to decide, but it should have considerable influence.",
     "source": {
       "book": "Core",
       "page": 173
@@ -129,7 +129,7 @@
       "willpower": 2
     },
     "duration": "One week",
-    "description": "Drills raw recruits into disciplined, capable soldiers over the course of a week.",
+    "description": "Actual combat is only the end of a long process that begins with the recruitment and training of soldiers. Exalted who know this Charm can take even the worst gutter-sweepings or bandits and train them into a deadly, disciplined fighting force, supervising the training of up to (their Essence rating x 100) soldiers in a given week. Soldiers trained for one or more months by an Exalt using this Charm should be treated as elite troops — well-disciplined, with ratings of at least 3 in the relevant combat Abilities, at least one specialty, Valor ratings of at least 3 and at least one Physical Attribute at 3. Already-trained troops, or troops trained for more than one month, can excel even these ratings.",
     "source": {
       "book": "Core",
       "page": 173
@@ -147,7 +147,7 @@
       "raw": "2 motes per success"
     },
     "duration": "Instant",
-    "description": "Channels Essence through the voice or instrument to enhance a performance, adding successes.",
+    "description": "The character channels Essence through his voice or his instrument, enhancing his delivery and making the final result flow far more effectively than it would naturally. The player first makes a regular Charisma + Performance roll, then may \"buy\" additional successes up to (the character's permanent Essence rating + the number of successes rolled on that roll). Each success bought in this fashion costs 2 motes of Essence.",
     "source": {
       "book": "Core",
       "page": 174
@@ -172,7 +172,7 @@
       "motes": 5
     },
     "duration": "One scene",
-    "description": "Weaves illusions into a performance, conjuring phantom images to illustrate the tale.",
+    "description": "A character who possesses this Charm can give a performance so compelling that it plays out in the form of phantom images that swirl through the air around her. If it is a narrative performance the images illustrate the narrative; if it is an abstract performance they simply underscore and highlight it. Typically this adds a number of dice equal to the character's Essence rating to the player's next Charisma + Performance roll. The images actually appear, fading in and out of existence around the character. This Charm is compatible with Masterful Performance Exercise.",
     "source": {
       "book": "Core",
       "page": 174
@@ -195,7 +195,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Compels a chosen emotion in the audience through performance, swaying their hearts.",
+    "description": "The character can channel Essence through her performance to evoke a certain emotion in those who witness it. The player chooses the emotion — anger, fear, pride, happiness, jealousy or whatever else he wishes — and then makes a Manipulation + Performance roll. Targets with a Willpower lower than the number of successes achieved are overcome with the emotion in question and act accordingly. Those with Willpower below twice the number of successes rolled may make a Willpower roll to resist the emotion. Those whose Willpower is greater than twice the number of successes are unaffected.",
     "source": {
       "book": "Core",
       "page": 174
@@ -221,7 +221,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Reweaves a narrative so plausibly the audience comes to believe it, reshaping memory.",
+    "description": "This Charm allows a character to weave a narrative so plausible and so compelling that those who hear it forget the truth of a matter and come to believe the narrative. The player makes a Manipulation + Performance roll; the number of successes determines how much evidence to the contrary the target must be confronted with before he is able to shake off the lingering effects of the Charm, one piece of contradicting evidence per success. A Solar in a situation where there is very little clear evidence can effectively rewrite history with a little careful planning. This Charm need not be used as part of a performance per se — characters who know it can also use it during conversation, making them quite dangerous in the world of courtly intrigue.",
     "source": {
       "book": "Core",
       "page": 175
@@ -273,7 +273,7 @@
       "raw": "4 motes"
     },
     "duration": "Instant",
-    "description": "As with Commanding the Ideal Celestial Army, a character using this Charm can give an order audible to all troops under her command. In addition, the instant before she gives the order, she receives impressions of how the battle is going on every front. The character is aware of any weakness in her lines and of which troops (if any) can safely be moved elsewhere. This knowledge combined with the ability to give a short command (two dozen words or less) to either the entire army or to any section of it \u2014 for example, \"the cavalry\" or \"the troops on the left flank\" \u2014 enables the character to exercise amazing control over her soldiers.",
+    "description": "As with Commanding the Ideal Celestial Army, a character using this Charm can give an order audible to all troops under her command. In addition, the instant before she gives the order, she receives impressions of how the battle is going on every front. The character is aware of any weakness in her lines and of which troops (if any) can safely be moved elsewhere. This knowledge combined with the ability to give a short command (two dozen words or less) to either the entire army or to any section of it — for example, \"the cavalry\" or \"the troops on the left flank\" — enables the character to exercise amazing control over her soldiers.",
     "source": {
       "book": "Caste Book: Dawn",
       "page": 76
@@ -424,7 +424,7 @@
       "raw": "Special"
     },
     "duration": "Special",
-    "description": "Through the use of this Charm, the Exalted weaves a complicated false identity around herself. The identity is complete with a detailed history and natural personality traits. Mere conversation cannot detect any flaws in the identity. In fact, the infallibility of the identity is perfect until the Exalted chooses to drop the fa\u00e7ade or she is faced with an investigative intellect that is likewise Charm-enhanced. King of Masks Technique provides no resistance to interrogation techniques.\n\nWhen invoking the Charm, the Exalted crafts a back-story for herself and her player makes a Intelligence + Performance roll, adding one automatic success for each mote of Essence she chooses to invest. The total number of successes is the number of successes an investigator must achieve to see through the false identity, but this can never exceed twice the character's Intelligence + Performance pool. Only Charm-enhanced Investigation rolls will reduce this pool of successes, but all such investigations are cumulative. The Fair Folk and beings with Essence higher than the character are immune to the effects of this Charm.\n\nAt the time of an identity's creation, the Exalted may spend one experience point to make the identity permanent. The character may resume a permanent identity at any time by spending half as many motes of Essence as she originally spent creating the identity. Persistent investigators can wear away at and eventually destroy permanent identities. If an identity is pierced, then the experience point is lost. Permanent identities can be investigated even when the character is not using them. Motes of Essence spent creating a permanent identity are not committed after the identity is first \"put aside,\" but whenever the character resumes the identity, the Essence she pays to resume it is committed while she uses the identity.\n\nThis Charm cannot be used to mimic specific individuals. It can only create fictional identities. An Exalted may have as many permanent identities as she has points of permanent Essence.",
+    "description": "Through the use of this Charm, the Exalted weaves a complicated false identity around herself. The identity is complete with a detailed history and natural personality traits. Mere conversation cannot detect any flaws in the identity. In fact, the infallibility of the identity is perfect until the Exalted chooses to drop the façade or she is faced with an investigative intellect that is likewise Charm-enhanced. King of Masks Technique provides no resistance to interrogation techniques.\n\nWhen invoking the Charm, the Exalted crafts a back-story for herself and her player makes a Intelligence + Performance roll, adding one automatic success for each mote of Essence she chooses to invest. The total number of successes is the number of successes an investigator must achieve to see through the false identity, but this can never exceed twice the character's Intelligence + Performance pool. Only Charm-enhanced Investigation rolls will reduce this pool of successes, but all such investigations are cumulative. The Fair Folk and beings with Essence higher than the character are immune to the effects of this Charm.\n\nAt the time of an identity's creation, the Exalted may spend one experience point to make the identity permanent. The character may resume a permanent identity at any time by spending half as many motes of Essence as she originally spent creating the identity. Persistent investigators can wear away at and eventually destroy permanent identities. If an identity is pierced, then the experience point is lost. Permanent identities can be investigated even when the character is not using them. Motes of Essence spent creating a permanent identity are not committed after the identity is first \"put aside,\" but whenever the character resumes the identity, the Essence she pays to resume it is committed while she uses the identity.\n\nThis Charm cannot be used to mimic specific individuals. It can only create fictional identities. An Exalted may have as many permanent identities as she has points of permanent Essence.",
     "source": {
       "book": "Caste Book: Zenith",
       "page": 78

@@ -11,7 +11,7 @@
       "raw": "1 mote per die"
     },
     "duration": "Instant",
-    "description": "Adds one die to a single attack per mote spent, to a maximum of double the character's Dexterity + Melee dice pool.",
+    "description": "The Exalt fills her weapon with crackling Essence, making her swing hard and true. For each mote of Essence spent on this Charm, the player may add one die to a single attack, but can no more than double her character's regular Dexterity + Melee dice pool.",
     "source": {
       "book": "Core",
       "page": 162
@@ -33,7 +33,7 @@
       "motes": 1
     },
     "duration": "Instant",
-    "description": "The attack's extra successes are counted as automatic damage successes; the Essence must be spent before the attack roll.",
+    "description": "The Exalt charges her body and weapon with Essence, unifying the two and making her attack as if the weapon were an extension of her being. If the attack is successful, the player counts the extra successes twice for the purposes of determining damage. The Essence to power this Charm must be spent prior to making the attack roll.",
     "source": {
       "book": "Core",
       "page": 163
@@ -55,7 +55,7 @@
       "raw": "1 mote per health level"
     },
     "duration": "Instant",
-    "description": "Adds an extra die of damage for each mote of Essence spent, up to the character's Strength; a botched damage roll may break ordinary weapons.",
+    "description": "The character focuses her Essence into her weapon and swings a terrible blow. If the blow is successful, her attack does an additional die of damage for every mote of Essence she spent activating the Charm. Characters cannot spend more Essence on Fire and Stones Strike than they have dots of Strength, and the cost must be spent before the attack roll. If a non-orichalcum weapon is used to do more automatic damage successes than its damage rating, it will probably break.",
     "source": {
       "book": "Core",
       "page": 163
@@ -77,7 +77,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Lets the character attack twice in one turn; the two attacks are rolled separately.",
+    "description": "The Exalt charges her weapon arm with Essence, and it becomes as fast as a striking snake. The character may attack a target twice in one turn. The attacks both occur on the character's initiative, but each is rolled separately. If the defender attempts to dodge or parry, one roll is made and the results are applied to both attacks.",
     "source": {
       "book": "Core",
       "page": 163
@@ -89,7 +89,7 @@
     "category": "melee",
     "type": "Extra Action",
     "min_ability": 3,
-    "min_essence": 3,
+    "min_essence": 1,
     "prerequisites": [
       [
         "solar.melee.one-weapon-two-blows"
@@ -99,7 +99,7 @@
       "raw": "Varies"
     },
     "duration": "Instant",
-    "description": "Buys multiple additional attacks in a turn (2 motes per extra attack, up to the character's Essence), each at the full dice pool.",
+    "description": "The Exalt surrounds herself with a nimbus of Essence, and her movements become as rapid and smooth as ice on hot metal. She may make multiple attacks, either against multiple targets or a single opponent, as many times as she likes so long as she has sufficient Essence to fuel the Charm. Each attack costs motes equal to twice the total number of attacks the character has made that turn, including his normal attack — a character making five attacks would pay 28 motes (4 + 6 + 8 + 10). The player must declare how many attacks the character will make before she takes her first action. The character cannot split her Melee dice pool and use this Charm in the same turn, so a Combo with some sort of defensive Charm is recommended. Defenders must dodge or parry each attack separately.",
     "source": {
       "book": "Core",
       "page": 163
@@ -122,7 +122,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "A flurry of strikes and thrusts, splitting the Melee dice pool among as many attacks as the character's Dexterity.",
+    "description": "The character permeates his body with raw Essence, so much that it wraps around him in a gauzy corona and leaves trailing streaks behind his lightning-fast strikes and thrusts. On the turn he uses this Charm, the character may make a total number of attacks equal to his Dexterity. He cannot split his Melee dice pool and use this Charm in the same turn, so a Combo with some sort of defensive Charm is recommended.",
     "source": {
       "book": "Core",
       "page": 163
@@ -140,7 +140,7 @@
       "motes": 1
     },
     "duration": "Instant",
-    "description": "Calls a dropped or thrown weapon back into the character's hand.",
+    "description": "The Exalt may use the bonds that form between a weapon and its wielder to call his chosen implement of battle to his hand. This Charm can overcome friction and gravity to carry the weapon through the air to the character, but cannot defeat doors, chains and other such substantial hindrances. The character must have his weapon hand empty and must be able to see the weapon in order to call it. He must have used the weapon and be familiar with it to use this Charm on it — it must be his weapon.",
     "source": {
       "book": "Core",
       "page": 163
@@ -162,7 +162,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Summons a visible weapon across a distance into the character's hand.",
+    "description": "The character may call her weapon back to her hand, even if she cannot see it. The weapon does not traverse the space between its location and the character's hand; it simply flashes into her grasp. The call reaches only (10 x the character's Essence) yards — if the weapon is farther than that, the Charm fails. As with Retrieve the Fallen Weapon, the character cannot use this power to steal weapons, only to call her own weapon to her.",
     "source": {
       "book": "Core",
       "page": 163
@@ -174,7 +174,7 @@
     "category": "melee",
     "type": "Reflexive",
     "min_ability": 3,
-    "min_essence": 3,
+    "min_essence": 1,
     "prerequisites": [
       [
         "solar.melee.call-the-blade"
@@ -185,7 +185,7 @@
       "raw": "1 mote to summon or banish"
     },
     "duration": "Instant",
-    "description": "Summons or banishes a single attuned weapon to or from Elsewhere.",
+    "description": "The character simply gestures, and his weapon flashes to his hand, appearing instantly in his grasp regardless of its previous location. A character who is holding his weapon can also banish it, spending a mote of Essence to place it Elsewhere. Weapons placed Elsewhere are gone from the world and can only be reached by their Exalted owner through the use of this Charm. The Exalt must have an extremely close relationship with a single weapon to use Summoning the Loyal Steel on it, and cannot know more than one weapon at a time well enough to place it Elsewhere.",
     "source": {
       "book": "Core",
       "page": 164
@@ -196,7 +196,7 @@
     "name": "Glorious Solar Saber",
     "category": "melee",
     "type": "Simple",
-    "min_ability": 4,
+    "min_ability": 3,
     "min_essence": 2,
     "prerequisites": [
       [
@@ -208,7 +208,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Forms a blade of pure Essence in hand, dealing base lethal damage equal to the character's Strength, lasting a scene.",
+    "description": "The character can now never be disarmed. She concentrates Essence in her hand, forming a glittering golden blade of pure magical energy that does a base lethal damage equal to the character's Strength plus her Essence score. The blade glows brightly enough to light an area three or four yards across. Each Exalt's blade is different, perfectly matching her personality and fighting style.",
     "source": {
       "book": "Core",
       "page": 164
@@ -230,7 +230,7 @@
       "motes": 2
     },
     "duration": "Instant",
-    "description": "Hurls a melee weapon as a ranged attack out to (Dexterity x5) yards, after which it returns to hand.",
+    "description": "This Charm allows the character to use his weapon to attack up to (Dexterity x 5) yards away. The weapon whirls through the air to strike its target, like a bloodthirsty metal bird of prey, and then spins obediently back to the wielder's hand. The character attacks with his Melee pool as usual, and the damage is determined using his Strength as if it were a normal Melee attack. Iron Raptor attacks can be blocked like normal Melee attacks. Botched Iron Raptor attacks can result in stuck or lost weapons, or injury to the Exalt using the Charm.",
     "source": {
       "book": "Core",
       "page": 164
@@ -252,7 +252,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Charges the weapon with Essence to strike a distant target, dealing lethal damage.",
+    "description": "The character charges his weapon with Essence and strikes a blow at a distant target: a slashing edge of concentrated force leaps from the weapon and races toward it. The character attacks with his Dexterity + Melee dice pool and does a base lethal damage of his Strength + his Essence. The Sandstorm-Wind Attack is blocked as a ranged attack, not as a Melee attack, and can strike characters up to (10 x the character's Essence) yards away.",
     "source": {
       "book": "Core",
       "page": 165
@@ -263,7 +263,7 @@
     "name": "Edge of Morning Sunlight",
     "category": "melee",
     "type": "Supplemental",
-    "min_ability": 4,
+    "min_ability": 5,
     "min_essence": 2,
     "prerequisites": [
       [
@@ -274,7 +274,7 @@
       "motes": 1
     },
     "duration": "Instant",
-    "description": "Invests the weapon with Essence to deal aggravated damage against creatures of darkness and the undead.",
+    "description": "The character concentrates on manifesting his Essence through the medium of his weapon. The weapon becomes invested with Solar power and is highly effective against creatures of darkness, the undead and the Abyssal Exalted: it adds the character's Essence to its regular damage when used against such creatures.",
     "source": {
       "book": "Core",
       "page": 166
@@ -297,7 +297,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Wreathes the weapon in burning Essence for a scene, dealing aggravated damage to the undead and creatures of darkness.",
+    "description": "The character channels Essence through her body, using her weapon as an aggressive focus. Her flesh coruscates with flickering Solar energy, and attacks against her by undead, creatures of the night and Abyssal Exalted are at +1 difficulty. If such creatures strike her without using a weapon, they must soak aggravated damage equal to the character's Essence. While Corona of Radiance is active, the Exalt's attacks against such creatures do aggravated damage and have a damage bonus equal to her Essence.",
     "source": {
       "book": "Core",
       "page": 166
@@ -323,7 +323,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Channels Solar Essence into a leaping bolt that strikes a distant target for the weapon's damage, aggravated to creatures of Malfeas and the Underworld.",
+    "description": "The character channels pure Solar Essence through herself, focusing it with her will and through the medium of her weapon; a powerful lance of energy leaps between the Solar's Caste Mark, her weapon and the target. She makes an attack with her Dexterity + Melee dice pool, which cannot be blocked or dodged without the use of Charms. The attack does lethal damage and has a base damage of the Exalt's Strength + her Willpower. Against inhabitants of Malfeas and the Underworld, Blazing Solar Bolt inflicts aggravated damage.",
     "source": {
       "book": "Core",
       "page": 166
@@ -341,7 +341,7 @@
       "raw": "1 mote per 2 dice"
     },
     "duration": "Instant",
-    "description": "Adds parry dice against an attack the character is aware of, one die per 2 motes spent.",
+    "description": "Through this Charm the character uses Essence to guide her weapon on the defense, allowing her to parry the attacks of many foes at once. She may trade Essence for dice to block any hand-to-hand attack that she is aware of, at the cost of 1 mote per 2 dice. The player cannot use more dice to parry any single attack than her Melee dice pool. If there are an odd number of dice in her Melee pool, the fractional mote left over after buying the last die is lost.",
     "source": {
       "book": "Core",
       "page": 166
@@ -363,7 +363,7 @@
       "motes": 2
     },
     "duration": "Instant",
-    "description": "Parries an attack the character is aware of, even one normally too fast to block.",
+    "description": "The character has achieved further mastery of defensive Essence flows and can now more smoothly block attacks. Dipping Swallow Defense allows the character to use his full Dexterity + Melee dice pool to parry any one incoming hand-to-hand attack that he is aware of.",
     "source": {
       "book": "Core",
       "page": 166
@@ -385,7 +385,7 @@
       "motes": 5
     },
     "duration": "Until next action",
-    "description": "Until the next action, the character may parry any attack she is aware of with no dice penalty for multiple defenses.",
+    "description": "The character now has the ability to use defensive Essence flows to gain perfect form and poise. Until her next action, she may use her full Dexterity + Melee dice pool to parry any attack she is aware of, so long as the attack has a physical component and is not specifically noted as being impossible to block.",
     "source": {
       "book": "Core",
       "page": 166
@@ -408,7 +408,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Perfectly blocks a single attack the character is aware of, even normally unblockable ones.",
+    "description": "The character may block, without his player rolling, any one attack against him that he is aware of, even if the attack is not normally blockable — such as an arrow, a bolt of acid or a hurtling boulder. Blocking the tremendously powerful attacks of beings such as godlings and demon princes will almost certainly cause non-magical weapons to perish, but the attack will be stopped at no harm to the Exalt.",
     "source": {
       "book": "Core",
       "page": 166
@@ -427,10 +427,11 @@
       ]
     ],
     "cost": {
-      "motes": 5
+      "motes": 5,
+      "willpower": 1
     },
     "duration": "One scene",
-    "description": "For a scene, perfectly blocks attacks the character is aware of, even normally unblockable ones.",
+    "description": "For the rest of the scene, the character is surrounded by glowing Essence arcs, outlining his ideal protective moves and guiding his weapon in defense. The character may use his full Dexterity + Melee dice pool to parry any attacks against him of which he is aware, even missile weapons and magical attacks that possess a physical component.",
     "source": {
       "book": "Core",
       "page": 167
@@ -452,7 +453,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "An immediate counterattack at full Dexterity + Melee against anyone making a hand-to-hand attack; not an action and repeatable as motes allow.",
+    "description": "Essence guides the character's tempo, allowing her to strike when her enemy extends for an attack. She may immediately make an attack at her full Dexterity + Melee dice pool against anyone executing a hand-to-hand attack against her. This attack is made after the roll to hit the counterattacking Exalt, but before damage is determined. The Solar Counterattack is not an action and does not subtract from the character's dice pools or affect her action for the turn. A character can make as many Solar Counterattacks in a turn as she can afford to pay for, but cannot use Solar Counterattack in response to Solar Counterattack or any other counterattack Charm.",
     "source": {
       "book": "Core",
       "page": 167
@@ -474,7 +475,7 @@
       "motes": 5
     },
     "duration": "One turn",
-    "description": "Until the next action, responds to all incoming hand-to-hand attacks with an immediate full counterattack.",
+    "description": "The character now rides the impulses of Essence with supple perfection; to attack him is to invite a lethal counterstroke. Until the character's next action, he may respond to all incoming hand-to-hand attacks with an immediate counterattack at his full Dexterity + Melee dice pool. As with Solar Counterattack, it comes after the opponent's attack roll but before damage effects are applied, and in no way mitigates the attack's effects. A character cannot use Ready in Eight Directions Stance in response to Solar Counterattack or any other counterattack Charm.",
     "source": {
       "book": "Core",
       "page": 167

@@ -11,7 +11,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Reads the unspoken subtext and social currents of a conversation.",
+    "description": "Use of this Charm allows a character to instantly read the superficial subtext of a social situation. The surface attitudes (\"she is angry at him\") and relationships (\"she respects him a great deal — perhaps he is her father, or like a father\") of the individuals involved are apparent at a mere glance. Characters who are skilled at concealing their motives will project the exterior emotions they are pretending; it is up to the Storyteller's discretion how skilled a character must be to appear to feel other than they really do, though Socialize or Performance 2 and a serious effort should suffice. This Charm is not a form of mind reading, nor does it offer precise results — it simply allows the Exalt to get his bearings when faced with confusing or unfamiliar social situations.",
     "source": {
       "book": "Core",
       "page": 211
@@ -33,7 +33,7 @@
       "motes": 6
     },
     "duration": "Instant",
-    "description": "Discerns a target's true motives and what they want in a social situation.",
+    "description": "This Charm allows an Exalt to tell, through a short topical interaction, what the target's true motives in a situation are — an Exalt who talked to a woman about her sick father would be able to tell whether she was at his bedside out of love, filial loyalty or greed for her inheritance. Where there are mixed motives, the Exalt gains a rough feel for the proportions in which they occur. This power is especially useful for Exalted leaders, as it lets them keep their entourages free of the self-serving and the corrupt.",
     "source": {
       "book": "Core",
       "page": 211
@@ -43,7 +43,7 @@
     "id": "solar.socialize.mastery-of-small-manners",
     "name": "Mastery of Small Manners",
     "category": "socialize",
-    "type": "Simple",
+    "type": "Reflexive",
     "min_ability": 2,
     "min_essence": 1,
     "prerequisites": [],
@@ -51,7 +51,7 @@
       "motes": 3
     },
     "duration": "One scene",
-    "description": "Always behaves with flawless, appropriate manners and etiquette for any situation.",
+    "description": "The character attunes himself to the patterns of human interaction and allows Essence to guide his responses to social situations. While this Charm is active, he will reflexively respond in the appropriate and mannerly fashion for the situation at hand. These manners are not deep, covering only simple things such as greetings, eating customs, gift customs and flirtation mores: the character will never make an unintentional faux pas, but is not charismatic so much as simply well behaved. Too much active interaction spoils the effect of this Charm.",
     "source": {
       "book": "Core",
       "page": 211
@@ -77,7 +77,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Determines what a target most desires — what would bribe, sway, or buy them.",
+    "description": "Everyone has a price, though it may not be in gold — it could be aid in a personal endeavor, flattery, sex with an unachievable object of desire, the recovery of a lost possession or any number of things, but there is invariably something that, when offered, will crack the strongest morals and ethics, and to have it an individual will betray trusts, engage in corruption, plant evidence, almost anything. This Charm allows the character to know what that thing is for a given individual. It is up to the Storyteller to define precisely what a given person's weakness is: the things some people require may be difficult or impossible to obtain, while other characters may simply need to be offered a large sum of money. Generally, the higher a character's Temperance score, the more likely her price will be something other than money, and the more likely it will be difficult to arrange.",
     "source": {
       "book": "Core",
       "page": 211
@@ -89,7 +89,7 @@
     "category": "socialize",
     "type": "Simple",
     "min_ability": 5,
-    "min_essence": 5,
+    "min_essence": 2,
     "prerequisites": [
       [
         "solar.socialize.motive-discerning-technique"
@@ -100,7 +100,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Grasps the entire web of power, alliance, and rivalry in a social setting at a glance.",
+    "description": "This Charm allows an Exalt to read motives on a grand scale, gaining a picture of the flows and eddies of power in an extended social situation such as a king's court or a mercantile community. The character must spend a number of days equal to (10 - her Essence score) in observation of the situation; she need not be part of the social milieu, merely close to it — a character disguised as a servant or maid can observe adequately. It is up to the Storyteller how the information is conveyed. The character's understanding is limited by what she has witnessed: if an important figure is absent during her period of observation, she may deduce a great deal from how people act in his absence, but will not know for certain until she can reconstruct her picture once he has returned. Her preternatural understanding is also rooted in the time it was made — unless the mapped situation is extremely stagnant, events will change the pattern of interactions over time, and characters relying on years-old understanding are liable to make errors in judgment.",
     "source": {
       "book": "Core",
       "page": 212
@@ -126,7 +126,7 @@
       "willpower": 1
     },
     "duration": "One day",
-    "description": "Spreads ruinous rumors that turn a target into a social outcast.",
+    "description": "Through this Charm an Exalt can turn her target into a social outcast. The target's words seem false, tentative or devious by turns, and even his friends notice the worst parts of his personality — and all of it is true. This Charm is not an illusion; it simply brings the worst parts of the target to the fore. The Exalt must touch her target to use it, and for a full day afterward the target takes a penalty on all social rolls equal to twice the Exalt's Essence score.",
     "source": {
       "book": "Core",
       "page": 213

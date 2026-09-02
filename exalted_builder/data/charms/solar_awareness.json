@@ -11,7 +11,7 @@
       "motes": 5
     },
     "duration": "One scene",
-    "description": "Heightens all five senses, perceiving softer sounds, finer detail, and subtler tastes and scents.",
+    "description": "Through this Charm the character extends his perception, heightening all five senses. He can see farther and in less light, hear softer sounds and distinguish between them more easily, and differentiate various tastes, textures and scents quite easily — he could be a master chef or perfumer. The basic mechanical effect is to increase the character's Awareness by a number of dice equal to his Essence, though there are many other situations where these senses might come into play, and it is up to the Storyteller to make the extended perceptions a reality by increasing the amount of information available to the player. Characters using this Charm are no more vulnerable to sensory overload than normal mortals — the extended perceptions include the ability to manage the sensations more effectively.",
     "source": {
       "book": "Core",
       "page": 196
@@ -33,7 +33,7 @@
       "motes": 3
     },
     "duration": "One scene",
-    "description": "Sharpens a single chosen sense (sight, hearing, etc.) to a supernatural degree.",
+    "description": "The character channels Essence into one of his senses, heightening his perceptions to an immense degree. When he purchases this Charm he must choose which sense it affects; the Charm may be purchased more than once to heighten different senses, but a character may not have more than one sense heightened at any given time. Generally it does not add dice to a character's pools, but instead changes what actions she can undertake at a given difficulty — recognizing someone by her scent is normally difficulty 2 or 3, but a character with Keen Smell and Taste Technique could do it without a roll. Sight: visual acuity is heightened to several times that of a normal mortal, picking out tiny details at 100 yards, quickly counting masses of troops, and seeing in fog or dusk as well as a normal person in good conditions. Hearing and Touch: the character can judge the quality of fabric and metals by casual inspection, hear animals burrowing beneath the ground and listen in clearly on conversations through thick doors. Smell and Taste: the character can detect poisons by taste and smell and recognize individuals by their scents even if they are no longer present, and may track by scent, though not well — a +2 bonus to all Survival rolls involving tracking or hunting for food. This Charm is incompatible with Sensory Acuity Prana: the character can either extend all her senses or one of them.",
     "source": {
       "book": "Core",
       "page": 196
@@ -44,7 +44,7 @@
     "name": "Unsurpassed (Sense) Discipline",
     "category": "awareness",
     "type": "Simple",
-    "min_ability": 4,
+    "min_ability": 5,
     "min_essence": 2,
     "prerequisites": [
       [
@@ -55,7 +55,7 @@
       "motes": 5
     },
     "duration": "One scene",
-    "description": "Extends a single sense to incredible range and acuity, far beyond Keen (Sense) Technique.",
+    "description": "The character channels Essence to hone one of her senses. As with Keen (Sense) Technique, she must choose a sense when she purchases the Charm, and it may be purchased multiple times to cover multiple senses; but she may not invoke Unsurpassed (Sense) Discipline and Keen (Sense) Technique at the same time, only one sense at a time can be enhanced, and she can only purchase it for a sense for which she has already purchased Keen (Sense) Technique. It is likewise incompatible with Sensory Acuity Prana. Sight: the character gains eyes equal to those of the greatest raptors, seeing a fieldmouse a mile away in good light, picking a face out of a crowded street at a glance; in the dark or in smoke, haze and mist she sees only as well as someone using Keen Sight Technique does in normal conditions. Hearing and Touch: she can listen in on a whispered conversation a mile away in still air, or 100 yards away indoors or in noisy conditions, and can read by passing her fingers over a page and feeling the ink. Smell and Taste: she can track by scent almost as well as a bloodhound, adding her Perception as automatic successes to all Survival rolls involving tracking or hunting for food, distinguish poisons at a distance by scent alone, tell how much and how recently something was poisoned with a harmless touch of the tongue, and read a person's or animal's actual mood by scent.",
     "source": {
       "book": "Core",
       "page": 196
@@ -77,7 +77,7 @@
       "motes": 1
     },
     "duration": "Instant",
-    "description": "A preternatural danger sense that warns of imminent threats, making the character almost impossible to ambush.",
+    "description": "The character develops a preternatural sense for hazard: whenever she is about to be placed in immediate danger, Surprise Anticipation Method activates. There is no roll — the character simply becomes aware of imminent danger. The effect costs a mote of Essence and makes it almost impossible to ambush her. It operates by increasing the character's awareness, not by precognition or mind reading: it alerts her to anything she would perceive as dangerous if she saw it and gave it a quick glance. She can occasionally guess wrong about an individual's intentions, particularly when on edge; she will detect invisible individuals from subtle environmental clues, but can fall into carefully concealed pits and can be taken by surprise by the unexpected treachery of a trusted friend. She is not prescient so much as nearly impossible to catch flat-footed. Characters may place other Charms in a Combo with Surprise Anticipation Method: when it activates, the character has the option of spending a point of temporary Willpower and activating the rest of the Charms, but must do so immediately upon its activation.",
     "source": {
       "book": "Core",
       "page": 197

@@ -4,14 +4,14 @@
     "name": "Reed in the Wind",
     "category": "dodge",
     "type": "Reflexive",
-    "min_ability": 1,
+    "min_ability": 2,
     "min_essence": 1,
     "prerequisites": [],
     "cost": {
       "raw": "1 mote per 2 dice"
     },
     "duration": "Instant",
-    "description": "Sways like a reed in the wind to add dice to a dodge against an attack.",
+    "description": "The Exalt lets Essence flow through her body, making her motions as smooth as those of reeds and willows in the wind. For each mote spent, add 2 dice to an attempt to dodge an attack that the character can anticipate coming; she cannot gain more dice than her regular Dexterity + Dodge pool. The player must declare she is using this Charm, and how much Essence she will spend on it, before her character's opponent makes his attack roll. If there are an odd number of dice in the character's Dexterity + Dodge pool, the fractional mote left over after buying the last die is lost.",
     "source": {
       "book": "Core",
       "page": 197
@@ -33,7 +33,7 @@
       "motes": 2
     },
     "duration": "Instant",
-    "description": "Flows aside to perfectly evade a single attack the character is aware of.",
+    "description": "Like shadows over water, the Exalt moves with perfect, fluid grace and speed. The character may dodge a single attack that he can anticipate with his full Dexterity + Dodge pool. The Essence for Shadow Over Water must be spent before his opponent makes her attack roll.",
     "source": {
       "book": "Core",
       "page": 198
@@ -55,7 +55,7 @@
       "motes": 6
     },
     "duration": "Instant",
-    "description": "Evades even attacks normally impossible to dodge, slipping aside like a shadow.",
+    "description": "From shadows over water to shadow itself, the character is too quick to be hit at all. She can use this Charm to evade, without the need for a roll, any single attack that she can anticipate — even one that has an area of effect. A character must invoke Seven Shadow Evasion before her opponent makes his attack roll.",
     "source": {
       "book": "Core",
       "page": 198
@@ -77,7 +77,7 @@
       "motes": 2
     },
     "duration": "Instant",
-    "description": "Reflexively dodges an attack the character was not even aware of.",
+    "description": "The character's attunement to the interaction of her anima with the ambient Essence of Creation makes her preternaturally aware of her surroundings, and by using this Charm she may dodge attacks she is not even aware of. If attacked, even by an attack she does not anticipate, she may spend 2 motes of Essence to attempt to evade it; her dice pool for dodging such attacks is (2 x her permanent Essence score). Reflex Sidestep Technique cannot be used as part of a Combo with other Dodge Charms. Although the character does not perceive the situation until she has already dodged, the player may choose whether or not she spends the Essence to dodge the blow — and if she chooses to dodge, the Essence must be spent before the attacker makes his roll.",
     "source": {
       "book": "Core",
       "page": 198
@@ -103,7 +103,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Moves like flowing water, perfectly evading all physical attacks for a scene.",
+    "description": "The character permeates his being with Essence, becoming partly atomized. He moves with an impossible fluid grace, and those attacks that he cannot dodge often pass harmlessly through his dreamlike body. For the rest of the scene, the character may use his full Dexterity + Dodge dice pool to dodge all physical attacks, perceived or not.",
     "source": {
       "book": "Core",
       "page": 198

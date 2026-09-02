@@ -5,13 +5,13 @@
     "category": "stealth",
     "type": "Simple",
     "min_ability": 3,
-    "min_essence": 2,
+    "min_essence": 1,
     "prerequisites": [],
     "cost": {
       "motes": 3
     },
     "duration": "One scene",
-    "description": "Makes the character so unremarkable that observers' attention simply slides past her.",
+    "description": "This Charm does not involve hiding so much as becoming difficult to notice. So long as the character does nothing to stand out, make herself obvious or become the center of attention, those who are not actively looking for someone will simply discount her as part of the scenery. It does not work on alerted guards, those watching over restricted areas, or those who intend to stop everyone who passes; nor can it conceal a character who is very different from her surroundings — a tall, short-haired, light-skinned woman in a crowd of short, long-haired, dark-skinned men is going to stand out too much to benefit from it.",
     "source": {
       "book": "Core",
       "page": 201
@@ -34,7 +34,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Bends the minds of onlookers so they fail to perceive the character at all.",
+    "description": "An extension of Easily Overlooked Presence Method, this Charm bends the minds of those seeing the character. Players whose characters see the Exalt must make a Willpower roll and gain a number of successes equal to her Essence to actually perceive her and not just ignore her. The effect ends if the character takes violent action, or if she is pointed out by someone who notices her — either directly (\"Look! Over there!\") or indirectly (onlookers asking themselves \"Who is the guard swinging an axe at?\").",
     "source": {
       "book": "Core",
       "page": 201
@@ -57,7 +57,7 @@
       "willpower": 1
     },
     "duration": "One day",
-    "description": "Erases the character from the memory of those who saw her.",
+    "description": "The ultimate mental misdirection: the character can vanish from all memory. She is no more or less easy to detect than before, but those who see her will not recognize her, because they have no idea who she is — essentially, she sets up a separate history for herself, starting when the Charm is first invoked and ending when she allows it to expire. Beings with Essence ratings higher than the character's are immune to this effect. A character trying to get somewhere she shouldn't should have some other Stealth abilities at work, since while she will not be recognized, guards are still going to stop someone they don't know. Extended use can cause serious problems for an Exalt who is a ruler, merchant or other important person, as others will quickly start dividing up the character's now-ownerless property.",
     "source": {
       "book": "Core",
       "page": 202
@@ -79,7 +79,7 @@
       "motes": 5
     },
     "duration": "Until disturbed",
-    "description": "While the character holds still, she cannot be seen, heard, or otherwise noticed.",
+    "description": "This Charm allows the Exalt to truly disappear — no amount of visual searching, however thorough, will detect him, so long as he remains still. Moving, even in a slow, shuffling walk, is enough to disturb the effect, as is any sort of offensive action. Characters using Invisible Statue Spirit are not immaterial: they can be detected by touch, scent or hearing.",
     "source": {
       "book": "Core",
       "page": 202
@@ -102,7 +102,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Blurs the character's moving form, greatly improving Stealth even while moving.",
+    "description": "This Charm conceals the Exalt, blurring her form and allowing her to blend into whatever background she stands against, vastly improving her Stealth. Players whose characters attempt to spot her when she is hiding or moving slowly must gain a number of additional successes on their Perception + Alertness rolls equal to her Essence. If she attacks from a distance, players of those who see the attack get one free Perception + Alertness roll at difficulty 1 to spot her for each attack she makes; if she attacks in hand-to-hand combat, all watching are assumed to spot her immediately. Once spotted, her enemies can pick her out again at will until she escapes their line of sight for at least several seconds. While Blurred Form Style is active, enemies attacking her at range do so at a difficulty penalty equal to her Essence score, and those attacking her in hand-to-hand combat suffer a flat +1 penalty to the difficulty of their attacks.",
     "source": {
       "book": "Core",
       "page": 202
@@ -124,7 +124,7 @@
       "motes": 6
     },
     "duration": "One scene",
-    "description": "Banishes the character's sound and scent, protecting her from non-visual detection.",
+    "description": "Visual detection is not the only thing an Exalt must fear. Through this Charm the character makes no noise of any sort, nor does anything carried on his person or in his hands. The effect does not extend beyond his touch — a dropped knife will still clatter, a knocked-over pot will still shatter. While the Charm is in effect the character also has, and leaves, no scent of any sort, so tracking beasts will not detect him or be able to follow him.",
     "source": {
       "book": "Core",
       "page": 203

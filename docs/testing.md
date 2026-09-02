@@ -1,9 +1,14 @@
 # The test suite — the count, and why it moves
 
-**3,083 passing, 1 skipped** (2026-08-28, main PC, the `qt-port` branch after the
-adversary roster cards and the repaint-don't-rebuild fixes — includes the Qt-port tests in
-`tests/test_qt_*.py`, `tests/test_charm_actions.py`, `tests/test_gear_actions.py` and
+**3,115 passing, 1 skipped** (2026-09-01, main PC, `main`, after the Core Charm
+re-transcription — includes the Qt-port tests in `tests/test_qt_*.py`,
+`tests/test_charm_actions.py`, `tests/test_gear_actions.py` and
 `tests/test_variant_purchases.py`).
+
+⚠ **The +32 over 2026-08-28's 3,083 is not the Charm work** — that changed data, not
+tests. It is `tests/test_extract_columns.py`, the column-splitting guards added with the
+born-digital extractor fixes in `bb5adae`. A data sweep that adds no tests moves this
+number by zero, which is worth remembering before reading a jump as coverage.
 
 Run with `.venv/bin/python -m pytest`. The suite takes 6–7 minutes; **if nothing
 executable has changed since the last green run, reuse that number and say so.**

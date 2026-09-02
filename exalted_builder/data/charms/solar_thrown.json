@@ -4,14 +4,14 @@
     "name": "Precision of the Striking Raptor",
     "category": "thrown",
     "type": "Supplemental",
-    "min_ability": 1,
+    "min_ability": 2,
     "min_essence": 1,
     "prerequisites": [],
     "cost": {
       "raw": "1 mote per die"
     },
     "duration": "Instant",
-    "description": "Guides a thrown weapon with Essence, adding one die per mote to a Thrown attack (up to double the pool).",
+    "description": "The character infuses her thrown weapon — be it a hatchet, knife or shuriken — with Essence, coming to a perfect understanding of the weapon's balance and behavior at the moment of release. For each mote of Essence spent, the player may add one die to a Thrown attack roll, but cannot more than double her character's dice pool. The player must declare how much Essence she is going to use prior to making the attack roll.",
     "source": {
       "book": "Core",
       "page": 168
@@ -33,7 +33,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "A thrown strike that wounds a joint, imposing a lasting dice penalty on the target's physical actions.",
+    "description": "The character attacks not only to do damage, but to stun or cripple his opponent. The attack and damage are rolled as normal; however, for every health level of damage the attack inflicts, the target suffers a -1 penalty to all dice pools related to physical activity until the end of the scene. It is up to the player and Storyteller to describe how this is inflicted — an injured hand, slashed tendons, a stunning blow to the head. While a very small number of creatures (such as animated statues of solid iron or marble) might be unaffected, it works on automata, the undead and so forth.",
     "source": {
       "book": "Core",
       "page": 168
@@ -55,7 +55,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Throws a weapon unseen by onlookers, concealing the source and direction of the attack.",
+    "description": "The art of thrown weapons is often practiced by assassins and others who attack from ambush. Through this Charm the character can mislead his target — or his target's avengers — as to his location, buying a chance to escape or to make further attacks. The Exalt makes an attack as normal, gaining no special bonuses to attack or damage; however, attacks made using this Charm appear to have been made from a totally different direction, so a character attacking her target from behind might inflict a wound to the chest or side. The sight of the character actually hurling the knife will ruin the effect, but the difficulty of the Awareness roll to spot the attacker is raised by one, or more at the Storyteller's discretion.",
     "source": {
       "book": "Core",
       "page": 168
@@ -77,7 +77,7 @@
       "raw": "3 motes per turn"
     },
     "duration": "Instant",
-    "description": "Throws with such control that the weapon strikes in silence, leaving no trace of its path.",
+    "description": "The character strikes his unsuspecting opponent with a weapon imbued with Essence, stifling her outcry and muting the sensory impressions of the attack. He may impose silence on the attack for up to a number of turns equal to his Essence score, paying 3 motes per turn of silence. If the target is killed outright, her death will not be noticed for a number of turns equal to the length of the silence: she will stand upright even though already dead, circumstances will conspire to make her companions look away and assume she is still alive, and so forth. If the target is still alive she may react to the attack normally, but cannot speak or otherwise raise an alarm for the silence's length. This Charm amplifies the natural shock of a surprise attack and must be used from ambush — it has no effect when used against an alerted opponent, and what qualifies as \"alerted\" is left to the Storyteller's discretion.",
     "source": {
       "book": "Core",
       "page": 168
@@ -99,7 +99,7 @@
       "motes": 6
     },
     "duration": "Instant",
-    "description": "An assassin's strike from surprise; the target applies no soak and the damage successes are doubled.",
+    "description": "This deadly Charm is the friend of assassins everywhere. The Exalt charges her weapon with Essence and strikes from surprise. The defender applies soak and the attacker's player rolls for damage as normal, but doubles the number of successes when determining damage. This Charm amplifies the natural shock of a surprise attack and must be used from ambush — it has no effect when used against an alerted opponent.",
     "source": {
       "book": "Core",
       "page": 168
@@ -117,7 +117,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Lightens a thrown weapon with Essence to triple its effective range without penalty.",
+    "description": "The character imbues her arm and weapon with Essence, lightening the weapon at the moment of launch and correcting for tiny errors in aim. The weapon's range is tripled for the purposes of determining penalties based on distance to the target.",
     "source": {
       "book": "Core",
       "page": 169
@@ -139,7 +139,7 @@
       "motes": 5
     },
     "duration": "Instant",
-    "description": "Hurls Essence-conjured duplicates of a favored throwing weapon, saturating an area with blades.",
+    "description": "The character hurls dozens or even hundreds of Essence duplicates of his favored throwing weapon, saturating an area with countless attacks. He doubles his Thrown pool for the purposes of the attack, which cannot be dodged, only blocked. This attack affects only a single individual; however, it can be used for utility purposes — for example, to clear tree branches and undergrowth from the façade of an overgrown stepped pyramid, or to ruin the rigging of a ship. The thrown weapons fade away a few seconds after impact, and the character need not have any actual copies of the weapon he is conjuring.",
     "source": {
       "book": "Core",
       "page": 169
@@ -162,7 +162,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Throws a number of weapons from one hand as extra attacks in a single action.",
+    "description": "The Exalt hurls a number of throwing weapons with the same hand. The character makes one attack roll but applies the result to every weapon, and the weapons can be thrown at one or several targets without penalty. The character cannot hurl more weapons than his Essence score and must have enough ammunition. If this Charm is Comboed with supplemental Charms, the cost of the supplemental Charms must be paid for every weapon the character hurls.",
     "source": {
       "book": "Core",
       "page": 169
@@ -185,7 +185,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Hurls a chakram of burning Essence (range ~100 yards) that adds automatic successes against demons, ghosts, and creatures of the night.",
+    "description": "The character hurls a mote of burning light at her target. This mote does a lethal damage of 6 + the number of extra successes the character rolls on his attack, and has a range of 100 yards. Against demons, ghosts or other creatures of the night, the character may add a number of automatic successes to her attack roll equal to her Essence score.",
     "source": {
       "book": "Core",
       "page": 169

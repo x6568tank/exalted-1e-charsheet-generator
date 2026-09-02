@@ -41,7 +41,7 @@
         "description": "Gain one extra -1 and two extra -2 health levels."
       }
     ],
-    "description": "Grants extra health levels. Repeatable once per dot of Endurance; each purchase grants one of three health-level packages.",
+    "description": "The bodies of the Exalted are far more durable than those of mere mortals; to simulate this, an Exalt may buy extra health levels as if they were a Charm. A player may purchase this Charm up to once per dot of the Endurance Ability his character possesses. Each Ox-Body Technique purchased provides one of the following, at the player's option, determined at the time of purchase: one -0 health level; two -1 health levels; or one -1 health level and two -2 health levels.",
     "source": {
       "book": "Core",
       "page": 170
@@ -59,7 +59,7 @@
       "motes": 5
     },
     "duration": "One day",
-    "description": "The character adapts to her armor, reducing its fatigue and mobility penalties.",
+    "description": "The Exalt causes her anima to encompass her gear as well as her person, and she adapts perfectly to wearing her armor, even in conditions of brutal heat or freezing cold. This Charm reduces the fatigue value and mobility penalty of the character's armor by one each. A fatigue value of zero means the character need never roll to see if he becomes fatigued from wearing the armor. This Charm cannot reduce a character's mobility penalty or fatigue value below zero.",
     "source": {
       "book": "Core",
       "page": 170
@@ -81,7 +81,7 @@
       "motes": 10
     },
     "duration": "One day",
-    "description": "A stronger version of Armored Scout's Invigoration, further reducing armor fatigue and mobility penalties.",
+    "description": "A more powerful version of Armored Scout's Invigoration: this Charm reduces the fatigue value and mobility penalty of the character's armor by two each. A fatigue value of zero means the character need never roll to see if he becomes fatigued from wearing the armor. This Charm cannot reduce a character's mobility penalty or fatigue value below zero.",
     "source": {
       "book": "Core",
       "page": 170
@@ -103,7 +103,7 @@
       "motes": 15
     },
     "duration": "One day",
-    "description": "The most powerful of the armor Charms, reducing armor fatigue and mobility penalties to almost nothing.",
+    "description": "The most powerful of the armor Charms, Tiger-Warrior's Endurance reduces the fatigue value and mobility penalty of the character's armor by three each. A fatigue value of zero means the character need never roll to see if he becomes fatigued from wearing the armor. This Charm cannot reduce a character's mobility penalty or fatigue value below zero.",
     "source": {
       "book": "Core",
       "page": 171
@@ -121,7 +121,7 @@
       "motes": 1
     },
     "duration": "Instant",
-    "description": "Taps the wellsprings of Essence behind pain and rage, regaining motes when the character takes damage.",
+    "description": "Many Exalted learn to tap the wellsprings of Essence that are pain and rage. A character who knows this Charm may activate it whenever he is hit in combat. For every point of damage he takes before soak is applied, his player may roll one die; each success on this roll causes the character to gain a mote of Essence. A character cannot gain more Essence from any given attack than his Stamina score.",
     "source": {
       "book": "Core",
       "page": 171
@@ -143,7 +143,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Steels the character's inner resolve, regaining temporary Willpower from inner strength.",
+    "description": "With this Charm the character does not simply tap her inner rage and pain to refill her Essence pool, but internalizes it to gain true inner strength. The Exalt's player may roll one die for each health level of damage the character takes when hit in combat — that is, damage successes rolled after the character's soak is applied. Each success causes the Exalt to regain a point of temporary Willpower. A character using this Charm may not raise her temporary Willpower over its permanent value.",
     "source": {
       "book": "Core",
       "page": 171
@@ -165,7 +165,7 @@
       "motes": 5
     },
     "duration": "One scene",
-    "description": "Focuses the character into a battle fury, lending power and stamina to her fighting.",
+    "description": "The character taps his inner rage not to replenish his stores of Essence but in conjunction with them, channeling his anger and infusing it with primal magic. For the duration of the scene the character has +1 die to all pools related to combat and subtracts 1 from all wound penalties. However, he must either be engaged in combat or attempting to become so engaged: he can attack at range and differentiate friend from foe, but his player must make a Willpower roll for him to utter sentences of more than a few words, move away from the enemy or perform a complex action such as retrieving a small object from a pack. Failure means the character simply ignores the action in favor of attacking or readying himself to attack; success means he can do whatever he wished, but Battle Fury Focus immediately ends, the dice pool bonus dissipating and the wound penalties returning starting with the action that broke it.",
     "source": {
       "book": "Core",
       "page": 171
@@ -188,7 +188,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Wraps the character in a battle trance that fights on, hard to stop and hard to turn from an enemy until the foe is slain.",
+    "description": "The battle-trance engendered by this Charm is similar to that of Battle Fury Focus but greater in all ways. While in effect the character is at +3 to all dice pools and suffers no wound penalties; however, her awareness of the world narrows to little more than a red tunnel with things that must die at the far end. She cannot use ranged weapons, cannot speak coherently, cannot retreat and cannot choose to fight another foe until the one she is attacking is definitively dead, and may only attack or move toward the nearest foe by the most direct route — though she may opt to die where she stands, and in that case need not move toward the next enemy. She may have difficulty telling friend from foe if they are dressed similarly, but will generally not attack close friends, relatives or lovers unless they try to get between her and her target or otherwise restrain her. The Charm lasts until the character can no longer locate an enemy to kill. To leave the state earlier, her player may make a Willpower roll at difficulty 3 — at normal difficulty if a loved one or friend is attempting to restrain her — but if that roll fails while a loved one is trying to calm her, she is almost certain to lash out at the unrecognizable blur obstructing her.",
     "source": {
       "book": "Core",
       "page": 172

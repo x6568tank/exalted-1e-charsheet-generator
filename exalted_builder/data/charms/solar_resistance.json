@@ -11,7 +11,7 @@
       "raw": "1 mote per die"
     },
     "duration": "One scene",
-    "description": "Toughens the skin with Essence, adding dice to bashing soak.",
+    "description": "The Exalt uses Essence to enhance his ability to withstand attack. The player may roll up to his character's Stamina + Resistance in dice, but must spend one mote of Essence per die rolled. For every success on this roll, the character adds 1 to his bashing soak for the remainder of the scene. This Charm may be used again on subsequent rounds, but a character cannot gain more dice of bashing soak via Durability of Oak Meditation than his Stamina + Resistance.",
     "source": {
       "book": "Core",
       "page": 176
@@ -22,7 +22,7 @@
     "name": "Iron Skin Concentration",
     "category": "resistance",
     "type": "Reflexive",
-    "min_ability": 1,
+    "min_ability": 2,
     "min_essence": 1,
     "prerequisites": [
       [
@@ -34,7 +34,7 @@
       "willpower": 1
     },
     "duration": "Varies",
-    "description": "Reflexively hardens the skin to soak an incoming attack as bashing damage.",
+    "description": "The character's anima hardens, and his skin is made incredibly difficult to cut or pierce. The player makes a Stamina + Resistance roll; for a number of turns equal to the character's Essence + the number of successes rolled, the character soaks lethal damage with his bashing soak. This Charm cannot be used by characters wearing armor.",
     "source": {
       "book": "Core",
       "page": 176
@@ -56,7 +56,7 @@
       "raw": "3 motes per point"
     },
     "duration": "One scene",
-    "description": "Reinforces the body so it soaks lethal damage with its full bashing soak.",
+    "description": "The Solar pours Essence into her skin and muscles, hardening and toughening them far beyond those of any mere mortal. The Exalt may add up to her score in the Resistance Ability to her bashing soak, at a cost of 3 motes per additional point. These additional points are above and beyond those provided by Durability of Oak Meditation and do not count against that Charm's maximum soak bonus. The character can use Spirit Strengthens the Skin more than once during a scene, increasing her soak repeatedly as her assessment of the situation changes; however, she cannot at any given time gain more points of bashing soak through it than her score in the Resistance Ability.",
     "source": {
       "book": "Core",
       "page": 176
@@ -83,7 +83,7 @@
       "health": 1
     },
     "duration": "Instant",
-    "description": "Perfectly hardens the skin to ignore a single attack; invoked before the opponent's attack roll.",
+    "description": "The Exalt hardens his skin into impenetrability, sacrificing some of his life force to gain the strength of unbreakable diamond: the character takes no damage whatsoever from a single attack. This Charm does not protect him from the secondary effects of the attack — a character smashed down through a sheet of ice and into a frozen lake by a giant beastman's club would take no damage from the impact or from passing through the ice, but would still have to contend with drowning and hypothermia. It can also be used to withstand physical damage not associated with combat, being as effective against the impact of a fall as the blow of a sword; but the defense is of very short duration, so while a character might use it to withstand a falling idol or a plunge from a tower, one who hurled himself into a blazing firepit would only be protected for a second or two. A character must invoke the Adamant Skin Technique before his opponent's attack roll.",
     "source": {
       "book": "Core",
       "page": 177
@@ -105,7 +105,7 @@
       "motes": 1
     },
     "duration": "Instant",
-    "description": "Reflexively adds the character's Resistance to her bashing soak against an attack.",
+    "description": "This Charm strengthens the character's awareness of the world around him and allows him to resist even unanticipated attacks. If hit by an attack, even one he is not anticipating, the character may spend 1 mote of Essence to add his Resistance score to his bashing soak total for the purposes of soaking that attack. Characters must invoke Unfailing Tortoise Technique before soak is subtracted from the damage.",
     "source": {
       "book": "Core",
       "page": 177
@@ -127,7 +127,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Adds the character's Resistance to her lethal soak as well as her bashing soak.",
+    "description": "As Unfailing Tortoise Technique, but the character's Resistance is added to her lethal soak as well.",
     "source": {
       "book": "Core",
       "page": 178
@@ -145,7 +145,7 @@
       "raw": "2 motes per turn"
     },
     "duration": "Special",
-    "description": "Dons or doffs armor in a fraction of the normal time.",
+    "description": "Through this Charm the character can speed the process of donning his armor, putting it on in a number of turns equal to the armor's mobility penalty; each turn of effort costs 2 motes of Essence. The character must have the armor readily available and at hand to don it so quickly — this Charm does not speed the process of getting the armor out of a trunk.",
     "source": {
       "book": "Core",
       "page": 178
@@ -167,7 +167,7 @@
       "motes": 5
     },
     "duration": "Instant",
-    "description": "Calls the character's worn armor from Elsewhere onto her, fully fitted.",
+    "description": "This Charm allows a character to call her armor to her: in an eyeblink it appears on her, fully armored with all the straps and buckles adjusted properly, and if she uses a shield that appears on her person as well. The character cannot call her armor from further away than (100 yards x her Essence rating). This Charm cannot be used to steal armor off an opponent or off a display dummy — the armor must be the character's own, worn for at least several hours so that she has established her possession of it.",
     "source": {
       "book": "Core",
       "page": 179
@@ -190,7 +190,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Materializes a suit of golden lamellar from the anima (10 lethal / 10 bashing soak, only -1 mobility).",
+    "description": "The character materializes his Essence into a suit of golden lamellar armor. This armor is an expression of his anima and so reflects his personality and predispositions — sleek, imposing, ornate or simple, it is the character's ideal armor. Regardless of its appearance, it glows with a golden inner light bright enough to read by in a several-yard radius. Glorious Solar Plate provides 10 lethal and 10 bashing soak, with only a -1 penalty to maneuvers requiring dexterity and grace.",
     "source": {
       "book": "Core",
       "page": 179
@@ -200,7 +200,7 @@
     "id": "solar.resistance.poison-resisting-meditation",
     "name": "Poison-Resisting Meditation",
     "category": "resistance",
-    "type": "Simple",
+    "type": "Reflexive",
     "min_ability": 3,
     "min_essence": 1,
     "prerequisites": [],
@@ -208,7 +208,7 @@
       "motes": 4
     },
     "duration": "One scene",
-    "description": "Endures the effects of toxins, adding automatic successes to resist poison.",
+    "description": "The character's metabolism is strengthened by Essence, allowing him to easily endure the effects of toxins. The player may add a number of automatic successes equal to the character's Stamina to her Stamina + Resistance roll to resist the effects of poison. Though even the hardiest Exalt can still be slain by massive doses of poison while using this Charm, they are largely invulnerable to poisoned food and envenomed blades. Characters need not invoke this Charm before exposure — they may call upon its effects after they are exposed, but before the Stamina + Resistance roll is made to survive the toxin. Use of this Charm also allows a character to withstand incidental toxins such as spoiled food, and to consume without penalty a number of drinks equal to his Stamina.",
     "source": {
       "book": "Core",
       "page": 179
@@ -226,7 +226,7 @@
       "motes": 6
     },
     "duration": "One day",
-    "description": "Shrugs off disease, adding automatic successes to resist or recover from illness.",
+    "description": "While the Exalted are little affected by disease they can still become sick, and fevers can slow them at critical moments; further, while the Chosen can withstand even the most serious illnesses with little more than weariness and discomfort, those illnesses are as lethal as ever to mortals who contract them from the infected Exalt. This Charm allows the player to add a number of automatic successes equal to her character's Stamina to the Stamina + Resistance roll to avoid contracting an illness, and to add a like number to her character's daily Stamina + Endurance roll to overcome an illness she has already contracted.",
     "source": {
       "book": "Core",
       "page": 179
@@ -252,7 +252,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Channels Essence so the character cannot be poisoned or contract illnesses for the scene.",
+    "description": "The character channels Essence to strengthen and enhance her system to an almost unimaginable degree. While this Charm is in effect she cannot be injured by poison and cannot contract illnesses: she can sprinkle poison on her food as a condiment or walk hand-in-hand with a plague victim and be unaffected, and for its duration the Charm even makes her immune to the Great Contagion. This is genuine immunity — a character exposed to poison will not suddenly stiffen and die after the scene is over, and one exposed to disease while protected will not become ill from that exposure later. However, a character exposed to a disease or toxin after the Charm's effect has dissipated is as vulnerable as any of the Chosen.",
     "source": {
       "book": "Core",
       "page": 179

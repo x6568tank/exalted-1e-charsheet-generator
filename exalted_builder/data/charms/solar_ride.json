@@ -11,7 +11,7 @@
       "motes": 1
     },
     "duration": "Instant",
-    "description": "Evaluates a mount's age, health, and temperament at a glance, and rides any animal expertly.",
+    "description": "With but a glance, the character can evaluate the age, health and temperament of a mount or draft animal. The Charm will effortlessly penetrate the sorts of ruses used to pawn substandard animals off at full price.",
     "source": {
       "book": "Core",
       "page": 207
@@ -33,7 +33,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Summons a trained mount from a distance with a whistle.",
+    "description": "Through this Charm the character silently summons her mount, which will move toward her at the best possible speed. The Charm has a range of (10 x the character's Essence) miles. The character must have built up a relationship with the summoned animal — typically riding and caring for it for several days — before it will respond. While her steed will always respond to this call and will not become distracted or lost, it is still an animal: it cannot get through locked doors or penetrate complex obstacles any better than it normally could.",
     "source": {
       "book": "Core",
       "page": 207
@@ -56,7 +56,7 @@
       "willpower": 1
     },
     "duration": "One day",
-    "description": "Summons a great steed of pure Essence with a burning golden mane, tireless and fearless.",
+    "description": "This Charm allows a character to summon up from raw Essence a great white steed with a burning golden mane and tail. It has the same statistics as a warhorse of excellent quality, but it is tireless and fearless and need not eat or sleep.",
     "source": {
       "book": "Core",
       "page": 208
@@ -78,7 +78,7 @@
       "motes": 3
     },
     "duration": "One scene",
-    "description": "Renders a mount immune to terror, steadying it against frightening sensations.",
+    "description": "Horses' instincts are to run away from what they perceive as danger — the smells of fire and blood, the sounds of conflict and wounded animals — which often puts them at odds with adventurous riders, who are probably trying to reach and linger near those very stimuli. Through this Charm a character can render her mount immune to terror for the rest of the scene, obviating the need for rolls to control the animal around frightening sensations.",
     "source": {
       "book": "Core",
       "page": 208
@@ -100,7 +100,7 @@
       "raw": "6 motes per mount"
     },
     "duration": "One day's march",
-    "description": "Reduces the need to care for mounts on a long march, keeping them rested and sound.",
+    "description": "While their speed in battle is tremendously greater than that of a man on foot, traveling long distances with mounts is often slower than walking: mounts must be rested during the march and cared for before and after the day's travel. Through this Charm the character reduces the need to care for animals during travel. Mounts under its effect are very resistant to problems such as thrown shoes and injured hooves and legs, and can keep up a brisk walk for an entire day without resting, even when burdened with armored riders or cargo panniers. Unless the Charm is used on the characters' remounts or pack animals, however, the party's overall marching speed will still be limited by the slowest beast in the group.",
     "source": {
       "book": "Core",
       "page": 208
@@ -122,7 +122,7 @@
       "raw": "4 motes, 1 health level"
     },
     "duration": "Instant",
-    "description": "Heals a mount's wounds and cures its diseases.",
+    "description": "A sick or injured mount is a serious problem for its rider, and even outside of battle the loss of an animal can be a tremendous expense. By the use of this Charm the character heals a number of his mount's health levels equal to his Essence rating; if the mount is unwounded, the Charm instead cures any diseases or parasites the beast possesses. The effect is not instant — the character must spend a scene tending to the mount, dressing its wounds, feeding it, currying or otherwise grooming it, for the healing to set in.",
     "source": {
       "book": "Core",
       "page": 209
@@ -144,7 +144,7 @@
       "motes": 5
     },
     "duration": "One scene",
-    "description": "Forms a flawless bond with a mount so it never panics or fails her.",
+    "description": "Through this Charm the Exalt and her mount become as one. The player need never roll for her character to accidentally be thrown or fall from her steed, her mount will never panic, and she receives a bonus equal to her Essence score to all Ride rolls that cause the horse to jump, rear or otherwise perform tricks.",
     "source": {
       "book": "Core",
       "page": 209
@@ -166,7 +166,7 @@
       "raw": "5 motes, 1 Willpower, 1 health level"
     },
     "duration": "One scene",
-    "description": "Imbues a mount with endless energy, granting tremendous speed and stamina.",
+    "description": "By using this Charm the Exalt can imbue his steed with endless energy: while it is in effect the steed can run at full speed for a full scene — a full march, outside of dramatic time — without becoming fatigued. This Charm has no long-term ill effects on the mount; the Exalt pays the price in Essence and his own health.",
     "source": {
       "book": "Core",
       "page": 209

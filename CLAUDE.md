@@ -219,7 +219,7 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite → `docs/testing.md`
-**3,083 passing, 1 skipped** (2026-08-28, main PC). ⚠ **The count is machine-dependent by
+**3,115 passing, 1 skipped** (2026-09-01, main PC). ⚠ **The count is machine-dependent by
 DOZENS of tests, and by 522 more where the optional `qt` extra is missing** — a lower
 number is that working, not tests going missing. **Do not "reconcile" two machines'
 numbers.** ⚠ **One SKIP and one FAILURE are conditional and healthy.** `docs/testing.md`
@@ -269,6 +269,7 @@ are pointers only; the traps and history live in the files.
 | The `engine/validate/` split — 15 modules, `validate.X` is the ONE public path | `plans/validate-refactor.md` |
 | The Qt port — decision 0018; the build record. **FEATURE-COMPLETE 2026-08-27**: milestones 1–6, the **ST Options**, **Custom** and **Combos** tabs and the **Party / ST window**, all human-clicked (the Party window 2026-08-28, after its roster gained adversary cards). Milestone 5 SETTLES the one layout; milestone 6, Identity+Traits and the Party tab are its three written exceptions | `plans/qt-port.md` |
 | Variant-menu Charms — the generic `variant_purchases` list, `Charm.variants_unique`, and why Ox-Body and the Gifts were deliberately NOT migrated onto it | `plans/variant-menu-charms.md` |
+| Core Charm re-transcription — the 220 descriptions, the 32 corrected values, the offset trap | `status/core-charm-retranscription.md` |
 
 **State of the world:** foundation, splats, engine and UI are done and browser-verified;
 a character can be put on paper. **The catalogue is COMPLETE (2026-08-14):** Charms
@@ -276,6 +277,21 @@ a character can be put on paper. **The catalogue is COMPLETE (2026-08-14):** Cha
 4 Sciences / 30 formulas / 11 rituals. **Nothing is page-blocked**, and as of 2026-08-15
 **every book in `sources/` has been opened** (the phase-1 and phase-2 scans). Everything
 else unauthored is deliberately deferred (see **Standing bars**).
+
+⚠ **COMPLETE means every entry EXISTS, not that every entry is RIGHT.** The Core Charms
+were all present and all counted, and their descriptions were still an order of magnitude
+too thin — four of them describing a rule the page does not contain — because the
+delegation brief capped description length. Re-transcribed 2026-09-01, along with 32 wrong
+minimums/costs/types: `status/core-charm-retranscription.md`. The **265 non-Core spells**
+were authored under the same cap and have not been checked. ⚠ The **artifacts were ruled
+FINE and their cap stays** (human, 2026-09-01) — do not re-propose that audit. Do not read
+a catalogue count as a quality signal.
+
+⚠ **`source.book` is a zero-read-site field and it ROTS.** Two Charms were still
+attributed to `Core` carrying **Abyssals** page numbers — the same fingerprint as the 233
+mis-attributed Abyssal Charms the 1.0 sweep caught. The tell is cheap (a citation whose
+page does not contain the Charm) and **nothing runs it**. `status/catalogue-sweep.md`,
+`status/core-charm-retranscription.md`.
 
 ⚠ **One known content gap remains: Backgrounds in the scan-only splat books.** Human's
 ruling 2026-08-15: Backgrounds are scattered across mainly the SPLAT BOOKS, and M&F are

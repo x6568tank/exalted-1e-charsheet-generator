@@ -11,7 +11,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Moves with serpentine speed, adding the character's Martial Arts score to initiative for the turn (once per turn).",
+    "description": "The character charges her form with Essence to move with the speed and deftness of the snake she seeks to emulate. During the turn when this Charm is activated, she adds her Martial Arts score to her initiative total. This Charm may be used only once per turn.",
     "source": {
       "book": "Core",
       "page": 160
@@ -36,7 +36,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Infuses the anima with Essence to dodge with serpentine grace, adding Martial Arts dice to a dodge.",
+    "description": "The character infuses her anima with Essence, and it guides her body to flow with serpentine grace. By invoking this Charm, she may add a number of dice equal to her Martial Arts score to a single dodge attempt.",
     "source": {
       "book": "Core",
       "page": 160
@@ -61,7 +61,7 @@
       "motes": 5
     },
     "duration": "One scene",
-    "description": "Assumes the sinuous Snake-style stance, adding Martial Arts to soak and enabling the style's higher Charms.",
+    "description": "The Exalt adopts the attitude and stance of a wary snake — head back, ready to strike or retreat. For the rest of the scene he adds his Martial Arts score to his initiative totals and to his bashing soak. His sinuous, hypnotic movements also slow and distract enemies: those attacking him subtract a number of dice from their pool equal to the Exalt's Essence. This latter effect only works if the target can see the character's movements — a blind opponent would be unfazed by it. The Charm is incompatible with the use of armor. Characters cannot use more than one Martial Arts Form-type Charm at a time.",
     "source": {
       "book": "Core",
       "page": 160
@@ -86,7 +86,7 @@
       "motes": 6
     },
     "duration": "One scene",
-    "description": "Hardens the fingers into envenomed talons, dealing lethal damage with bare hands.",
+    "description": "Through training and the use of Essence, the character learns to harden her fingers into talons, like the fangs of a striking snake, and to toughen her skin until it is as strong and supple as a snake's. For the rest of the scene her Martial Arts attacks do lethal damage, and she soaks lethal damage with her bashing soak total. This Charm is incompatible with the use of armor or weapons.",
     "source": {
       "book": "Core",
       "page": 160
@@ -112,7 +112,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "A strike that ignores the target's armor soak; only Stamina soaks the blow.",
+    "description": "The character can harden her fingers to the degree that they can punch through nearly anything and cause trauma merely by the intensity of their Essence. The character's attack ignores the soak of the target's armor and can be soaked only by the target's Stamina.",
     "source": {
       "book": "Core",
       "page": 161
@@ -137,7 +137,7 @@
       "motes": 4
     },
     "duration": "Instant",
-    "description": "Reflexively counterattacks whenever the character is successfully attacked.",
+    "description": "Like the snake, the Exalt defends herself by attacking. Whenever she is successfully attacked, she may immediately — before damage is determined — make a Martial Arts counterattack with a dice pool equal to her Martial Arts Ability plus the attacker's extra successes on his attack. The damage from her opponent's attack and her own counterstrike is applied simultaneously. Snake Strikes the Heel cannot be used to retaliate against Solar Counterattack or any other counterattack Charm.",
     "source": {
       "book": "Core",
       "page": 161
@@ -162,7 +162,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Strikes nerve clusters to cripple the target, imposing lasting dice penalties.",
+    "description": "The character makes a Martial Arts attack as normal, including the roll for damage; however, the attack does no actual damage. Rather, for every health level the character would have inflicted, her target is at a -1 penalty to all rolls for a number of turns equal to the Martial Arts of the Exalt who used the Charm.",
     "source": {
       "book": "Core",
       "page": 161
@@ -187,7 +187,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Supplements an attack with the uncoiling speed and precision of the striking serpent.",
+    "description": "The character infuses his anima with Essence and lashes out, his anima flashing forward like a striking snake. The Exalt may invoke this Charm and make a Martial Arts attack a number of yards away equal to his Essence. The character's anima actually strikes the target, so there must be a clear path to it, and the character must be able to perceive the target well enough to attack.",
     "source": {
       "book": "Core",
       "page": 161
@@ -213,7 +213,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Strikes with the coiled speed of a serpent, granting extra actions in the turn.",
+    "description": "The character internalizes the reflexes and raw speed of a coiled snake. The player rolls the Exalt's Martial Arts Ability, and for every success she may take an extra action during the turn. This extra action need not be an attack. A character may not split her dice pool during the round she uses Striking Serpent Speed.",
     "source": {
       "book": "Core",
       "page": 162
@@ -246,7 +246,7 @@
       "health": 1
     },
     "duration": "Instant",
-    "description": "Strikes with venomous Essence as deadly as a dozen serpents, dealing aggravated damage.",
+    "description": "The character concentrates her Essence on the tips of two fingers, making her attack as quick as lightning and as deadly as the strike of a dozen serpents. She invokes the Charm and makes a Martial Arts attack as normal, but adds her Essence score to the damage of the attack. The attack does aggravated damage.",
     "source": {
       "book": "Core",
       "page": 162

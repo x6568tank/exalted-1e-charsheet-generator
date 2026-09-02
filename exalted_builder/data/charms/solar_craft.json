@@ -11,7 +11,7 @@
       "raw": "3 motes per success"
     },
     "duration": "Instant",
-    "description": "Channels Essence into craftwork, adding automatic successes to a Craft roll.",
+    "description": "The character channels Essence through his hands and tools, enhancing his efforts and making the final product of his work far more impressive than the fruits of any mortal craftsman's labor. The player first makes a regular Intelligence or Stamina + Craft roll, then may \"buy\" additional successes up to (the character's Essence rating + the number of successes rolled on the Craft roll), each bought success costing 3 motes of Essence. Storytellers should consider granting special bonuses to objects made from good or exceptional materials that also earn astonishing numbers of successes. The Charm's effects do not occur instantly — the character must still take the regular amount of time necessary to construct an object of that type, though he need take no longer.",
     "source": {
       "book": "Core",
       "page": 182
@@ -33,7 +33,7 @@
       "motes": 6
     },
     "duration": "One scene",
-    "description": "Strengthens an object so it endures far more damage than normal.",
+    "description": "This Charm strengthens objects, allowing them to endure far more damage than normal. Very fragile objects such as those made of paper or glass cannot be damaged without the full exertion of a Strength at least equal to the Essence rating of the character who used the Charm on them; objects that are not so fragile take roughly twice as much force as normal to harm. Object-Strengthening Touch does not just protect against breakage — strengthened objects are also resistant to fire, acid, freezing and other forms of damage. The character must touch the object for the Charm to take effect. Any object may be strengthened, not just objects at the focus of the character's Craft Ability, but the Charm does not work on animals or sentient beings.",
     "source": {
       "book": "Core",
       "page": 183
@@ -55,7 +55,7 @@
       "motes": 10
     },
     "duration": "Instant",
-    "description": "Permanently enhances an object's durability, making it nearly indestructible.",
+    "description": "Objects subjected to this Charm do not have the immense durability of objects subjected to Object-Strengthening Touch, but the enhancement is permanent. While they are not completely immune to the ravages of time and nature, they are very resistant, enduring at least 10 times as long as untreated objects. Objects treated with Durability-Enhancing Technique add twice the Exalt's score in the Crafts Ability to the Strength + Athletics dice pool required to break them. Items such as swords and axes hold their edges longer, even if used to hack through doors or otherwise mistreated.",
     "source": {
       "book": "Core",
       "page": 183
@@ -78,7 +78,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Wards an object against the warping, reshaping effects of the Wyld.",
+    "description": "The ravages of the Wyld can twist objects as well as men — for every object that is made better suited to its task, 100 are ruined by the energies of unbounded change. This Charm makes an object far more resistant to the twisting effects of Wyld energy. It is not as complete as the Lore Charms that stabilize persons: an object protected by this Charm takes 10 times as long to change as it would normally. However, the effects are permanent. Objects treated with this Charm lend no protective qualities to their bearers — a suit of Chaos-Resistant armor will not protect the character wearing it from Wyld-induced mutation.",
     "source": {
       "book": "Core",
       "page": 183
@@ -100,7 +100,7 @@
       "motes": 5
     },
     "duration": "Instant",
-    "description": "Channels Essence to rend stone and metal by hand, doubling Strength + Athletics to break the worked material.",
+    "description": "Someone who works with a material for a long time learns its strengths and weaknesses. A character who knows this Charm can channel Essence to intensify that knowledge, rending stone and metal with his bare hands and tearing apart wooden doors with his fingers. He multiplies his Strength + Athletics by 2 for the purposes of breaking or damaging the basic material he works with as the focus of his Craft skill — typically metal, stone or wood — and if he is making an attack against such an object, doubles his damage successes. Tanners and leathercrafters do not gain the ability to do extra damage in hand-to-hand combat with this Charm.",
     "source": {
       "book": "Core",
       "page": 184
@@ -123,7 +123,7 @@
       "willpower": 1
     },
     "duration": "One scene",
-    "description": "Shapes a chosen material directly with hands and voice, needing no tools or workshop.",
+    "description": "The greatest burden of a craftsman is the pressing need for tools and a workshop; for an Exalt who has mastered this Charm, that is no problem at all. A character who knows this Charm can work directly with her chosen material, shaping it with hands and voice and laboring without any need for tools, crooning and purring to her work as she shapes and forms the material with her fingertips. The effect is the same as working in a well-stocked workshop, and in many cases better. Characters using this Charm can accomplish a full day's work in a single scene; projects requiring multiple days' work require multiple scenes of use.",
     "source": {
       "book": "Core",
       "page": 184
@@ -150,7 +150,7 @@
       "health": 1
     },
     "duration": "Instant",
-    "description": "Repairs any broken object, no matter how damaged, piecing it back together over hours of work.",
+    "description": "A character using Crack-Mending Technique can fix any broken object, no matter how severely damaged, so long as it was not totally unmade — by powerful sorcery, digestion in a Behemoth's gullet or immersion in molten rock, for example. She must spend a number of hours working on the object equal to (10 - her Essence), slowly piecing it back together and coaxing the fragments to bind to one another. This Charm can remake extremely damaged things such as shattered crystal and burnt paper, but cannot remake metaphorical or conceptual things — it cannot mend broken hearts, oaths or promises, nor remake shattered dreams or smashed hopes — and cannot remake an object more yards in radius than the character's Essence rating. It can restore damaged items of First Age manufacture, but can do nothing to repair those whose magic has fled or been exhausted.",
     "source": {
       "book": "Core",
       "page": 183

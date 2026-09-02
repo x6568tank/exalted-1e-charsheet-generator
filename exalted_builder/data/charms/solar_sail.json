@@ -11,7 +11,7 @@
       "motes": 3
     },
     "duration": "One day",
-    "description": "Keeps perfect balance and footing aboard ship, immune to seasickness even in rough seas.",
+    "description": "While this Charm remains in effect it gives the character perfect sea legs: he will not lose his balance or footing even on the most storm-tossed ship, though collisions and so forth may still require Dexterity + Athletics rolls. Characters using this Charm will not become seasick, even on rough seas.",
     "source": {
       "book": "Core",
       "page": 209
@@ -33,7 +33,7 @@
       "motes": 5
     },
     "duration": "One day",
-    "description": "Survives shipwreck, treading water and resisting drowning and exposure for days.",
+    "description": "A character using this Charm can survive indefinitely in water. She will never tire from treading water and may drink seawater without ill effect. She is protected from sunburn and other exposure effects, and can hold her breath for up to five minutes per point of Stamina. This Charm does nothing to ward off hostile sea life, nor does it protect a character from inclement weather.",
     "source": {
       "book": "Core",
       "page": 209
@@ -55,7 +55,7 @@
       "motes": 4
     },
     "duration": "Instant",
-    "description": "Always knows the ship's exact position relative to landmarks and the stars.",
+    "description": "Through this Charm the character may learn exactly where her ship lies in relation to landmarks and locations she already knows. This knowledge allows her to pinpoint her location, but only in regard to known landmarks: the Charm does not allow her to indirectly divine the local geography by sensing her distance from previously uncharted reefs or lost islands.",
     "source": {
       "book": "Core",
       "page": 210
@@ -77,7 +77,7 @@
       "motes": 6
     },
     "duration": "Instant",
-    "description": "Foresees coming weather at sea, predicting squalls and storms.",
+    "description": "By placing her finger in the water, the character can instantly predict future weather for a number of days equal to her permanent Essence. The only thing that will cause this forecast to err is the influence of powerful magic changing the weather — the Charm will foresee even freak squalls and unexpected fogs.",
     "source": {
       "book": "Core",
       "page": 210
@@ -88,7 +88,7 @@
     "name": "Depth-Plumbing Intuition",
     "category": "sail",
     "type": "Reflexive",
-    "min_ability": 3,
+    "min_ability": 4,
     "min_essence": 1,
     "prerequisites": [
       [
@@ -99,7 +99,7 @@
       "motes": 4
     },
     "duration": "One scene",
-    "description": "Senses the depth of the water and hidden reefs or shoals beneath the ship.",
+    "description": "By feeling the Essence flows in the world around him, the character can sense the depth of the water for (100 x his Essence rating) yards. This knowledge allows him to discern harbor channels, sense reefs and so on. Awareness of a hazard does not necessarily mean that the character's ship is agile or well-handled enough to avoid the obstacle.",
     "source": {
       "book": "Core",
       "page": 210
@@ -121,7 +121,7 @@
       "motes": 6
     },
     "duration": "One scene",
-    "description": "Sails against the wind, granting a ship tremendous speed regardless of conditions.",
+    "description": "A character using this Charm while aboard a ship can tack much more closely to the wind than would be normal for his ship and rigging. Ships affected cannot sail directly into the wind, but they can sail very near to it and in general handle more lightly and responsively than normal. Aside from additions to maneuverability and speed, which vary from ship to ship, the pilot may add the Essence rating of the character invoking the Charm to her Dexterity + Sail for ship handling. A ship that has had multiple Exalted use this Charm on it only benefits from the character with the highest Essence score.",
     "source": {
       "book": "Core",
       "page": 210
@@ -144,7 +144,7 @@
       "willpower": 1
     },
     "duration": "One day",
-    "description": "Toughens a ship to weather storms and survive ramming.",
+    "description": "Storms are great banes of ships, particularly the lightly built galleys that ferry cargo between the ports of the Inner Sea: they can snap masts and oars, capsize ships or simply smash them beneath vast swells. While under the protection of this Charm a ship is safe from these and other weather-related disasters, so long as it has a competent helmsman — no Charm can protect a ship drifting without steerage in a gale. A character with this Charm can protect a ship of up to (20 x the character's Essence rating) feet in length.",
     "source": {
       "book": "Core",
       "page": 211
@@ -166,7 +166,7 @@
       "raw": "8 motes, 1 Willpower, 1 health level"
     },
     "duration": "One turn",
-    "description": "Reflexively preserves a ship from damage that would sink or wreck it.",
+    "description": "Even more dangerous to a boat than a storm is a sharp impact — from the ram of a warship, from a rock or shoal, or even running aground on a sandbank, which can gut a ship or damage it so severely it founders. By bracing herself against the ship and channeling Essence through it at the moment of impact, the character causes her magic to absorb the damage, leaving the ship unharmed. This can cause severe damage to a ramming vessel, as the preserved ship yields only as much as the impact of the ram pushes it sideways through the water. The character may have to use this Charm multiple turns in a row if the ship suffers multiple impacts — for example, if it fails to turn away and scrapes longways across a reef, she may have to renew the Charm every turn the scraping continues. As with Storm-Weathering Essence Infusion, a character cannot use this Charm to protect a ship of more than (20 x the character's Essence rating) feet in length.",
     "source": {
       "book": "Core",
       "page": 211

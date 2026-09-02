@@ -11,7 +11,7 @@
       "motes": 3
     },
     "duration": "One scene",
-    "description": "Grants perfect balance, letting the character stand and move on any surface however narrow or precarious.",
+    "description": "Through this Charm the Exalt channels Essence through his body, making it extraordinarily limber, deft and light. For the remainder of the scene the character has near-perfect balance and can stand on things far too narrow and weak to normally support him — the tips of pine trees, horizontal flagpoles, roof gables and so forth — with no fear of falling or breaking the object. The Storyteller may call for Athletics rolls in the most extraordinary circumstances, such as leaping from branch to branch on a moonless night in a snowstorm, but generally the character can run along even the narrowest ledges or stand on the flimsiest perches with no worries.",
     "source": {
       "book": "Core",
       "page": 193
@@ -22,7 +22,7 @@
     "name": "Monkey Leap Technique",
     "category": "athletics",
     "type": "Reflexive",
-    "min_ability": 2,
+    "min_ability": 1,
     "min_essence": 1,
     "prerequisites": [
       [
@@ -33,7 +33,7 @@
       "motes": 1
     },
     "duration": "One turn",
-    "description": "Leaps great distances, jumping many times the normal height or length.",
+    "description": "The character leaps with the grace of a flying crane and the speed of a striking hawk. Rather than make her normal movement action, she may make a leap of up to (her Strength x 10) feet vertically, or twice that distance horizontally. The character can attack during the round she performs Monkey Leap Technique, but gains no special bonuses.",
     "source": {
       "book": "Core",
       "page": 193
@@ -56,7 +56,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Strikes with the momentum of a leaping charge, adding damage from sheer speed.",
+    "description": "The character leaps high into the air, swinging his weapon — or fist or feet — in a brilliant Essence-laden arc. He makes an attack as normal, but the amount of damage he inflicts is doubled after it is rolled. Characters cannot move during a turn when they use Thunderbolt Attack Prana, which effectively rules out using it and Leaping Tiger Attack as part of the same Combo. Thunderbolt Attack Prana is explicitly permitted to be part of a Combo with Charms of other Abilities.",
     "source": {
       "book": "Core",
       "page": 193
@@ -67,7 +67,7 @@
     "name": "Lightning Speed",
     "category": "athletics",
     "type": "Reflexive",
-    "min_ability": 1,
+    "min_ability": 2,
     "min_essence": 1,
     "prerequisites": [
       [
@@ -78,7 +78,7 @@
       "motes": 1
     },
     "duration": "One turn",
-    "description": "Bursts into a blur of motion, moving far faster than normal for a turn.",
+    "description": "The character becomes a blur of motion, Essence leaking from her anima in fine streaks, as she flashes from point to point almost faster than the eye can follow. The character may double her sprinting distance for the turn and has no chance of becoming winded from the exertion, as she is relying on her Essence rather than merely human endurance.",
     "source": {
       "book": "Core",
       "page": 193
@@ -100,7 +100,7 @@
       "motes": 2
     },
     "duration": "Instant",
-    "description": "Walks on walls and ceilings, scuttling across any surface regardless of gravity.",
+    "description": "When using this Charm the character's speed and balance become so heightened that she can perform acts of truly supernatural athleticism. Not only may she run without fear across even the most uneven of surfaces, she may scuttle up even the sheerest vertical surfaces, or dash upside down across horizontal surfaces such as ceilings or the undersides of tree limbs. This not only allows the Exalt to circumvent many obstacles, it also allows her to bypass shields or move behind enemies, and Storytellers should assign bonuses as appropriate. If the character is in a position she could not naturally hold — fighting while standing upside down on a ceiling, for example — and fails to spend Essence on Spider-Foot Style during a turn, she becomes subject to the normal forces of gravity and inertia again, and may be seriously injured in the resulting fall.",
     "source": {
       "book": "Core",
       "page": 194
@@ -122,7 +122,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Lightens the footfalls to run across fluid surfaces such as water or quicksand.",
+    "description": "The Exalt lightens her footfalls with Essence and spreads her weight, allowing her to walk or run across fluid surfaces such as water, quicksand, loose sand, acid, lava, lakes of writhing maggots and the like; she may traverse such surfaces just as if they were solid earth during a turn in which she uses this Charm. The bottoms of the character's feet are still touching the material, so barefoot or lightly shod characters running across acid or lava or man-eating maggots are still risking serious injury. As with Spider-Foot Style, if the character fails to spend Essence on this Charm during a turn in which she is standing on a fluid, she becomes subject to the normal laws of gravity and buoyancy, and all but the most lightly burdened character will risk death by drowning — or worse, in the case of more exotic fluids.",
     "source": {
       "book": "Core",
       "page": 194
@@ -145,7 +145,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Leaps into an attack, doubling the damage with the force of the pounce.",
+    "description": "The character flashes toward his opponent, attacking as he blurs past her. He makes the attack as normal, but the amount of damage he does is doubled after soak but before damage is rolled. The character can move up to his normal sprinting distance without penalty in the turn he launches the attack; he need not move that far — the attack needs only a yard or so — but he cannot be bound or otherwise unable to move when he launches it, which means Thunderbolt Attack Prana and Leaping Tiger Attack cannot be part of the same Combo. Leaping Tiger Attack is explicitly permitted to be part of a Combo with Charms of other Abilities.",
     "source": {
       "book": "Core",
       "page": 194
@@ -171,7 +171,7 @@
       "willpower": 1
     },
     "duration": "One hour",
-    "description": "Travels at tremendous speed in great graceful leaps for an hour, as though in a waking dream.",
+    "description": "The character attunes himself to his own Essence and that of the world around him and moves as though in a waking dream, travelling in great, graceful leaps over the ground, off roofpeaks, from tree limb to tree limb. Moving in this fashion, he can traverse a number of miles per hour equal to ((Stamina + Essence) x 10). This state is trancelike and ends if the character stops for any reason. He is not preternaturally aware of his location, and his perceptions of the world beyond the next leap are hazy at best: he will notice only the most urgent stimuli — very large landmarks, hordes of hobgoblins ambushing him — and can easily become lost when traveling through unfamiliar areas.",
     "source": {
       "book": "Core",
       "page": 195
@@ -189,7 +189,7 @@
       "raw": "3 motes per dot"
     },
     "duration": "One scene",
-    "description": "Tremendously increases the character's Strength for a short time.",
+    "description": "This Charm allows a character to increase her Strength tremendously for short periods of time. For every 3 motes of Essence the character spends, her Strength increases by 1; she cannot increase her Strength by more than her Essence rating through the use of this Charm. The Strength lent by this Charm increases the damage of the character's attacks, just as if it were normal Strength.",
     "source": {
       "book": "Core",
       "page": 195
@@ -211,7 +211,7 @@
       "raw": "2 motes per point"
     },
     "duration": "One scene",
-    "description": "Further increases Strength + Athletics for lifting and breaking objects.",
+    "description": "Through this Charm the character can increase his Strength even further. For every 2 motes of Essence spent, he may increase his Strength + Athletics by one for the purposes of lifting and breaking objects. The character can no more than double his regular Strength + Athletics pool through the use of this Charm — and Increasing Strength Exercise counts as a bonus, so its bonus cannot be doubled here. If the character makes an attack with the intent of destroying an inanimate object, each point adds one to his raw damage. This Charm does not increase the amount of damage the character does in combat.",
     "source": {
       "book": "Core",
       "page": 195
@@ -233,7 +233,7 @@
       "raw": "1 mote per 2 points"
     },
     "duration": "Instant",
-    "description": "Channels Essence into a single attack against an object, adding tremendous damage.",
+    "description": "By burning vast quantities of Essence, a character can increase his physical might greatly for a few moments. For every mote spent on this Charm he can increase his Strength + Athletics by 2 for the purposes of a single attempt to lift or break something; if it is used to aid a hand-to-hand attack to break or destroy an object, each mote spent adds two to the raw damage of the attack. A character cannot burn more motes powering this Charm than he has points of permanent Willpower. Ten Ox Meditation does not increase the damage of a character's attacks against animate beings, though it can cause indirect damage — if the character pulls down the main pillars of a temple, those inside will probably be killed or injured.",
     "source": {
       "book": "Core",
       "page": 196

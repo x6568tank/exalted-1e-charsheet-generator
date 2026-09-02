@@ -11,7 +11,7 @@
       "motes": 10
     },
     "duration": "One day",
-    "description": "Channels Essence to knit broken bones and mend wounds at ten times the natural rate while in a healing trance.",
+    "description": "This Charm allows the character to channel Essence through her own body, knitting broken bones and mending cut and burnt flesh with supernatural speed. While it is active, the character heals at 10 times the normal rate. It works only on the Exalt herself and cannot be used on others. It does not speed the healing of aggravated damage, nor does it allow the regeneration of amputated or destroyed tissue — a character who loses an eye or hand will have to seek more powerful magical remedies. Characters can activate this Charm even if unconscious.",
     "source": {
       "book": "Core",
       "page": 188
@@ -29,7 +29,7 @@
       "motes": 1
     },
     "duration": "Five minutes",
-    "description": "Diagnoses a patient's illness or injury with flawless, supernatural accuracy.",
+    "description": "Through this Charm the character hones his medical abilities to an unearthly degree: by examining a patient closely and hearing about her symptoms, he can flawlessly diagnose her illness. This is an improvement of the character's perception, not access to a vast store of medical wisdom — knowledge of formal medicine is a function of Medicine and Lore. If the character has never heard of a disease, she will only be able to diagnose its general type and determine whether it is magical in nature. Her ability to actually treat the disease is strictly contingent on her skill as a physician; however, regardless of her degree of skill, she will never misdiagnose a disease, mistaking one she doesn't know for one she does.",
     "source": {
       "book": "Core",
       "page": 188
@@ -40,7 +40,7 @@
     "name": "Ailment-Rectifying Method",
     "category": "medicine",
     "type": "Simple",
-    "min_ability": 1,
+    "min_ability": 2,
     "min_essence": 1,
     "prerequisites": [
       [
@@ -51,7 +51,7 @@
       "motes": 10
     },
     "duration": "Six hours",
-    "description": "Treats and cures illness, helping a patient recover from even serious disease.",
+    "description": "This Charm allows an Exalt to recover rapidly from even the most serious illness. Non-life-threatening illnesses dissipate immediately. The player of a character suffering from a more serious ailment may make a Stamina + Resistance roll, without any wound or disease-related penalties; success indicates that the illness fades over the course of the Charm's duration. Very serious diseases may require two or more successes, so it may take several days of use to accumulate enough to recover fully — but even the most serious illnesses are halted in their progress by this Charm, and even the Great Contagion requires only five accumulated successes to overcome. This Charm can only be used on the Exalt herself; to heal others of sickness, she must use Contagion-Curing Touch.",
     "source": {
       "book": "Core",
       "page": 188
@@ -73,7 +73,7 @@
       "motes": 5
     },
     "duration": "Six hours",
-    "description": "Eases a patient's pain and discomfort, lessening wound penalties.",
+    "description": "Touch of Blissful Release allows the character to lessen the suffering of wounded or ill individuals, dulling their pains and easing the discomforts of illness. Wounded characters reduce their wound penalties by two, and sick characters likewise ignore up to two dice of negative symptoms. However, the Charm has a narcotic effect as well as an analgesic one: characters under its influence are at a -3 die penalty to performing any action that requires thought, memory or coordination.",
     "source": {
       "book": "Core",
       "page": 189
@@ -95,7 +95,7 @@
       "motes": 10
     },
     "duration": "One day",
-    "description": "Cures normally incurable diseases and halts the spread of contagion.",
+    "description": "Through this Charm the character can successfully treat serious or even normally incurable diseases. The Exalt's player makes an Intelligence + Medicine roll: normal diseases are cured with a single success, while more serious ailments may require as many as five. Regardless of success, once treatment has begun the course of the disease is halted, and unless use of the Charm is discontinued the illness will grow no worse. No medicine is required, though the person being treated must be bathed, kept warm, fed well and given all the other prerequisites of bed rest. The Exalt himself must perform this care and, as a result, cannot treat more individuals during a given day than his score in the Medicine Ability.",
     "source": {
       "book": "Core",
       "page": 189
@@ -117,7 +117,7 @@
       "motes": 10
     },
     "duration": "One day",
-    "description": "Greatly accelerates the character's own healing of grievous wounds.",
+    "description": "By channeling Essence through her body, the character can increase her rate of healing immensely. Over the duration of the Charm, which must be spent in bed rest, she heals health levels equal to her Essence score plus a number of additional health levels equal to the successes her player achieves on a Stamina + Endurance roll. This Charm does not speed the healing of aggravated damage, nor does it allow the regeneration of amputated or destroyed tissue.",
     "source": {
       "book": "Core",
       "page": 190
@@ -142,7 +142,7 @@
       "motes": 10
     },
     "duration": "One day",
-    "description": "Heals another character's wounds at an incredible rate over days of bed rest.",
+    "description": "Similar in effect to Grievous Injury Recovery Method, this Charm allows the character to heal others at an incredible pace. For each day the character spends treating the subject, who must rest in bed during the treatment, the subject heals health levels equal to the character's permanent Essence plus a number of additional levels equal to the successes her player achieves on an Intelligence + Medicine roll. A character cannot tend to more than one individual undergoing Wound-Mending Care Technique at a time. This Charm does not speed the healing of aggravated damage, nor does it allow the regeneration of amputated or destroyed tissue.",
     "source": {
       "book": "Core",
       "page": 190
@@ -167,7 +167,7 @@
       "motes": 10
     },
     "duration": "Instant",
-    "description": "Instantly heals a patient's wounds, even grievous ones, with a touch.",
+    "description": "This Charm allows the character to cure injuries with nothing but a touch: where his Essence-charged hands go, shattered bones are made whole and torn flesh is instantly mended. With each use, the character instantly heals a number of health levels equal to his Essence score. The Exalt cannot heal herself with this Charm. It does not speed the healing of aggravated damage, nor does it allow the regeneration of amputated or destroyed tissue.",
     "source": {
       "book": "Core",
       "page": 190
@@ -190,7 +190,7 @@
       "willpower": 1
     },
     "duration": "One hour",
-    "description": "Regenerates lost limbs, eyes, and other lost tissue over a healing trance.",
+    "description": "The character enters a healing trance, during which he loses all awareness of the world around him. For every hour he is in this trance he heals a number of health levels equal to his Essence score. This healing trance will cure aggravated damage, as well as allow the regrowth of destroyed tissues, amputated limbs, lost eyes and so forth: eyes, tongues, hands, feet, mouths full of smashed teeth and other lesser maimings are the equivalent of a health level, while lost limbs are the equivalent of two health levels and so take two hours each to regrow. During the period the Exalt is so entranced she regains no Essence — prolonged periods of healing can leave a Solar helpless before her enemies.",
     "source": {
       "book": "Core",
       "page": 191
@@ -216,7 +216,7 @@
       "willpower": 1
     },
     "duration": "One hour",
-    "description": "A deep healing trance that mends the most serious injuries and regrows lost body parts.",
+    "description": "Similar to Bodily Regeneration Prana, this Charm allows the character to heal similarly serious injuries in others. The Exalt must touch her target, and the target must be cooperative; both fall into a healing trance during which they have no awareness of the outside world. For each hour they remain in the trance, the target heals a number of health levels equal to the Exalt's Essence score. This Charm can heal aggravated damage and replace lost limbs and other similar maimings, with the times required as for Bodily Regeneration Prana. Neither of the characters involved regains Essence during the healing period, assuming the target has any Essence to regain — he may, after all, be an unExalted mortal.",
     "source": {
       "book": "Core",
       "page": 191

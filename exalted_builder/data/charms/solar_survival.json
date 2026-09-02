@@ -11,7 +11,7 @@
       "motes": 3
     },
     "duration": "One scene",
-    "description": "Calms and befriends any wild animal, communing with it.",
+    "description": "Through this Charm the character can deal well with nearly any wild animal. She must be within one yard of the target per point of her Essence. Herbivores and smaller omnivores become somewhat docile, even letting the character pet or handle them; predators are less susceptible, and most will simply let the character pass unmolested through their territory. This power does not work on sentient animals, animals trained to attack, or animals that are insane from pain, hunger or disease.",
     "source": {
       "book": "Core",
       "page": 179
@@ -35,7 +35,7 @@
       "raw": "10 motes, 1 Willpower, 1 experience point"
     },
     "duration": "Instant",
-    "description": "Binds an animal as a permanent Familiar tied to the character's Essence (costs 1 experience point).",
+    "description": "By handling an animal, feeding it, petting and scratching it and otherwise interacting with it, a character who knows this Charm can forge a permanent magical bond with the beast. Each time the character uses this Charm on the target, it is as if he gained a point of the Familiar Background with that animal as the Familiar — so a character who wished to tame a tiger would have to use it at least three times to make the beast well-disposed to him, and an additional two times to gain the ability to see through its eyes and communicate with it. Using this Charm on animals such as bears, tigers and tyrant lizards can be problematic, as they will not allow themselves to be handled even under the effects of Friendship with Animals Approach; a strong wrestling ability or a willingness to raise the animal from a cub is useful in such instances. Characters cannot have more than one Spirit-Tied Pet at a time.",
     "source": {
       "book": "Core",
       "page": 179
@@ -57,7 +57,7 @@
       "motes": 8
     },
     "duration": "One scene",
-    "description": "Takes on a single bestial characteristic, such as a tiger's strength or an eagle's eyes.",
+    "description": "Through this Charm a character can gain the traits of her Spirit-Tied Pet, one characteristic per use. Typically she will gain the ability to climb rough surfaces, fall great distances without damage, survive in difficult conditions or strike for lethal damage, or gain one or more Keen (Sense) Techniques or Unsurpassed (Sense) Disciplines. A character who wishes to imitate her poisonous animal companion must imitate both the bite and the poison (two characteristics), and gains a bite as poisonous as the companion's — not as poisonous as the companion would be if it were the size of the character. Characters may not gain abilities that require gross physical changes: a character with an eagle companion cannot grow wings, and one with a tiger companion cannot gain camouflage stripes. Characters must have a Spirit-Tied Pet to use this Charm.",
     "source": {
       "book": "Core",
       "page": 180
@@ -75,7 +75,7 @@
       "motes": 5
     },
     "duration": "One day",
-    "description": "Survives the harshest mundane conditions — cold, heat, hunger, thirst — without harm.",
+    "description": "Through this Charm the character becomes able to survive in even the most hostile conditions without special preparations. Blazing heat or terrible cold are no danger to him, nor are hypothermia from rain or water exposure, trench foot, snow and sand blindness, leeches, mosquitoes and other potentially deadly biting insects — the character is perfectly at home in a harsh wilderness environment, and the magic protects him even if he personally is not prepared for it. A character using this Charm is at home on a glacier whether bundled in the warmest clothing available or clad in nothing but silk slippers and a pair of pantaloons, though he may have difficulty walking over ice in silk slippers. This Charm does not protect against the most hostile of environments — ocean survival, underwater survival or the extreme elemental effects near the elemental poles; those require Element-Resisting Prana.",
     "source": {
       "book": "Core",
       "page": 180
@@ -97,7 +97,7 @@
       "motes": 7
     },
     "duration": "One day",
-    "description": "Finds the way safely and swiftly through even the worst terrain, leading others along.",
+    "description": "With this Charm the character can find his way safely and surely through even the worst terrain. The character, and a number of persons following him equal to twice his Essence score, can travel through even the worst terrain with ease. Travel through most terrain — forest, light marsh, rock and sand desert — is about as fast as walking over flat, level ground, some 20 miles a day. Travel over very harsh terrain such as muskeg at high summer, glacier, bayou, dense scrub or fresh-growth jungle is at half this speed.",
     "source": {
       "book": "Core",
       "page": 181
@@ -119,7 +119,7 @@
       "raw": "3 motes per person"
     },
     "duration": "One hour",
-    "description": "Forages enough food in an hour to feed many people.",
+    "description": "A character with this Charm will never go hungry. In an hour of foraging she can gather enough nuts, berries, edible tubers, slugs, bugs and small animals to make a large meal for a number of people equal to her Essence score. This typically does not involve hunting game, so the character needs no hunting tool such as a spear, sling or bow — and will probably not bring back anything larger than a rabbit. Storytellers may make it more difficult to gather food in certain environments, such as deep sandy desert and pack ice, but should not impose a penalty greater than halving the Exalt's take.",
     "source": {
       "book": "Core",
       "page": 181
@@ -142,7 +142,7 @@
       "willpower": 1
     },
     "duration": "One day",
-    "description": "Tracks a quarry unerringly across any terrain.",
+    "description": "The character can track anyone in the wilderness, following the most minute signs and sometimes nothing more than a magical intuition of where the target has gone. He can track anyone through any terrain, so long as the trail is fresh enough: over terrain difficult for tracking (open ocean, rocky desert, grasslands) the trail remains fresh for typically one day per point of the tracker's permanent Essence, and over terrain more amenable to tracking it can be two or even three times that long. This ability can be foiled by Traceless Passage — if the target is using that Charm, tracker and target resolve the matter as if neither were using magic.",
     "source": {
       "book": "Core",
       "page": 181
@@ -164,7 +164,7 @@
       "motes": 6
     },
     "duration": "One day",
-    "description": "Conceals the character and her companions from sight, raising her effective Resistance to detection.",
+    "description": "Through this Charm the character can conceal himself, or an object no bigger around than his Essence rating in yards, so well as to be undetectable. To gain the benefit he must spend one hour camouflaging his position or the object; so long as he stays still and takes no violent action, he will not be seen. A character or object camouflaged in this fashion is essentially fixed in position — if the character moves suddenly or at great length, the effect is disturbed and the Charm ceases. Camouflaged objects or characters can be found after a number of hours of intensive searching of their immediate area equal to the camouflaging character's Essence score, or by a character with Unsurpassed (Sense) Discipline or some similarly powerful perception power whose player succeeds at a Perception + Awareness roll against the character's Intelligence + Survival. Camouflage covers scent and other detection methods as well as visual stealth.",
     "source": {
       "book": "Core",
       "page": 182
@@ -186,7 +186,7 @@
       "raw": "5 motes per person, 1 Willpower"
     },
     "duration": "One day",
-    "description": "Moves without leaving any trail, foiling all but magical pursuit.",
+    "description": "Through this Charm the character can make his own passage, and that of a number of additional persons equal to his Essence score, totally traceless. They cannot be tracked by conventional means, not even with the aid of tracking animals or other tracking aids. Only characters with the Unshakeable Bloodhound Technique Charm can follow them, and even then it is played out as if they were tracking without magical assistance.",
     "source": {
       "book": "Core",
       "page": 182
@@ -209,7 +209,7 @@
       "willpower": 1
     },
     "duration": "One day",
-    "description": "Survives extreme elemental environments, such as the caldera of a volcano or the elemental poles.",
+    "description": "Through this Charm the character becomes able to survive in any environment. She can survive extreme environments such as the heat and toxic fumes within the caldera of an active volcano, can exist underwater with no ill effects, and can even exist without danger in conditions as harsh as those of the elemental poles. While this Charm is active, the character adds her Endurance to her soak when she takes damage from elemental sources such as cold, fire and lightning.",
     "source": {
       "book": "Core",
       "page": 182

@@ -11,7 +11,7 @@
       "motes": 1
     },
     "duration": "Instant",
-    "description": "Infuses unarmed strikes with Essence, making them more damaging; extra successes add to damage.",
+    "description": "The character infuses his anima with Essence, making his strikes much more damaging. On a successful attack, the character may count his extra successes twice for the purposes of determining damage. The Essence for this Charm may be spent after the character rolls the attack.",
     "source": {
       "book": "Core",
       "page": 157
@@ -33,7 +33,7 @@
       "motes": 1
     },
     "duration": "Instant",
-    "description": "Hardens the hands with Essence to deal lethal damage in hand-to-hand combat without penalty.",
+    "description": "The character suffuses her fists with Essence, hardening them into deadly weapons. Until her next action, her hand-to-hand strikes do lethal damage, and she can safely parry lethal damage blows with her hands. However, she is no faster than normal and so generally cannot parry incoming arrows or magical attacks without a well-described stunt.",
     "source": {
       "book": "Core",
       "page": 157
@@ -55,7 +55,7 @@
       "raw": "1 mote per die"
     },
     "duration": "Instant",
-    "description": "Channels Essence into a stunning blow; each success imposes a dice penalty on the target.",
+    "description": "The character concentrates her anima around her fist and smashes it into her enemy, stunning and disorienting him. She makes a normal attack with Dexterity + Brawl; if successful, the attack does no normal damage but instead does a base of one point of stunning damage for every mote spent on the Charm. This stunning damage is soaked as bashing damage, but can only be soaked with the target's Stamina. Extra successes on the attack add to damage as usual; however, rather than doing health levels of damage, each success on the damage roll imposes a -1 penalty to the target's dice pools for a number of turns equal to (7 - the target's Stamina). The Exalt cannot spend more motes on this Charm than twice his Strength, and the Storyteller may rule that certain opponents (mechanical constructs, shambling corpses or giant man-eating trees, for example) are too sturdy or insensible to be stunned.",
     "source": {
       "book": "Core",
       "page": 157
@@ -77,7 +77,7 @@
       "raw": "3 motes per turn"
     },
     "duration": "Varies",
-    "description": "Wraps and crushes a clinched opponent, dealing Strength + Essence + 2 lethal damage.",
+    "description": "The character may wrap his opponents in his mighty arms and crush the very life from them. He makes a clinch attack as normal, but the attack does the character's Strength + Essence + 2 in lethal damage, while the subject of the clinch does only the normal Strength + 2 bashing. If the target attempts to escape the clinch, the character may add his Essence in automatic successes to the reflexive roll to resist the escape attempt. If the target also has Dragon Coil Technique, she may choose to activate it as her action on subsequent turns and do her Strength + Essence + 2 in lethal damage as well. Maintaining this Charm over multiple turns prevents the character from using simple and supplemental Charms, but does not prevent the use of reflexive defensive Charms. It is not compatible with Hammer on Iron Technique or other Charms of the extra action type and cannot be placed in Combos with them.",
     "source": {
       "book": "Core",
       "page": 158
@@ -99,7 +99,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Pours Essence into the character's motion to automatically win initiative against a single opponent.",
+    "description": "The character pours Essence into quickening her motions and rushes aggressively toward her enemy. She automatically wins initiative over a single opponent. Characters cannot split their dice pools on the turn they use Thunderclap Rush Attack. Two characters using Thunderclap Rush Attack in competition roll for initiative normally.",
     "source": {
       "book": "Core",
       "page": 158
@@ -122,7 +122,7 @@
       "willpower": 1
     },
     "duration": "Instant",
-    "description": "Rains a flurry of unarmed blows as extra attacks, all against a single target.",
+    "description": "The character suffuses his body with Essence, turning him into a virtual killing machine with arms like pounding triphammers. He gains a number of additional attacks equal to his Essence, but must make all his attacks against the same target. Hammer on Iron Technique cannot be Comboed with defensive Charms that allow the character to dodge or otherwise avoid attacks, but may be combined with those that allow her to soak or ignore damage.",
     "source": {
       "book": "Core",
       "page": 159
@@ -140,7 +140,7 @@
       "motes": 3
     },
     "duration": "One turn",
-    "description": "Suffuses the body with Essence to strike inanimate objects and structures with tremendous force.",
+    "description": "The character suffuses his body with Essence, concentrating his anima until it is a crackling nimbus around him, and becomes capable of great destruction. This Charm must be used to attack inanimate objects, and doubles the amount of damage the character does after extra successes are added but before the object's soak is applied. This increase does not add directly to combat damage, though it may assist the character in causing indirect damage — for example, by causing a tower to collapse on top of his opponent.",
     "source": {
       "book": "Core",
       "page": 159
@@ -162,7 +162,7 @@
       "motes": 2
     },
     "duration": "Instant",
-    "description": "Hurls an opponent with great force, dealing damage based on the distance thrown.",
+    "description": "The character tightly focuses his anima, making him able to apply his Strength more effectively. In addition to doing normal damage, he also throws his opponent on a successful attack: the target is hurled a number of yards equal to the character's Strength + his extra successes on the attack roll. This attack cannot be blocked, only dodged. A target who strikes a solid object takes dice of damage equal to the number of yards she would have continued flying had the object not been in the way. This damage is typically bashing, but can be lethal if (for example) the object is covered in sharp steel spikes, and the target can suffer serious injury if she is tossed over a cliff or off a ship at sea.",
     "source": {
       "book": "Core",
       "page": 159
@@ -184,7 +184,7 @@
       "motes": 3
     },
     "duration": "Instant",
-    "description": "Strikes an opponent so hard they are knocked flying, taking damage for the distance hurled.",
+    "description": "The character fully concentrates his anima, gathering dense Essence around his fists. Not only do his unarmed attacks do normal damage, they also hurl his opponents great distances: for each health level of damage he inflicts before soak, the target is hurled backward a yard, as per the effects of the Crashing Wave Throw Charm.",
     "source": {
       "book": "Core",
       "page": 160
@@ -206,7 +206,7 @@
       "motes": 4
     },
     "duration": "Instant",
-    "description": "A blow whose force ripples outward; even a parried strike transfers damage through the parry.",
+    "description": "The character burns with Essence, increasing her strength and agility to superhuman levels. She seizes one opponent and picks him up bodily, using him to strike another foe. She makes one attack roll against the primary target; the attack cannot be blocked, only dodged. If successful it does no damage, but she may immediately make a reflexive Brawl attack at her full dice pool against another target within hand-to-hand range. If that second attack succeeds, both targets take bashing damage equal to the character's Strength + the extra successes on the reflexive attack. The second target may parry or dodge to reduce damage or avoid the attack, but if the attack is parried, the character being used as a club takes bashing damage equal to the Exalt's Strength + the number of successes the parrying character rolled to block. If the second attack hits, both targets are left in a heap on the ground and must spend an action to return to their feet; if it misses, the character being used as a club is hurled a number of yards equal to the Exalt's Strength, in a direction of her choice, as if he had been successfully attacked with Crashing Wave Throw.",
     "source": {
       "book": "Core",
       "page": 160
