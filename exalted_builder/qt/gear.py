@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QAbstractItemView, QComboBox, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QAbstractItemView, QCheckBox, QComboBox, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
     QPushButton, QScrollArea, QSpinBox, QSplitter, QTabWidget, QTreeWidget,
     QTreeWidgetItem, QVBoxLayout, QWidget,
 )
@@ -484,6 +484,48 @@ class GearPage(QWidget):
         if row is not None and len(specs) % 3:
             row.addStretch(1)
 
+    def _attune_controls(self, lay, item) -> None:
+        """The commitment toggle and its pool, for an item that prints a cost.
+
+        ⚠ Deliberately NOT in `_WEAPON_STATS`/`_ARMOR_STATS`: that table is
+        `(field, label, signed)` driving spin boxes, and a bool and a two-value choice
+        are neither. Widening the triple for these two would put a spin box on a
+        checkbox's field.
+
+        Offered only when `attunement > 0`, and nothing here auto-attunes — the flag is
+        the player's statement that they are committing the motes, which is what keeps
+        this inside `engine/play.py`'s dumb-tracker bar.
+        """
+        if item.attunement <= 0:
+            return
+        # ⚠ Merged-pool characters (ghosts, Beacon of Power holders) have one pool to
+        # commit into; the choice is hidden rather than defaulted, and `derive` ignores
+        # the stored value for them.
+        merged = derivemod.essence_pool_is_merged(self._ruleset, self._char())
+
+        pool = QComboBox()
+        pool.setObjectName("attunedPool")
+        pool.addItem("Personal", "personal")
+        pool.addItem("Peripheral", "peripheral")
+        pool.setCurrentIndex(max(0, pool.findData(item.attuned_pool)))
+        pool.currentIndexChanged.connect(
+            lambda _i: (setattr(item, "attuned_pool", pool.currentData()),
+                        self._changed()))
+
+        box = QCheckBox(f"Attuned — commit {item.attunement} motes")
+        box.setObjectName("attunedBox")
+        box.setChecked(item.attuned)
+        box.toggled.connect(
+            lambda on: (setattr(item, "attuned", on),
+                        pool.setVisible(on and not merged), self._changed()))
+        pool.setVisible(item.attuned and not merged)
+
+        row = QHBoxLayout()
+        row.addWidget(box)
+        row.addWidget(pool)
+        row.addStretch(1)
+        lay.addLayout(row)
+
     def _material_combo(self, item, resync) -> QComboBox:
         """The magical material. "" is mundane; the bonus applies only for the matching
         Exalt (p.341), which `derive.applied_material` decides — not this combo."""
@@ -582,6 +624,7 @@ class GearPage(QWidget):
 
         lay.addWidget(self._heading("Stats"))
         self._stat_grid(lay, weapon, _WEAPON_STATS, resync)
+        self._attune_controls(lay, weapon)
 
         notes = QLineEdit(weapon.notes)
         notes.setPlaceholderText("notes")
@@ -612,6 +655,7 @@ class GearPage(QWidget):
         self._labelled(lay, "Material", self._material_combo(armor, resync))
         lay.addWidget(self._heading("Stats"))
         self._stat_grid(lay, armor, _ARMOR_STATS, resync)
+        self._attune_controls(lay, armor)
         self._buttons_row(lay, "armor", armor, index)
         resync()
 
@@ -680,6 +724,30 @@ class GearPage(QWidget):
         rating.valueChanged.connect(
             lambda v: (setattr(artifact, "rating", v), self._changed()))
         self._labelled(lay, "Rating", rating)
+
+        # ⚠ When this artifact has a gear stat line (`Weapon.from_artifact`), the pair
+        # is ONE object and the gear row owns the commitment (human, 2026-09-03) — so
+        # the editor points at that row instead of offering a second set of controls.
+        # Two editable attunements for one daiklave is the double-count bug
+        # `from_artifact` exists to prevent, in motes rather than dots.
+        stat_line = artifactsmod.stat_line_row(
+            char, artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, artifact.name))
+        if stat_line is not None:
+            pointer = QLabel("Attunement is on its stat line below — one object, "
+                             "one commitment.")
+            pointer.setObjectName("attunementPointer")
+            pointer.setWordWrap(True)
+            pointer.setStyleSheet(f"color:{MUTED};")
+            lay.addWidget(pointer)
+        else:
+            attune = QSpinBox()
+            attune.setObjectName("stat.attunement")
+            attune.setRange(0, 99)
+            attune.setValue(artifact.attunement)
+            attune.valueChanged.connect(
+                lambda v: (setattr(artifact, "attunement", v), self._changed()))
+            self._labelled(lay, "Attune", attune)
+            self._attune_controls(lay, artifact)
 
         # How it was acquired. POST-LOCK ONLY: at creation the Background is the only
         # channel there is (core p.342, "to start the game owning"), so offering the

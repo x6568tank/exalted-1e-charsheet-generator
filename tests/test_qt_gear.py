@@ -24,7 +24,7 @@ import pytest
 # turn into a COLLECTION ERROR — that kills the whole run, not just these tests.
 pytest.importorskip("PySide6", reason="the optional [qt] extra is not installed")
 
-from PySide6.QtWidgets import QLabel, QPushButton, QSpinBox
+from PySide6.QtWidgets import QCheckBox, QComboBox, QLabel, QPushButton, QSpinBox
 
 from exalted_builder.engine import artifacts as artifactsmod, gear_actions, lifecycle
 from exalted_builder.models.character import (Armor, ArtifactEntry, BackgroundEntry,
@@ -486,3 +486,122 @@ def test_the_gear_page_builds_for_every_splat(ruleset, qtbot, locked):
         for i in range(page.table.topLevelItemCount()):
             page.table.setCurrentItem(page.table.topLevelItem(i))
         page.tabs.setCurrentIndex(1)      # the Prices sub-tab
+
+
+# --------------------------------------------------------------------------- #
+# artifact attunement — the toggle (phase 1)
+# --------------------------------------------------------------------------- #
+
+def _attune_box(page):
+    return page.findChild(QCheckBox, "attunedBox")
+
+
+def _attune_pool(page):
+    return page.findChild(QComboBox, "attunedPool")
+
+
+def test_an_item_with_no_attunement_cost_offers_no_toggle(ruleset, qtbot):
+    """Nothing to commit, so nothing to check. A checkbox on every mundane club is
+    noise, and a *checked* one would be a commitment of zero motes."""
+    page = _page(ruleset, _solar(weapons=[Weapon(name="Hatchet", attunement=0)]))
+    qtbot.addWidget(page)
+    page.reload()
+    _select(page, "Hatchet")
+    assert _attune_box(page) is None
+
+
+def test_an_artifact_weapon_offers_the_toggle_and_writes_the_flag(ruleset, qtbot):
+    weapon = Weapon(name="Daiklave", artifact_rating=3, attunement=5)
+    page = _page(ruleset, _solar(weapons=[weapon]))
+    qtbot.addWidget(page)
+    page.reload()
+    _select(page, "Daiklave")
+    box = _attune_box(page)
+    assert box is not None and box.isChecked() is False   # ⚠ never auto-attuned
+    box.setChecked(True)
+    assert weapon.attuned is True
+
+
+def test_the_pool_choice_appears_only_once_attuned(ruleset, qtbot):
+    """`attuned_pool` is meaningless while nothing is committed, so it is hidden
+    rather than shown greyed — one control, one decision."""
+    page = _page(ruleset, _solar(weapons=[Weapon(name="Daiklave", attunement=5)]))
+    qtbot.addWidget(page)
+    page.reload()
+    _select(page, "Daiklave")
+    # ⚠ `isHidden()`, never `isVisible()`. The page is never shown in a headless run,
+    # so `isVisible()` is False for every widget on it — the "hidden" half of this
+    # test would pass against a control that is always shown, and the "shown" half
+    # cannot pass at all. `isHidden()` reads the explicit hide, not the ancestor's.
+    pool = _attune_pool(page)
+    assert pool is not None and pool.isHidden()
+    _attune_box(page).setChecked(True)
+    assert not pool.isHidden()
+
+
+def test_the_pool_choice_writes_the_field(ruleset, qtbot):
+    weapon = Weapon(name="Daiklave", attunement=5, attuned=True)
+    page = _page(ruleset, _solar(weapons=[weapon]))
+    qtbot.addWidget(page)
+    page.reload()
+    _select(page, "Daiklave")
+    pool = _attune_pool(page)
+    pool.setCurrentIndex(pool.findData("personal"))
+    assert weapon.attuned_pool == "personal"
+
+
+def test_a_merged_pool_character_is_offered_no_pool_choice(ruleset, qtbot):
+    """A ghost has one pool to commit into, so the choice is meaningless — the field
+    still exists on the row and `derive` ignores it for them."""
+    ghost = Character(id="c.g", name="G", exalt_type="Ghost",
+                      weapons=[Weapon(name="Daiklave", attunement=5, attuned=True)])
+    page = _page(ruleset, ghost)
+    qtbot.addWidget(page)
+    page.reload()
+    _select(page, "Daiklave")
+    assert _attune_box(page) is not None
+    assert _attune_pool(page).isHidden()          # see the isHidden note above
+
+
+def test_an_armour_row_offers_the_toggle_too(ruleset, qtbot):
+    armor = Armor(name="Articulated Plate", artifact_rating=3, attunement=4)
+    page = _page(ruleset, _solar(armor=[armor]))
+    qtbot.addWidget(page)
+    page.reload()
+    _select(page, "Articulated Plate")
+    _attune_box(page).setChecked(True)
+    assert armor.attuned is True
+
+
+def test_a_standalone_artifact_gets_its_own_attunement_controls(ruleset, qtbot):
+    art = ArtifactEntry(name="Dragon Tear Tiara", rating=3, attunement=4)
+    page = _page(ruleset, _solar(artifacts=[art]))
+    qtbot.addWidget(page)
+    page.reload()
+    _select(page, "Dragon Tear Tiara")
+    assert _stat(page, "attunement").value() == 4
+    _attune_box(page).setChecked(True)
+    assert art.attuned is True
+
+
+def test_an_artifact_with_a_stat_line_points_at_it_instead(ruleset, qtbot):
+    """⚠ The double-count guard in motes. The daiklave and its weapon row are ONE
+    object; the gear row owns the commitment, so this editor must not offer a second
+    one to edit."""
+    char = _solar()
+    gear_actions.add_artifact(ruleset, char, "Daiklave")     # grants the weapon row
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    page.reload()
+    _select(page, "Daiklave")
+    # ⚠ The merged row renders BOTH halves in one pane — the artifact editor, then a
+    # "Stat line" heading and the weapon editor. So the pane legitimately holds one
+    # attune checkbox: the WEAPON's. What must not exist is a second one, or an
+    # editable attunement number, on the artifact half.
+    assert len(page.findChildren(QCheckBox, "attunedBox")) == 1
+    pointer = page.findChild(QLabel, "attunementPointer")
+    assert pointer is not None and "stat line" in pointer.text()
+    # and the one checkbox writes the GEAR row, which is the authoritative half
+    page.findChild(QCheckBox, "attunedBox").setChecked(True)
+    assert char.weapons[0].attuned is True
+    assert char.artifacts[0].attuned is False

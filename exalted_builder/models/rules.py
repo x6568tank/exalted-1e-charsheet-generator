@@ -1240,6 +1240,18 @@ class ArtifactType(BaseModel):
     name: str
     rating: int = Field(ge=1, le=5)
     rating_notes: str = ""                  # e.g. "• or •••", "• to •••••"
+    # Motes a wielder commits to use it (core p.344). Copied onto a fresh
+    # `character.ArtifactEntry` on a pick, like `rating`.
+    #
+    # ⚠ Author a nonzero value ONLY for genuinely standalone Wonders. The rows that are
+    # gear-statblocked duplicates of a weapons.json/armor.json entry (the Skirmish Pike
+    # above) already have an authoritative number on `Weapon`/`Armor`; a second copy
+    # here is two numbers that can drift. Leave those at 0 and let the player enter the
+    # item as a weapon or armour row — the steer the catalogue already gives for stats.
+    #
+    # ⚠ Zero-defaulted, so "authored clean" and "never backfilled" look identical. The
+    # backfill is its own authoring pass and has not been done.
+    attunement: int = Field(default=0, ge=0)
     description: str = ""                   # short, human-vetted from the source page
     source: str = ""                        # e.g. "MF p.279"
     # What it costs to BUY one, in Resources dots (Manacle and Coin p.125). A different

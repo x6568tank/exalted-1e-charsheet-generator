@@ -21,7 +21,7 @@ through JSON using the enum *string values* as keys, e.g. {"strength": 3}.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -115,6 +115,22 @@ class ArtifactEntry(BaseModel):
     "cannot be N/A", so there is no rating to record for one."""
     name: str
     rating: int = Field(ge=1, le=5)
+    # Motes this artifact costs to commit, copied from `rules.ArtifactType.attunement`
+    # on a catalogue pick the same way `rating` is, and editable after. 0 means either
+    # "costs nothing" or "nobody has transcribed the number from its page yet" — the
+    # catalogue ships zero-defaulted, so do not read a 0 here as the former.
+    #
+    attunement: int = Field(default=0, ge=0)
+    # See `Weapon.attuned` — same contract, same validate/ bar.
+    #
+    # ⚠ These are IGNORED when this row has a gear stat line pointing at it
+    # (`Weapon.from_artifact`): the pair is one object, and the gear row carries the
+    # authoritative number (human's ruling 2026-09-03). `engine.artifacts.
+    # artifact_items` does the picking, exactly as it already does for `rating`, and
+    # the editors offer no control here when a stat line exists — otherwise one
+    # daiklave commits its motes twice.
+    attuned: bool = False
+    attuned_pool: Literal["personal", "peripheral"] = "peripheral"
     note: str = ""
     # HOW the character came to own it — `engine.artifacts.ACQUIRED_BACKGROUND` (the
     # default) or `ACQUIRED_PURCHASED`. The two are different channels, both printed:
@@ -414,6 +430,22 @@ class Weapon(BaseModel):
     # crossbow is not an artifact. Human's ruling 2026-08-08.
     artifact_rating: int = Field(default=0, ge=0)
     attunement: int = Field(default=0, ge=0)
+    # Whether the character is CURRENTLY committing those motes, and which pool they
+    # come out of. `attunement` is what the item costs; these two are the player's
+    # statement that they are paying it — you can own an artifact without being
+    # attuned to it (human, 2026-09-02), so nothing may set `attuned` on purchase, on
+    # equipping or on load. The pool is the player's to choose, exactly as it is for a
+    # Charm ("characters can freely mix Personal and Peripheral Essence", core
+    # pp.147-148, which core p.344 ties artifact commitment to explicitly); it is
+    # meaningful only while `attuned` is set, and ignored on a merged-pool character.
+    #
+    # ⚠ Unlike `from_artifact` below, this is a discriminator the screen is MEANT to
+    # write — player-editable is the entire point. Do not "fix" it to match that one.
+    #
+    # ⚠ No module under `engine/validate/` may read either field (decision 0006): what
+    # you are attuned to must never change what you may legally buy. A test greps.
+    attuned: bool = False
+    attuned_pool: Literal["personal", "peripheral"] = "peripheral"
     resources_cost: int = Field(default=0, ge=0)
     # Magical material (rules.MagicalMaterial id; "" = mundane). Its stat bonus is
     # applied by engine.derive only when the wielder's Exalt type matches.
@@ -451,6 +483,8 @@ class Armor(BaseModel):
     fatigue: int = 0
     artifact_rating: int = Field(default=0, ge=0)
     attunement: int = Field(default=0, ge=0)
+    attuned: bool = False                  # see Weapon.attuned — same contract
+    attuned_pool: Literal["personal", "peripheral"] = "peripheral"
     resources_cost: int = Field(default=0, ge=0)
     material: str = ""                     # magical material id; "" = mundane
     from_artifact: str = ""                # see Weapon.from_artifact — same contract

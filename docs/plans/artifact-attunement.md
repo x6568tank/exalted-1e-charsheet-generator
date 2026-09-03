@@ -1,8 +1,14 @@
 # Artifact attunement — commit the motes
 
-**Status: UNBLOCKED, not started (2026-09-03).** Planned 2026-09-02; the four blocking
-questions were resolved 2026-09-03 against the corebook, a Dragon-Blooded Aspect book
-and the Player's Guide — see **Resolved questions** below. Ready for phase 1.
+**Status: PHASE 1 DONE (2026-09-03), phases 2-3 open.** Planned 2026-09-02; the four
+blocking questions were resolved 2026-09-03 against the corebook, a Dragon-Blooded
+Aspect book and the Player's Guide — see **Resolved questions** below.
+
+⚠ **The fields are stored, carried and toggled, and NOTHING READS THEM YET.** That is
+species 2 of the house bug by construction — `attuned` looks exactly as healthy today
+as `attunement` did before this plan, and every screen is correct because no screen has
+changed. Phase 2 (`derive.committed_attunement` + `build_play_view`) is what makes the
+feature exist. **Do not close this plan on phase 1's tests being green.**
 
 ## The ask
 
@@ -123,6 +129,17 @@ exists; the derivation reads whichever pool actually has a nonzero max.
    No new source of truth; the backfill itself (which rows get a real number) is a
    separate authoring pass, not phase 1.
 
+   **Lead for that pass, measured 2026-09-03: the numbers are already in `data/`.** Of
+   the 330 rows, **195 mention motes in their transcribed description and 74 state a
+   commitment in a directly parseable shape** ("Commit 5 motes to attune", "Commits 3
+   motes"). Those descriptions came off the page under the human's own vetting, and
+   `data/` is an allowed source by the never-author-from-memory rule, so this is a
+   parse job rather than a re-read — the same mechanical-extraction shape that beat
+   hand-typing before. ⚠ **The parse must EXCLUDE gear-statblocked duplicates**: the
+   Skirmish Pike is in the 74 and must stay 0 here, because `weapons.json` already
+   carries its 5. Filter against `gear_stat_line` before writing anything, and verify
+   every parse rather than trusting the regex.
+
 ### Mortal / God-Blooded gating (Player's Guide, not one of the four blockers but load-bearing)
 
 * **God-Blooded**: `mf.magical-attunement` (4-pt Supernatural Merit, prereq
@@ -143,7 +160,59 @@ exists; the derivation reads whichever pool actually has a nonzero max.
 
 ## The work
 
-### Phase 1 — the flag, the pool choice, and the toggle (small)
+### Phase 1 — the flag, the pool choice, and the toggle — **DONE 2026-09-03**
+
+Built as planned, with three things the plan did not say:
+
+* **`ArtifactEntry` carries the pair too, and the READ side is the one enumeration**
+  (human's ruling 2026-09-03; the alternative considered and rejected was merging the
+  three owned-item models into one). All three storage models carry
+  `attunement`/`attuned`/`attuned_pool`; **`artifacts.ArtifactItem` grows the same three
+  fields, and `derive.committed_attunement` walks `artifact_items()` — never the three
+  lists.** The storage stays split because the three models differ by their printed
+  STAT BLOCK (Acc/Dmg/Def vs soak vs neither), not by ownership semantics; merging them
+  would give one row type with a union of mostly-zero fields — `ArtifactType`'s Skirmish
+  Pike problem — and would not retire `from_artifact`, since a daiklave legitimately
+  needs both a rating row and a stat line.
+  The artifact editor gained the number and the toggle in both shells.
+* **`library_payload` carries `attunement` for artifacts too**, alongside the weapon and
+  armour rows that already did. `attuned`/`attuned_pool` are excluded from all of them,
+  and the docstring now says why.
+* **The pool dropdown is HIDDEN, not disabled, until the box is checked** — and hidden
+  outright on a merged-pool character. Both shells.
+
+⚠ **THE DOUBLE-COUNT GUARD NOW COVERS MOTES, and the GEAR ROW WINS** (human's ruling
+2026-09-03). A daiklave entered as an `ArtifactEntry` *and* its `Weapon` stat line is
+ONE object — `artifact_items` already drops the weapon so the p.131 budget charges it
+once, and the commitment had to follow or the sword would commit its motes twice. The
+fold reads the commitment off `artifacts.stat_line_row(character, key)` when one exists,
+falling back to the artifact row otherwise; an ORPHANED link (artifact renamed or
+deleted) leaves the gear row standing on its own, exactly as it already does for rating.
+The editors enforce the same thing: an artifact with a stat line is offered a pointer at
+it, not a second control. `ArtifactType.attunement` staying 0 on every gear-statblocked
+duplicate (resolved question 4) is what makes the fallback safe.
+
+⚠ **Known limitation, both shells: typing an attunement cost onto a row does not make
+the toggle appear** until the editor is rebuilt (select another row and come back). The
+control is decided at build time and the `Attune` spin box only re-syncs the summary. A
+catalogue pick is unaffected — it rebuilds the pane — so this bites only hand-authored
+gear. Left as-is rather than always-building-and-hiding, because the "offers no toggle"
+tests would then be asserting on a hidden widget instead of an absent one. **Worth a
+human's opinion; it is on the click-through list, not fixed.**
+
+⚠ **Two test traps this cost, both now written into the tests themselves.** In Qt,
+`isVisible()` is False for every widget on a page that is never shown, so a
+visibility assertion passes against a control that is always shown and the positive
+half cannot pass at all — **use `isHidden()`**. In NiceGUI, `from tests._ui_main import
+CHAR_ATTUNE` reads a *different object* than the harness's copy (and breaks the next
+test in the file), so the model write is asserted through its observable effect in the
+client — the dropdown appearing — not by reading the character.
+
+Both were negative-controlled: the Ghost branch was flipped to Solar and the merged-pool
+test failed correctly; the `attunement > 0` guard was deleted and the one-checkbox test
+saw two. Restored from a copy, never `git checkout`.
+
+Original plan for the phase, kept for the record:
 
 * `models/character.py` — `attuned: bool = False` and
   `attuned_pool: Literal["personal", "peripheral"] = "peripheral"` on `Weapon` and
@@ -175,7 +244,11 @@ exists; the derivation reads whichever pool actually has a nonzero max.
 
 * `engine/derive.py` — `committed_attunement(ruleset, character) -> dict[str, int]`,
   keyed by pool (`"personal"`/`"peripheral"`), summing each attuned item's *effective*
-  commitment into whichever pool its `attuned_pool` names. "Effective" means: double the
+  commitment into whichever pool its `attuned_pool` names. ⚠ **Iterate
+  `artifacts.artifact_items(character)`, NOT the three owned lists** — that fold is
+  where the one-object rule lives, and walking the lists directly re-opens the
+  double-count for a linked pair. It already carries `attunement`, `attuned` and
+  `attuned_pool`, resolved to the winning row. "Effective" means: double the
   stored `attunement` when the wielder is not a "user" of the item's Magical Material
   (resolved question 3) — read however `derive.effective_armor` already identifies
   material + wielder match, don't re-derive that lookup. ⚠ Weapons carry `quantity`; it
@@ -227,20 +300,37 @@ exists; the derivation reads whichever pool actually has a nonzero max.
 
 ## Tests owed
 
-1. `attuned` and `attuned_pool` survive a catalogue re-pick (`gear_actions.set_weapon`
-   on the row's own name).
+1. ✅ `attuned` and `attuned_pool` survive a catalogue re-pick (`gear_actions.set_weapon`
+   on the row's own name) — weapon and armour both, `tests/test_gear_actions.py`.
 2. Committed total ignores unattuned items, and ignores `quantity`.
 3. `build_play_view` reduces the named pool; **negative control** — clear the flag, pool
    returns.
 4. A non-user wielder (e.g. a non-Terrestrial with a jade item) pays double; a user
    wielder (a Terrestrial with the same item) pays the printed number.
 5. Merged-pool splat: the commitment lands on the one real pool regardless of
-   `attuned_pool`, not on the always-0 Personal pool.
+   `attuned_pool`, not on the always-0 Personal pool. (Phase 1 covers only the *UI* half
+   — the dropdown is hidden for a ghost; the derivation half is still owed.)
 6. Already-spent motes above the new cap clamp on read and do not corrupt the save.
-7. No `engine/validate/` module references `attuned` or `attuned_pool`.
-8. An item with `attunement == 0` offers no toggle in either shell.
-9. A fresh `ArtifactEntry` pick copies `ArtifactType.attunement` the same way it copies
-   `rating`.
+7. ✅ No `engine/validate/` module references `attuned` or `attuned_pool` —
+   `tests/test_play.py`, beside the two existing decision-0006 guards. Catches the
+   `getattr("attuned")` spelling as well as the attribute.
+8. ✅ An item with `attunement == 0` offers no toggle in either shell —
+   `tests/test_qt_gear.py` and `tests/test_gear_catalogue.py`, both negative-controlled.
+9. ✅ A fresh `ArtifactEntry` pick copies `ArtifactType.attunement` the same way it
+   copies `rating`; the rename path (`set_artifact`) does too.
+10. ✅ (added) The fold carries the commitment off a weapon row, off a standalone
+    artifact, and — for a LINKED pair — off the gear row rather than the artifact row,
+    counting one item not two. An orphaned link leaves both standing.
+11. ✅ (added) The artifact editor offers the number and toggle for a standalone Wonder,
+    and a pointer instead when a stat line exists. ⚠ The merged inventory row renders
+    BOTH halves in one pane, so the correct assertion is *exactly one* checkbox (the
+    weapon's), not zero.
+
+⚠ **Test 9 has no real data behind it and cannot get any yet.** All 330
+`ArtifactType` rows are `attunement: 0` — the backfill is a separate authoring pass —
+so the test injects a nonzero row into the shared ruleset and restores it. A
+`next(a for a in catalog if a.attunement > 0)` would raise StopIteration today and
+start passing silently the day someone transcribes one; the helper says so.
 
 ## Estimate
 

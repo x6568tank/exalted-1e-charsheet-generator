@@ -128,6 +128,67 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
         ui.number(label=label, value=getattr(item, attr), format="%d",
                   on_change=_on, **kwargs).classes("w-20").props("dense")
 
+    def attune_controls(item) -> None:
+        """The commitment toggle, and which pool it comes out of.
+
+        Offered ONLY when the item prints an attunement cost — an item that costs
+        nothing to attune has nothing to commit, and a checkbox on every mundane club
+        is noise. Nothing here auto-attunes: the flag is the player saying they are
+        committing the motes, which is what keeps this inside `engine/play.py`'s
+        dumb-tracker bar (see docs/plans/artifact-attunement.md).
+        """
+        if item.attunement <= 0:
+            return
+        # ⚠ A merged-pool character (a ghost, a Beacon of Power holder) has one pool to
+        # commit into, so the choice is hidden rather than defaulted — the field stays
+        # on the row, and `derive` ignores it for them.
+        merged = derive.essence_pool_is_merged(rs, character)
+        # The dropdown is built after the checkbox that shows it, so its handler reaches
+        # it through this rather than a closure over a name defined later — an empty
+        # panel from exactly that mistake is why the pattern is spelled out here.
+        widgets: dict = {}
+
+        def _set_attuned(value: bool, item=item) -> None:
+            item.attuned = bool(value)
+            widgets["pool"].set_visibility(bool(value) and not merged)
+            changed()
+
+        ui.checkbox("Attuned", value=item.attuned,
+                    on_change=lambda e: _set_attuned(e.value)
+                    ).props("dense").tooltip(
+                        f"Commit {item.attunement} motes to use this")
+        widgets["pool"] = ui.select(
+            {"personal": "Personal", "peripheral": "Peripheral"},
+            value=item.attuned_pool, label="From",
+            on_change=lambda e, item=item: (
+                setattr(item, "attuned_pool", e.value or "peripheral"),
+                changed())
+        ).classes("w-32").props("dense")
+        widgets["pool"].set_visibility(item.attuned and not merged)
+
+    def artifact_attune_controls(art) -> None:
+        """The commitment cost and toggle for a STANDALONE artifact.
+
+        ⚠ When the artifact has a gear stat line (`Weapon.from_artifact`), the pair is
+        one object and the gear row owns the commitment (human, 2026-09-03) — so this
+        offers a pointer at that row instead of a second set of controls. Two editable
+        attunements for one daiklave is the double-count bug that `from_artifact`
+        exists to prevent, in motes rather than dots.
+        """
+        stat_line = artifactsmod.stat_line_row(
+            character,
+            artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, art.name))
+        if stat_line is not None:
+            ui.label("Attunement is on its stat line").classes(
+                "text-xs text-gray-500")
+            return
+        ui.number(value=art.attunement, min=0, format="%d", label="Attune",
+                  on_change=lambda e, art=art: (
+                      setattr(art, "attunement", max(0, int(e.value or 0))),
+                      changed())
+                  ).props("dense").classes("w-20")
+        attune_controls(art)
+
     # ⚠ At build_gear scope: the row editor refreshes this when a rating changes,
     # and the editor is defined out here. Inside `_artifacts_panel` it was a
     # NameError that NiceGUI logs and turns into an empty panel.
@@ -196,6 +257,7 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                                    _artifacts_header.refresh(),
                                    changed())
                                ).props("dense").classes("w-24")
+            artifact_attune_controls(art)
             # How it was acquired. POST-LOCK ONLY: at creation the Background
             # is the only channel there is (core p.342, "to start the game
             # owning"), so offering the choice would be offering an illegal
@@ -380,6 +442,7 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                     stat_num(ar, "attunement", "Attune", asm, _armor_summary)
                     stat_num(ar, "resources_cost", "Res", asm, _armor_summary)
                     material_select(ar, asm, _armor_summary)
+                    attune_controls(ar)
 
 
     def _weapon_editor(idx, wp) -> None:
@@ -425,6 +488,7 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                     stat_num(wp, "attunement", "Attune", wsm, _weapon_summary)
                     stat_num(wp, "resources_cost", "Res", wsm, _weapon_summary)
                     material_select(wp, wsm, _weapon_summary)
+                    attune_controls(wp)
                 ui.input("Notes", value=wp.notes,
                          on_change=lambda e, wp=wp: (setattr(wp, "notes", e.value), changed())).classes("w-full").props("dense")
 

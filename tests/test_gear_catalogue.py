@@ -229,3 +229,67 @@ def test_the_price_lists_scroll_area_keeps_a_definite_height() -> None:
     assert "height:" in area, "the price list's scroll area lost its explicit height"
     assert "flex-1" not in area, (
         "flex-1 on a scroll area whose parent has no height collapses it to nothing")
+
+
+# --------------------------------------------------------------------------- #
+# artifact attunement — the NiceGUI toggle (phase 1)
+# --------------------------------------------------------------------------- #
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_only_an_item_with_an_attunement_cost_offers_the_toggle(user) -> None:
+    """The page carries two weapons — a daiklave costing 5 motes and a hatchet costing
+    nothing — so ONE checkbox proves the control is conditional. Asserted on the built
+    elements rather than `should_see`: the stat editors live inside a collapsed
+    `ui.expansion`, and their text is not on screen until it is opened.
+    """
+    from nicegui import ui as _ui
+    await user.open('/attune-gear')
+    boxes = [e for e in user.client.elements.values()
+             if isinstance(e, _ui.checkbox) and e.text == "Attuned"]
+    assert len(boxes) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_toggle_starts_off_and_reveals_the_pool_choice(user) -> None:
+    """⚠ Nothing auto-attunes — not on purchase, not on load. Ownership and attunement
+    are different facts (human, 2026-09-02), which is what keeps this inside
+    `engine/play.py`'s dumb-tracker bar.
+
+    ⚠ Asserted on the pool dropdown's visibility, not on `Weapon.attuned`. The
+    character on the page belongs to the harness's own copy of `_ui_main`, and
+    importing that module here would both read a DIFFERENT object and break the next
+    test in the file. Revealing the dropdown is the handler's observable effect inside
+    this client, and it only happens if the flag was written.
+    """
+    from nicegui import ui as _ui
+    await user.open('/attune-gear')
+    box = next(e for e in user.client.elements.values()
+               if isinstance(e, _ui.checkbox) and e.text == "Attuned")
+    pool = next(e for e in user.client.elements.values()
+                if isinstance(e, _ui.select) and e.props.get("label") == "From")
+    assert box.value is False and pool.visible is False
+    box.set_value(True)
+    assert pool.visible is True
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_a_standalone_wonder_gets_controls_and_a_linked_one_gets_a_pointer(user):
+    """Two artifacts on one page: a Dragon Tear Tiara (no stat line, so it owns its own
+    commitment) and a Daiklave whose granted weapon row owns it instead.
+
+    ⚠ The assertion is ONE artifact-side checkbox, not two — the daiklave's lives on
+    its weapon row. Two editable commitments for one sword is the double-count bug
+    `from_artifact` exists to prevent, in motes rather than dots.
+    """
+    from nicegui import ui as _ui
+    await user.open('/attune-artifacts')
+    labels = [e.text for e in user.client.elements.values()
+              if isinstance(e, _ui.label) and "Attunement is on its stat line" in e.text]
+    assert len(labels) == 1                      # the daiklave, pointing at its row
+    boxes = [e for e in user.client.elements.values()
+             if isinstance(e, _ui.checkbox) and e.text == "Attuned"]
+    # the tiara's own, plus the daiklave's on the weapon half — never a third
+    assert len(boxes) == 2

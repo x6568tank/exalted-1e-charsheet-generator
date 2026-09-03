@@ -5,6 +5,8 @@ The rules that used to live in `ui/gear.py` and would have been copied into
 which acquisition channel stamps a purchase. Framework-free — no widget in sight.
 """
 
+from contextlib import contextmanager
+
 from exalted_builder.engine import artifacts as artifactsmod, gear_actions, lifecycle
 from exalted_builder.models.character import (Armor, ArtifactEntry, BackgroundEntry,
                                               Character, Weapon)
@@ -267,3 +269,135 @@ def test_reserved_ids_span_every_printed_catalogue(ruleset):
     assert set(ruleset.armor_catalog) <= ids
     assert set(ruleset.gear_catalog) <= ids
     assert set(ruleset.artifact_catalog) <= ids
+
+
+# --------------------------------------------------------------------------- #
+# artifact attunement — phase 1: the flag is stored and carried, nothing reads it
+# --------------------------------------------------------------------------- #
+
+def test_a_repick_keeps_the_attunement_flag_and_its_pool(ruleset):
+    """⚠ `_owned_fields` derives the player's fields as the complement of the
+    catalogue's, so both survive a re-pick without anyone listing them — assert it,
+    because the hand-written version this replaced silently dropped `acquired` for
+    weeks and looked healthy the whole time."""
+    char = _solar(weapons=[Weapon(name="Daiklave", attuned=True,
+                                  attuned_pool="personal")])
+    gear_actions.set_weapon(ruleset, char, 0, "Daiklave")
+    assert char.weapons[0].attuned is True
+    assert char.weapons[0].attuned_pool == "personal"
+
+
+def test_an_armour_repick_keeps_the_attunement_flag(ruleset):
+    char = _solar(armor=[Armor(name="Articulated Plate", attuned=True,
+                               attuned_pool="personal")])
+    gear_actions.set_armor(ruleset, char, 0, "Articulated Plate")
+    assert char.armor[0].attuned is True
+    assert char.armor[0].attuned_pool == "personal"
+
+
+def test_a_library_row_carries_the_printed_cost_but_not_the_commitment(ruleset):
+    """`attunement` is what the DESIGN costs and belongs in a catalogue; `attuned` and
+    `attuned_pool` are what one owner is currently paying, and do not."""
+    payload = gear_actions.library_payload(
+        "weapons", Weapon(name="Mine", attunement=5, attuned=True,
+                          attuned_pool="personal"))
+    assert payload["attunement"] == 5
+    assert "attuned" not in payload and "attuned_pool" not in payload
+
+
+@contextmanager
+def _artifact_costing(ruleset, motes: int):
+    """One catalogue artifact, temporarily printing an attunement cost.
+
+    ⚠ `ArtifactType.attunement` ships zero-defaulted on all 330 rows and the backfill
+    is a separate authoring pass, so there is no real nonzero entry to pick — a
+    `next(... if a.attunement > 0)` here would raise StopIteration today and start
+    passing silently the day someone transcribes one. The row is restored on the way
+    out because the ruleset fixture is shared.
+    """
+    key, entry = next(iter(ruleset.artifact_catalog.items()))
+    ruleset.artifact_catalog[key] = entry.model_copy(update={"attunement": motes})
+    try:
+        yield ruleset.artifact_catalog[key]
+    finally:
+        ruleset.artifact_catalog[key] = entry
+
+
+def test_a_fresh_artifact_pick_copies_the_catalogue_attunement(ruleset):
+    with _artifact_costing(ruleset, 5) as entry:
+        char = _solar()
+        index = gear_actions.add_artifact(ruleset, char, entry.name)
+        assert char.artifacts[index].attunement == 5
+
+
+def test_renaming_an_artifact_onto_a_catalogue_entry_takes_its_attunement(ruleset):
+    with _artifact_costing(ruleset, 7) as entry:
+        char = _solar(artifacts=[ArtifactEntry(name="", rating=1)])
+        gear_actions.set_artifact(ruleset, char, 0, entry.name)
+        assert char.artifacts[0].attunement == 7
+
+
+def test_free_text_artifacts_default_to_no_attunement_cost(ruleset):
+    # ⚠ A 0 means "costs nothing" OR "never transcribed"; the UI offers no toggle
+    # either way, which is the correct behaviour for both.
+    char = _solar()
+    index = gear_actions.add_artifact(ruleset, char, "A thing I found")
+    assert char.artifacts[index].attunement == 0
+
+
+# --------------------------------------------------------------------------- #
+# the ONE enumeration: artifact_items folds the commitment in
+# --------------------------------------------------------------------------- #
+
+def test_the_fold_carries_the_commitment_off_a_weapon_row(ruleset):
+    char = _solar(weapons=[Weapon(name="Daiklave", artifact_rating=3, attunement=5,
+                                  attuned=True, attuned_pool="personal")])
+    item = next(i for i in artifactsmod.artifact_items(char) if i.name == "Daiklave")
+    assert (item.attunement, item.attuned, item.attuned_pool) == (5, True, "personal")
+
+
+def test_the_fold_carries_the_commitment_off_a_standalone_artifact(ruleset):
+    char = _solar(artifacts=[ArtifactEntry(name="Wings", rating=3, attunement=4,
+                                           attuned=True)])
+    item = next(i for i in artifactsmod.artifact_items(char) if i.name == "Wings")
+    assert (item.attunement, item.attuned, item.attuned_pool) == (4, True, "peripheral")
+
+
+def test_a_linked_pair_commits_once_and_the_gear_row_wins(ruleset):
+    """⚠ The double-count guard, in motes. A daiklave entered as BOTH an artifact row
+    and its weapon stat line is ONE object; `artifact_items` already drops the weapon
+    so the p.131 budget charges it once, and the commitment has to follow the same
+    rule or the sword costs 5 motes twice. The gear row is authoritative (human's
+    ruling 2026-09-03) — it is the half with the printed stat block."""
+    key = artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, "Daiklave")
+    char = _solar(
+        artifacts=[ArtifactEntry(name="Daiklave", rating=3, attunement=99,
+                                 attuned=False, attuned_pool="peripheral")],
+        weapons=[Weapon(name="Daiklave", artifact_rating=3, from_artifact=key,
+                        attunement=5, attuned=True, attuned_pool="personal")])
+    items = artifactsmod.artifact_items(char)
+    assert len(items) == 1                       # one object, one row
+    assert items[0].attunement == 5              # the GEAR row's number, not 99
+    assert items[0].attuned is True
+    assert items[0].attuned_pool == "personal"
+
+
+def test_an_orphaned_link_lets_the_artifact_keep_its_own_commitment(ruleset):
+    """The graceful-unresolvable-id contract: a `from_artifact` pointing at nothing
+    makes the gear row stand on its own, so the artifact row is no longer overridden
+    by a stat line it does not have."""
+    char = _solar(
+        artifacts=[ArtifactEntry(name="Wings", rating=3, attunement=4, attuned=True)],
+        weapons=[Weapon(name="Daiklave", artifact_rating=3,
+                        from_artifact="artifact:something-deleted", attunement=5)])
+    items = {i.name: i for i in artifactsmod.artifact_items(char)}
+    assert items["Wings"].attunement == 4
+    assert items["Daiklave"].attunement == 5     # counted on its own, not skipped
+
+
+def test_stat_line_row_finds_the_gear_half_and_tolerates_a_miss(ruleset):
+    key = artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, "Daiklave")
+    char = _solar(weapons=[Weapon(name="Daiklave", from_artifact=key)])
+    assert artifactsmod.stat_line_row(char, key) is char.weapons[0]
+    assert artifactsmod.stat_line_row(char, "artifact:nothing") is None
+    assert artifactsmod.stat_line_row(char, "") is None

@@ -79,6 +79,12 @@ class ArtifactItem(BaseModel):
     rating: int
     source: str                            # SOURCE_ARTIFACT / _WEAPON / _ARMOR
     acquired: str = ACQUIRED_BACKGROUND    # ACQUIRED_BACKGROUND / _PURCHASED
+    # The commitment, folded in from whichever row owns it. THIS is what a mote
+    # derivation reads — walk `artifact_items`, never the three lists, so the
+    # double-count guard below applies to motes as it already does to rating.
+    attunement: int = 0
+    attuned: bool = False
+    attuned_pool: str = "peripheral"
 
 
 def item_key(source: str, name: str) -> str:
@@ -100,9 +106,19 @@ def artifact_items(character: Character) -> list[ArtifactItem]:
     out: list[ArtifactItem] = []
     for art in character.artifacts:
         if art.name.strip():
+            key = item_key(SOURCE_ARTIFACT, art.name)
+            # ⚠ The commitment comes from the gear stat line when there is one, NOT
+            # from this row (human's ruling 2026-09-03): the gear row is the half with
+            # the printed stat block, and `ArtifactType.attunement` is deliberately 0
+            # on every gear-statblocked duplicate so the two cannot drift. Same
+            # one-object rule the `from_artifact` skip below enforces for `rating` —
+            # without this, a daiklave entered as both rows commits its motes twice.
+            commitment = stat_line_row(character, key) or art
             out.append(ArtifactItem(
-                key=item_key(SOURCE_ARTIFACT, art.name), name=art.name,
+                key=key, name=art.name,
                 rating=art.rating, source=SOURCE_ARTIFACT, acquired=art.acquired,
+                attunement=commitment.attunement, attuned=commitment.attuned,
+                attuned_pool=commitment.attuned_pool,
             ))
     # A gear row that is the stat line of a standalone artifact is the SAME OBJECT, and
     # counting it again would charge the budget twice for one daiklave — see
@@ -120,9 +136,27 @@ def artifact_items(character: Character) -> list[ArtifactItem]:
                 out.append(ArtifactItem(
                     key=item_key(source, item.name), name=item.name,
                     rating=item.artifact_rating, source=source,
-                    acquired=item.acquired,
+                    acquired=item.acquired, attunement=item.attunement,
+                    attuned=item.attuned, attuned_pool=item.attuned_pool,
                 ))
     return out
+
+
+def stat_line_row(character: Character, key: str):
+    """The `Weapon`/`Armor` row that is the stat line of the artifact `key` names, or
+    None when the artifact has none.
+
+    The inverse of `Weapon.from_artifact`, resolved by walking the gear lists — the
+    link is stored on the gear row, so an artifact row cannot answer this about itself.
+    Returns the FIRST match: one artifact has one stat line, and a second row claiming
+    the same artifact is a data state nothing on screen can produce.
+    """
+    if not key:
+        return None
+    for item in (*character.weapons, *character.armor):
+        if item.from_artifact == key:
+            return item
+    return None
 
 
 def find_item(character: Character, key: str) -> Optional[ArtifactItem]:

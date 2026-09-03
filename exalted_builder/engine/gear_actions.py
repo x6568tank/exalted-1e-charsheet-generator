@@ -218,7 +218,8 @@ def add_artifact(ruleset: RuleSet, character: Character,
         character.artifacts.append(ArtifactEntry(name=name or "", rating=1))
     else:
         character.artifacts.append(ArtifactEntry(
-            name=entry.name, rating=entry.rating, acquired=acquisition_for(entry)))
+            name=entry.name, rating=entry.rating, attunement=entry.attunement,
+            acquired=acquisition_for(entry)))
         grant_gear(ruleset, character, entry.name)
     return len(character.artifacts) - 1
 
@@ -242,6 +243,7 @@ def set_artifact(ruleset: RuleSet, character: Character, index: int,
         return False
     rows[index].name = entry.name
     rows[index].rating = entry.rating
+    rows[index].attunement = entry.attunement
     if entry.requires_merit:
         # Through `set_acquired`, so an ALREADY-granted stat line is re-stamped too:
         # `grant_gear` below is a no-op once the row exists and would not fix it.
@@ -290,7 +292,7 @@ def buy(ruleset: RuleSet, character: Character, key: str) -> str:
         # in-play channel (M&C pp.122-125), which is why the shop only offers artifacts
         # post-lock.
         character.artifacts.append(ArtifactEntry(
-            name=entry.name, rating=entry.rating,
+            name=entry.name, rating=entry.rating, attunement=entry.attunement,
             acquired=artifactsmod.ACQUIRED_PURCHASED))
         grant_gear(ruleset, character, entry.name)
     else:
@@ -309,6 +311,10 @@ def library_payload(kind: str, item) -> dict:
     design) and shipping the difference into the library would put ownership state in a
     catalogue. A codec half, not a presenter: `custom_content.save_gear_row` writes it
     and the loader reads it back as catalogue content.
+
+    ⚠ `attuned`/`attuned_pool` are excluded for that reason and must stay excluded:
+    `attunement` is what the design costs, those two are what one owner is currently
+    paying — ownership state twice over. `attunement` itself belongs here.
     """
     from .. import custom_content as customs
 
@@ -338,7 +344,8 @@ def library_payload(kind: str, item) -> dict:
     if kind == "gear":
         return base | {"kind": "goods", "category": "Your library",
                        "resources_cost": item.resources_cost, "notes": item.note}
-    return base | {"rating": item.rating, "description": item.note}
+    return base | {"rating": item.rating, "attunement": item.attunement,
+                   "description": item.note}
 
 
 def reserved_ids(ruleset: RuleSet) -> set[str]:

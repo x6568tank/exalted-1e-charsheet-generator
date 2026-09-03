@@ -132,3 +132,34 @@ def test_validate_never_reads_the_play_field():
             if isinstance(node, ast.Attribute) and node.attr == "play":
                 offenders.append(f"{path.name}:{node.lineno}")
     assert offenders == [], offenders
+
+
+def test_validate_never_reads_the_attunement_flag():
+    """The same bar for `Weapon.attuned` / `Armor.attuned_pool` (decision 0006).
+
+    ⚠ These two sit on the GEAR row, not in `PlayState`, because a gear row has no
+    stable key to point at from outside (two identical daiklaves collapse onto one
+    `artifacts.item_key`). That puts a PLAY fact inside the permanent model, in the
+    same objects `validate/` already walks for the Artifact budget — so the isolation
+    the two tests above get from the module boundary has to be asserted directly here.
+
+    What you are attuned to must never change what you may legally buy.
+    """
+    import ast
+    from pathlib import Path
+
+    import exalted_builder
+
+    watched = {"attuned", "attuned_pool"}
+    validate_dir = Path(exalted_builder.__file__).parent / "engine" / "validate"
+    modules = sorted(validate_dir.glob("*.py"))
+    assert modules, "no validate modules found — has the package moved?"
+    offenders = []
+    for path in modules:
+        for node in ast.walk(ast.parse(path.read_text())):
+            # `w.attuned`, and the getattr spelling that dodges an attribute check.
+            if isinstance(node, ast.Attribute) and node.attr in watched:
+                offenders.append(f"{path.name}:{node.lineno} .{node.attr}")
+            elif isinstance(node, ast.Constant) and node.value in watched:
+                offenders.append(f"{path.name}:{node.lineno} {node.value!r}")
+    assert offenders == [], offenders

@@ -14,6 +14,7 @@ from exalted_builder.models.character import (
     RitualEntry, ScienceRating, Specialty, ThaumaturgyState, VirtueFlaw, Weapon)
 from exalted_builder.engine import adversaries as adversaries_engine
 from exalted_builder.engine import artifacts as artifacts_engine
+from exalted_builder.engine import gear_actions as gear_actions_engine
 from exalted_builder.models.adversary import (Adversary, AdversaryAttack,
                                               AdversaryTrait)
 from exalted_builder.models.party import Party, PartyMember
@@ -69,6 +70,29 @@ def page_blank():
 @ui.page('/blank-gear')
 def page_blank_gear():
     gear.build_gear(RS, CHAR_BLANK, Path("x.json"), with_header=False)
+
+# (f) one weapon that prints an attunement cost and one that does not — the toggle is
+# offered per ITEM, so a page needs both to show it is a condition and not a constant.
+CHAR_ATTUNE = Character(id="at", name="Attuner", caste="dawn")
+CHAR_ATTUNE.weapons.append(Weapon(name="Daiklave", artifact_rating=3, attunement=5))
+CHAR_ATTUNE.weapons.append(Weapon(name="Hatchet"))
+
+# (g) a standalone Wonder with its own commitment, and a daiklave whose commitment
+# lives on the granted weapon row — the two halves of the artifact editor's behaviour.
+CHAR_ATTUNE_ART = Character(id="aa", name="Wonders", caste="dawn")
+CHAR_ATTUNE_ART.artifacts.append(
+    ArtifactEntry(name="Dragon Tear Tiara", rating=2, attunement=4))
+# The daiklave's commitment belongs to the granted weapon row, not to this row —
+# `add_artifact` stamps the link that makes the pair one object.
+gear_actions_engine.add_artifact(RS, CHAR_ATTUNE_ART, "Daiklave")
+
+@ui.page('/attune-artifacts')
+def page_attune_artifacts():
+    gear.build_gear(RS, CHAR_ATTUNE_ART, Path("x.json"), with_header=False)
+
+@ui.page('/attune-gear')
+def page_attune_gear():
+    gear.build_gear(RS, CHAR_ATTUNE, Path("x.json"), with_header=False)
 
 @ui.page('/play')
 def page_play():
