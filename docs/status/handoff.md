@@ -1,16 +1,34 @@
-# Session handoff — 2026-09-02 (adversary catalogue picking; the M&F gate; a long wrong turn)
+# Session handoff — 2026-09-03 (the 265 delegated spells re-transcribed)
 
 # 👉 YOU ARE HERE
 
-Last FULL green suite: **3,135 passed, 2 skipped, 1 failed** (main PC, `main`, 8m12s), run
-after the last executable change. The one failure is
-`test_every_description_matches_the_source_text`, the conditional one — **it fails on a
-clean tree too**, so it is this session's inheritance, not its damage. Tree is clean;
-shipped as **v1.3.4** (`6e6660c`).
+Last FULL green suite: **3,181 passed, 1 skipped** (main PC, `main`, 14m46s). Tree is
+clean, 2 commits ahead of `origin/main` (not pushed): `f50973e` (planning artifact
+attunement), `dba43ae` (the spell re-transcription below).
 
-⚠ The count moved 3,115 → 3,135 on new tests only. No test was deleted.
+⚠ The count moved 3,135/2 skipped/1 failed → 3,181/1 skipped/0 failed since the last
+handoff, but **not from this session's work** — this job touched only
+`exalted_builder/data/spells.json` descriptions, no test file. The closed skip and
+failure predate this pass; `test_every_description_matches_the_source_text` is the
+machine-dependent-outcome test named in `docs/testing.md` (pass-with-deferrals here,
+fails where the source chapter is present) — do not read this as newly fixed.
 
 ## What shipped
+
+**The 265 delegated spells re-transcribed against source** — same method as the Core
+Charm fix (`status/spell-retranscription.md`). Savant and Sorcerer (94), Book of Bone
+and Ebony (62), The Autochthonians (38), The Abyssals (23), plus 48 Three Circles
+entries checked clean. 116 of 265 descriptions changed; 149 were already complete.
+Restored named variant spells that a 2026-08-11 batch had explicitly logged as
+unauthored (Willful Flesh Commands, Consorting with Devils, Blackstorm Wagon, and
+others — now prose inside their parent spell, not new catalogue entries), a truncated
+entry (The Ravenous Fire), a spell missing its entire mechanical payload (Ritual of
+Elemental Empowerment's element table), and two resistance-roll direction bugs (Curse
+of Slavish Humility, Iron Countermagic). Spell count held at 306 throughout — this was
+a correctness pass, not an addition. **Not browser-verified** — data only, no UI
+touched; see the status file for the one panel worth a look.
+
+## Previously: what shipped 2026-09-02
 
 **1. Catalogue picking on the adversary roster** (`status/adversary-roster.md`). Five
 fields on the ST view's adversary editor gained an "Add from catalogue" button — Charms
@@ -38,9 +56,6 @@ with a catalogue-wide guard.
 
 Nothing is blocked. In rough order of what would bite:
 
-- **The 265 delegated spells still under the old description cap** — Savant and Sorcerer
-  (94), Bone & Ebony (62), Three Circles (48), Autochthonians (38), Abyssals (23). Method
-  proven twice. Still the obvious next piece of that thread, unchanged from 2026-09-01.
 - **46 M&F descriptions measurably short of source** — Undetectable Lie 10%, Subtle Glamour
   12%, Chillikin Companion 15%, Aura of Power 29%. This is what
   `test_every_description_matches_the_source_text` has been reporting all along; it is the

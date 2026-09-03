@@ -219,13 +219,13 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite → `docs/testing.md`
-**3,135 passing, 2 skipped, 1 failing** (2026-09-02, main PC — the failure is the
-conditional one named in `docs/testing.md`, and it fails on a clean tree too). ⚠ **The count is machine-dependent by
+**3,181 passing, 1 skipped** (2026-09-03, main PC). ⚠ **The count is machine-dependent by
 DOZENS of tests, and by 522 more where the optional `qt` extra is missing** — a lower
 number is that working, not tests going missing. **Do not "reconcile" two machines'
-numbers.** ⚠ **One SKIP and one FAILURE are conditional and healthy.** `docs/testing.md`
-has those two by name, how to read a run's numbers honestly, and the Qt-font trap that
-looks like a machine crash.
+numbers.** ⚠ **The SKIP is conditional and healthy, and one M&F test is machine-dependent
+in OUTCOME** — pass-with-deferrals on some machines, a real failure on others, neither a
+regression. `docs/testing.md` has both by name, how to read a run's numbers honestly, and
+the Qt-font trap that looks like a machine crash.
 
 ## The record → `docs/status/`
 One file per topic. **Read the relevant file before touching that area.** The rows below
@@ -272,6 +272,7 @@ are pointers only; the traps and history live in the files.
 | The Qt port — decision 0018; the build record. **FEATURE-COMPLETE 2026-08-27**: milestones 1–6, the **ST Options**, **Custom** and **Combos** tabs and the **Party / ST window**, all human-clicked (the Party window 2026-08-28, after its roster gained adversary cards). Milestone 5 SETTLES the one layout; milestone 6, Identity+Traits and the Party tab are its three written exceptions | `plans/qt-port.md` |
 | Variant-menu Charms — the generic `variant_purchases` list, `Charm.variants_unique`, and why Ox-Body and the Gifts were deliberately NOT migrated onto it | `plans/variant-menu-charms.md` |
 | Core Charm re-transcription — the 220 descriptions, the 32 corrected values, the offset trap | `status/core-charm-retranscription.md` |
+| The 265 delegated spells re-transcribed — restored variant-spell mentions, a truncated entry, two resistance-direction bugs | `status/spell-retranscription.md` |
 
 **State of the world:** foundation, splats, engine and UI are done and browser-verified;
 a character can be put on paper. **The catalogue is COMPLETE (2026-08-14):** Charms
@@ -285,7 +286,8 @@ were all present and all counted, and their descriptions were still an order of 
 too thin — four of them describing a rule the page does not contain — because the
 delegation brief capped description length. Re-transcribed 2026-09-01, along with 32 wrong
 minimums/costs/types: `status/core-charm-retranscription.md`. The **265 non-Core spells**
-were authored under the same cap and have not been checked. ⚠ The **artifacts were ruled
+authored under the same cap were re-transcribed 2026-09-03 (116 of 265 changed):
+`status/spell-retranscription.md`. ⚠ The **artifacts were ruled
 FINE and their cap stays** (human, 2026-09-01) — do not re-propose that audit. Do not read
 a catalogue count as a quality signal.
 

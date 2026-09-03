@@ -1,6 +1,6 @@
 # The test suite — the count, and why it moves
 
-**3,115 passing, 1 skipped** (2026-09-01, main PC, `main`, after the Core Charm
+**3,181 passing, 1 skipped** (2026-09-03, main PC, `main`, after the 265-spell
 re-transcription — includes the Qt-port tests in `tests/test_qt_*.py`,
 `tests/test_charm_actions.py`, `tests/test_gear_actions.py` and
 `tests/test_variant_purchases.py`).
