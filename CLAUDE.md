@@ -219,7 +219,7 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite → `docs/testing.md`
-**3,181 passing, 1 skipped** (2026-09-03, main PC). ⚠ **The count is machine-dependent by
+**3,238 passing, 1 skipped** (2026-09-03, main PC). ⚠ **The count is machine-dependent by
 DOZENS of tests, and by 522 more where the optional `qt` extra is missing** — a lower
 number is that working, not tests going missing. **Do not "reconcile" two machines'
 numbers.** ⚠ **The SKIP is conditional and healthy, and one M&F test is machine-dependent
@@ -251,7 +251,7 @@ are pointers only; the traps and history live in the files.
 | Phase-2 scan — the two scan-only books, DONE 2026-08-15; **every book in `sources/` has now been opened** | `status/phase-2-scan.md` |
 | Book of Three Circles — spells, artifacts, the Merit-gated plot devices | `status/book-of-three-circles.md` |
 | Corebook Wonders — Hearthstones, Greater Wonders, the Hearthstone allowance | `status/corebook-wonders.md` |
-| Rated artifacts — the Artifact budget, dual-nature devices, the corebook default | `status/rated-artifacts.md` |
+| Rated artifacts — the Artifact budget, dual-nature devices, the corebook default, and **attunement** (the commitment, phases 1-2 DONE 2026-09-03) | `status/rated-artifacts.md` |
 | 1E artifact backlog — the discovery layer (parse method + per-book page lists) | `status/artifact-backlog.md` |
 | Martial-arts STYLE entity — 21 of 22 authored, tiers, `Charm.ma_tier` access | `status/martial-arts-styles.md` |
 | Merits & Flaws — the centralized calc (decision 0011), all 100 authored | `status/merits-flaws.md` |
@@ -270,6 +270,7 @@ are pointers only; the traps and history live in the files.
 | Adversary roster — GM-mode extras/beasts/NPCs | `status/adversary-roster.md` |
 | The `engine/validate/` split — 15 modules, `validate.X` is the ONE public path | `plans/validate-refactor.md` |
 | The Qt port — decision 0018; the build record. **FEATURE-COMPLETE 2026-08-27**: milestones 1–6, the **ST Options**, **Custom** and **Combos** tabs and the **Party / ST window**, all human-clicked (the Party window 2026-08-28, after its roster gained adversary cards). Milestone 5 SETTLES the one layout; milestone 6, Identity+Traits and the Party tab are its three written exceptions | `plans/qt-port.md` |
+| Artifact attunement — the design, the four resolved rules questions, the double-count guard extended from dots to MOTES, and the `ArtifactType.attunement` backfill that is still open | `plans/artifact-attunement.md` |
 | Variant-menu Charms — the generic `variant_purchases` list, `Charm.variants_unique`, and why Ox-Body and the Gifts were deliberately NOT migrated onto it | `plans/variant-menu-charms.md` |
 | Core Charm re-transcription — the 220 descriptions, the 32 corrected values, the offset trap | `status/core-charm-retranscription.md` |
 | The 265 delegated spells re-transcribed — restored variant-spell mentions, a truncated entry, two resistance-direction bugs | `status/spell-retranscription.md` |
@@ -335,6 +336,19 @@ Each is written up where it landed; these are the ones that catch people mid-tas
 - **Passions are a LIVE DERIVATION of the Virtues** on both sides of the lock, never
   bought with BP or XP (E:Ab p.283).
 - **No character may leave creation with Essence above 5** (`essence-above-elder-chargen-cap`).
+- **An attuned artifact's motes come off the PLAY pools only** — `build_play_view`
+  subtracts, the sheet still prints the full pools, and no `engine/validate/` module may
+  read `attuned` (a test greps). ⚠ A daiklave entered as an artifact row AND its weapon
+  stat line is ONE object: the **gear row owns the commitment**, the same one-object rule
+  `artifact_items` already applies to dots. ⚠ And a commitment allocated to a pool the
+  character does not HAVE is re-routed to the one they do — a mortal's pool is all
+  Personal while `attuned_pool` defaults to Peripheral, so the default silently made
+  attunement free. `status/rated-artifacts.md`.
+- **A splat's own shape can silently outvote a Merit.** `essence_pool_is_merged` asked
+  `ExaltDefinition.single_essence_pool` first, so Aura of Power was stored and never got
+  a vote for months. When a Merit CONTRADICTS a splat default, the Merit must be checked
+  first — and the test for it needs the real ruleset, not a synthetic one.
+  `status/godblooded.md`.
 
 ## Deferred (open, just not now)
 - **The app reports no version anywhere** — no titlebar string, no About item, and
@@ -344,13 +358,17 @@ Each is written up where it landed; these are the ones that catch people mid-tas
   `branding.install_desktop_entry()` writes `Exec=` from `sys.executable`, so the
   desktop entry PINS to the first frozen binary that ever ran and only re-points when a
   different one runs — downloading a new release to a new path changes nothing until you
-  execute it directly.
+  execute it directly. ⚠ **But check the DATES before blaming the build**: on 2026-09-03
+  the stale-binary theory was wrong twice over — the suspected fix predated the binary by
+  a month, and the real bug was in the code all along.
 - `chargen_budgets.json`/`costs_bonus.json`/`costs_xp.json` overrides beyond what's
   authored — optional, loader falls back to model defaults.
 - A per-session XP-grant ledger; state-reconciliation of hand-edited
   current-vs-snapshot drift (the read-only lock guards normal use).
-- The comment pass on `ui/`, `models/` and `engine/` outside validate
-  (`docs/comment-standard.md`).
+- The comment pass on **`qt/`** — the ONE package that has never had it.
+  ⚠ `ui/`, `models/` and `engine/` outside validate were swept on 2026-08-20
+  (`ea0df0e`, `2833f682`) and this line claimed them as outstanding for two weeks
+  afterwards. `docs/comment-standard.md`.
 
 ## Background
 - **Merits & Flaws were ripped out 2026-06-15** (the old system bundled balance-wrecking

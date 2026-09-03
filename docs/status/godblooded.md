@@ -899,3 +899,60 @@ plus 2 paragraphs (neither is in the catalogue).
 through; the one finding (owned powers absent from the Sheet) was fixed in `1e43b15` and
 the four review fixes landed in `d1d8010` the same day — all engine-tested, nothing
 known-blocked.
+
+---
+
+# Aura of Power reached the pool (2026-09-03)
+
+**Reported from a real save** (`taban.character.json`): a God-Blooded with Awakened
+Essence and the Aura of Power Flaw showed **one unified 31-mote pool** on the sheet and
+the printed PDF, when the Flaw says the pool divides. He now reads **Personal 10 ·
+Peripheral 21**.
+
+**3,238 tests** (was 3,181). **NOT browser-verified** — the fix was checked by loading the
+human's own save and regenerating his PDF, which is stronger than a fixture but is still
+not a human at a display. Worth their eyes on Taban's sheet.
+
+## The bug was precedence, and the sheet was innocent
+
+`mf.aura-of-power` had **zero read sites** — authored in `data/merits_flaws.json` with its
+full printed text and named nowhere in `exalted_builder/` or `tests/`. It was loaded from
+the save, stored on the character, and never given a vote:
+
+```python
+def essence_pool_is_merged(...):
+    if ruleset.exalt_for(...).single_essence_pool:   # True for God-Blooded
+        return True
+    return effects.essence_single_pool               # never reached
+```
+
+A God-Blooded's `ExaltDefinition.single_essence_pool` is `True`, so the splat's shape
+answered first and no Merit could contradict it. Every display was reporting faithfully.
+
+## The fix
+
+`MeritEffects.essence_pool_split_thirds` (set by `mf.aura-of-power` in `engine/merits.py`
+only — no caller names the id, decision 0011), **checked before the splat flag**, plus the
+arithmetic in `essence_pools`. PG p.67: *"divide their Essence pool, placing one third
+into Personal (rounded down) and the remaining two thirds into Peripheral."*
+
+⚠ **The split runs on the TOTAL.** The heritage spec
+(`CasteDefinition.heritage_traits.unlocked_essence`) delivers a God-Blooded's whole pool
+as **Personal**, which is then merged into Peripheral — so splitting either half alone
+loses motes. 31 must become 10 + 21, never 10 + 0. The floor is the third and Peripheral
+takes the remainder, so the two sum to the pool at every size.
+
+## What the work turned up on the way
+
+* ⚠ **A wrong diagnosis that a real save corrected.** Investigating this, a synthetic
+  God-Blooded showed an Essence pool of **0**, and that was written up as "Awakened
+  Essence grants no pool — a larger gap underneath". It was false: the fixture was built
+  with **no heritage set**, and the pool formula is heritage-keyed, so a blank heritage
+  yields 0. `heritage_traits.unlocked_essence` has worked all along. **A God-Blooded
+  fixture without a `caste` is not a God-Blooded** — and a fixture that omits the axis a
+  rule keys on produces a confident, wrong gap report.
+* **The Flaw's anima clause needs no implementation** (human, 2026-09-03): *"Only
+  characters with the Aura of Power Flaw display any type of anima banner as they spend
+  Essence"* describes something the player writes themselves — **anima is a user-entered
+  field**. `SheetView.anima` being empty for Taban is an empty field, not a missing
+  mechanic. Do not re-raise it as a gap.

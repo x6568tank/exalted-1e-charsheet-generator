@@ -574,24 +574,38 @@ def committed_attunement(ruleset: RuleSet, character: Character) -> dict:
     (decision 0008). `ArtifactItem` does not carry it, which is what makes that
     structural rather than remembered.
 
-    ⚠ On a merged-pool character the whole total lands on PERIPHERAL, ignoring each
-    item's stored `attuned_pool`. Not a search for "whichever is nonzero": when the
-    pools merge, `essence_pools` puts every mote in peripheral and leaves personal at 0
-    by rule (p.41), so a commitment routed to personal would silently vanish against a
-    0 maximum — a ghost would attune for free.
+    ⚠ **A commitment allocated to a pool the character does not HAVE is re-routed to
+    the one they do.** `attuned_pool` is the player's choice between two real pools
+    (core pp.147-148), not a licence to spend from an empty one — so when the named
+    pool's maximum is 0 and the other's is not, the motes come from the other.
+
+    That covers two characters who would otherwise attune for FREE, and the second is
+    why this is a general rule rather than a merged-pool special case:
+
+    * a **merged pool** (ghost, Beacon of Power) has personal 0 by rule (p.41);
+    * a **mortal** has the whole pool in PERSONAL and peripheral 0 — and
+      `attuned_pool` DEFAULTS to "peripheral", so the default value silently switched
+      the whole mechanism off. Species 3 of the house bug, found 2026-09-03 by a test
+      whose fixture happened to be a mortal.
+
+    When neither pool exists there is nothing to route to and the cost still lands on
+    the stored choice, so it shows up rather than disappearing.
     """
     from . import artifacts as artifactsmod
 
     out = {"personal": 0, "peripheral": 0}
-    merged = essence_pool_is_merged(ruleset, character)
+    caps = dict(zip(("personal", "peripheral"), essence_pools(ruleset, character)))
     for item in artifactsmod.artifact_items(character):
         if not item.attuned:
             continue
         cost = attunement_cost(ruleset, character, item)
         if not cost:
             continue
-        pool = "peripheral" if merged else item.attuned_pool
-        out[pool if pool in out else "peripheral"] += cost
+        pool = item.attuned_pool if item.attuned_pool in out else "peripheral"
+        other = "peripheral" if pool == "personal" else "personal"
+        if caps[pool] == 0 and caps[other] > 0:
+            pool = other
+        out[pool] += cost
     return out
 
 

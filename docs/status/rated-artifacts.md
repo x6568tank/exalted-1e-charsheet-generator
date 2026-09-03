@@ -667,3 +667,104 @@ nobody has asked for it.
 gap. The lesson generalises past this file: **when a tool closes a blocker, the prose that
 DESCRIBED the blocker is part of the change.** A stale "page-blocked" line reads exactly
 like a live one.
+
+---
+
+# Attunement — the motes get committed (2026-09-03)
+
+An owned artifact with a printed attunement cost can now **commit** those motes, and the
+Play tab's Essence maxima come down by the total. Phases 1 and 2 of
+`docs/plans/artifact-attunement.md`, which holds the design, the rulings and every trap;
+this is the summary.
+
+**3,238 tests** (was 3,181 at the start of the session). **NOT browser-verified** — the
+tests are green and both shells were rendered offscreen and looked at, but nobody has
+clicked it. What to click is at the bottom of this section.
+
+## What shipped, in mechanics
+
+* `Weapon`, `Armor` and `ArtifactEntry` each carry `attuned: bool` +
+  `attuned_pool: Literal["personal","peripheral"]`. `ArtifactType` and `ArtifactEntry`
+  carry the printed `attunement`, copied on a catalogue pick like `rating`.
+* **Nothing auto-attunes** — not on purchase, not on equipping, not on load. Ownership
+  and attunement are different facts (human, 2026-09-02), and the flag being the
+  player's statement is what keeps this inside `engine/play.py`'s dumb-tracker bar.
+* `artifacts.ArtifactItem` grew `attunement` / `attuned` / `attuned_pool` / `material`,
+  so **the derivation walks the ONE enumeration** and never the three owned lists.
+* `derive.attunement_cost` — printed cost, doubled for a wielder who is not a "user" of
+  the item's material. `derive.committed_attunement` — the per-pool total.
+* `view.build_play_view` subtracts it (floored at 0); `PlayView` carries the split;
+  `view.committed_note` explains the shortfall on all four mote surfaces.
+* `view.spent_motes` re-clamps a stored spend on read and **never writes it back**.
+* Both shells offer the toggle only when `attunement > 0`; an artifact with a gear stat
+  line gets a pointer at that row instead of a second control.
+
+## What the work turned up on the way
+
+* ⚠ **The plan undercounted the mote surfaces: FOUR, not three** — `ui/play`, `ui/gm`,
+  `qt/play`, `qt/party`. The fourth is precisely the one that would have kept the bug.
+  Both the clamp and the note wording are single helpers in `view.py` for that reason.
+* ⚠ **The double-count guard had to be extended from dots to MOTES.** A daiklave entered
+  as an `ArtifactEntry` *and* its `Weapon` stat line is one object; `artifact_items`
+  already dropped the weapon so the p.131 budget charged it once, and without the same
+  rule the sword would have committed its motes twice. The **gear row wins** (human,
+  2026-09-03) — it is the half with the printed stat block. New
+  `artifacts.stat_line_row` is the inverse of `Weapon.from_artifact`.
+* ⚠ **`ArtifactType.attunement` is 0 on all 330 rows**, so the standalone-Wonder path is
+  **unexercised by real data** — every test of it injects a number. Weapons and armour
+  are fine: 37 weapon and 9 armour catalogue rows carry real printed costs.
+* **The backfill is a parse job, not a re-read.** 195 of the 330 artifact descriptions
+  mention motes and **74 state a commitment in a directly parseable shape** ("Commit 5
+  motes to attune"). Those descriptions came off the page under the human's vetting and
+  `data/` is an allowed source. ⚠ The parse must exclude gear-statblocked duplicates —
+  the Skirmish Pike is in the 74 and must stay 0, because `weapons.json` holds its 5.
+* ⚠ **Known limitation, both shells:** typing an attunement cost onto a row does not make
+  the toggle appear until the editor rebuilds. Catalogue picks are unaffected (they
+  rebuild). Left as-is deliberately — always-build-and-hide would turn the "offers no
+  toggle" tests into assertions on a hidden widget rather than an absent one.
+* **The SHEET still prints the FULL pools; only the Play tab subtracts.** That keeps the
+  reduction out of every permanent derivation, but the two surfaces now print different
+  numbers for the same character. Deliberate, and worth knowing before it is reported as
+  a bug.
+
+## Traps this cost, both in tests
+
+* ⚠ **Qt: `isVisible()` is False for every widget on a page that is never shown.** A
+  visibility assertion in a headless run therefore passes against a control that is
+  always shown, and its positive half cannot pass at all. **Use `isHidden()`**, which
+  reads the explicit hide rather than the ancestor's state.
+* ⚠ **NiceGUI: `from tests._ui_main import CHAR_X` reads a DIFFERENT OBJECT** than the
+  harness's copy of that module (and breaks the next test in the file). Assert the
+  handler's observable effect inside the client instead of reading the character.
+
+## Answered, and what the answer produced
+
+* **`free_max` (Essence Awareness) is an ST TOGGLE** (human, 2026-09-03), not a ruling —
+  `HouseRules.committed_motes_reduce_free_essence`, PER-CHARACTER, default OFF (the third
+  is taken of the printed pool). p.120 divides "his Essence pool" in two and never says
+  which portion committed motes leave from, and the app cannot find out: in play the
+  mortal rolls Willpower to reach the locked two thirds and rolls AGAIN to attune, and
+  both rolls are the table's (decision 0009). Affects the tracker only; the sheet keeps
+  printing the third of the permanent pool. Inert — and says so — for any character whose
+  pool is unrestricted, which is every Exalt.
+
+* ⚠ **Writing that toggle's test found a SPECIES 3 house bug in phase 2, and the DEFAULT
+  VALUE was the off switch.** A mortal's pool is entirely **Personal** (peripheral 0), and
+  `attuned_pool` defaults to `"peripheral"` — so a mortal's commitment landed on a pool
+  with a maximum of 0, floored, and **cost them nothing at all**. Nothing on screen looked
+  wrong: checkbox ticked, number right, tracker untouched. Fixed by generalising the
+  merged-pool special case: **a commitment allocated to a pool the character does not HAVE
+  is re-routed to the one they do.** The ghost case (personal 0 by rule) is now one
+  instance of that rule rather than its own branch. ⚠ It was found by accident — the
+  fixture for an unrelated test happened to be a mortal. Nothing was looking for it.
+
+## Open questions for the human
+
+* **The PDF / sheet** — whether an attuned item is marked. Untouched.
+
+## What a human should click
+
+A **daiklave** on the Gear tab (real catalogue attunement, 5 motes): the checkbox appears,
+the pool dropdown only once checked. Then the **Play tab** — the pool shrinks and the note
+explains it. Then a **merged-pool character** (a ghost), which should offer no pool choice
+at all.

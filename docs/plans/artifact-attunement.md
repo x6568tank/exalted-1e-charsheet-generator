@@ -298,7 +298,26 @@ straight into Personal — asserting the exact bug it was written to catch. **Me
 and splat-shape tests need the REAL ruleset fixture.** Negative-controlled after the
 fix: deleting the merged branch fails the test.
 
-⚠ **`free_max` (Essence Awareness) is NOT adjusted, and this is still OPEN.** Put to
+⚠ **`free_max` (Essence Awareness) is an ST TOGGLE — settled 2026-09-03.**
+`HouseRules.committed_motes_reduce_free_essence`, PER-CHARACTER, **default OFF** (the
+third is taken of the printed pool, which is what shipped). ON re-takes it of what
+remains. Applied in `build_play_view` only, so the sheet is untouched; the ST Options
+registry marks it inert for any character whose pool is unrestricted, i.e. every Exalt.
+**The app cannot decide this itself** (human): in play the mortal rolls Willpower to
+reach the locked two thirds and rolls AGAIN to attune, and both rolls are the table's.
+
+⚠ **Writing that toggle's test found a SPECIES 3 HOUSE BUG in phase 2 — the default
+value was the off switch.** A mortal's pool is entirely **Personal** (peripheral 0) and
+`attuned_pool` defaults to `"peripheral"`, so a mortal's commitment landed on a
+0-maximum pool, floored, and cost nothing. Checkbox ticked, number right, tracker
+untouched. Fixed by GENERALISING the merged-pool special case in
+`committed_attunement`: **a commitment allocated to a pool the character does not HAVE
+is re-routed to the one they do** — the ghost (personal 0 by rule) is now one instance
+of that rule instead of its own branch. ⚠ Found by accident, because an unrelated
+fixture happened to be a mortal; nothing was looking for it, and no existing test could
+have caught it.
+
+The superseded write-up of that as an open question: Put to
 the human 2026-09-03 and not answered — the reply addressed the doubling question asked
 alongside it (see 3a above).
 

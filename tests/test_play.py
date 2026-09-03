@@ -289,8 +289,9 @@ def test_clearing_the_flag_gives_the_pool_back():
 
 def test_a_merged_pool_commitment_lands_on_the_real_pool(ruleset):
     """⚠ A ghost's Personal pool is 0 BY RULE (p.41), so a commitment routed there
-    would vanish and the ghost would attune for free. `attuned_pool` is ignored, not
-    trusted, when the pools are merged.
+    would vanish and the ghost would attune for free. One case of the general rule:
+    a commitment allocated to a pool the character does not HAVE moves to the one they
+    do (see the mortal case below, which is what generalised it).
 
     ⚠ Takes the REAL ruleset, not this module's synthetic one: `_ruleset()` defines no
     Ghost exalt, so `essence_pool_is_merged` answered False and the test passed the
@@ -426,3 +427,99 @@ def test_the_material_bar_reaches_the_effective_stats(ruleset):
     assert derive.effective_weapon(ruleset, solar, ori).accuracy > ori.accuracy
     solar.merits_flaws.append(MeritFlawPurchase(merit_id="thaum.magical-attunement"))
     assert derive.effective_weapon(ruleset, solar, ori).accuracy == ori.accuracy
+
+
+# --------------------------------------------------------------------------- #
+# HouseRules: do committed motes come out of the freely-drawable third?
+# --------------------------------------------------------------------------- #
+
+def _awakened_mortal(ruleset, **kw):
+    """A mortal with Essence Awareness — the ONLY shape with a restricted pool, and so
+    the only one this toggle can touch. Every Exalt draws its whole pool freely."""
+    from exalted_builder.models.character import HouseRules, MeritFlawPurchase, Weapon
+    c = Character(id="m", name="M", exalt_type="Mortal", essence_rating=2,
+                  weapons=[Weapon(name="Amulet", artifact_rating=2, attunement=6,
+                                  attuned=True, attuned_pool="peripheral")])
+    c.merits_flaws.append(MeritFlawPurchase(merit_id="thaum.essence-awareness"))
+    c.merits_flaws.append(MeritFlawPurchase(merit_id="thaum.magical-attunement"))
+    for k, v in kw.items():
+        setattr(c, k, v)
+    return c
+
+
+def test_by_default_the_free_third_is_taken_of_the_printed_pool(ruleset):
+    """OFF is the default and preserves today's behaviour: committing does not move
+    where the Essence Awareness line falls."""
+    from exalted_builder.engine import derive
+    plain = _awakened_mortal(ruleset)
+    plain.weapons[0].attuned = False
+    before = viewmod.build_play_view(ruleset, plain).free_max
+    attuned = _awakened_mortal(ruleset)
+    # ⚠ "personal": a mortal has no Peripheral pool, so the commitment is re-routed
+    # there — see test_a_commitment_never_vanishes_into_a_pool_the_character_lacks.
+    assert derive.committed_attunement(ruleset, attuned)["personal"] == 6
+    assert viewmod.build_play_view(ruleset, attuned).free_max == before
+
+
+def test_the_toggle_takes_the_third_of_what_remains(ruleset):
+    from exalted_builder.models.character import HouseRules
+    c = _awakened_mortal(ruleset,
+                         house_rules=HouseRules(
+                             committed_motes_reduce_free_essence=True))
+    view = viewmod.build_play_view(ruleset, c)
+    assert view.free_max == (view.personal_max + view.peripheral_max) // 3
+    off = viewmod.build_play_view(ruleset, _awakened_mortal(ruleset)).free_max
+    assert view.free_max < off          # the whole point: the line moves
+
+
+def test_the_toggle_never_touches_the_sheet(ruleset):
+    """⚠ The tracker only. The sheet prints permanent capacity — the full pools and the
+    third of THEM — and this must not leak into it."""
+    from exalted_builder.models.character import HouseRules
+    off = viewmod.build_sheet_view(ruleset, _awakened_mortal(ruleset))
+    on = viewmod.build_sheet_view(
+        ruleset, _awakened_mortal(ruleset,
+                                  house_rules=HouseRules(
+                                      committed_motes_reduce_free_essence=True)))
+    assert on.essence_free == off.essence_free
+    assert on.essence_pool_label() == off.essence_pool_label()
+
+
+def test_the_toggle_is_inert_for_an_unrestricted_pool(ruleset):
+    """Every Exalt draws its whole pool freely, so `free_max` is None and there is no
+    line to move — the toggle must not invent one."""
+    from exalted_builder.models.character import HouseRules, Weapon
+    solar = Character(id="s", name="S", exalt_type="Solar", caste="dawn",
+                      essence_rating=3,
+                      house_rules=HouseRules(
+                          committed_motes_reduce_free_essence=True),
+                      weapons=[Weapon(name="Daiklave", artifact_rating=3, attunement=5,
+                                      attuned=True)])
+    assert viewmod.build_play_view(ruleset, solar).free_max is None
+
+
+def test_an_old_save_with_no_house_rules_keeps_the_default(ruleset):
+    c = _awakened_mortal(ruleset, house_rules=None)
+    assert viewmod.build_play_view(ruleset, c).free_max is not None
+
+
+def test_a_commitment_never_vanishes_into_a_pool_the_character_lacks(ruleset):
+    """⚠ SPECIES 3 OF THE HOUSE BUG, and the default value was the off switch.
+
+    A mortal's whole pool is PERSONAL (peripheral 0), and `attuned_pool` defaults to
+    "peripheral" — so a mortal's attunement cost landed on an empty pool, floored at 0,
+    and cost them nothing at all. Nothing on screen looked wrong: the checkbox was
+    ticked, the number was right, and the tracker was untouched.
+    """
+    from exalted_builder.engine import derive
+    from exalted_builder.models.character import MeritFlawPurchase, Weapon
+    c = Character(id="m", name="M", exalt_type="Mortal", essence_rating=2,
+                  weapons=[Weapon(name="Amulet", artifact_rating=2, attunement=6,
+                                  attuned=True, attuned_pool="peripheral")])
+    c.merits_flaws.append(MeritFlawPurchase(merit_id="thaum.essence-awareness"))
+    c.merits_flaws.append(MeritFlawPurchase(merit_id="thaum.magical-attunement"))
+    personal_cap, peripheral_cap = derive.essence_pools(ruleset, c)
+    assert peripheral_cap == 0 and personal_cap > 0        # the shape that broke it
+    assert derive.committed_attunement(ruleset, c) == {"personal": 6, "peripheral": 0}
+    view = viewmod.build_play_view(ruleset, c)
+    assert view.personal_max == personal_cap - 6

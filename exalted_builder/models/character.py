@@ -667,6 +667,28 @@ class HouseRules(BaseModel):
     # names this field); no UI module learns the name.
     st_mortal_artifact_manse: bool = False
 
+    # PER-CHARACTER. Do motes COMMITTED to attuned artifacts shrink the freely-drawable
+    # third that Essence Awareness grants (PG p.120)?
+    #
+    # Unsourced by construction, which is why it is a toggle rather than a ruling. p.120
+    # divides "his Essence pool" into a third drawable normally and two thirds needing a
+    # Willpower roll; commitment is a separate mechanic and NOTHING says which portion
+    # committed motes leave from. OFF (the default) takes the third of the printed pool,
+    # so a 12-mote mortal who commits 6 keeps 4 free. ON takes it of what remains.
+    #
+    # ⚠ Affects the PLAY tracker only, never the sheet — `build_play_view` is the one
+    # place committed motes reduce anything, and the sheet prints permanent capacity.
+    #
+    # ⚠ Meaningless unless `derive.essence_freely_accessible` returns a number, i.e. a
+    # mortal with Essence Awareness and not Essence Mastery. Every Exalt has an
+    # unrestricted native pool and is unaffected either way.
+    #
+    # The human's note on why the app cannot decide this itself (2026-09-03): in play the
+    # mortal rolls Willpower to reach the locked two thirds, THEN rolls again to attune.
+    # Both rolls are the table's (decision 0009), so which pool the motes came from is
+    # knowledge the app never has.
+    committed_motes_reduce_free_essence: bool = False
+
     # TABLE-WIDE. Open the WHOLE Background catalogue to every splat, rather than the
     # Backgrounds that character's own book prints. The books ask for exactly this
     # switch: the Outcaste's new-Backgrounds heading (p.66) offers Arsenal, Retainers

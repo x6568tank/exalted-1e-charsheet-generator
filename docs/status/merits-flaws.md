@@ -1025,3 +1025,47 @@ that did not exist — the `scroll max 0` reading was an artifact of driving the
 and scrolls correctly. ⚠ **A symptom in the app must be reproduced in the APP**
 (`main_window.py` with the rail driven), never in the page widget alone — and before
 reproducing anything, read the code on the display path.
+
+---
+
+# The Magical Material bar had no implementation (2026-09-03)
+
+**3,238 tests** (was 3,181). **NOT browser-verified** — engine-only, no surface changed.
+
+Both Merits that let a **non-Exalt attune to artifacts** refuse the Magical Material bonus
+in as many words, and nothing enforced either:
+
+* `thaum.magical-attunement` (mortals, 2-pt, PG p.120) — *"provided she pays the normal
+  commitment cost. **She never gains any bonus from an artifact's Magical Material.**"*
+* `mf.magical-attunement` (God-Blooded, 4-pt, PG p.66) — *"**cannot receive a Magical
+  Material bonus** from artifacts regardless of how many motes they spend."*
+
+Now `MeritEffects.no_magical_material_bonus`, set in `engine/merits.py` only, read by
+`derive.applied_material`.
+
+## Why it looked healthy — species 2, in its purest form
+
+`applied_material` grants the bonus when `mat.exalt_type == character.exalt_type`. Every
+material in the catalogue belongs to an **Exalt** type, and a holder of either Merit is a
+Mortal or a God-Blooded — so their type matches nothing and they already got `None`. **The
+right answer arrived by coincidence, from a test written for a different rule.** It would
+have gone wrong the first time a holder's type could also match a material.
+
+⚠ **The discriminator is the whole test.** A mortal probe passes whether the flag works or
+not, for exactly that reason. The test uses a **Solar with orichalcum** — a character whose
+type DOES resonate — because that is the only shape that can tell the flag from the
+coincidence. ⚠ A first draft probed `damage`, which orichalcum does not modify
+(`weapon_damage: 0`), so it compared 5 to 5 and was green either way; it probes accuracy
+now. **Check that the stat you assert on is one the effect actually moves.**
+
+## The same pages settled a live rules question
+
+They are also why a character no material resonates with pays the **printed** attunement
+cost rather than double — see `docs/status/rated-artifacts.md` and
+`docs/plans/artifact-attunement.md` (resolved question 3a). Without it a mortal would pay
+double for every material artifact in the game: a jade daiklave at 10 motes against a pool
+of about 12, most of it behind a Willpower roll. **The human supplied the citation; the
+generalisation that preceded it was inferred and would have been wrong.**
+
+⚠ **Only the weapon path was checked.** If armour material bonuses route somewhere other
+than `applied_material`, that path may still grant a bonus these Merits forbid.

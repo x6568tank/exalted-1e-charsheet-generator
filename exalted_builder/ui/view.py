@@ -1743,6 +1743,14 @@ _HOUSE_RULES = [
      "— 'may not purchase the Artifacts or Manse Backgrounds without Storyteller "
      "permission; if a mortal has control over one of these, it's a plot device'. "
      "Chargen only: there is no post-lock purchase to bar."),
+    ("committed_motes_reduce_free_essence",
+     "Committed motes come out of the freely-drawable third", "character",
+     "Player's Guide p.120 — unsourced interaction",
+     "Essence Awareness splits a mortal's pool into a third drawable normally and two "
+     "thirds needing a Willpower roll. The book never says which portion motes "
+     "committed to an artifact leave from. OFF: the third is taken of the printed "
+     "pool, so committing does not move the line. ON: it is taken of what remains "
+     "after commitments. Affects the Play tracker only, never the sheet."),
     ("terrestrial_essence_transcendence", "Terrestrial may pass Essence 7", "character",
      "Player's Guide p.258",
      "Terrestrial Exalts are held at Essence 7 without 'outside energies' — dietary "
@@ -1856,6 +1864,20 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
                         f"and this character is {character.exalt_type}.")
             elif getattr(rules, fld):
                 note = "Permission granted: this mortal may take Artifact and Manse Backgrounds."
+        elif fld == "committed_motes_reduce_free_essence":
+            # Inert for anyone whose pool is unrestricted — every Exalt, and any mortal
+            # who has bought Essence Mastery. `essence_free` is the ONE test: it is
+            # None exactly when the whole pool is freely drawable.
+            if derive.essence_freely_accessible(ruleset, character) is None:
+                inert = True
+                note = ("No effect: this character draws on their whole pool freely. "
+                        "The split is Essence Awareness's, and only a mortal holding "
+                        "it without Essence Mastery has one.")
+            elif not sum(derive.committed_attunement(ruleset, character).values()):
+                inert = True
+                note = ("Nothing committed yet: no attuned artifact is holding motes, "
+                        "so there is nothing for this to move. It starts mattering "
+                        "the moment one is attuned.")
         elif fld == "terrestrial_essence_transcendence":
             if ruleset.exalt_for(character.exalt_type).tier != "Terrestrial":
                 inert = True
@@ -3184,6 +3206,19 @@ def build_play_view(ruleset: RuleSet, character: Character) -> PlayView:
     committed = derive.committed_attunement(ruleset, character)
     personal_max = max(0, d.essence_personal - committed["personal"])
     peripheral_max = max(0, d.essence_peripheral - committed["peripheral"])
+    free_max = d.essence_free
+    # HouseRules.committed_motes_reduce_free_essence (PER-CHARACTER, default off).
+    # p.120 splits the pool into a freely-drawable third and two thirds behind a
+    # Willpower roll, and never says which portion committed motes leave from — so the
+    # table decides. OFF keeps the third of the PRINTED pool, which is what `derive`
+    # already computed. ON re-takes it of what is left.
+    #
+    # ⚠ Only the tracker. `d.essence_free` is untouched, so the sheet keeps printing the
+    # third of the permanent pool alongside the permanent pools themselves.
+    rules = character.house_rules
+    if (free_max is not None and rules is not None
+            and rules.committed_motes_reduce_free_essence):
+        free_max = (personal_max + peripheral_max) // 3
     return PlayView(
         health_boxes=[PlayHealthBox(_health_label(hl), hl.incapacitated)
                       for hl in d.health_levels],
@@ -3193,7 +3228,7 @@ def build_play_view(ruleset: RuleSet, character: Character) -> PlayView:
         committed_peripheral=committed["peripheral"],
         willpower_max=d.willpower,
         single_pool=d.essence_single_pool,
-        free_max=d.essence_free,
+        free_max=free_max,
         fatigue_difficulties=[
             f"{a.name or 'Armour'} {eff.fatigue}"
             for a, eff in ((a, derive.effective_armor(ruleset, character, a))
