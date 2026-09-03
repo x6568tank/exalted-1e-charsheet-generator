@@ -163,3 +163,266 @@ def test_validate_never_reads_the_attunement_flag():
             elif isinstance(node, ast.Constant) and node.value in watched:
                 offenders.append(f"{path.name}:{node.lineno} {node.value!r}")
     assert offenders == [], offenders
+
+
+# --------------------------------------------------------------------------- #
+# artifact attunement — the derivation (phase 2)
+# --------------------------------------------------------------------------- #
+
+def _attune_rs():
+    """A ruleset with the two magical materials the doubling test needs."""
+    from exalted_builder.models.rules import MagicalMaterial
+    rs = _ruleset()
+    return rs.model_copy(update={"material_catalog": {
+        "orichalcum": MagicalMaterial(id="orichalcum", name="Orichalcum",
+                                      exalt_type="Solar"),
+        "jade": MagicalMaterial(id="jade", name="Jade",
+                                exalt_type="Dragon-Blooded")}})
+
+
+def _armed(**kw):
+    from exalted_builder.models.character import Weapon
+    c = Character(id="c.at", name="A", exalt_type="Solar", caste="dawn",
+                  essence_rating=3)
+    for k, v in kw.items():
+        setattr(c, k, v)
+    return c
+
+
+def test_committed_ignores_unattuned_items():
+    from exalted_builder.engine import derive
+    from exalted_builder.models.character import Weapon
+    char = _armed(weapons=[Weapon(name="Daiklave", artifact_rating=3, attunement=5)])
+    assert derive.committed_attunement(_attune_rs(), char) == {"personal": 0,
+                                                               "peripheral": 0}
+
+
+def test_committed_sums_into_the_named_pool():
+    from exalted_builder.engine import derive
+    from exalted_builder.models.character import Weapon
+    char = _armed(weapons=[
+        Weapon(name="Daiklave", artifact_rating=3, attunement=5, attuned=True,
+               attuned_pool="personal"),
+        Weapon(name="Grand Daiklave", artifact_rating=3, attunement=8, attuned=True,
+               attuned_pool="peripheral")])
+    assert derive.committed_attunement(_attune_rs(), char) == {"personal": 5,
+                                                               "peripheral": 8}
+
+
+def test_quantity_never_multiplies_the_commitment():
+    """⚠ Twenty attuned arrows are not twenty attunements. The count exists for
+    ammunition and nothing in the engine reads it (decision 0008); `ArtifactItem` does
+    not carry it, which is what makes that structural rather than remembered."""
+    from exalted_builder.engine import derive
+    from exalted_builder.models.character import Weapon
+    char = _armed(weapons=[Weapon(name="Sky-Cutter", artifact_rating=2, attunement=3,
+                                  attuned=True, quantity=20)])
+    assert derive.committed_attunement(_attune_rs(), char)["peripheral"] == 3
+
+
+def test_a_non_user_of_the_material_pays_double():
+    """Jade for a non-Terrestrial. The general rule behind the Hearthstone Compass's
+    printed exception (human's ruling 2026-09-03)."""
+    from exalted_builder.engine import derive
+    from exalted_builder.models.character import Weapon
+    rs = _attune_rs()
+    jade = Weapon(name="Daiklave", artifact_rating=3, attunement=5, attuned=True,
+                  material="jade")
+    assert derive.committed_attunement(rs, _armed(weapons=[jade]))["peripheral"] == 10
+
+
+def test_a_user_of_the_material_pays_the_printed_number():
+    """The negative control for the doubling — same item, resonant material."""
+    from exalted_builder.engine import derive
+    from exalted_builder.models.character import Weapon
+    rs = _attune_rs()
+    ori = Weapon(name="Daiklave", artifact_rating=3, attunement=5, attuned=True,
+                 material="orichalcum")
+    assert derive.committed_attunement(rs, _armed(weapons=[ori]))["peripheral"] == 5
+
+
+def test_a_mundane_artifact_never_doubles():
+    """⚠ "Not a user" is not the same question as `applied_material(...) is None`,
+    which is ALSO None for an item naming no material at all."""
+    from exalted_builder.engine import derive
+    from exalted_builder.models.character import Weapon
+    rs = _attune_rs()
+    plain = Weapon(name="Daiklave", artifact_rating=3, attunement=5, attuned=True)
+    assert derive.committed_attunement(rs, _armed(weapons=[plain]))["peripheral"] == 5
+
+
+def test_a_linked_pair_commits_once_in_the_derivation():
+    """The double-count guard, reached through the derivation rather than the fold."""
+    from exalted_builder.engine import artifacts as artifactsmod, derive
+    from exalted_builder.models.character import ArtifactEntry, Weapon
+    key = artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, "Daiklave")
+    char = _armed(
+        artifacts=[ArtifactEntry(name="Daiklave", rating=3, attunement=5, attuned=True)],
+        weapons=[Weapon(name="Daiklave", artifact_rating=3, from_artifact=key,
+                        attunement=5, attuned=True)])
+    assert derive.committed_attunement(_attune_rs(), char)["peripheral"] == 5
+
+
+def test_build_play_view_shrinks_the_named_pool():
+    from exalted_builder.models.character import Weapon
+    rs = _attune_rs()
+    bare = _armed()
+    before = viewmod.build_play_view(rs, bare)
+    char = _armed(weapons=[Weapon(name="Daiklave", artifact_rating=3, attunement=5,
+                                  attuned=True, attuned_pool="peripheral")])
+    after = viewmod.build_play_view(rs, char)
+    assert after.peripheral_max == before.peripheral_max - 5
+    assert after.personal_max == before.personal_max      # the other pool is untouched
+    assert after.committed_peripheral == 5
+
+
+def test_clearing_the_flag_gives_the_pool_back():
+    """The negative control for the subtraction — the same character, unattuned."""
+    from exalted_builder.models.character import Weapon
+    rs = _attune_rs()
+    weapon = Weapon(name="Daiklave", artifact_rating=3, attunement=5, attuned=True)
+    char = _armed(weapons=[weapon])
+    shrunk = viewmod.build_play_view(rs, char).peripheral_max
+    weapon.attuned = False
+    assert viewmod.build_play_view(rs, char).peripheral_max == shrunk + 5
+
+
+def test_a_merged_pool_commitment_lands_on_the_real_pool(ruleset):
+    """⚠ A ghost's Personal pool is 0 BY RULE (p.41), so a commitment routed there
+    would vanish and the ghost would attune for free. `attuned_pool` is ignored, not
+    trusted, when the pools are merged.
+
+    ⚠ Takes the REAL ruleset, not this module's synthetic one: `_ruleset()` defines no
+    Ghost exalt, so `essence_pool_is_merged` answered False and the test passed the
+    commitment straight into Personal — a green run that proved nothing.
+    """
+    from exalted_builder.engine import derive
+    from exalted_builder.models.character import Weapon
+    rs = ruleset
+    ghost = Character(id="g", name="G", exalt_type="Ghost", essence_rating=3,
+                      # ⚠ No material: soulsteel resonates with ABYSSALS, so naming it
+                      # would double the cost for a ghost and confuse two rules in one
+                      # assertion.
+                      weapons=[Weapon(name="Grave Blade", artifact_rating=3,
+                                      attunement=6, attuned=True,
+                                      attuned_pool="personal")])
+    committed = derive.committed_attunement(rs, ghost)
+    assert committed == {"personal": 0, "peripheral": 6}
+    view = viewmod.build_play_view(rs, ghost)
+    assert view.single_pool is True
+    assert view.committed_peripheral == 6
+
+
+def test_a_pool_cannot_go_negative():
+    from exalted_builder.models.character import Weapon
+    rs = _attune_rs()
+    char = _armed(weapons=[Weapon(name="Absurd", artifact_rating=5, attunement=999,
+                                  attuned=True)])
+    assert viewmod.build_play_view(rs, char).peripheral_max == 0
+
+
+def test_already_spent_motes_clamp_on_read_without_touching_the_save():
+    """⚠ Attuning shrinks the maximum under a spend that was legal a moment ago.
+    `play.set_motes` clamps to a cap its CALLER passes in and never sees this. The
+    clamp must not be written back: un-attuning has to give the motes back."""
+    from exalted_builder.models.character import Weapon
+    rs = _attune_rs()
+    weapon = Weapon(name="Daiklave", artifact_rating=3, attunement=5, attuned=False)
+    char = _armed(weapons=[weapon])
+    full = viewmod.build_play_view(rs, char)
+    char.play = PlayState(motes_peripheral_spent=full.peripheral_max)
+    weapon.attuned = True
+    view = viewmod.build_play_view(rs, char)
+    _, spent = viewmod.spent_motes(view, char.play)
+    assert spent == view.peripheral_max                      # clamped for display
+    assert char.play.motes_peripheral_spent == full.peripheral_max   # save untouched
+    weapon.attuned = False                                   # and it comes back whole
+    restored = viewmod.build_play_view(rs, char)
+    assert viewmod.spent_motes(restored, char.play)[1] == full.peripheral_max
+
+
+def test_spent_motes_tolerates_no_play_state():
+    rs = _attune_rs()
+    view = viewmod.build_play_view(rs, _armed())
+    assert viewmod.spent_motes(view, None) == (0, 0)
+
+
+def test_a_character_with_no_resonant_material_pays_the_printed_cost(ruleset):
+    """⚠ A mortal is a "user" of no Magical Material, so the naive doubling would
+    charge them double for every artifact in the game. Both printed routes to attuning
+    say otherwise: Magical Attunement is "provided she pays the normal commitment cost.
+    She never gains any bonus from an artifact's Magical Material" (PG p.120), and the
+    God-Blooded version says the same (PG p.66). The doubling is about wielding ANOTHER
+    Exalt's material; a mortal is not on that axis.
+
+    ⚠ REAL ruleset — the discriminator is "does any material in the catalogue resonate
+    with this Exalt type", which a synthetic two-material fixture answers wrongly.
+    """
+    from exalted_builder.engine import derive
+    from exalted_builder.models.character import Weapon
+    jade = dict(name="Daiklave", artifact_rating=3, attunement=5, attuned=True,
+                material="jade")
+    mortal = Character(id="m", name="M", exalt_type="Mortal", essence_rating=1,
+                       weapons=[Weapon(**jade)])
+    assert derive.committed_attunement(ruleset, mortal)["peripheral"] == 5
+
+
+def test_an_exalt_of_the_wrong_material_still_pays_double(ruleset):
+    """The negative control for the carve-out above — same jade daiklave, a Solar.
+    A fix that exempted everyone would pass the mortal test and break this."""
+    from exalted_builder.engine import derive
+    from exalted_builder.models.character import Weapon
+    solar = Character(id="s", name="S", exalt_type="Solar", caste="dawn",
+                      essence_rating=3,
+                      weapons=[Weapon(name="Daiklave", artifact_rating=3, attunement=5,
+                                      attuned=True, material="jade")])
+    assert derive.committed_attunement(ruleset, solar)["peripheral"] == 10
+
+
+def test_a_terrestrial_pays_the_printed_cost_for_jade(ruleset):
+    """And the resonant case, so the three readings are separated: printed for a user,
+    double for the wrong Exalt, printed for someone with no material at all."""
+    from exalted_builder.engine import derive
+    from exalted_builder.models.character import Weapon
+    db = Character(id="d", name="D", exalt_type="Dragon-Blooded", caste="fire",
+                   essence_rating=3,
+                   weapons=[Weapon(name="Daiklave", artifact_rating=3, attunement=5,
+                                   attuned=True, material="jade")])
+    assert derive.committed_attunement(ruleset, db)["peripheral"] == 5
+
+
+def test_a_magical_attunement_holder_never_gets_the_material_bonus(ruleset):
+    """⚠ Both Merits that let a non-Exalt attune refuse the bonus in as many words:
+    "She never gains any bonus from an artifact's Magical Material" (mortal, PG p.120)
+    and "cannot receive a Magical Material bonus from artifacts regardless of how many
+    motes they spend" (God-Blooded, PG p.66).
+
+    ⚠ The DISCRIMINATOR matters. A mortal's exalt_type matches no material, so the
+    exalt_type test alone already returns None and this rule looked implemented while
+    having no implementation at all. The probe therefore uses a character whose type
+    DOES resonate — a Solar with orichalcum — because that is the only shape that can
+    tell the flag apart from the coincidence.
+    """
+    from exalted_builder.engine import derive
+    from exalted_builder.models.character import MeritFlawPurchase, Weapon
+    ori = Weapon(name="Daiklave", artifact_rating=3, material="orichalcum")
+    solar = Character(id="s", name="S", exalt_type="Solar", caste="dawn",
+                      essence_rating=3, weapons=[ori])
+    assert derive.applied_material(ruleset, solar, ori) is not None   # control
+    solar.merits_flaws.append(MeritFlawPurchase(merit_id="thaum.magical-attunement"))
+    assert derive.applied_material(ruleset, solar, ori) is None
+
+
+def test_the_material_bar_reaches_the_effective_stats(ruleset):
+    """The binding test: a flag nothing reads is the bug this whole session is about."""
+    from exalted_builder.engine import derive
+    from exalted_builder.models.character import MeritFlawPurchase, Weapon
+    # ⚠ Accuracy, not damage: orichalcum's printed deltas are speed/accuracy/defence
+    # and its `weapon_damage` is 0, so a damage probe compares 5 to 5 and passes
+    # whether the bar works or not.
+    ori = Weapon(name="Daiklave", artifact_rating=3, accuracy=2, material="orichalcum")
+    solar = Character(id="s", name="S", exalt_type="Solar", caste="dawn",
+                      essence_rating=3, weapons=[ori])
+    assert derive.effective_weapon(ruleset, solar, ori).accuracy > ori.accuracy
+    solar.merits_flaws.append(MeritFlawPurchase(merit_id="thaum.magical-attunement"))
+    assert derive.effective_weapon(ruleset, solar, ori).accuracy == ori.accuracy

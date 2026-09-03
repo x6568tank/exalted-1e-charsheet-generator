@@ -375,13 +375,19 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
             title = ("Essence — single pool (motes spent — manual)" if pv.single_pool
                      else "Essence (motes spent — manual)")
             with _panel(title, pal):
+                # ⚠ Through `view.spent_motes`, not `cur.*` directly: attuning an
+                # artifact shrinks the maxima under a spend that was legal a moment
+                # ago, and the stored value must not be written back (un-attuning
+                # gives the motes back).
+                spent_p, spent_pp = viewmod.spent_motes(pv, cur)
                 with ui.row().classes("gap-6 flex-wrap items-end"):
                     if not pv.single_pool:
                         _mote_input("Personal", "motes_personal_spent",
-                                    cur.motes_personal_spent, pv.personal_max)
+                                    spent_p, pv.personal_max)
                     _mote_input("Peripheral" if not pv.single_pool else "All motes",
                                 "motes_peripheral_spent",
-                                cur.motes_peripheral_spent, pv.peripheral_max)
+                                spent_pp, pv.peripheral_max)
+                _committed_note(pv)
                 # Essence Awareness unlocks only a third of the pool freely; the rest
                 # needs a Willpower roll the table makes, not this app. The inputs
                 # still run to the full maximum — those motes are spendable — so the
@@ -513,6 +519,13 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
                                       body.refresh)
             with ui.column().classes("flex-1 min-w-0 max-w-3xl gap-3"):
                 tracker()
+
+    def _committed_note(pv) -> None:
+        """Why the pool is short — `view.committed_note` owns the wording, shared with
+        the other three mote surfaces."""
+        text = viewmod.committed_note(pv)
+        if text:
+            ui.label(text).classes("text-xs opacity-70 mt-1")
 
     def _mote_input(label: str, field: str, value: int, cap: int) -> None:
         with ui.column().classes("gap-0"):

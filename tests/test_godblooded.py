@@ -2016,3 +2016,70 @@ def test_the_autochthonian_machine_spirit_charms(rs):
     # scan: a matcher built from one sample's phrasing.
     restricted = {c.name for c in auto if "crystal elementals" in c.description}
     assert restricted == {"Crystallize", "Ossify Pattern"}
+
+
+# --------------------------------------------------------------------------- #
+# Aura of Power (PG p.67) — the Flaw that SPLITS the heritage pool
+# --------------------------------------------------------------------------- #
+
+AURA_OF_POWER = "mf.aura-of-power"
+
+
+def test_a_godblooded_pool_is_a_single_pool_without_the_flaw(rs):
+    """The baseline. A God-Blooded's `single_essence_pool` is True, so the whole
+    heritage pool (which the heritage spec computes as PERSONAL) merges into
+    Peripheral and the sheet names it as one."""
+    c = _gb(merits_flaws=[MP(merit_id=AWAKENED)])
+    personal, peripheral = derive.essence_pools(rs, c)
+    assert personal == 0 and peripheral > 0
+    assert derive.essence_pool_is_merged(rs, c) is True
+    assert "Single pool" in viewmod.build_sheet_view(rs, c).essence_pool_label()
+
+
+def test_aura_of_power_splits_the_pool_into_thirds(rs):
+    """PG p.67: "divide their Essence pool, placing one third into Personal (rounded
+    down) and the remaining two thirds into Peripheral."
+
+    ⚠ Split on the TOTAL. The whole pool arrives as Personal from the heritage spec
+    and is then merged, so splitting either half alone loses motes.
+    """
+    c = _gb(merits_flaws=[MP(merit_id=AWAKENED), MP(merit_id=AURA_OF_POWER)])
+    total = sum(derive.essence_pools(rs, _gb(merits_flaws=[MP(merit_id=AWAKENED)])))
+    personal, peripheral = derive.essence_pools(rs, c)
+    assert personal == total // 3
+    assert peripheral == total - personal
+    assert personal + peripheral == total          # ⚠ no motes lost in the division
+
+
+def test_aura_of_power_beats_the_splats_own_single_pool(rs):
+    """⚠ THE test. `essence_pool_is_merged` asked the splat first until 2026-09-03,
+    and a God-Blooded's `single_essence_pool` is True — so the Flaw was read, stored
+    and had no effect whatsoever. The sheet said "Single pool 31" and was reporting
+    faithfully; there was nothing behind it."""
+    c = _gb(merits_flaws=[MP(merit_id=AWAKENED), MP(merit_id=AURA_OF_POWER)])
+    assert derive.essence_pool_is_merged(rs, c) is False
+    label = viewmod.build_sheet_view(rs, c).essence_pool_label()
+    assert "Single pool" not in label
+    assert "Personal" in label and "Peripheral" in label
+
+
+def test_the_split_reaches_the_play_tracker_too(rs):
+    """The pools the Play tab spends against are the split ones, not one merged track."""
+    c = _gb(merits_flaws=[MP(merit_id=AWAKENED), MP(merit_id=AURA_OF_POWER)])
+    view = viewmod.build_play_view(rs, c)
+    assert view.single_pool is False
+    assert view.personal_max > 0 and view.peripheral_max > 0
+    assert view.peripheral_max > view.personal_max      # two thirds beats one
+
+
+def test_the_rounding_is_a_floor_at_every_pool_size(rs):
+    """"Rounded down" is the printed word. Checked across Essence ratings so a size
+    whose third divides evenly cannot be the only one exercised."""
+    for essence in (1, 2, 3):
+        plain = _gb(essence_rating=essence, merits_flaws=[MP(merit_id=AWAKENED)])
+        total = sum(derive.essence_pools(rs, plain))
+        split = _gb(essence_rating=essence,
+                    merits_flaws=[MP(merit_id=AWAKENED), MP(merit_id=AURA_OF_POWER)])
+        personal, peripheral = derive.essence_pools(rs, split)
+        assert personal == total // 3, f"essence {essence}"
+        assert personal + peripheral == total, f"essence {essence}"

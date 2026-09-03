@@ -424,11 +424,19 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
             # --- motes ---------------------------------------------------- #
             ui.label("ESSENCE (motes spent)").classes(
                 "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
+            # ⚠ `view.spent_motes`, not `cur.*` — see its docstring; a committed
+            # artifact shrinks the pool under an already-legal spend.
+            spent_p, spent_pp = viewmod.spent_motes(cv.play, cur)
             with ui.row().classes("gap-3 items-end no-wrap"):
                 _mote_input(character, "Personal", "motes_personal_spent",
-                            cur.motes_personal_spent, cv.play.personal_max)
+                            spent_p, cv.play.personal_max)
                 _mote_input(character, "Peripheral", "motes_peripheral_spent",
-                            cur.motes_peripheral_spent, cv.play.peripheral_max)
+                            spent_pp, cv.play.peripheral_max)
+            # ⚠ The COMPACT form — see qt/party.py. Short, but never absent: an
+            # unexplained short pool reads as a defect.
+            _committed = viewmod.committed_note(cv.play, compact=True)
+            if _committed:
+                ui.label(_committed).classes("text-xs opacity-70")
 
             # --- temporary Willpower + Limit ------------------------------ #
             ui.label(f"WILLPOWER  ({cv.play.willpower_max - cur.willpower_spent}"

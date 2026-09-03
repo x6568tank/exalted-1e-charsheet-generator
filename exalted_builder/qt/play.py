@@ -288,12 +288,16 @@ class PlayPage(QWidget):
             self._tracker_lay,
             "ESSENCE — SINGLE POOL (motes spent — manual)" if play.single_pool
             else "ESSENCE (motes spent — manual)")
+        # ⚠ `view.spent_motes`, not `cur.*` — attuning shrinks the maxima under an
+        # already-legal spend, and the stored value must not be written back.
+        spent_p, spent_pp = viewmod.spent_motes(play, cur)
         if not play.single_pool:
             self._mote_input(body, "Personal", "motes_personal_spent",
-                             cur.motes_personal_spent, play.personal_max)
+                             spent_p, play.personal_max)
         self._mote_input(body, "Peripheral" if not play.single_pool else "All motes",
-                         "motes_peripheral_spent", cur.motes_peripheral_spent,
+                         "motes_peripheral_spent", spent_pp,
                          play.peripheral_max)
+        self._committed_note(body, play)
         if play.free_max is not None:
             # Essence Awareness unlocks only a third of the pool freely; the rest needs
             # a Willpower roll the table makes, not this app. The inputs still run to
@@ -302,6 +306,18 @@ class PlayPage(QWidget):
             body.addWidget(self._note(
                 f"{play.free_max} of these may be spent freely; the rest need a "
                 f"Willpower roll (Essence Awareness)."))
+
+    def _committed_note(self, lay, play) -> None:
+        """Why the pool is short — `view.committed_note` owns the wording, shared with
+        the other three mote surfaces."""
+        text = viewmod.committed_note(play)
+        if not text:
+            return
+        note = QLabel(text)
+        note.setObjectName("committedNote")
+        note.setWordWrap(True)
+        note.setStyleSheet(f"color:{MUTED}; font-size:11px;")
+        lay.addWidget(note)
 
     def _mote_input(self, lay, caption: str, field: str, value: int, cap: int) -> None:
         spin = QSpinBox()

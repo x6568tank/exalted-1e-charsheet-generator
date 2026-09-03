@@ -85,6 +85,12 @@ class ArtifactItem(BaseModel):
     attunement: int = 0
     attuned: bool = False
     attuned_pool: str = "peripheral"
+    # The item's magical material id, or "" — what `derive.committed_attunement` reads
+    # to decide whether this wielder pays double (core p.341's resonance, applied to
+    # the commitment). ⚠ ALWAYS "" for a standalone `ArtifactEntry`: that model has no
+    # material field, so a Wonder that is neither weapon nor armour cannot express one
+    # and never doubles. A gap in the data shape, not in the rule.
+    material: str = ""
 
 
 def item_key(source: str, name: str) -> str:
@@ -119,6 +125,7 @@ def artifact_items(character: Character) -> list[ArtifactItem]:
                 rating=art.rating, source=SOURCE_ARTIFACT, acquired=art.acquired,
                 attunement=commitment.attunement, attuned=commitment.attuned,
                 attuned_pool=commitment.attuned_pool,
+                material=getattr(commitment, "material", ""),
             ))
     # A gear row that is the stat line of a standalone artifact is the SAME OBJECT, and
     # counting it again would charge the budget twice for one daiklave — see
@@ -138,6 +145,7 @@ def artifact_items(character: Character) -> list[ArtifactItem]:
                     rating=item.artifact_rating, source=source,
                     acquired=item.acquired, attunement=item.attunement,
                     attuned=item.attuned, attuned_pool=item.attuned_pool,
+                    material=item.material,
                 ))
     return out
 

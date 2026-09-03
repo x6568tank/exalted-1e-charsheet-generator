@@ -76,6 +76,16 @@ ESSENCE_MASTERY = "thaum.essence-mastery"
 # God-Blooded (PG p.66), the mortal Essence-Mastery parallel for the God-Blooded:
 # unlocks the heritage's Essence pool and the purchases that require it.
 AWAKENED_ESSENCE = "mf.awakened-essence"
+# The two Merits that let a character attune to artifacts WITHOUT being an Exalt:
+# the mortal one (PG p.120) and the God-Blooded one (PG p.66). Both grant attunement
+# and both refuse the Magical Material bonus in as many words — see
+# `MeritEffects.no_magical_material_bonus`.
+# God-Blooded (PG p.67). Splits the otherwise-single heritage pool into thirds and
+# is the ONLY thing that gives a God-Blooded an anima banner — see
+# `MeritEffects.essence_pool_split_thirds`.
+AURA_OF_POWER = "mf.aura-of-power"
+MAGICAL_ATTUNEMENT_MORTAL = "thaum.magical-attunement"
+MAGICAL_ATTUNEMENT_GODBLOODED = "mf.magical-attunement"
 # PG p.234, ghosts only. One Terrestrial Martial Arts Charm per point.
 FIGHTER_IN_LIFE = "mf.fighter-in-life"
 OATHBOUND_MAGIC = "thaum.oathbound-magic"
@@ -295,6 +305,29 @@ class MeritEffects:
     # entirely. We do not roll dice (decision 0009), so the split is narrative and
     # only the distinction between "some access" and "full access" is modelled.
     essence_pool_unrestricted: bool = False
+    # Can this character never gain an artifact's Magical Material bonus, however they
+    # attune? Both Merits that grant attunement to a non-Exalt say so outright:
+    # "She never gains any bonus from an artifact's Magical Material" (mortal Magical
+    # Attunement, PG p.120) and "cannot receive a Magical Material bonus from artifacts
+    # regardless of how many motes they spend" (God-Blooded, PG p.66).
+    #
+    # ⚠ Until 2026-09-03 this rule had NO implementation and looked enforced anyway:
+    # `derive.applied_material` grants the bonus when the material's `exalt_type`
+    # matches the character's, and "Mortal"/"God-Blooded" match nothing in the
+    # catalogue — so the right answer arrived by COINCIDENCE. Species 2 of the house
+    # bug, and it would have gone wrong the first time a holder's type could also
+    # match a material. The flag is now the reason, and the coincidence is the backup.
+    no_magical_material_bonus: bool = False
+    # Does this character's single pool DIVIDE into Personal and Peripheral? The
+    # inverse of `essence_single_pool` above, and the two must never both be set.
+    # Aura of Power (PG p.67): "Such characters divide their Essence pool, placing one
+    # third into Personal (rounded down) and the remaining two thirds into Peripheral."
+    #
+    # ⚠ A God-Blooded's `ExaltDefinition.single_essence_pool` is True, so this has to
+    # beat the SPLAT's shape, not just a Merit's — `derive.essence_pool_is_merged`
+    # checks it before the splat flag. The whole pool is computed as Personal by the
+    # heritage spec and then merged, so the split runs on the TOTAL, not on either half.
+    essence_pool_split_thirds: bool = False
     # Merit ids that count as HELD when another entry's `prerequisites` are checked,
     # even though the character has not bought them. One entry standing in for another
     # is a rules fact, not a UI convenience: a God-Blooded's Awakened Essence gives the
@@ -1043,6 +1076,9 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         merit_cost_overrides=cost_overrides,
         essence_pool_unlocked=has_native_pool or awareness or mastery or awakened,
         essence_pool_unrestricted=has_native_pool or mastery or awakened,
+        no_magical_material_bonus=(MAGICAL_ATTUNEMENT_MORTAL in held_ids
+                                   or MAGICAL_ATTUNEMENT_GODBLOODED in held_ids),
+        essence_pool_split_thirds=AURA_OF_POWER in held_ids,
         # Awakened Essence stands in for both mortal Essence-unlock Merits. It is not
         # conditioned on the splat: the Merit is already restricted to the God-Blooded
         # by `exalt_types`, and re-testing the splat here would be a second gate that

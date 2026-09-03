@@ -372,14 +372,24 @@ def essence_pool_is_merged(ruleset: RuleSet, character: Character) -> bool:
     sheet showing "Personal 0" needs to know whether it is reporting a rule or a
     character with no Essence at all.
 
-    TWO sources, deliberately one read site: a Merit (Beacon of Power, p.41) and the
-    splat itself (ghosts, E:Ab p.126). Ask here, never either source directly, or the
-    next splat with a merged pool has to be added in as many places as there are
-    callers."""
+    THREE sources, deliberately one read site: a Merit that merges (Beacon of Power,
+    p.41), the splat itself (ghosts E:Ab p.126, God-Blooded PG p.66), and a Flaw that
+    SPLITS what the splat merged (Aura of Power, PG p.67). Ask here, never any source
+    directly, or the next splat with a merged pool has to be added in as many places as
+    there are callers.
+
+    ⚠ The split is checked FIRST, because it has to beat the splat's own shape and not
+    merely a Merit's. A God-Blooded's `single_essence_pool` is True, so testing the
+    splat first would return True and Aura of Power would do nothing — which is exactly
+    what it did until 2026-09-03.
+    """
     from . import merits as _merits
+    effects = _merits.merits_and_flaws_calc(ruleset, character)
+    if effects.essence_pool_split_thirds:
+        return False
     if ruleset.exalt_for(character.exalt_type).single_essence_pool:
         return True
-    return _merits.merits_and_flaws_calc(ruleset, character).essence_single_pool
+    return effects.essence_single_pool
 
 
 def essence_freely_accessible(ruleset: RuleSet, character: Character) -> Optional[int]:
@@ -489,7 +499,100 @@ def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
         # reports the right shape on the sheet while returning the wrong motes.
         peripheral += personal
         personal = 0
+    elif effects.essence_pool_split_thirds:
+        # Aura of Power (PG p.67): "divide their Essence pool, placing one third into
+        # Personal (rounded down) and the remaining two thirds into Peripheral."
+        #
+        # ⚠ Run on the TOTAL, and the remainder goes to Peripheral. A God-Blooded's
+        # whole pool arrives as Personal from the heritage spec, so splitting either
+        # half alone would lose motes — 31 must become 10 + 21, never 10 + 0. "Rounded
+        # down" is the printed word, so the floor is the third and Peripheral takes
+        # what is left, which keeps the two summing to the pool at every value.
+        total = personal + peripheral
+        personal = total // 3
+        peripheral = total - personal
     return personal, peripheral
+
+
+def attunement_cost(ruleset: RuleSet, character: Character, item) -> int:
+    """What `item` costs THIS wielder to keep attuned, in motes.
+
+    The printed commitment, DOUBLED when the wielder is not a "user" of the item's
+    magical material — jade for a non-Terrestrial, soulsteel for a non-Abyssal, and so
+    on (human's ruling 2026-09-03, generalised from the Hearthstone Compass note in
+    `images/Dragonblooded/Aspects/Earth/CH 6 - Miracles of Pasaip.md`, which calls out
+    that it does NOT impose "the usual double mote commitment for non-Terrestrials").
+
+    `item` is an `artifacts.ArtifactItem`, never a stored row: the fold is where the
+    one-object rule for a linked pair lives.
+
+    ⚠ "Not a user" is NOT the same question as `applied_material(...) is None`, which is
+    also None for a MUNDANE item. A mundane artifact names no material and never
+    doubles; only a known material belonging to another Exalt does.
+
+    ⚠ A character of a type NO material resonates with — a mortal, a God-Blooded, a
+    ghost — pays the PRINTED cost, never double (human's ruling 2026-09-03). This is
+    printed, not inferred: both routes such a character has to attuning at all say so.
+    Magical Attunement for mortals is "provided she pays the normal commitment cost.
+    She never gains any bonus from an artifact's Magical Material" (PG p.120), and the
+    God-Blooded version "cannot receive a Magical Material bonus from artifacts
+    regardless of how many motes they spend" (PG p.66). The doubling is about wielding
+    ANOTHER Exalt's material; a character with no material of their own is not on that
+    axis at all.
+
+    ⚠ Asked of the CATALOGUE, never of a Merit id — no module outside `engine/merits.py`
+    may name one (decision 0011), and this way every future non-Exalt splat is covered
+    without anyone remembering to add it.
+    """
+    if item.attunement <= 0:
+        return 0
+    mat = ruleset.material_catalog.get(item.material or "")
+    if mat is None or mat.exalt_type == character.exalt_type:
+        return item.attunement
+    if not _has_a_resonant_material(ruleset, character):
+        return item.attunement
+    return item.attunement * 2
+
+
+def _has_a_resonant_material(ruleset: RuleSet, character: Character) -> bool:
+    """Whether ANY magical material resonates with this character's Exalt type — i.e.
+    whether they are on the material-resonance axis at all (core p.341)."""
+    return any(m.exalt_type == character.exalt_type
+               for m in ruleset.material_catalog.values())
+
+
+def committed_attunement(ruleset: RuleSet, character: Character) -> dict:
+    """Motes currently committed to attuned artifacts, split by pool:
+    `{"personal": n, "peripheral": n}`.
+
+    Walks `artifacts.artifact_items` — the ONE enumeration — so a daiklave entered as
+    both an artifact row and its weapon stat line is charged once, exactly as it is for
+    the p.131 budget. Unattuned items and items with no printed cost contribute nothing.
+
+    ⚠ `Weapon.quantity` is NOT a multiplier. Twenty attuned arrows are not twenty
+    attunements; the count exists for ammunition and nothing in the engine reads it
+    (decision 0008). `ArtifactItem` does not carry it, which is what makes that
+    structural rather than remembered.
+
+    ⚠ On a merged-pool character the whole total lands on PERIPHERAL, ignoring each
+    item's stored `attuned_pool`. Not a search for "whichever is nonzero": when the
+    pools merge, `essence_pools` puts every mote in peripheral and leaves personal at 0
+    by rule (p.41), so a commitment routed to personal would silently vanish against a
+    0 maximum — a ghost would attune for free.
+    """
+    from . import artifacts as artifactsmod
+
+    out = {"personal": 0, "peripheral": 0}
+    merged = essence_pool_is_merged(ruleset, character)
+    for item in artifactsmod.artifact_items(character):
+        if not item.attuned:
+            continue
+        cost = attunement_cost(ruleset, character, item)
+        if not cost:
+            continue
+        pool = "peripheral" if merged else item.attuned_pool
+        out[pool if pool in out else "peripheral"] += cost
+    return out
 
 
 def charm_installation_pool(ruleset: RuleSet, character: Character) -> int:
@@ -568,12 +671,24 @@ def applied_material(
     """The magical material whose bonus applies to `item` for this character, or
     None. A material's bonus applies only when the item names a known material AND
     that material resonates with the character's Exalt type (core p.341): an
-    orichalcum daiklave aids a Solar, but a jade one does not."""
+    orichalcum daiklave aids a Solar, but a jade one does not.
+
+    ⚠ A character barred from material bonuses outright gets None whatever they carry —
+    the two Merits that let a non-Exalt attune at all both refuse the bonus in as many
+    words (PG p.120, p.66). Read through `MeritEffects.no_magical_material_bonus`,
+    never by naming a Merit id (decision 0011). Before 2026-09-03 the rule had no
+    implementation and still LOOKED enforced, because a holder's Exalt type happens to
+    match nothing in the catalogue — the exalt_type test below was doing it by
+    accident. That accident still holds; this is the reason.
+    """
+    from . import merits as _merits
     key = getattr(item, "material", "")
     if not key:
         return None
     mat = ruleset.material_catalog.get(key)
     if mat is None or mat.exalt_type != character.exalt_type:
+        return None
+    if _merits.merits_and_flaws_calc(ruleset, character).no_magical_material_bonus:
         return None
     return mat
 

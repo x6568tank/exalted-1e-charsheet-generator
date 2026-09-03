@@ -1,14 +1,20 @@
 # Artifact attunement — commit the motes
 
-**Status: PHASE 1 DONE (2026-09-03), phases 2-3 open.** Planned 2026-09-02; the four
-blocking questions were resolved 2026-09-03 against the corebook, a Dragon-Blooded
-Aspect book and the Player's Guide — see **Resolved questions** below.
+**Status: PHASES 1 AND 2 DONE (2026-09-03); phase 3 partly done, the backfill open.**
+Planned 2026-09-02; the four blocking questions were resolved 2026-09-03 against the
+corebook, a Dragon-Blooded Aspect book and the Player's Guide — see **Resolved
+questions** below.
 
-⚠ **The fields are stored, carried and toggled, and NOTHING READS THEM YET.** That is
-species 2 of the house bug by construction — `attuned` looks exactly as healthy today
-as `attunement` did before this plan, and every screen is correct because no screen has
-changed. Phase 2 (`derive.committed_attunement` + `build_play_view`) is what makes the
-feature exist. **Do not close this plan on phase 1's tests being green.**
+The feature works end to end: an attuned artifact's motes come off the Play tab's
+maxima, in all four surfaces that render a `PlayView`. What is left is the
+`ArtifactType.attunement` **backfill** (all 330 rows still 0 — see the parse lead under
+resolved question 4), the PDF/sheet question, and **a human click-through**, which has
+not happened.
+
+⚠ **The catalogue backfill being empty means the standalone-Wonder path is UNEXERCISED
+by real data.** Every test of it uses an injected or hand-set number. Weapons and
+armour are fine — 46 catalogue rows carry real costs — but no shipped artifact row
+does, so "it works" for Wonders rests on tests alone.
 
 ## The ask
 
@@ -106,6 +112,29 @@ exists; the derivation reads whichever pool actually has a nonzero max.
 2. **Merged pools?** — **Resolves itself once Q1 is implemented.** A merged-pool
    character (`essence_pool_is_merged`) has only one pool to allocate the commitment
    into; no special-casing needed beyond what the allocation mechanism already requires.
+3a. **Who is EXEMPT from the doubling?** — **A character no Magical Material resonates
+   with pays the PRINTED cost** (human, 2026-09-03). Not an inference: both printed
+   routes to attuning at all say so. Mortal **Magical Attunement** (`thaum.magical-
+   attunement`, PG p.120) — *"provided she pays the **normal commitment cost**. She
+   never gains any bonus from an artifact's Magical Material."* God-Blooded
+   **Magical Attunement** (`mf.magical-attunement`, PG p.66) — *"cannot receive a
+   Magical Material bonus from artifacts regardless of how many motes they spend."*
+   The doubling is about wielding ANOTHER Exalt's material; a character with no
+   material of their own is not on that axis. `derive.attunement_cost` asks the
+   CATALOGUE (`_has_a_resonant_material`), never a Merit id — decision 0011, and it
+   covers every future non-Exalt splat without anyone remembering.
+   ⚠ Without this a mortal would pay DOUBLE for every material artifact in the game —
+   a jade daiklave at 10 motes against a pool of about 12, most of it gated behind a
+   Willpower roll.
+
+   ⚠ **Related finding, NOT fixed: the "no Magical Material bonus" half of those two
+   Merits has no implementation.** `derive.applied_material` grants the bonus when
+   `mat.exalt_type == character.exalt_type`, and a Mortal/God-Blooded exalt_type
+   matches no material — so the right answer arrives by COINCIDENCE, not because
+   anyone modelled the Merit. Correct in every reachable case today; species 2 of the
+   house bug the moment a character's type can both match a material and hold one of
+   these Merits. There is no `MeritEffects` field for it.
+
 3. **Does the number vary with the wielder?** — **Yes, confirmed and generalized**
    (human's ruling, 2026-09-03): *any* magical item costs **double** its printed
    commitment for a wielder who is not a "user" of that item's material — jade for a
@@ -240,7 +269,54 @@ Original plan for the phase, kept for the record:
   checkbox and dropdown outside the table rather than widening the triple for two more
   fields.
 
-### Phase 2 — the derivation (once the material-doubling and allocation logic is written)
+### Phase 2 — the derivation — **DONE 2026-09-03**
+
+Two engine functions and one view helper:
+
+* **`derive.attunement_cost(ruleset, character, item)`** — the printed cost, doubled
+  when the wielder is not a "user" of the item's material. ⚠ **"Not a user" is NOT
+  `applied_material(...) is None`**, which is also None for a MUNDANE item; the test
+  for that is its own case, because the obvious implementation gets it wrong and every
+  artifact-material test still passes.
+* **`derive.committed_attunement(ruleset, character) -> {"personal": n, "peripheral": n}`**
+  — walks `artifact_items()`. On a merged-pool character the total is forced to
+  **peripheral**; that is not "whichever is nonzero" but the rule, since `essence_pools`
+  zeroes personal when the pools merge (p.41). Routing to personal would make a ghost
+  attune for FREE against an always-0 maximum.
+* **`view.spent_motes(play_view, state)`** — the re-clamp, ON READ, never written back.
+  ⚠ **One helper, not a clamp at each of the four `_mote_input` call sites** (ui/play,
+  ui/gm, qt/play, qt/party): four copies of a rule is how a fix lands on three surfaces
+  and the fourth keeps the bug.
+* `PlayView` gained `committed_personal` / `committed_peripheral`, and both shells grew
+  a `_committed_note` — the maxima are already reduced, so an unexplained short pool
+  reads as a defect. Same reasoning that put `single_pool` on the view.
+
+⚠ **A test-fixture trap, and it produced a green run that proved nothing.**
+`tests/test_play.py`'s synthetic `_ruleset()` defines no Ghost exalt, so
+`essence_pool_is_merged` answered False and the merged-pool test passed the commitment
+straight into Personal — asserting the exact bug it was written to catch. **Merged-pool
+and splat-shape tests need the REAL ruleset fixture.** Negative-controlled after the
+fix: deleting the merged branch fails the test.
+
+⚠ **`free_max` (Essence Awareness) is NOT adjusted, and this is still OPEN.** Put to
+the human 2026-09-03 and not answered — the reply addressed the doubling question asked
+alongside it (see 3a above).
+
+The case: `essence_freely_accessible` returns `(personal + peripheral) // 3` for a
+mortal holding Essence Awareness without Essence Mastery, and `None` for everyone else
+(every Exalt has a native pool). It reads the FULL pools. So today a 12-mote mortal who
+commits 6 has 6 motes left of which **4 are still freely drawable** — the third is of
+the printed pool, not of what remains. The alternative reading recomputes it against
+the reduced pool: 6 left, 2 free.
+
+p.120 divides *"his Essence pool"* into two portions; commitment is a separate mechanic
+and nothing says which portion the committed motes come out of. **Unsourced
+interaction, not an oversight** — and reachable by design, since the mortal route to
+attuning (Magical Attunement, PG p.120) has Essence Awareness as its prerequisite.
+⚠ Also unsettled and printed right there: p.120 gives no ROUNDING rule for the third
+either (`essence_freely_accessible` floors it and says so).
+
+Original plan for the phase, kept for the record:
 
 * `engine/derive.py` — `committed_attunement(ruleset, character) -> dict[str, int]`,
   keyed by pool (`"personal"`/`"peripheral"`), summing each attuned item's *effective*
@@ -266,13 +342,28 @@ Original plan for the phase, kept for the record:
   `motes_peripheral_spent` (or `_personal_spent`) above the new maximum. Clamp on read in
   `build_play_view`, not by mutating the save from a derivation.
 
-### Phase 3 — the surfaces
+### Phase 3 — the surfaces — **mostly done 2026-09-03**
 
-* `ui/play.py:380` and `qt/play.py:292` already render from `PlayView`, so both get the
-  smaller pool for free — **but the party window does too** (`qt/party.py:584`,
-  `ui/gm.py:428`), and that is three shells to look at, not one.
-* The PDF sheet (`ui/pdf.py`) and sheet view print `attunement`; decide whether an
-  attuned item is marked. Low priority.
+* ✅ All four `PlayView` consumers get the smaller pool: `ui/play.py`, `qt/play.py`,
+  `ui/gm.py` and `qt/party.py`. All four also route their spend through
+  `view.spent_motes`. ⚠ It was FOUR, not three — the plan undercounted, and the fourth
+  is the one that would have kept the bug.
+* ✅ All four surfaces carry the note. The two Play tabs get the full sentence; the two
+  Storyteller surfaces (`ui/gm.py`, `qt/party.py`) get a COMPACT form — "− 5 Peripheral
+  attuned" — because those cards are one row per party member (human, 2026-09-03: a
+  small note at least). ⚠ **`view.committed_note` owns the wording for all four**; it
+  was about to be hand-written in each, which is how three surfaces end up saying
+  something the fourth does not. A test asserts the widget text EQUALS the presenter's
+  output rather than a literal.
+* ⬜ The PDF sheet (`ui/pdf.py`) and sheet view print `attunement`; whether an attuned
+  item is marked is still undecided. Low priority, untouched.
+* **The SHEET still shows the FULL pools, and that is deliberate.**
+  `build_sheet_view` reads `d.essence_personal` / `_peripheral` raw, so a character
+  sheet reports permanent capacity while the Play tab reports what is currently free.
+  Only `build_play_view` subtracts. That keeps the reduction out of every permanent
+  derivation, which is what decision 0006 is about — but the two surfaces now print
+  different numbers for the same character, so **if the human expects the sheet to
+  agree with the tracker, this is where it does not.**
 
 ## Traps, named
 
@@ -302,15 +393,17 @@ Original plan for the phase, kept for the record:
 
 1. ✅ `attuned` and `attuned_pool` survive a catalogue re-pick (`gear_actions.set_weapon`
    on the row's own name) — weapon and armour both, `tests/test_gear_actions.py`.
-2. Committed total ignores unattuned items, and ignores `quantity`.
-3. `build_play_view` reduces the named pool; **negative control** — clear the flag, pool
-   returns.
-4. A non-user wielder (e.g. a non-Terrestrial with a jade item) pays double; a user
-   wielder (a Terrestrial with the same item) pays the printed number.
-5. Merged-pool splat: the commitment lands on the one real pool regardless of
-   `attuned_pool`, not on the always-0 Personal pool. (Phase 1 covers only the *UI* half
-   — the dropdown is hidden for a ghost; the derivation half is still owed.)
-6. Already-spent motes above the new cap clamp on read and do not corrupt the save.
+2. ✅ Committed total ignores unattuned items, and ignores `quantity`.
+3. ✅ `build_play_view` reduces the named pool and leaves the other alone; **negative
+   control** — clear the flag, pool returns. Plus a floor-at-0 case.
+4. ✅ A non-user wielder (jade for a non-Terrestrial) pays double; a user wielder pays
+   the printed number; **and a MUNDANE artifact does not double** — the case that
+   separates "names another Exalt's material" from "names no material".
+5. ✅ Merged-pool splat: the commitment lands on peripheral regardless of
+   `attuned_pool`. Uses the REAL ruleset (see the trap above) and is
+   negative-controlled.
+6. ✅ Already-spent motes clamp on read, the save is untouched, and un-attuning
+   restores the full spend. Plus `spent_motes(view, None) == (0, 0)`.
 7. ✅ No `engine/validate/` module references `attuned` or `attuned_pool` —
    `tests/test_play.py`, beside the two existing decision-0006 guards. Catches the
    `getattr("attuned")` spelling as well as the attribute.

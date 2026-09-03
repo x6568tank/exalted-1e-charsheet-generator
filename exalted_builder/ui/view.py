@@ -3099,6 +3099,12 @@ class PlayView:
     # is not a dice-pool term, so it is reference text beside the counter, never a
     # line in a pool.
     fatigue_difficulties: list[str] = dc_field(default_factory=list)
+    # Motes of each maximum already committed to attuned artifacts. The maxima above
+    # are ALREADY reduced by these — this is carried so the tracker can say WHY the
+    # pool is short. "Peripheral 4/10" with no explanation reads as a bug, the same
+    # reasoning that put `single_pool` on this view.
+    committed_personal: int = 0
+    committed_peripheral: int = 0
 
 
 def worst_penalty(play: PlayView, marks: list) -> str:
@@ -3113,15 +3119,78 @@ def worst_penalty(play: PlayView, marks: list) -> str:
     return "Incapacitated" if deepest.incapacitated else deepest.label
 
 
+def committed_note(play: PlayView, *, compact: bool = False) -> str:
+    """Why the pool is short, or "" when nothing is committed.
+
+    The maxima on `play` are ALREADY reduced, so an unexplained short pool reads as a
+    defect — the same reasoning that put `single_pool` on the view. `compact` is the
+    Storyteller surfaces' shorter form: those cards show one row per party member and
+    a full sentence each would bury the numbers they exist to show.
+
+    ⚠ ONE copy of this string. Four surfaces render mote inputs (ui/play, ui/gm,
+    qt/play, qt/party) and four hand-written variants is how three of them end up
+    saying something the fourth does not.
+    """
+    parts = []
+    if play.committed_personal:
+        parts.append(f"{play.committed_personal} Personal")
+    if play.committed_peripheral:
+        parts.append(f"{play.committed_peripheral} Peripheral")
+    if not parts:
+        return ""
+    if compact:
+        return f"− {' + '.join(parts)} attuned"
+    return (f"{' and '.join(parts)} committed to attuned artifacts, and already taken "
+            f"off the maximum above.")
+
+
+def spent_motes(play: PlayView, state) -> tuple[int, int]:
+    """The stored `(personal, peripheral)` spend, clamped to what the pools can now
+    hold. `state` is a `PlayState`; returns (0, 0) for None.
+
+    ⚠ Clamped ON READ and never written back. Attuning an artifact shrinks the maxima
+    under a spend that was legal a moment ago, and `play.set_motes` clamps to a cap its
+    caller hands it, so nothing else catches this. Writing the clamped value into the
+    save would make un-attuning lossy: the player would get a shorter pool AND lose the
+    motes they had spent from the longer one.
+
+    ⚠ ONE helper rather than a clamp at each of the four `_mote_input` call sites
+    (ui/play, ui/gm, qt/play, qt/party). Four copies of a rule is how a fix lands on
+    three surfaces and the fourth keeps the bug.
+    """
+    if state is None:
+        return 0, 0
+    return (min(state.motes_personal_spent, play.personal_max),
+            min(state.motes_peripheral_spent, play.peripheral_max))
+
+
 def build_play_view(ruleset: RuleSet, character: Character) -> PlayView:
     """Capacities for the in-play tracker. Pure read of the engine derivations —
-    the health track shape, the Essence pools, and permanent Willpower."""
+    the health track shape, the Essence pools, and permanent Willpower.
+
+    ⚠ Committed motes SHRINK the maxima rather than being displayed beside them
+    (human, 2026-09-02): attunement is a live capacity, so the Play tab's boxes get
+    literally shorter. This is not the Alchemical installation-motes model, which
+    displays a fit against `charm_installation_pool` without subtracting — correct
+    there because installation is a chargen-legality check.
+
+    ⚠ Floored at 0, and the fill state is CLAMPED ON READ rather than written back.
+    Attuning something while motes are already spent leaves a stored
+    `motes_*_spent` above the new maximum; `play.set_motes` clamps to a cap its caller
+    passes in and never sees this. A derivation must not mutate the save to fix it —
+    un-attuning has to give the motes back untouched.
+    """
     d = derive.derive(ruleset, character)
+    committed = derive.committed_attunement(ruleset, character)
+    personal_max = max(0, d.essence_personal - committed["personal"])
+    peripheral_max = max(0, d.essence_peripheral - committed["peripheral"])
     return PlayView(
         health_boxes=[PlayHealthBox(_health_label(hl), hl.incapacitated)
                       for hl in d.health_levels],
-        personal_max=d.essence_personal,
-        peripheral_max=d.essence_peripheral,
+        personal_max=personal_max,
+        peripheral_max=peripheral_max,
+        committed_personal=committed["personal"],
+        committed_peripheral=committed["peripheral"],
         willpower_max=d.willpower,
         single_pool=d.essence_single_pool,
         free_max=d.essence_free,

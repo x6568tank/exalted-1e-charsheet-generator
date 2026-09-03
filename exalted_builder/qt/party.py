@@ -580,15 +580,27 @@ class PartyPage(QWidget):
                            else "ESSENCE (motes spent)", accent)
         row = QHBoxLayout()
         row.setSpacing(8)
+        # ⚠ `view.spent_motes`, not `cur.*` — see its docstring.
+        spent_p, spent_pp = viewmod.spent_motes(cv.play, cur)
         if not cv.play.single_pool:
             self._mote_input(row, index, character, "Personal", "motes_personal_spent",
-                             cur.motes_personal_spent, cv.play.personal_max, accent)
+                             spent_p, cv.play.personal_max, accent)
         self._mote_input(row, index, character,
                          "All motes" if cv.play.single_pool else "Peripheral",
-                         "motes_peripheral_spent", cur.motes_peripheral_spent,
+                         "motes_peripheral_spent", spent_pp,
                          cv.play.peripheral_max, accent)
         row.addStretch(1)
         body.addLayout(row)
+        # ⚠ The COMPACT form. These cards are one row per party member, so the Play
+        # tab's full sentence would bury the numbers the card exists to show — but a
+        # short pool with no explanation at all reads as a defect, which is the whole
+        # reason the note exists.
+        committed = viewmod.committed_note(cv.play, compact=True)
+        if committed:
+            note = QLabel(committed)
+            note.setObjectName("committedNote")
+            note.setStyleSheet(f"color:{MUTED}; font-size:10px;")
+            body.addWidget(note)
 
     def _mote_input(self, row, index, character, caption, field, value, cap, accent) -> None:
         label = QLabel(caption)

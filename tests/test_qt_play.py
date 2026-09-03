@@ -365,3 +365,71 @@ def test_the_tab_is_live_on_both_sides_of_the_lock(ruleset, make_page):
     unlocked = len(_named(make_page(char), "play.health."))
     lifecycle.lock_chargen(char, ruleset)
     assert len(_named(make_page(char), "play.health.")) == unlocked
+
+
+# --------------------------------------------------------------------------- #
+# committed attunement — the pool shrinks, and the tracker says why
+# --------------------------------------------------------------------------- #
+
+def _committed_note(page):
+    return page.findChild(QLabel, "committedNote")
+
+
+def test_no_committed_note_when_nothing_is_attuned(ruleset, make_page):
+    from exalted_builder.models.character import Weapon
+    page = make_page(_solar(weapons=[Weapon(name="Daiklave", artifact_rating=3,
+                                            attunement=5)]))
+    assert _committed_note(page) is None
+
+
+def test_the_tracker_explains_the_shortened_pool(ruleset, make_page):
+    """⚠ The maxima are ALREADY reduced by the time the tracker sees them, so without
+    this line a Peripheral track that used to read 27 and now reads 19 looks like a bug
+    rather than a daiklave. Same reasoning that put `single_pool` on the view."""
+    from exalted_builder.models.character import Weapon
+    char = _solar(weapons=[Weapon(name="Daiklave", artifact_rating=3, attunement=5,
+                                  attuned=True, attuned_pool="peripheral")])
+    note = _committed_note(make_page(char))
+    assert note is not None
+    assert "5 Peripheral" in note.text() and "attuned artifacts" in note.text()
+
+
+def test_the_note_names_both_pools_when_both_carry_a_commitment(ruleset, make_page):
+    from exalted_builder.models.character import Weapon
+    char = _solar(weapons=[
+        Weapon(name="Daiklave", artifact_rating=3, attunement=5, attuned=True,
+               attuned_pool="peripheral"),
+        Weapon(name="Short Daiklave", artifact_rating=2, attunement=3, attuned=True,
+               attuned_pool="personal")])
+    text = _committed_note(make_page(char)).text()
+    assert "3 Personal" in text and "5 Peripheral" in text
+
+
+def test_the_note_has_one_source_of_wording(ruleset, make_page):
+    """⚠ Four surfaces render mote inputs (ui/play, ui/gm, qt/play, qt/party) and all
+    four take this string from `view.committed_note`. Asserted against the presenter
+    rather than a literal, so a reworded note cannot leave three surfaces agreeing and
+    the fourth saying something else."""
+    from exalted_builder.models.character import Weapon
+    char = _solar(weapons=[Weapon(name="Daiklave", artifact_rating=3, attunement=5,
+                                  attuned=True)])
+    page = make_page(char)
+    expected = viewmod.committed_note(viewmod.build_play_view(ruleset, char))
+    assert _committed_note(page).text() == expected
+    assert expected and "committed" in expected
+
+
+def test_the_compact_form_is_shorter_and_still_names_the_pool(ruleset):
+    """The Storyteller cards' variant. Shorter, but never empty when something is
+    committed — an unexplained short pool is the failure this note exists to prevent."""
+    from exalted_builder.models.character import Weapon
+    char = _solar(weapons=[Weapon(name="Daiklave", artifact_rating=3, attunement=5,
+                                  attuned=True)])
+    play = viewmod.build_play_view(ruleset, char)
+    compact = viewmod.committed_note(play, compact=True)
+    assert "5 Peripheral" in compact
+    assert len(compact) < len(viewmod.committed_note(play))
+    # and nothing committed means nothing said, in both forms
+    bare = viewmod.build_play_view(ruleset, _solar())
+    assert viewmod.committed_note(bare) == ""
+    assert viewmod.committed_note(bare, compact=True) == ""
