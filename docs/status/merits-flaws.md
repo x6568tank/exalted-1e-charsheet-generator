@@ -904,3 +904,94 @@ are the mirror of `/mortalpicker`: the pages that must vanish for a plain mortal
 back for this one, before and after the lock.
 
 Not browser-verified.
+
+## Awakened Essence supersedes the mortal Essence tree (2026-09-02)
+
+Human ruling. Three separate changes, one shape: a God-Blooded should not be paying for
+mortal Merits that do nothing for them.
+
+### 1. The gate a screen never showed
+
+⚠ **`MeritFlawDefinition.prerequisites` had exactly ONE read site — the validator — and
+appeared on NO screen in either shell.** The "Requires:" line was built from
+`trait_prerequisites`, `max_purchases_from_trait` and `prerequisite_note` only. **32
+entries carry a prerequisite entry and every one of them stated no gate at all.** The
+line exists so a player sees the gate BEFORE the issues panel tells them they failed
+it, and for a third of what it covers it did the opposite.
+
+One read short of the dead-field bug, and found the same way the others were: by a
+player hitting it (*"Flow of Essence specifically requires Essence Awareness and doesn't
+work off the Godblooded Awakened Essence"*).
+
+The line now lives in **`view.merit_requirement_line`** and both shells call it —
+`ui/advantages.py` and `qt/advantages.py` had each built it inline, and had each omitted
+the same field. One copy is what stops them drifting apart again.
+`test_every_entry_with_a_prerequisite_states_one` asserts on the POPULATION, not on the
+entry that was reported.
+
+### 2. Awakened Essence stands in for Essence Awareness and Essence Mastery
+
+Essence Awareness's whole mechanical content is a RESTRICTION — a third of the pool
+freely, the rest on a Willpower roll, 1 mote/day (PG p.120) — and Essence Mastery's is
+removing it (p.121). Awakened Essence (p.66) already gives an unrestricted pool with
+respiration-based regen, so a God-Blooded buying either spends points and changes
+nothing. Confirmed in the engine before the change: `essence_pool_unrestricted` was
+already True with or without them.
+
+**`MeritEffects.prerequisites_satisfied`** is the mechanism: the ids that count as held
+when another entry's `prerequisites` are checked. `engine/merits.py` fills it (it may
+name ids); `validate/merit_checks.py` unions it into the held set and names none.
+Decision 0011's containment rule survives intact.
+
+⚠ **A SUBSTITUTION, NOT A GRANT.** Being credited with Essence Mastery for a GATE is not
+gaining what Mastery GIVES — its Terrestrial Martial Arts clause stays Mastery's alone
+and `open_charm_categories` is deliberately untouched. `test_the_substitution_is_not_a_grant`
+pins it. Conflating the two is the `true-not-applicable-is-not-a-condition` trap that
+nearly handed three splats free Celestial martial arts.
+
+The Requires line reads the same set, so a God-Blooded sees **"Requires: Essence
+Awareness (already satisfied)"** rather than being pointed at a Merit their own picker
+will not offer. No Merit id is named in `view.py` — it tests set membership.
+
+### 3. Four entries barred from the God-Blooded
+
+| Barred | Superseded by |
+|---|---|
+| `thaum.essence-awareness`, `thaum.essence-mastery` | Awakened Essence, p.66 |
+| `thaum.magical-attunement` (2pt), `thaum.manse-attunement` (2pt) | the God-Blooded `mf.magical-attunement` (4pt, p.66) — one Merit covering "magical artifacts, Manses and Demesnes" |
+
+`barred_exalt_types` is the whole change: `merit_available_to` reads it, so both pickers
+hide the entry AND the validator rejects it — one data edit, both halves.
+
+⚠ **`mf.magical-attunement` now requires Awakened Essence on the human's authority, NOT
+on a page citation.** The transcribed p.66 text does not carry the requirement — and
+that entry is one `test_every_description_matches_the_source_text` measures at **87% of
+source**, so the clause may simply have been lost in transcription. Do not "correct" it
+back by reading the current description.
+
+### Transcription markup in the rules text
+
+Destiny and Eternal Vow shipped with `<!--TANGENT TABLE-->` and `<!--END TANGENT-->`
+inside `description` — sidebar delimiters from the pasted source, never stripped. The
+webapp printed them literally; **Qt swallowed them, because a QLabel defaults to
+`AutoText` and treats a string containing a tag as rich text.** Neither shell was showing
+the book. Stripped, with `test_no_description_carries_transcription_markup` guarding the
+whole catalogue — the markers come from the paste pipeline, so the next paste can bring
+more.
+
+### ⚠ The 320-character cap is NOT a live bug — do not re-fix it
+
+Reported the same day as *"the description is cut short artificially, ending in a … with
+the majority of the page left"*, with a screenshot of the Qt M&F detail pane. It is real
+and it is **already fixed**: `self._clamp(definition.description, 320)` came in with Qt
+milestone 3 (`97c3fa5`) and went out in **`2bbbf5b`, 2026-08-30**. The human was running
+the latest TAGGED BUILD, which is behind `main`.
+
+**The diagnosis that worked, after six rounds of the one that didn't:** the visible text
+ended at character **320 exactly**. A clean cut at a round number is a SLICE — go to
+`git log -S` on the symptom, not to widget geometry. Measuring `QScrollArea` heights
+produced a confident, wrong root cause and a fix for a bug that did not exist (the
+`scroll max 0` reading was an artifact of driving the widget with `processEvents()`
+instead of a real event loop; under one, a plain `QScrollArea` sizes and scrolls
+correctly). ⚠ **A symptom in the app must be reproduced in the APP** — `main_window.py`
+with the rail driven — not in the page widget alone.

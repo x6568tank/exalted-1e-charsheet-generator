@@ -31,6 +31,8 @@ and drives each widget, so a new field fails until it is wired to both ends.
 
 from __future__ import annotations
 
+from typing import Callable
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QFrame, QHBoxLayout, QHeaderView, QLabel,
@@ -107,6 +109,10 @@ _PROSE = (
     ("spells", "Spells", ""),
     ("notes", "Other notes", ""),
 )
+
+# The three prose fields with a catalogue behind them. `notes` is the fourth member
+# of `_PROSE` and has none.
+_PICKABLE_PROSE = frozenset({"powers", "charms", "spells"})
 
 _ADD_SUBTITLE = ("Pick a template to start from — you get an editable copy, and the "
                  "catalogue entry is untouched.")
@@ -803,6 +809,56 @@ class AdversariesPage(QWidget):
                              self._refresh_row()))
         return edit
 
+    # ------------------------------------------------------------------ #
+    # Catalogue picking into the free-text fields
+    # ------------------------------------------------------------------ #
+
+    def _party_palette(self):
+        """The party's shared palette — the same one `build_add_dialog` picks."""
+        splats = {m.character.exalt_type for m in self._party().members}
+        return theme.palette(splats.pop() if len(splats) == 1 else None)
+
+    def build_pick_dialog(self, kind: str, title: str,
+                          apply: Callable[[str], None]) -> CatalogueDialog:
+        """One "add from catalogue" dialog, BUILT but not run — `exec()` blocks a
+        headless run, so this is the seam the tests drive (`build_add_dialog`'s shape).
+
+        `apply` receives the printed NAME, never the row key. Nothing here is filtered
+        by splat or checked against a prerequisite: see `view.adversary_picker_rows`.
+        """
+        rows, group_of = viewmod.adversary_picker_rows(self._ruleset, kind)
+        names = viewmod.picker_names(rows)
+
+        def _pick(key) -> None:
+            name = names.get(key or "")
+            if name:
+                apply(name)
+
+        return CatalogueDialog(
+            self._party_palette(), title, rows, _pick,
+            subtitle="Nothing here is checked against prerequisites, minimums or "
+                     "splat — this is the Storyteller's roster.",
+            allow_custom=False, keep_open=True,
+            group_of=group_of or None, parent=self)
+
+    def _pick_button(self, kind: str, title: str,
+                     apply: Callable[[str], None]) -> QPushButton:
+        button = QPushButton("Add from catalogue")
+        button.setObjectName(f"adv.pick.{kind}")
+        # Sized to its text, not to the panel. A full-width button under a field
+        # reads as a section separator rather than as that field's own affordance.
+        button.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        button.setToolTip("Browse the catalogue and append names here. "
+                          "No prerequisites, no minimums, no splat filter.")
+        button.clicked.connect(
+            lambda *_: self.build_pick_dialog(kind, title, apply).exec())
+        # ⚠ The handler hung on the button, so a test can DRIVE the real one. Clicking
+        # opens a modal `exec()`, which blocks a headless run, and a test that
+        # re-implements the append is testing its own copy of the code — the exact
+        # shape `docs/lessons.md` calls testing the effect instead of the buy path.
+        button._apply = apply
+        return button
+
     def _traits_panel(self, a: Adversary) -> None:
         body = self._panel("TRAITS")
         body.addWidget(self._muted(
@@ -811,9 +867,20 @@ class AdversariesPage(QWidget):
         self._trait_grid(body, a, "attributes", _ATTRIBUTES)
         body.addWidget(self._muted("Virtues"))
         self._trait_grid(body, a, "virtues", _VIRTUES)
-        self._labelled(body, "Abilities", self._codec_line(a, "abilities"),
-                       "As printed: Melee 3 (Swords +2), Dodge 2, Awareness 1")
-        self._labelled(body, "Backgrounds", self._codec_line(a, "backgrounds"))
+        for field, label, tooltip in (
+                ("abilities", "Abilities",
+                 "As printed: Melee 3 (Swords +2), Dodge 2, Awareness 1"),
+                ("backgrounds", "Backgrounds", "")):
+            edit = self._codec_line(a, field)
+            self._labelled(body, label, edit, tooltip)
+            # ⚠ `setText` does NOT fire `editingFinished`, which is what normally
+            # commits this box — so the pick writes the model itself. Through the
+            # codec, never by string-appending, so the round trip still holds.
+            def _apply(name: str, a=a, f=field, w=edit) -> None:
+                w.setText(adv.append_trait(w.text(), name))
+                setattr(a, f, adv.parse_traits(w.text()))
+                self._refresh_row()
+            self._labelled(body, "", self._pick_button(field, label, _apply))
 
     def _armor_combo(self, a: Adversary, field: str, options) -> QComboBox:
         combo = QComboBox()
@@ -896,3 +963,12 @@ class AdversariesPage(QWidget):
                                          self._refresh_row()))
             body.addWidget(self._muted(label))
             body.addWidget(edit)
+            # `notes` is prose with no catalogue behind it; the other three have one.
+            if field in _PICKABLE_PROSE:
+                def _apply(name: str, w=edit) -> None:
+                    # setPlainText fires textChanged, which is what writes the model.
+                    w.setPlainText(adv.append_prose(w.toPlainText(), name))
+                row = QHBoxLayout()
+                row.addWidget(self._pick_button(field, label, _apply))
+                row.addStretch(1)
+                body.addLayout(row)

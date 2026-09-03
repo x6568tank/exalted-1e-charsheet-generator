@@ -981,17 +981,13 @@ class AdvantagesPage(QWidget):
             lay.addWidget(self._muted("Restricted to: " + ", ".join(definition.exalt_types),
                                       italic=True))
         # What the entry requires, so a player sees the gate BEFORE the issues panel
-        # tells them they failed it. Tier-keyed groups are shown whole — which tier
-        # needs what is the point of Innocuous.
-        wants = [" or ".join(f"{r.trait} {r.rating}" for r in group)
-                 for groups in definition.trait_prerequisites.values()
-                 for group in groups]
-        if definition.max_purchases_from_trait:
-            wants.append(f"at most {definition.max_purchases_from_trait} purchases")
-        if definition.prerequisite_note:
-            wants.append(definition.prerequisite_note)
+        # tells them they failed it. Built in view.py so the two shells cannot say
+        # different things — they already had, by both omitting `prerequisites`.
+        wants = viewmod.merit_requirement_line(
+            self._ruleset, definition,
+            meritsmod.merits_and_flaws_calc(self._ruleset, self._char()))
         if wants:
-            lay.addWidget(self._muted("Requires: " + "; ".join(wants), italic=True))
+            lay.addWidget(self._muted("Requires: " + wants, italic=True))
         if with_description and definition.description:
             # ⚠ WHOLE text, not a clamp. The 320-character clamp was written when this
             # pane was a card in a stack and a paragraph pushed the controls off the

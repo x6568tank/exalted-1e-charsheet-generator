@@ -901,3 +901,58 @@ def test_the_table_row_tracks_an_edit_without_losing_the_selection(qtbot, rulese
     assert char.backgrounds[0].rating == 4
     assert table.topLevelItem(0).text(1).startswith("●●●●")
     assert page._selected == ("backgrounds", 0)
+
+
+# --------------------------------------------------------------------------- #
+# The detail pane states the gate, and can be scrolled to the end of it
+# --------------------------------------------------------------------------- #
+
+def _detail_labels(page) -> list[str]:
+    return [w.text() for w in page._detail_body.findChildren(QLabel)]
+
+
+def test_the_pane_names_the_entry_a_held_merit_requires(qtbot, ruleset):
+    """⚠ `prerequisites` reached NO screen in either shell — 32 entries carry one and
+    every one of them showed no gate. A mortal was told nothing about The Flow of
+    Essence needing Essence Awareness until the validator refused the build (human,
+    2026-09-02)."""
+    char = Character(id="m", name="Thaumaturge", exalt_type="Mortal")
+    char.merits_flaws = [MeritFlawPurchase(merit_id="thaum.essence-awareness"),
+                         MeritFlawPurchase(merit_id="thaum.flow-of-essence",
+                                           detail="Physical")]
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    _pick_named(page, "Merits & Flaws", "The Flow of Essence")
+    assert "Requires: Essence Awareness" in _detail_labels(page)
+
+
+def test_the_pane_marks_a_gate_the_character_already_meets(qtbot, ruleset):
+    """A God-Blooded is BARRED from Essence Awareness and does not need it — Awakened
+    Essence stands in. A bare "Requires: Essence Awareness" would send them after a
+    Merit their own picker will not offer."""
+    char = Character(id="g", name="Godblood", exalt_type="God-Blooded")
+    char.merits_flaws = [MeritFlawPurchase(merit_id="mf.awakened-essence"),
+                         MeritFlawPurchase(merit_id="thaum.flow-of-essence",
+                                           detail="Physical")]
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    _pick_named(page, "Merits & Flaws", "The Flow of Essence")
+    assert "Requires: Essence Awareness (already satisfied)" in _detail_labels(page)
+
+
+def test_the_pane_still_states_the_trait_minimums_it_always_did(qtbot, ruleset):
+    """The prerequisite entries were ADDED to that line, not substituted for it."""
+    definition = next(m for m in ruleset.merits_flaws.values()
+                      if m.trait_prerequisites and not m.exalt_types)
+    char = Character(id="m", name="M", exalt_type="Mortal")
+    char.merits_flaws = [MeritFlawPurchase(merit_id=definition.id)]
+    page = _page(ruleset, char)
+    qtbot.addWidget(page)
+    _pick(page, "Merits & Flaws", 0)
+    requires = [t for t in _detail_labels(page) if t.startswith("Requires:")]
+    assert requires, f"{definition.name} states no gate"
+    wanted = {r.trait for groups in definition.trait_prerequisites.values()
+              for group in groups for r in group}
+    assert all(trait in requires[0] for trait in wanted)
+
+

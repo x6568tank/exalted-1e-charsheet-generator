@@ -93,6 +93,21 @@ _ICON_BY_TAG: tuple[tuple[str, str], ...] = (
 )
 
 
+# The default `render_cap` for a caller that asks to be capped without naming a
+# number. See `catalogue_dialog`.
+#
+# ⚠ OPT-IN, never a default. Capping every caller silently truncated the artifact
+# shop — "Dragon Tear Tiara" sits past row 200 and stopped being offered, which
+# `test_artifacts_are_UNBUYABLE_at_chargen_and_buyable_in_play` caught. A dialog the
+# player scrolls must show everything; only the Charm-sized lists want the cap.
+#
+# ⚠ NICEGUI-ONLY, and the Qt dialog not having one is not an oversight to correct. A
+# NiceGUI row is ~4 DOM elements pushed over a socket; a Qt row is one
+# QListWidgetItem, and `qt/catalogue.py` builds all 1,861 Charms in 23 ms and filters
+# them in 6. Capping there would hide rows for no gain.
+_DEFAULT_RENDER_CAP = 200
+
+
 def icon_for(tags: Sequence[str], default: str = "") -> str:
     """The dialog icon for an entry with these tags, or `default` when none match.
 
@@ -124,6 +139,8 @@ def catalogue_dialog(
     default_icon: str = "",
     group_of: dict[str, str] | None = None,
     custom_kinds: dict[str, str] | None = None,
+    keep_open: bool = False,
+    render_cap: int | None = None,
 ) -> None:
     """Open a modal listing catalogue entries to choose from.
 
@@ -139,12 +156,26 @@ def catalogue_dialog(
     an entry's tags); `default_icon` covers the keys it omits. Both are optional — a
     dialog that passes neither renders exactly as it did before.
 
+    `keep_open` leaves the dialog up after a pick instead of closing it, for the
+    fields that take MANY entries — an adversary's Charm list is a dozen picks, and
+    a dozen reopens loses the filter each time. Each pick notifies instead, and a
+    Done button becomes the way out. Default False, so every existing caller behaves
+    exactly as it did.
+
+    `render_cap` builds at most that many rows per open (True takes the default 200).
+    ⚠ Only for lists too big to render whole — the Charm catalogue is 1,861 rows at
+    ~4 elements each. It hides rows, so a caller whose user SCROLLS to find things
+    must not pass it; the filter and the chips still see every entry, so narrowing
+    always reaches what the cap hid.
+
     `dimmed` holds keys to render faded — gear the character cannot afford (core p.325).
     They stay PICKABLE: the affordability of a purchase is the Storyteller's business,
     the sheet is a tracker, and a character can be given what she could not buy. This is
     a hint, never a gate; nothing here validates.
     """
     _filter = {"text": "", "group": ""}
+    _names = {e[0]: e[1] for e in entries}
+    _cap = _DEFAULT_RENDER_CAP if render_cap is True else render_cap
 
     with ui.dialog() as dialog, ui.card().classes(
             f"w-[46rem] max-w-[92vw] h-[85vh] flex flex-col p-4 gap-2 {pal.card_solid}"):
@@ -186,9 +217,20 @@ def catalogue_dialog(
         @ui.refreshable
         def _list() -> None:
             term = _filter["text"]
+            shown = 0
+            hidden = 0
             for entry in entries:
                 if not _matches(entry, term):
                     continue
+                # ⚠ Render cap, when the caller asked for one. The Charm catalogue
+                # is 1,861 rows at ~4 elements each, so an uncapped open builds
+                # ~7,500 elements before anything is visible. RENDERING only — the
+                # filter and the chips still see every entry, so narrowing always
+                # reaches what the cap hid.
+                if _cap is not None and shown >= _cap:
+                    hidden += 1
+                    continue
+                shown += 1
                 key, name, summary, full = entry
                 faded = " opacity-50" if key in dimmed else ""
                 with ui.column().classes(
@@ -231,9 +273,13 @@ def catalogue_dialog(
                             # collapse, so ordinary prose entries are unaffected.
                             ui.label(full).classes(
                                 "text-xs leading-relaxed whitespace-pre-line")
-            if not any(_matches(e, _filter["text"]) for e in entries):
+            if not shown:
                 ui.label("Nothing matches the filter.").classes(
                     "text-xs italic opacity-60")
+            elif hidden:
+                ui.label(f"…and {hidden} more. Narrow the filter to see them."
+                         ).classes("text-xs italic opacity-60 pt-1"
+                                   ).mark("cat-truncated")
 
         def _apply(value) -> None:
             _filter["text"] = value or ""
@@ -248,11 +294,18 @@ def catalogue_dialog(
             # client.layout so its canary survives the outer's clear — see
             # _custom_gain in ui/advantages.py.)
             on_pick(key)
+            if keep_open:
+                # Nothing closes, so the pick needs its own acknowledgement — the
+                # list does not change under a click and the field being written is
+                # behind the dialog.
+                ui.notify(f"Added {_names.get(key, 'entry')}", type="positive")
+                return
             dialog.close()
 
         def _custom() -> None:
             on_pick(None)
-            dialog.close()
+            if not keep_open:
+                dialog.close()
 
         # "Custom" needs a TYPE when the dialog spans several catalogues — a blank row
         # has to go in some list. `custom_kinds` maps a kind key to its label and turns
@@ -283,6 +336,12 @@ def catalogue_dialog(
         # area fills the leftover space under the title/search/Custom row.
         with ui.scroll_area().classes("w-full flex-1 min-h-0"):
             _list()
+
+        # Only when the dialog stays up: picking is no longer the way out of it.
+        if keep_open:
+            with ui.row().classes("justify-end w-full"):
+                ui.button("Done", icon="check", on_click=dialog.close
+                          ).props("flat").mark("cat-done")
 
     # A dialog is only HIDDEN when closed, never removed — the NiceGUI docstring says
     # so outright. Each open builds a fresh dialog with every entry's labels, so a

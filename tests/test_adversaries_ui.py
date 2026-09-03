@@ -389,3 +389,57 @@ def test_ids_do_not_collide_after_a_deletion():
     p = Party(id="p", adversaries=[Adversary(id="adv.1"), Adversary(id="adv.2")])
     del p.adversaries[0]
     assert adv_ui.next_id(p) not in {a.id for a in p.adversaries}
+
+
+# --------------------------------------------------------------------------- #
+# Catalogue picking into the free-text fields
+# --------------------------------------------------------------------------- #
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_editor_offers_a_catalogue_for_the_five_pickable_fields(
+        user: User) -> None:
+    """Charms, Spells, Powers, Abilities and Backgrounds each get a picker; `notes`
+    and the typed stat boxes do not."""
+    await user.open('/gm-adv-click')
+    user.find(marker="adv-edit-adv.c").click()
+    await user.should_see(marker="adv-pick-charms")
+    for kind in ("spells", "powers", "abilities", "backgrounds"):
+        user.find(marker=f"adv-pick-{kind}")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_picker_says_outright_that_it_checks_nothing(user: User) -> None:
+    """The one thing a GM must be able to trust about this dialog. It is also the
+    honest label for what it does: no splat filter, no prerequisite, no minimum."""
+    await user.open('/gm-adv-click')
+    user.find(marker="adv-edit-adv.c").click()
+    user.find(marker="adv-pick-charms").click()
+    await user.should_see("prerequisites")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_large_catalogue_is_capped_rather_than_rendered_whole(
+        user: User) -> None:
+    """⚠ 1,861 Charm rows at ~4 elements each is ~7,500 elements built before the
+    dialog appears. The cap is on rendering only — the filter still sees them all."""
+    await user.open('/gm-adv-click')
+    user.find(marker="adv-edit-adv.c").click()
+    user.find(marker="adv-pick-charms").click()
+    await user.should_see(marker="cat-truncated")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_picker_stays_open_across_picks(user: User) -> None:
+    """A dozen Charms is one visit, not a dozen reopens each losing the filter — so
+    the Done button is the way out and the list is still there after a pick."""
+    await user.open('/gm-adv-click')
+    user.find(marker="adv-edit-adv.c").click()
+    user.find(marker="adv-pick-abilities").click()
+    await user.should_see("Archery")
+    await user.should_see(marker="cat-done")
+    user.find("Archery").elements.pop().run_method('click')
+    await user.should_see("Archery")

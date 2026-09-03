@@ -295,6 +295,23 @@ class MeritEffects:
     # entirely. We do not roll dice (decision 0009), so the split is narrative and
     # only the distinction between "some access" and "full access" is modelled.
     essence_pool_unrestricted: bool = False
+    # Merit ids that count as HELD when another entry's `prerequisites` are checked,
+    # even though the character has not bought them. One entry standing in for another
+    # is a rules fact, not a UI convenience: a God-Blooded's Awakened Essence gives the
+    # unrestricted pool that Essence Awareness and Essence Mastery exist to hand a
+    # mortal, so the four thaumaturgy entries gated on Awareness are open to them
+    # without buying a Merit that would do nothing (human, rules authority, 2026-09-02).
+    #
+    # ⚠ A SUBSTITUTION, not a grant. Being credited with Essence Mastery for the
+    # purpose of a gate is not the same as gaining what Mastery gives — its Terrestrial
+    # Martial Arts clause is still Mastery's alone, and `open_charm_categories` is
+    # deliberately untouched by this. Conflating the two is how a splat gets free
+    # martial arts (see `true-not-applicable-is-not-a-condition`).
+    #
+    # ⚠ This is the ONLY way a caller may learn about the substitution. Nothing outside
+    # this module may name a Merit id, so `merit_checks` unions this set into the held
+    # ids and the UI tests membership — neither of them knows which entries they are.
+    prerequisites_satisfied: frozenset[str] = frozenset()
     # Raises ExaltDefinition.essence_cap when set. Essence Mastery is what lets a
     # mortal exceed Essence 1 at all, and 3 is "the limit of human potential —
     # mortals that exceed Essence 3 become gods" (PG p.114). None = no override.
@@ -1026,6 +1043,12 @@ def merits_and_flaws_calc(ruleset: RuleSet, character: Character) -> MeritEffect
         merit_cost_overrides=cost_overrides,
         essence_pool_unlocked=has_native_pool or awareness or mastery or awakened,
         essence_pool_unrestricted=has_native_pool or mastery or awakened,
+        # Awakened Essence stands in for both mortal Essence-unlock Merits. It is not
+        # conditioned on the splat: the Merit is already restricted to the God-Blooded
+        # by `exalt_types`, and re-testing the splat here would be a second gate that
+        # can disagree with the first.
+        prerequisites_satisfied=(frozenset({ESSENCE_AWARENESS, ESSENCE_MASTERY})
+                                 if awakened else frozenset()),
         essence_cap_override=cap_override,
         breeding_rating_override=breeding_override,
         essence_single_pool=single_pool,

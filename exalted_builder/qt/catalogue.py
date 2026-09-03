@@ -65,8 +65,16 @@ class CatalogueDialog(QDialog):
                  dimmed: set[str] | None = None,
                  extras: Callable[[str, QVBoxLayout], None] | None = None,
                  confirm: Callable[[str], tuple[str, bool]] | None = None,
+                 keep_open: bool = False,
                  parent=None):
         super().__init__(parent)
+        # Stay up after a pick, for fields that take MANY entries — an adversary's
+        # Charm list is a dozen picks and a dozen reopens loses the filter each
+        # time. Cancel becomes Done, and the count line acknowledges each pick,
+        # since nothing else on screen changes when one lands. Default False, so
+        # every existing caller behaves exactly as it did.
+        self._keep_open = keep_open
+        self._picked = 0
         self._entries = list(entries)
         self._on_pick = on_pick
         self._extras = extras
@@ -150,7 +158,9 @@ class CatalogueDialog(QDialog):
         root.addWidget(self.count)
 
         buttons = QHBoxLayout()
-        cancel = QPushButton("Cancel")
+        # In keep-open mode picking is no longer the way out, so the dismiss button
+        # is the way out and says so.
+        cancel = QPushButton("Done" if keep_open else "Cancel")
         cancel.clicked.connect(self.reject)
         buttons.addWidget(cancel)
         buttons.addStretch(1)
@@ -264,6 +274,15 @@ class CatalogueDialog(QDialog):
     def _choose(self) -> None:
         item = self.list.currentItem()
         if item is None or item.isHidden() or not self.choose_btn.isEnabled():
+            return
+        if self._keep_open:
+            # ⚠ `on_pick` runs and the dialog stays; it must NOT accept(), or the
+            # exec() loop in `open_catalogue` unwinds and the next pick lands on a
+            # closed dialog.
+            self._on_pick(item.data(Qt.UserRole))
+            self._picked += 1
+            self.count.setText(
+                f"Added {item.text().splitlines()[0]}  ·  {self._picked} picked")
             return
         self.accept()
         self._on_pick(item.data(Qt.UserRole))

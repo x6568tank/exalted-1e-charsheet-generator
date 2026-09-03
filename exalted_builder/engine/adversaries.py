@@ -429,6 +429,68 @@ def parse_traits(text: str) -> list[AdversaryTrait]:
     return traits
 
 
+# --------------------------------------------------------------------------- #
+# Catalogue picking
+#
+# The roster's picker browses the same Charm/spell catalogue the builder does, but
+# what it writes is the printed NAME, never the id. `charms`, `spells` and `powers`
+# are prose by decision (see the models docstring): the book prints "All Solar Charms
+# the Storyteller cares to give him", ids would face the loader's link-checking, and
+# an adversary has no prerequisite graph to resolve them against anyway. These two
+# helpers are the ONE place a pick reaches the model, which is what keeps that true.
+# --------------------------------------------------------------------------- #
+
+
+def _already_lists(text: str, name: str) -> bool:
+    """Is `name` already one of the entries in `text`?
+
+    Splits on the separators `append_prose` writes — commas and sentence ends — so
+    that a substring does not count: picking "Strike" when "Excellent Strike" is
+    present must still add it."""
+    wanted = name.strip().casefold()
+    return any(part.strip().casefold() == wanted
+               for part in re.split(r"[,.!?]", text or ""))
+
+
+def append_prose(existing: str, name: str) -> str:
+    """Add one picked entry's NAME to a prose field, and return the new text.
+
+    Empty field -> the name alone. A field that ends in sentence punctuation gets
+    the name after a space, because the book's own wording is a sentence and
+    ``"...give him., Excellent Strike"`` is not English. Anything else is treated
+    as the comma list it looks like.
+
+    Idempotent and case-insensitive: the picker stays open across picks, so the
+    same row being clicked twice must be one Charm, not two."""
+    existing = (existing or "").strip()
+    name = (name or "").strip()
+    if not name or _already_lists(existing, name):
+        return existing
+    if not existing:
+        return name
+    if existing.endswith((".", "!", "?")):
+        return f"{existing} {name}"
+    return f"{existing.rstrip(',')}, {name}"
+
+
+def append_trait(line: str, name: str, rating: int = 1) -> str:
+    """Add one picked Ability/Background to a trait line, and return the new line.
+
+    Goes out through `trait_line` rather than string-appending, so the codec's
+    round trip still holds for whatever was already typed there.
+
+    ⚠ Defaults to rating 1, NOT the 0 `parse_traits` gives an unrated entry: a card
+    reading "Awareness 0" claims the book printed a zero, which is the same lie
+    `Adversary.attributes` omits absent Attributes to avoid. A trait already on the
+    line is left exactly as it is — picking it again must not reset a rating the GM
+    has already set."""
+    name = (name or "").strip()
+    traits = parse_traits(line)
+    if not name or any(t.name.strip().casefold() == name.casefold() for t in traits):
+        return line
+    return trait_line(traits + [AdversaryTrait(name=name, rating=rating)])
+
+
 def parse_attacks(text: str) -> list[AdversaryAttack]:
     """One attack per line, in the book's own wording:
 

@@ -317,3 +317,97 @@ heading the book filed them under, as a one-element list.
 gained a second: giving the Skeletal Legionnaire "Undead + Soldier" would be authoring
 from memory, and needs a page like anything else in `data/`. The GM's own entries are
 theirs to file however they like.
+
+## Catalogue picking into the free-text fields (2026-09-02)
+
+Asked for by the human: *"let you throw together a sheet, something simple. Maybe let
+you pick Charms/Spells and such from a list without pre-requisite checking where
+applicable?"* — the picker half of a quick-builder. The auto-fill half (tiers that
+invent a statblock) was **considered and NOT chosen** by the human, and there is no
+invented number anywhere in this change.
+
+Five fields gained an **Add from catalogue** button, both shells:
+
+| Field | Catalogue | Chips |
+|---|---|---|
+| Charms | every non-virtual Charm (1,861) | the 11 splats, `Spirit` among them |
+| Spells | every spell (306) | the 8 circles |
+| Powers | Elemental Powers + Spirit Charms (99) | those two |
+| Abilities | the 25-ability roster | — |
+| Backgrounds | `background_catalog`, deduped by name (63 → 42) | — |
+
+`notes` is the fourth `_PROSE` field and deliberately has no button: nothing is behind
+it.
+
+### It checks NOTHING, and that is the feature
+
+No splat filter, no prerequisite, no minimum, no Essence gate. The dialog says so in
+its own subtitle rather than leaving a GM to wonder. A Storyteller giving a bandit
+chief one Solar Charm is not building a Solar, and the roster has never validated
+anything — `engine/adversaries.py` opens by saying so.
+
+### What a pick WRITES is the name
+
+The prose invariant is untouched: `charms`/`spells`/`powers` still hold the sentence the
+book printed, and `abilities`/`backgrounds` still go through the trait codec. Two pure
+helpers in `engine/adversaries.py` are the only path from a pick to the model:
+
+* **`append_prose`** — empty field → the name; a field ending in `.`/`!`/`?` gets the
+  name after a **space**, because the book's own wording is a sentence and
+  `"…give him., Excellent Strike"` is not English; anything else is the comma list it
+  looks like. **Idempotent and case-insensitive** — the dialog stays open, so a
+  double-click is one click too many, not two Charms.
+* **`append_trait`** — out through `trait_line`, never by string-appending, so the codec
+  round trip still holds. ⚠ **Defaults to rating 1, not the 0 `parse_traits` gives an
+  unrated entry**: "Awareness 0" on a card claims the book printed a zero, the same lie
+  `attributes` omits absent Attributes to avoid. A trait already on the line is left
+  exactly as it is.
+
+### ⚠ Two keying schemes in `view.adversary_picker_rows`, and it is not an inconsistency
+
+Charms/spells/powers key rows by **id**; Abilities/Backgrounds key by **name**. Keying
+Charms by name **silently dropped 18 rows** and mis-filed their chips — five Charm names
+are shared across splats ("Ox-Body Technique" is seven Charms, "Terrestrial Circle
+Sorcery" seven more), and the Dragon-Kings chip vanished entirely because of it. The
+Background collisions are the opposite case: seven catalogue rows print "Artifact", one
+per splat, and they are the *same* Background as far as an adversary's line is
+concerned, so collapsing them is right. `test_every_picker_kind_has_unique_keys` guards
+the first half.
+
+### ⚠ Virtual Charms are excluded
+
+All 60 of them are Dragon-Kings Path powers, which exist so a Path's grants can be
+NAMED on a sheet and are not content a GM can pick meaningfully. The builder's picker
+hides them for that reason and this one agrees — which is why "Dragon-Kings" appears as
+a chip on the strength of one row (Terrestrial Circle Sorcery) and no more.
+
+### Two additions to the shared dialogs, both opt-in
+
+`keep_open` and `render_cap` landed on `ui/catalogue.py` and `qt/catalogue.py`, default
+off, because a dozen Charms must not be a dozen reopens each losing the filter.
+
+⚠ **`render_cap` started as an unconditional cap and BROKE THE ARTIFACT SHOP.** "Dragon
+Tear Tiara" sits past row 200 and simply stopped being offered;
+`test_artifacts_are_UNBUYABLE_at_chargen_and_buyable_in_play` caught it. The lesson is
+the general one: **a change to a shared dialog is a change to every caller.** It is now
+a parameter only the adversary picker passes.
+
+⚠ **The cap is NICEGUI-ONLY and Qt not having one is not an oversight.** A NiceGUI row
+is ~4 DOM elements over a socket; a Qt row is one `QListWidgetItem`. Measured: the Qt
+dialog builds all 1,861 Charms in **23 ms** and filters them in **6 ms**. Capping there
+would hide rows for no gain.
+
+### The test seam
+
+`AdversariesPage._pick_button` hangs its handler on the button as `button._apply`, and
+the Qt tests drive **that**. Clicking opens a modal `exec()` that blocks a headless run,
+and a test that re-implements the append is testing its own copy of the code — the shape
+`docs/lessons.md` calls testing the effect instead of the buy path. The first draft of
+`test_a_picked_ability_goes_through_the_codec_into_the_model` did exactly that; breaking
+the real handler on purpose is what showed it, and it now fails when the handler stops
+writing the model.
+
+⚠ **`setText` does not fire `editingFinished`**, which is what normally commits the two
+codec lines — so the Qt pick writes the model itself. The NiceGUI side has the opposite
+lifecycle (`commit()` reads `.value` on Save) and needs no such step. Same feature, two
+correct answers.

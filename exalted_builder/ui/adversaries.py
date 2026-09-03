@@ -34,7 +34,9 @@ from ..engine import adversaries as adv
 from ..models.adversary import Adversary
 from ..models.party import Party
 from ..models.rules import Damage, RuleSet
+from . import catalogue as cataloguemod
 from . import theme
+from . import view as viewmod
 
 # Same swatch as the Play tab's boxes — one damage tracker to learn, not two.
 _GOLD = "#f6e3b4"
@@ -109,13 +111,55 @@ def _count_box(a: Adversary, i: int, filled: bool, field: str, cap: int,
 # The editor dialog
 # --------------------------------------------------------------------------- #
 
-def edit_dialog(ruleset: RuleSet, a: Adversary, on_save: Callable[[], None]) -> None:
+def _catalogue_button(ruleset: RuleSet, pal: theme.Palette, kind: str, title: str,
+                      field, *, trait: bool = False) -> None:
+    """An "add from catalogue" button that writes picked NAMES into `field`.
+
+    `field` is the NiceGUI input/textarea the roster edits; the pick is appended to
+    its live value, so a GM can pick some and type the rest in the same box. `trait`
+    selects the codec-safe append for the two rated lines (Abilities, Backgrounds)
+    over the prose append the three free-text lines take.
+
+    ⚠ Nothing is validated, filtered by splat, or checked against a prerequisite —
+    see the note in `view.adversary_picker_rows`. The dialog stays OPEN across picks
+    because these fields take a dozen entries at a time.
+    """
+    rows, group_of = viewmod.adversary_picker_rows(ruleset, kind)
+    names = viewmod.picker_names(rows)
+
+    def _pick(key) -> None:
+        name = names.get(key)
+        if not name:
+            return
+        field.value = (adv.append_trait(field.value or "", name) if trait
+                       else adv.append_prose(field.value or "", name))
+
+    def _open() -> None:
+        cataloguemod.catalogue_dialog(
+            pal, title, rows, _pick,
+            allow_custom=False, keep_open=True,
+            # 1,861 Charms is too many DOM rows for one open; the filter still
+            # reaches every one of them.
+            render_cap=True,
+            group_of=group_of or None,
+            subtitle="Nothing here is checked against prerequisites, minimums or "
+                     "splat — this is the Storyteller's roster.")
+
+    ui.button("Add from catalogue", icon="menu_book", on_click=_open
+              ).props("flat dense").classes("text-xs").mark(f"adv-pick-{kind}")
+
+
+def edit_dialog(ruleset: RuleSet, a: Adversary, on_save: Callable[[], None],
+                pal: Optional[theme.Palette] = None) -> None:
     """Edit every printed field of one entry.
 
     Deliberately a flat form of plain inputs rather than the builder's dot
     tracks: these values are typed off a page or invented on the spot, never
     bought, so a stepper with a cap would be lying about what governs them.
     """
+    # The roster hands its own palette down; the fallback keeps the dialog usable
+    # for a caller that has none (the render tests open it directly).
+    pal = pal or theme.palette(None)
     armor_labels = {"": "(none)"} | {arm.id: arm.name for arm in adv.armor_options(ruleset)}
     shield_labels = {"": "(none)"} | {s.id: s.name for s in adv.shield_options(ruleset)}
 
@@ -156,8 +200,11 @@ def edit_dialog(ruleset: RuleSet, a: Adversary, on_save: Callable[[], None]) -> 
         abilities = ui.input("Abilities", value=trait_line(a.abilities)).props(
             "dense outlined").classes("w-full").tooltip(
             "As printed: Melee 3 (Swords +2), Dodge 2, Awareness 1")
+        _catalogue_button(ruleset, pal, "abilities", "Abilities", abilities, trait=True)
         backgrounds = ui.input("Backgrounds", value=trait_line(a.backgrounds)).props(
             "dense outlined").classes("w-full")
+        _catalogue_button(ruleset, pal, "backgrounds", "Backgrounds", backgrounds,
+                          trait=True)
 
         # --- combat -------------------------------------------------------- #
         ui.label("COMBAT").classes("text-xs font-bold tracking-widest mt-2")
@@ -228,10 +275,13 @@ def edit_dialog(ruleset: RuleSet, a: Adversary, on_save: Callable[[], None]) -> 
             "outlined dense autogrow").classes("w-full text-sm").tooltip(
             "The separate Powers line ghosts and elementals print — "
             "\"Materialize, Measure the Wind\"")
+        _catalogue_button(ruleset, pal, "powers", "Powers", powers)
         charms = ui.textarea("Charms", value=a.charms).props(
             "outlined dense autogrow").classes("w-full text-sm")
+        _catalogue_button(ruleset, pal, "charms", "Charms", charms)
         spells = ui.textarea("Spells", value=a.spells).props(
             "outlined dense autogrow").classes("w-full text-sm")
+        _catalogue_button(ruleset, pal, "spells", "Spells", spells)
         notes = ui.textarea("Other notes", value=a.notes).props(
             "outlined dense autogrow").classes("w-full text-sm")
 
@@ -451,7 +501,7 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
                           ).props("flat dense").tooltip(
                     "Duplicate — a separate tracker").mark(f"adv-dup-{a.id}")
                 ui.button(icon="edit",
-                          on_click=lambda x=a: edit_dialog(ruleset, x, refresh)
+                          on_click=lambda x=a: edit_dialog(ruleset, x, refresh, pal)
                           ).props("flat dense").tooltip("Edit stats").mark(f"adv-edit-{a.id}")
                 ui.button(icon="delete", on_click=lambda i=index: remove(i)).props(
                     "flat dense color=red").tooltip(

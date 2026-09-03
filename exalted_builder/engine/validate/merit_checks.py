@@ -217,6 +217,12 @@ def merit_issues(ruleset: RuleSet, character: Character, *,
                         f"character holds no Arts, Sciences, rituals or formulas.",
             ))
 
+    # What counts as held when an entry's `prerequisites` are checked. One entry may
+    # stand in for another — engine.merits decides which, because nothing outside that
+    # module may name a Merit id — so the two sets are unioned once, here.
+    held_for_prereq = set(held) | set(
+        merits.merits_and_flaws_calc(ruleset, character).prerequisites_satisfied)
+
     for mid, count in held.items():
         definition = ruleset.merits_flaws[mid]
         if count > 1 and not definition.repeatable_by:
@@ -247,7 +253,10 @@ def merit_issues(ruleset: RuleSet, character: Character, *,
                             f"as a {character.origin}; found {count}.",
                 ))
         for pid in definition.prerequisites:
-            if pid not in held:
+            # ⚠ `held_for_prereq`, not `held`: one entry may stand in for another
+            # (Awakened Essence for the two mortal Essence-unlock Merits). Which ones
+            # is engine.merits' business — no Merit id is named here.
+            if pid not in held_for_prereq:
                 name = ruleset.merits_flaws[pid].name if pid in ruleset.merits_flaws else pid
                 issues.append(Issue(
                     code="merit-prerequisite", where=mid,

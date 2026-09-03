@@ -466,3 +466,89 @@ def test_the_stats_column_reads_through_the_engine(make_page):
     page = make_page(Party(id="p", adversaries=[entry]))
     row = page.table.topLevelItem(0).text(3)
     assert "Init 7" in row and "Dodge 4" in row and "Soak" in row
+
+
+# --------------------------------------------------------------------------- #
+# Catalogue picking into the free-text fields
+#
+# ⚠ Driven through the DIALOG, not by calling the append helpers: the bug this
+# guards is the pick landing in the widget and never reaching the model, which is
+# the dead-field species this file already caught once. Every assertion below reads
+# the model, not the box.
+# --------------------------------------------------------------------------- #
+
+def _picker(page, kind):
+    """The real button, its real handler, and the dialog it opens.
+
+    `button._apply` is the closure the button runs — driving THAT is what makes
+    these tests cover the wiring rather than a copy of it."""
+    button = page.findChild(QPushButton, f"adv.pick.{kind}")
+    assert button is not None, f"no Add-from-catalogue button for {kind}"
+    dialog = page.build_pick_dialog(kind, kind.title(), button._apply)
+    return button, dialog
+
+
+def test_a_picked_charm_reaches_the_model_as_prose(make_page):
+    entry = Adversary(id="a.1", name="Anys Syvan")
+    page = make_page(Party(id="p", adversaries=[entry]))
+    _button, dialog = _picker(page, "charms")
+
+    dialog.list.setCurrentRow(0)
+    key = dialog.list.item(0).data(Qt.UserRole)
+    name = dialog.list.item(0).text().splitlines()[0]
+    dialog._choose()
+
+    assert entry.charms == name, "the pick never reached the model"
+    # The invariant: the printed NAME, never the namespaced id.
+    assert key not in entry.charms
+
+
+def test_the_pick_dialog_stays_open_so_a_charm_list_is_one_visit(make_page):
+    """A dozen Charms must not be a dozen reopens, each losing the filter."""
+    entry = Adversary(id="a.1", name="Anys Syvan")
+    page = make_page(Party(id="p", adversaries=[entry]))
+    _button, dialog = _picker(page, "charms")
+    for row in (0, 1, 2):
+        dialog.list.setCurrentRow(row)
+        dialog._choose()
+    assert dialog.result() != dialog.DialogCode.Accepted, "the dialog closed on a pick"
+    assert entry.charms.count(",") == 2, entry.charms
+
+
+def test_a_picked_ability_goes_through_the_codec_into_the_model(make_page):
+    """⚠ `setText` does not fire `editingFinished`, so a pick that only fills the box
+    is a pick the model never sees. This drives the button's own handler."""
+    entry = Adversary(id="a.1", name="Anys Syvan",
+                      abilities=[AdversaryTrait(name="Melee", rating=4)])
+    page = make_page(Party(id="p", adversaries=[entry]))
+    box = page.findChild(QLineEdit, "adv.abilities")
+    assert box.text() == "Melee 4"
+
+    _button, dialog = _picker(page, "abilities")
+    dialog.list.setCurrentRow(0)
+    name = dialog.list.item(0).text().splitlines()[0]
+    dialog._choose()
+
+    assert [t.name for t in entry.abilities] == ["Melee", name]
+    assert entry.abilities[0].rating == 4, "an existing rating must survive a pick"
+    assert entry.abilities[1].rating == 1, "a new trait defaults to 1, not 0"
+
+
+def test_picking_the_same_entry_twice_adds_it_once(make_page):
+    """The dialog stays open, so a double-click is one click too many — not two
+    Charms, and not a second copy of a rated Ability at rating 1."""
+    entry = Adversary(id="a.1", name="Anys Syvan")
+    page = make_page(Party(id="p", adversaries=[entry]))
+    _button, dialog = _picker(page, "charms")
+    dialog.list.setCurrentRow(0)
+    dialog._choose()
+    dialog._choose()
+    assert "," not in entry.charms, entry.charms
+
+
+def test_notes_has_no_catalogue_button_and_the_other_three_do(make_page):
+    """`notes` is prose with nothing behind it; Powers/Charms/Spells have a catalogue."""
+    page = make_page(Party(id="p", adversaries=[Adversary(id="a.1", name="X")]))
+    for field in ("powers", "charms", "spells"):
+        assert page.findChild(QPushButton, f"adv.pick.{field}") is not None, field
+    assert page.findChild(QPushButton, "adv.pick.notes") is None

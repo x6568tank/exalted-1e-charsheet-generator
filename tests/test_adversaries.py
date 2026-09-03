@@ -744,3 +744,159 @@ def test_every_catalogue_row_still_carries_at_least_one_category(catalog):
         assert len(t.categories) == 1, (
             f"{t.name} gained a category the books did not print — "
             f"{t.categories}. That is authoring, and needs a page behind it.")
+
+
+# --------------------------------------------------------------------------- #
+# Catalogue picking into the free-text fields
+#
+# The picker writes the printed NAME, never the id: `charms`/`spells`/`powers`
+# stay prose (test_charms_and_spells_are_prose_not_ids above is the invariant),
+# and Abilities/Backgrounds go back through the trait codec so the round trip
+# still holds.
+# --------------------------------------------------------------------------- #
+
+def test_append_prose_into_an_empty_field_is_just_the_name():
+    assert adv.append_prose("", "Excellent Strike") == "Excellent Strike"
+    assert adv.append_prose("   ", "Excellent Strike") == "Excellent Strike"
+
+
+def test_append_prose_extends_a_comma_list():
+    line = adv.append_prose("Excellent Strike, Fire and Stones Strike",
+                            "Bulwark Stance")
+    assert line == "Excellent Strike, Fire and Stones Strike, Bulwark Stance"
+
+
+def test_append_prose_after_a_sentence_does_not_add_a_stray_comma():
+    """The book prints sentences, not lists — "All Solar Charms the Storyteller
+    cares to give him." (p.303). Appending a pick with ", " would produce
+    "...give him., Excellent Strike"."""
+    line = adv.append_prose("All Solar Charms the Storyteller cares to give him.",
+                            "Excellent Strike")
+    assert line == "All Solar Charms the Storyteller cares to give him. Excellent Strike"
+
+
+def test_append_prose_is_idempotent_and_case_insensitive():
+    """A stay-open picker means a double-click is one click too many, not a
+    second Charm."""
+    line = "Excellent Strike, Fire and Stones Strike"
+    assert adv.append_prose(line, "Excellent Strike") == line
+    assert adv.append_prose(line, "excellent strike") == line
+
+
+def test_append_prose_matches_whole_entries_only():
+    """"Strike" is not already present just because "Excellent Strike" is."""
+    line = adv.append_prose("Excellent Strike", "Strike")
+    assert line == "Excellent Strike, Strike"
+
+
+def test_append_prose_never_writes_an_id(ruleset):
+    """The picker hands over a catalogue id; what lands in the field is the NAME.
+    This is the prose invariant, enforced at the one place ids could leak in."""
+    charm = next(iter(ruleset.charms.values()))
+    line = adv.append_prose("", charm.name)
+    assert line == charm.name
+    assert charm.id not in line
+
+
+def test_append_trait_round_trips_through_the_codec():
+    line = adv.append_trait("Melee 3 (Swords +2), Dodge 2", "Awareness")
+    assert adv.parse_traits(line) == adv.parse_traits(adv.trait_line(
+        adv.parse_traits(line)))
+    assert [t.name for t in adv.parse_traits(line)] == ["Melee", "Dodge", "Awareness"]
+
+
+def test_append_trait_defaults_to_one_not_zero():
+    """`parse_traits` gives an unrated entry rating 0, and "Awareness 0" on a card
+    claims the book printed a zero — the same lie `attributes` refuses to tell."""
+    assert adv.append_trait("", "Awareness") == "Awareness 1"
+    assert adv.append_trait("", "Awareness", rating=3) == "Awareness 3"
+
+
+def test_append_trait_leaves_an_existing_trait_alone():
+    """Picking a rated Ability again must not append a second copy at 1 and must
+    not reset the rating that is already there."""
+    line = "Melee 4 (Swords +2)"
+    assert adv.append_trait(line, "Melee") == line
+    assert adv.append_trait(line, "melee") == line
+
+
+# --------------------------------------------------------------------------- #
+# The picker's rows (ui/view.py — shared by both shells, no toolkit involved)
+# --------------------------------------------------------------------------- #
+
+def _rows(ruleset, kind):
+    from exalted_builder.ui import view
+    return view.adversary_picker_rows(ruleset, kind)
+
+
+def test_every_picker_kind_has_unique_keys(ruleset):
+    """⚠ The keys ARE the dialog's handle on a row. A duplicate key means one row
+    picks another row's entry — which is what keying Charms by name did: five names
+    are shared across splats ("Ox-Body Technique" is seven Charms) and 18 rows
+    collapsed."""
+    from exalted_builder.ui import view
+    for kind in ("charms", "spells", "powers", "abilities", "backgrounds"):
+        rows, _ = _rows(ruleset, kind)
+        keys = [r[0] for r in rows]
+        assert len(set(keys)) == len(keys), f"{kind} has duplicate keys"
+        assert rows, f"{kind} is empty"
+        assert len(view.picker_names(rows)) == len(rows)
+
+
+def test_the_charm_picker_offers_every_splat_and_hides_virtual_charms(ruleset):
+    """Virtual Charms name a Dragon-Kings Path's granted powers and are not content
+    a GM can pick meaningfully — the builder's picker hides them and so does this."""
+    rows, group_of = _rows(ruleset, "charms")
+    picked = {r[0] for r in rows}
+    assert not any(c.virtual for cid, c in ruleset.charms.items() if cid in picked)
+    assert all(cid in picked for cid, c in ruleset.charms.items() if not c.virtual)
+    # Spirit Charms are in there: statting a god is the case this feature exists for.
+    assert "Spirit" in set(group_of.values())
+
+
+def test_the_background_picker_collapses_the_per_splat_duplicates(ruleset):
+    """Seven catalogue rows print "Artifact", one per splat. An adversary's line
+    records the NAME, so seven rows would be seven identical picks."""
+    rows, _ = _rows(ruleset, "backgrounds")
+    names = [r[1] for r in rows]
+    assert len(set(names)) == len(names)
+    assert "Artifact" in names
+
+
+def test_the_powers_picker_carries_both_catalogues(ruleset):
+    """The printed Powers line mixes them: elementals print "Dragon's Suspire", a war
+    ghost prints "Materialize, Measure the Wind"."""
+    rows, group_of = _rows(ruleset, "powers")
+    assert {"Elemental Power", "Spirit Charm"} == set(group_of.values())
+    assert "Materialize" in {r[1] for r in rows}
+
+
+def test_an_unknown_picker_kind_raises(ruleset):
+    with pytest.raises(ValueError):
+        _rows(ruleset, "artifacts")
+
+
+def test_a_pick_writes_the_name_not_the_key(ruleset):
+    """The prose invariant at the one place an id could reach the model."""
+    from exalted_builder.ui import view
+    rows, _ = _rows(ruleset, "charms")
+    names = view.picker_names(rows)
+    # A namespaced id ("abyssal.archery.bloodthirsty-arrow"), never the printed name.
+    key = next(k for k, name in names.items() if k != name)
+    line = adv.append_prose("", names[key])
+    assert line == names[key] and key not in line
+
+
+def test_a_picker_kind_with_an_empty_catalogue_yields_no_rows_rather_than_raising():
+    """The shape a minimal//homebrew-only RuleSet produces. Both dialogs handle an
+    empty list (NiceGUI prints "Nothing matches", Qt clears the detail pane), so the
+    row builder must hand one over rather than assuming its catalogue is populated."""
+    from exalted_builder.models.rules import RuleSet
+    from exalted_builder.ui import view
+    bare = RuleSet(exalts={}, castes={}, charms={})
+    for kind in ("charms", "spells", "powers", "backgrounds"):
+        rows, group_of = view.adversary_picker_rows(bare, kind)
+        assert rows == [] and group_of == {}
+    # The 25-ability roster is an enum, not a catalogue — it is never empty.
+    rows, _ = view.adversary_picker_rows(bare, "abilities")
+    assert len(rows) == 25

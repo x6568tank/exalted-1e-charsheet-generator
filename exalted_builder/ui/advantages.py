@@ -861,19 +861,13 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             ui.label("Restricted to: " + ", ".join(definition.exalt_types)
                      ).classes("text-xs italic opacity-70 pl-1")
         # What the entry requires, so a player sees the gate BEFORE the issues panel
-        # tells them they failed it. The tier-keyed groups are shown whole — which tier
-        # needs what is the point of Innocuous, and hiding the other tier's line would
-        # hide it.
-        wants = [" or ".join(f"{r.trait} {r.rating}" for r in group)
-                 for groups in definition.trait_prerequisites.values()
-                 for group in groups]
-        if definition.max_purchases_from_trait:
-            wants.append(f"at most {definition.max_purchases_from_trait} purchases")
-        if definition.prerequisite_note:
-            wants.append(definition.prerequisite_note)
+        # tells them they failed it. Built in view.py so the two shells cannot say
+        # different things — they already had, by both omitting `prerequisites`.
+        wants = viewmod.merit_requirement_line(
+            ruleset, definition,
+            meritsmod.merits_and_flaws_calc(ruleset, character))
         if wants:
-            ui.label("Requires: " + "; ".join(wants)
-                     ).classes("text-xs italic opacity-70 pl-1")
+            ui.label("Requires: " + wants).classes("text-xs italic opacity-70 pl-1")
         if definition.description:
             ui.label(definition.description).classes("text-xs opacity-70 pl-1")
 

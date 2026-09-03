@@ -3592,3 +3592,174 @@ def test_the_sheet_renders_a_custom_merit_by_name(rs):
     assert "My House Trait" in names
     assert not any("not in the rule set" in r[4] for r in rows), \
         "a custom row must not read as missing data"
+
+
+# --------------------------------------------------------------------------- #
+# What an entry REQUIRES, on screen
+#
+# ⚠ `MeritFlawDefinition.prerequisites` had exactly ONE read site — the validator —
+# and appeared on no screen in either shell. 32 entries carry one, and each stated no
+# gate at all: The Flow of Essence requires Essence Awareness specifically, and a
+# God-Blooded holding Awakened Essence learned that only when the build was refused
+# (human, 2026-09-02). One read short of the dead-field bug.
+# --------------------------------------------------------------------------- #
+
+def test_the_requires_line_names_a_prerequisite_entry(rs):
+    from exalted_builder.ui import view
+    line = view.merit_requirement_line(rs, rs.merits_flaws["thaum.flow-of-essence"])
+    assert line == "Essence Awareness"
+
+
+def test_the_requires_line_names_every_prerequisite_when_there_are_several(rs):
+    from exalted_builder.ui import view
+    line = view.merit_requirement_line(rs, rs.merits_flaws["mf.fae-draught-of-passion"])
+    assert "Awakened Essence" in line and "Virtue Attunement" in line
+
+
+def test_every_entry_with_a_prerequisite_states_one(rs):
+    """The regression guard. A gate the engine enforces and no screen mentions is the
+    shape this whole section exists for — so assert on the POPULATION, not on the one
+    entry that was reported."""
+    from exalted_builder.ui import view
+    silent = [m.name for m in rs.merits_flaws.values()
+              if m.prerequisites and not view.merit_requirement_line(rs, m)]
+    assert not silent, f"entries with an unstated gate: {silent}"
+
+
+def test_the_requires_line_keeps_the_trait_minimums_and_the_note(rs):
+    """The three older sources must still contribute — the prerequisite ids were
+    ADDED to this line, not substituted for what it already said."""
+    from exalted_builder.ui import view
+    with_traits = [m for m in rs.merits_flaws.values() if m.trait_prerequisites]
+    assert with_traits, "no entry carries a trait prerequisite — fixture drift"
+    for m in with_traits:
+        line = view.merit_requirement_line(rs, m)
+        for groups in m.trait_prerequisites.values():
+            for group in groups:
+                assert all(r.trait in line for r in group), m.name
+    with_note = [m for m in rs.merits_flaws.values() if m.prerequisite_note]
+    for m in with_note:
+        assert m.prerequisite_note in view.merit_requirement_line(rs, m), m.name
+
+
+def test_an_unresolvable_prerequisite_id_still_states_something(rs):
+    """Graceful degradation, as everywhere else an id may not resolve: print the id
+    rather than dropping the gate silently."""
+    from exalted_builder.ui import view
+    definition = rs.merits_flaws["thaum.flow-of-essence"].model_copy(
+        update={"prerequisites": ["thaum.no-such-merit"]})
+    assert view.merit_requirement_line(rs, definition) == "thaum.no-such-merit"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_webapp_states_a_prerequisite_entry_too(user) -> None:
+    """The other shell. Both omitted `prerequisites`, so both get a test — the line is
+    built once in view.py now, and this is what stops one of them drifting off it."""
+    await user.open('/merits')
+    await user.should_see("Requires: Essence Awareness")
+
+
+# --------------------------------------------------------------------------- #
+# Awakened Essence stands in for the two mortal Essence-unlock Merits
+#
+# Human ruling, 2026-09-02. Essence Awareness's whole mechanical content is a
+# RESTRICTION (a third of the pool freely, the rest on a Willpower roll, 1 mote/day —
+# PG p.120) and Essence Mastery's is removing it (p.121). A God-Blooded's Awakened
+# Essence (p.66) already gives an unrestricted pool with respiration-based regen, so
+# buying either would cost points and change nothing. The four thaumaturgy entries
+# gated on Awareness are therefore open to them, and the two Merits themselves are
+# barred — as are the two mortal Attunement Merits, which the God-Blooded's own 4-pt
+# Magical Attunement covers in one (artifacts, Manses AND Demesnes, p.66).
+# --------------------------------------------------------------------------- #
+
+_GB_SUPERSEDED = ("thaum.essence-awareness", "thaum.essence-mastery",
+                  "thaum.magical-attunement", "thaum.manse-attunement")
+
+
+def test_awakened_essence_satisfies_the_awareness_prerequisite(rs):
+    char = Character(id="g", name="g", exalt_type="God-Blooded")
+    char.merits_flaws = [MP(merit_id="mf.awakened-essence"),
+                         MP(merit_id="thaum.flow-of-essence", detail="Physical")]
+    assert not [i for i in validate.validate_chargen(rs, char)
+                if i.code == "merit-prerequisite"]
+
+
+def test_the_mortal_gate_still_bites(rs):
+    """The negative control. A substitution that fires for everyone is not a gate —
+    it is the `true-not-applicable-is-not-a-condition` trap."""
+    char = Character(id="m", name="m", exalt_type="Mortal")
+    char.merits_flaws = [MP(merit_id="thaum.flow-of-essence", detail="Physical")]
+    assert [i for i in validate.validate_chargen(rs, char)
+            if i.code == "merit-prerequisite"]
+
+
+def test_the_substitution_is_not_a_grant(rs):
+    """⚠ Being credited with Essence Mastery for a GATE is not gaining what Mastery
+    GIVES. Its Terrestrial Martial Arts clause stays Mastery's alone — handing it out
+    with the pool is how a splat gets free martial arts."""
+    char = Character(id="g", name="g", exalt_type="God-Blooded")
+    char.merits_flaws = [MP(merit_id="mf.awakened-essence")]
+    eff = merits.merits_and_flaws_calc(rs, char)
+    assert "thaum.essence-mastery" in eff.prerequisites_satisfied
+    assert "martial_arts" not in eff.open_charm_categories
+
+
+def test_a_character_without_awakened_essence_substitutes_nothing(rs):
+    for splat in ("Mortal", "Solar", "God-Blooded"):
+        char = Character(id="x", name="x", exalt_type=splat)
+        assert not merits.merits_and_flaws_calc(rs, char).prerequisites_satisfied
+
+
+def test_the_superseded_entries_are_barred_to_god_blooded_and_kept_for_mortals(rs):
+    for mid in _GB_SUPERSEDED:
+        definition = rs.merits_flaws[mid]
+        assert not validate.merit_available_to(definition, "God-Blooded", ""), mid
+        assert validate.merit_available_to(definition, "Mortal", ""), mid
+
+
+def test_the_god_blooded_attunement_merit_needs_the_pool_it_uses(rs):
+    """The 4-pt God-Blooded Magical Attunement replaces BOTH mortal Attunement Merits
+    and requires Awakened Essence (human, rules authority, 2026-09-02 — the
+    transcribed p.66 text does not carry the requirement, and that description is one
+    of the entries `test_every_description_matches_the_source_text` measures short)."""
+    definition = rs.merits_flaws["mf.magical-attunement"]
+    assert definition.prerequisites == ["mf.awakened-essence"]
+    assert definition.cost == 4
+    char = Character(id="g", name="g", exalt_type="God-Blooded")
+    char.merits_flaws = [MP(merit_id="mf.magical-attunement")]
+    assert [i for i in validate.validate_chargen(rs, char)
+            if i.code == "merit-prerequisite"]
+    char.merits_flaws.insert(0, MP(merit_id="mf.awakened-essence"))
+    assert not [i for i in validate.validate_chargen(rs, char)
+                if i.code == "merit-prerequisite"]
+
+
+def test_the_requires_line_marks_a_satisfied_prerequisite(rs):
+    """A God-Blooded is BARRED from Essence Awareness, so a bare "Requires: Essence
+    Awareness" would name something they can neither buy nor need."""
+    from exalted_builder.ui import view
+    char = Character(id="g", name="g", exalt_type="God-Blooded")
+    char.merits_flaws = [MP(merit_id="mf.awakened-essence")]
+    eff = merits.merits_and_flaws_calc(rs, char)
+    line = view.merit_requirement_line(rs, rs.merits_flaws["thaum.flow-of-essence"], eff)
+    assert line == "Essence Awareness (already satisfied)"
+    # Without a character it is the catalogue's own statement, unqualified.
+    assert view.merit_requirement_line(
+        rs, rs.merits_flaws["thaum.flow-of-essence"]) == "Essence Awareness"
+
+
+def test_no_description_carries_transcription_markup(rs):
+    """⚠ Destiny and Eternal Vow shipped with `<!--TANGENT TABLE-->` and
+    `<!--END TANGENT-->` inside their rules text — the sidebar delimiters from the
+    pasted source, never stripped. The webapp printed them literally (a NiceGUI label
+    is plain text); Qt swallowed them, because a QLabel defaults to AutoText and
+    treats a string containing a tag as rich text. Neither shell was showing the book.
+
+    The guard is the whole catalogue, not those two: the markers came from the
+    transcription pipeline, so the next paste can bring more."""
+    import re
+    markup = re.compile(r"<[^>]{1,60}>")
+    dirty = [m.name for m in rs.merits_flaws.values()
+             if m.description and markup.search(m.description)]
+    assert not dirty, f"transcription markup in rules text: {dirty}"
