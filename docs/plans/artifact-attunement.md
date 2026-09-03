@@ -1,6 +1,8 @@
 # Artifact attunement — commit the motes
 
-**Status: PLANNED, not started (2026-09-02).** Human asked for the plan only.
+**Status: UNBLOCKED, not started (2026-09-03).** Planned 2026-09-02; the four blocking
+questions were resolved 2026-09-03 against the corebook, a Dragon-Blooded Aspect book
+and the Player's Guide — see **Resolved questions** below. Ready for phase 1.
 
 ## The ask
 
@@ -30,8 +32,9 @@ mention it, and `PlayState` has no committed-motes concept — only
 `motes_personal_spent` / `motes_peripheral_spent`, two dumb counters.
 
 ⚠ **`ArtifactEntry` has no `attunement` field at all** (`models/character.py:99-143`) —
-only `name`, `rating`, `note`, `acquired`. The standalone-artifact list is therefore
-**out of scope for phase 1**; see the open questions.
+only `name`, `rating`, `note`, `acquired`, and neither does its catalogue counterpart
+`ArtifactType`. Resolved question 4: `ArtifactType` gains the field in phase 1; see
+below.
 
 ## The constraint this runs into
 
@@ -65,71 +68,130 @@ The cost of this choice: a *play* fact now sits in the *permanent* model, so it 
 along into `library_payload` territory and into the artifact-budget neighbourhood. Both
 are handled below.
 
-**2. The tracker's pool maximum shrinks** (human, 2026-09-02). `peripheral_max` in
-`build_play_view` comes down by the committed total, and the Play tab's boxes literally
-get shorter. Rejected: the Alchemical installation-motes model (`ui/view.py:2385,2415`),
-which displays a *fit* against `derive.charm_installation_pool` without subtracting —
-correct there because installation is a chargen-legality check, wrong here because
-attunement is a live capacity.
+**2. The tracker's pool maximum shrinks** (human, 2026-09-02). Whichever pool a
+commitment is allocated to comes down by that item's committed total in
+`build_play_view`, and the Play tab's boxes literally get shorter. Rejected: the
+Alchemical installation-motes model (`ui/view.py:2385,2415`), which displays a *fit*
+against `derive.charm_installation_pool` without subtracting — correct there because
+installation is a chargen-legality check, wrong here because attunement is a live
+capacity.
 
-## Open questions — BLOCKING, need a page
+**3. The allocation is a per-row field, not a derived split** (follows from resolved
+question 1). Since the player freely chooses Personal vs Peripheral per commitment —
+same as any Charm cost — `attuned` alone isn't enough data to know which pool to shrink.
+`Weapon`/`Armor` gain `attuned_pool: Literal["personal", "peripheral"] = "peripheral"`,
+editable alongside the checkbox, meaningful only when `attuned` is set. Defaults to
+Peripheral as the common case (an artifact's anima flare is usually already accepted;
+Personal is the scarcer, more deliberately-spent pool) — the default is a UX choice, not
+a rules one, and the field stays fully player-editable either way. On a merged-pool
+splat the dropdown is moot (there is only one pool to land in) but the field still
+exists; the derivation reads whichever pool actually has a nonzero max.
 
-Do not start phase 2 without answers. **I have no source for any of these and will not
-supply one** — the 2e attunement rules are the exact shape of trap decision 0001 exists
-for.
+## Resolved questions (2026-09-03)
 
-1. **Which pool does a committed attunement draw from — Personal, Peripheral, or the
-   player's choice?** This decides whether `build_play_view` reduces one field or two,
-   and whether the commitment needs its own stored allocation. The plan below assumes
-   *Peripheral*, and **that assumption is unverified**.
-2. **What happens on a merged pool?** `essence_pool_is_merged` (ghosts, Beacon of Power)
-   leaves Personal 0 by rule; `derive.charm_installation_pool` already has the
-   ask-here-not-at-the-call-site shape for exactly this, and the attunement code should
-   borrow it rather than unpack `essence_pools`.
-3. **Does the printed attunement number vary with the wielder** (magical material,
-   Exalt type, anything else)? `derive.effective_armor` already re-derives armour stats
-   per wielder for material bonuses. If attunement is one of those, the committed total
-   must read the *effective* item, not the stored row — and phase 2's arithmetic changes.
-4. **Should `ArtifactEntry` gain an attunement number?** That is not code work: it is
-   authoring a value onto up to 330 catalogue rows from the pages, and the answer may
-   simply be no.
+1. **Which pool?** — **The player allocates, same as any Charm cost.** Core p.147-148:
+   *"Characters can freely mix Personal and Peripheral Essence when using a Charm — only
+   the motes of Peripheral Essence count toward the anima banner."* The daiklave rule
+   (core p.344) explicitly ties artifact commitment to this same mechanic: *"she must
+   commit 5 motes of Essence... just as if she was sustaining the magic of a Charm that
+   cost 5 motes to activate."* **Not fixed to Peripheral** — the plan's original
+   assumption was wrong. This means the commitment needs a stored *allocation*, not a
+   single subtraction: see the new design decision 3 below.
+2. **Merged pools?** — **Resolves itself once Q1 is implemented.** A merged-pool
+   character (`essence_pool_is_merged`) has only one pool to allocate the commitment
+   into; no special-casing needed beyond what the allocation mechanism already requires.
+3. **Does the number vary with the wielder?** — **Yes, confirmed and generalized**
+   (human's ruling, 2026-09-03): *any* magical item costs **double** its printed
+   commitment for a wielder who is not a "user" of that item's material — jade for a
+   non-Terrestrial, soulsteel for a non-Abyssal, moonsilver for a non-Lunar, starmetal
+   for a non-Sidereal, orichalcum for a non-Solar. Sourced from one concrete example:
+   `images/Dragonblooded/Aspects/Earth/CH 6 - Miracles of Pasaip.md`, a jade Hearthstone
+   Compass note that it does *not* impose "the usual double mote commitment for
+   non-Terrestrials" — "the usual" confirms this is the GENERAL rule, this item the
+   exception. Mechanically the same shape `derive.effective_armor` already handles for
+   per-wielder material soak bonuses — `committed_attunement` must read the *effective*
+   item (material + wielder), not the stored row.
+4. **Should `ArtifactEntry` gain an attunement number?** — **Yes**, on `ArtifactType`
+   (`data/artifacts.json`'s 330-row catalogue), zero-defaulted. ⚠ **Only author a
+   nonzero value for genuinely standalone Wonders.** `ArtifactType`'s own docstring
+   already documents that some rows are gear-statblocked duplicates that also live in
+   `weapons.json`/`armor.json` (its own worked example: the Skirmish Pike) — for those,
+   `Weapon`/`Armor`'s `attunement` is already the authoritative number, and giving
+   `ArtifactType` a second one invites the two drifting apart. Leave those rows at 0 and
+   steer players to enter the item as a `Weapon`/`Armor` row instead if they want its
+   attunement tracked — the same steer the catalogue already gives for stats generally.
+   No new source of truth; the backfill itself (which rows get a real number) is a
+   separate authoring pass, not phase 1.
+
+### Mortal / God-Blooded gating (Player's Guide, not one of the four blockers but load-bearing)
+
+* **God-Blooded**: `mf.magical-attunement` (4-pt Supernatural Merit, prereq
+  `mf.awakened-essence`) — automatic once bought, "like other magical beings," just
+  capped off the Magical Material bonus (PG p.66). Already wired per the 2026-09-02
+  session (handoff). No new mechanic needed here.
+* **Mortals**: a *different*, cheaper Merit (2-pt Supernatural, prereq Essence
+  Awareness, PG p.120) — but attuning is **not automatic**: *"Any attempt to attune to a
+  device requires a Willpower roll, difficulty = half the device's commitment cost.
+  Failure drains double the commitment cost. A botch drains all Essence."* That roll is
+  out of scope by decision 0009 (no dice rolling, ever) and `engine/play.py`'s dumb-
+  tracker bar. **Ruling: model it as the same toggle as everyone else, gated on the
+  Merit.** The roll is resolved off-screen by the table; the checkbox just represents
+  the stated outcome ("I succeeded, I'm attuned"), and a failed/botched attempt's mote
+  drain is reflected manually in the existing dumb `motes_*_spent` counters like any
+  other off-screen event. No roll logic anywhere in the engine — consistent with how
+  the build already treats every other roll in the game.
 
 ## The work
 
-### Phase 1 — the flag and the toggle (small)
+### Phase 1 — the flag, the pool choice, and the toggle (small)
 
-* `models/character.py` — `attuned: bool = False` on `Weapon` and `Armor`, with a
-  comment saying it is the PLAYER's statement and that no `validate/` module may read it.
-* **`engine/gear_actions.py` needs nothing.** `_owned_fields` (line 40) derives the
-  player's fields as the *complement* of the catalogue's, precisely so a new one is
-  carried across a catalogue re-pick without anyone remembering to list it. `attuned`
-  is absent from `WeaponType`/`ArmorType`, so it survives a re-pick for free — but
-  **assert that in a test**, because the whole reason that function is computed is that
-  the hand-written version silently dropped `acquired` for weeks.
-* `library_payload` (line 303) must **not** gain it — that function's docstring already
-  says ownership state does not belong in a catalogue, and `attuned` is ownership state
-  twice over.
+* `models/character.py` — `attuned: bool = False` and
+  `attuned_pool: Literal["personal", "peripheral"] = "peripheral"` on `Weapon` and
+  `Armor`, with a comment saying both are the PLAYER's statement and that no
+  `validate/` module may read either.
+* `models/rules.py` — `attunement: int = 0` on `ArtifactType`, comment steering authors
+  away from double-entering a weapon/armor-duplicate row's number (see resolved
+  question 4). No backfill required to ship phase 1; the field just needs to exist.
+* **`engine/gear_actions.py` needs nothing for `attuned`/`attuned_pool`.**
+  `_owned_fields` (line 40) derives the player's fields as the *complement* of the
+  catalogue's, precisely so a new one is carried across a catalogue re-pick without
+  anyone remembering to list it. Neither field is on `WeaponType`/`ArmorType`, so both
+  survive a re-pick for free — but **assert that in a test**, because the whole reason
+  that function is computed is that the hand-written version silently dropped
+  `acquired` for weeks. `ArtifactType.attunement` DOES need copying onto a fresh
+  `ArtifactEntry` pick, the same as `rating` already is.
+* `library_payload` (line 303) must **not** gain `attuned`/`attuned_pool` — that
+  function's docstring already says ownership state does not belong in a catalogue, and
+  both fields are ownership/play state twice over.
 * `ui/gear.py` — a checkbox in `_weapon_editor` / `_armor_editor`, beside the `Attune`
-  spin box, **rendered only when `attunement > 0`**.
+  spin box, **rendered only when `attunement > 0`**; a pool dropdown beside it, visible
+  only when the checkbox is set (hidden entirely on a merged-pool splat — see phase 2).
 * `qt/gear.py` — the same, but `_WEAPON_STATS` / `_ARMOR_STATS` are `(field, label,
-  signed)` triples driving spin boxes and a bool does not fit that table. Add the
-  checkbox outside the table rather than widening the triple for one field.
+  signed)` triples driving spin boxes and neither new field fits that table. Add the
+  checkbox and dropdown outside the table rather than widening the triple for two more
+  fields.
 
-### Phase 2 — the derivation (small, once the questions are answered)
+### Phase 2 — the derivation (once the material-doubling and allocation logic is written)
 
-* `engine/derive.py` — `committed_attunement(ruleset, character) -> int`, summing
-  `attunement` over weapons and armour with `attuned` set. ⚠ Weapons carry `quantity`;
-  it is a count with no engine reader (decision 0008) and **must not multiply the
-  commitment** — twenty attuned arrows are not twenty attunements. Answer question 3
-  before choosing stored-vs-effective item.
-* `ui/view.py:3116` `build_play_view` — subtract from `peripheral_max` (pending Q1),
-  floored at 0. `PlayView` gains a `committed: int` so the label can say *why* the pool
-  is short; "Peripheral 4/10" with no explanation reads as a bug, the same reasoning
-  that put `essence_single_pool` on the view.
+* `engine/derive.py` — `committed_attunement(ruleset, character) -> dict[str, int]`,
+  keyed by pool (`"personal"`/`"peripheral"`), summing each attuned item's *effective*
+  commitment into whichever pool its `attuned_pool` names. "Effective" means: double the
+  stored `attunement` when the wielder is not a "user" of the item's Magical Material
+  (resolved question 3) — read however `derive.effective_armor` already identifies
+  material + wielder match, don't re-derive that lookup. ⚠ Weapons carry `quantity`; it
+  is a count with no engine reader (decision 0008) and **must not multiply the
+  commitment** — twenty attuned arrows are not twenty attunements.
+* `ui/view.py:3116` `build_play_view` — subtract the personal/peripheral split from
+  `personal_max`/`peripheral_max` respectively, each floored at 0. On a merged-pool
+  splat (`essence_pool_is_merged`) route the whole total into whichever single pool is
+  actually nonzero, ignoring `attuned_pool` (resolved question 2). `PlayView` gains a
+  `committed: dict[str, int]` (or two ints) so the label can say *why* the pool is
+  short; "Peripheral 4/10" with no explanation reads as a bug, the same reasoning that
+  put `essence_single_pool` on the view.
 * **The re-clamp.** `engine/play.py:set_motes` clamps to a cap *passed in by the caller*.
   Attuning something while motes are already spent leaves a stored
-  `motes_peripheral_spent` above the new maximum. Clamp on read in `build_play_view`, not
-  by mutating the save from a derivation.
+  `motes_peripheral_spent` (or `_personal_spent`) above the new maximum. Clamp on read in
+  `build_play_view`, not by mutating the save from a derivation.
 
 ### Phase 3 — the surfaces
 
@@ -152,21 +214,37 @@ for.
   screen may edit; `attuned` is the opposite by design — player-editable is the entire
   point. Say so in the comment, or the next reader "fixes" it.
 * **A single-pool splat** puts everything in Peripheral and Personal at 0. A naive
-  subtraction from Personal silently does nothing for ghosts and Beacon of Power holders.
+  subtraction from Personal silently does nothing for ghosts and Beacon of Power holders
+  — `attuned_pool` must be ignored, not trusted, on a merged-pool character.
+* **The doubling is about the WIELDER, not the owner.** Two characters can have the same
+  Weapon row (party-shared gear, a loan) — read the doubling off whoever is *equipping*
+  it in the derivation's context, not a cached fact on the row itself, or a jade
+  daiklave handed to a non-Terrestrial silently keeps costing half.
+* **`ArtifactType.attunement` is zero-defaulted and will look identical to "authored
+  clean" and "never backfilled."** The same fingerprint as `attunement` itself before
+  this plan. Don't read a 0 on a Wonder as "this item costs nothing to attune" without
+  checking whether anyone has actually transcribed the number from its page yet.
 
 ## Tests owed
 
-1. `attuned` survives a catalogue re-pick (`gear_actions.set_weapon` on the row's own name).
+1. `attuned` and `attuned_pool` survive a catalogue re-pick (`gear_actions.set_weapon`
+   on the row's own name).
 2. Committed total ignores unattuned items, and ignores `quantity`.
-3. `build_play_view` reduces the pool; **negative control** — clear the flag, pool returns.
-4. Merged-pool splat: the commitment lands somewhere real, not on the 0 Personal pool.
-5. Already-spent motes above the new cap clamp on read and do not corrupt the save.
-6. No `engine/validate/` module references `attuned`.
-7. An item with `attunement == 0` offers no toggle in either shell.
+3. `build_play_view` reduces the named pool; **negative control** — clear the flag, pool
+   returns.
+4. A non-user wielder (e.g. a non-Terrestrial with a jade item) pays double; a user
+   wielder (a Terrestrial with the same item) pays the printed number.
+5. Merged-pool splat: the commitment lands on the one real pool regardless of
+   `attuned_pool`, not on the always-0 Personal pool.
+6. Already-spent motes above the new cap clamp on read and do not corrupt the save.
+7. No `engine/validate/` module references `attuned` or `attuned_pool`.
+8. An item with `attunement == 0` offers no toggle in either shell.
+9. A fresh `ArtifactEntry` pick copies `ArtifactType.attunement` the same way it copies
+   `rating`.
 
 ## Estimate
 
 **Phases 1–3, roughly a half-session of engine + model work, plus a click-through of the
-Play tab in both shells and the party window.** The blocking rules questions are the real
-cost: without them phase 2 is guesswork, and guessing is how a 2e number gets into a 1e
-build.
+Play tab in both shells and the party window.** The rules questions that were blocking
+phase 2 are resolved (see above); what's left is ordinary implementation risk, not an
+open rules gap.

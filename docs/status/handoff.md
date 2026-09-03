@@ -56,17 +56,30 @@ with a catalogue-wide guard.
 
 Nothing is blocked. In rough order of what would bite:
 
-- **46 M&F descriptions measurably short of source** — Undetectable Lie 10%, Subtle Glamour
-  12%, Chillikin Companion 15%, Aura of Power 29%. This is what
-  `test_every_description_matches_the_source_text` has been reporting all along; it is the
-  same authoring cap as the Core Charms. The failing test IS the worklist.
-- **Dispatch the release workflow by hand before tagging** — the four-asset matrix has
-  still never been run. ⚠ The matrix itself was verified intact this session (2 OSes x
-  webapp/Qt, macOS deliberately commented out), so the CLAUDE.md trap is not present; what
-  is unverified is whether it RUNS.
-- **The three Qt interplay checks and four never-used surfaces**, carried forward below.
-- **The comment pass** on `ui/`, `models/` and `engine/` outside validate. ⚠ Re-measure
-  the line counts first.
+- **The 46 M&F descriptions measurably short of source is machine-conditional, not a
+  standing worklist.** `test_every_description_matches_the_source_text` only checks
+  entries whose covering chapter is pasted into (gitignored) `images/`; it defers the
+  rest rather than failing them. **On this checkout (2026-09-03), the Godblooded
+  (PG pp.65-80) and ghost (p.234) chapters are absent — 71 entries deferred, 0 failing**,
+  and this was verified genuine, not a broken check: the 88 entries covered by the
+  pasted CH1 chapter (PG pp.16-41) all pass at .97-.99 ratio, and a negative control
+  (truncating Amputee's description to 20 chars) made the test fail correctly, then was
+  reverted clean. The "46 short" figure is real only on a machine that has those two
+  chapters pasted — re-run the test there to get the current worklist; do not treat a
+  clean run elsewhere as the gap having closed. `docs/testing.md` already documented
+  this outcome as machine-dependent and healthy; nothing here contradicts that.
+- **The release workflow and the Qt interplay checks below are DONE, not open** — human
+  confirmation 2026-09-03: multiple tagged builds have since run the four-asset matrix
+  clean, and all three Party-window interplay checks (health-box redraw, single
+  retargeted builder, close-cascade) were clicked and correct. Struck from NEXT; do not
+  re-carry them.
+- **The comment pass is also stale in its own doc, corrected 2026-09-03.**
+  `ui/`/`models/`/`engine/` outside validate already had it — two 2026-08-20 commits
+  (`ea0df0e`, `2833f682`) did the trimming three days after the standard was written,
+  just never recorded here. Re-measured density is down sharply (61%→22% models,
+  24%→11% ui, 38%→26% engine) and a spot-check of the longest remaining docstrings found
+  citations/⚠/contract, not narration. **`qt/` is the one real gap** — it postdates the
+  original 2026-08-17 measurement and has never had the pass. `docs/comment-standard.md`.
 
 ## What a human should click
 
@@ -99,13 +112,10 @@ the UI reports a version. **Do not trust "I'm running the latest build" — veri
 
 ## Carried forward from 2026-08-28, still true
 
-The Qt port is **feature-complete and the Party window is clicked**. Three interplay checks
-were never exercised, because that window was driven with a pre-loaded demo party:
-
-1. Click a health box on a member card, then spend XP on that character in the builder —
-   the card must redraw.
-2. "Builder" on a card, edit something, come back — one builder, retargeted, same object.
-3. Close the builder — the party window must go with it.
+The Qt port is **feature-complete and the Party window is clicked**. ⚠ The three
+interplay checks once carried here (health-box redraw, builder retarget, close-cascade)
+are **DONE as of 2026-09-03** (human confirmation, all three clicked and correct) — do
+not re-carry them as open.
 
 Four surfaces are still **rendered offscreen but never used**: the **Sheet tab**, the Party
 window's **Reference tab**, the **Thaumaturgy → Rituals tab** and the **Custom tab's
