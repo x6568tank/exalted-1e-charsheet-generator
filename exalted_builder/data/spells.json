@@ -267,7 +267,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Vomits forth a creature of liquid shadow that pursues one target in sight; it has Physical Attributes and Brawl equal to the caster's Essence and Stamina+Essence health levels, ignores kinetic damage, and clinches to crush its prey. Lasts one hour.",
+    "description": "Vomits forth a creature of liquid shadow that pursues one target in sight; it has Physical Attributes and Brawl equal to the caster's Essence and Stamina+Essence health levels, is immune to purely kinetic damage but has no soak against fire or magical damage, and lacks Virtues but never fails Valor checks. It flows up walls, through pipes and under doors, unerringly following its quarry, and clinches to crush its prey. Lasts one hour, then dissolves to residue.",
     "source": {
       "book": "The Abyssals",
       "page": 224
@@ -280,7 +280,7 @@
     "cost": {
       "raw": "10 or 20 motes"
     },
-    "description": "Necromantic countermagic: 10 motes raises a personal shield negating hostile Shadowlands spells until the next turn's end (−2 to Physical actions while it persists); 20 motes extinguishes one Shadowlands spell within Essence×50 feet. May also oppose sorcery one circle higher.",
+    "description": "Necromantic countermagic: 10 motes raises a personal shield negating hostile Shadowlands spells until the next turn's end (−2 to Physical actions while it persists); 20 motes extinguishes one Shadowlands spell within Essence×50 feet, disintegrating it with no side effects unless it counters a lower-circle spell, which is instead annihilated cleanly. Onyx Countermagic (Labyrinth, 15/20 motes) and Obsidian Countermagic (Void, 20/25 motes) work the same way one circle up; countered Void spells slay bystanders and blight the earth. May also oppose sorcery one circle higher, as Sapphire Countermagic opposes Shadowlands and Obsidian opposes Celestial sorcery.",
     "source": {
       "book": "The Abyssals",
       "page": 224
@@ -306,7 +306,7 @@
     "cost": {
       "raw": "Varies"
     },
-    "description": "Jagged Essence-lightning animates nearby corpses within 100 yards as common zombies (extras): one per 5 motes (permanent), or one per 3 motes for temporary zombies that fall at scene's end. Cannot mix permanent and temporary in one casting.",
+    "description": "Jagged Essence-lightning animates nearby corpses within 100 yards as common zombies (extras): one per 5 motes (permanent), or one per 3 motes for temporary zombies that fall at scene's end. Cannot mix permanent and temporary in one casting. Two Labyrinth versions exist: Arisen Legion, same effect at 3 motes/permanent or 1 mote/temporary zombie; and Call the Greater Servitor, 6 motes per minion (capped at the caster's Occult score, never temporary), raising zombies that are never extras and have Intelligence and Melee 2, letting them wield weapons and armor and obey complex orders.",
     "source": {
       "book": "The Abyssals",
       "page": 225
@@ -319,7 +319,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "An hour-long ritual paints a mortal's skin with blood-and-grave-soil glyphs that ensure she becomes a ghost upon death and alert the necromancer the instant she dies. Creates ghosts only; no control over them. No effect on Exalted or magical beings.",
+    "description": "An hour-long ritual paints a mortal's skin with blood-and-grave-soil glyphs that ensure she becomes a ghost upon death and alert the necromancer the instant she dies (though not the circumstances or location). Creates ghosts only; no control over them. Targets need not be willing, though unwilling ones must generally be restrained. No effect on Exalted or magical beings.",
     "source": {
       "book": "The Abyssals",
       "page": 225
@@ -358,7 +358,7 @@
     "cost": {
       "raw": "15+ motes"
     },
-    "description": "An hour-long night/Underworld ritual (needs the ghost's name or a piece of her corpse) tears a portal for 10 motes; each extra 5 motes weakens the ghost by a die. An opposed Willpower+Essence contest binds her to a year-and-a-day of service, or she escapes for a year.",
+    "description": "An hour-long night/Underworld ritual (needs the ghost's name or a piece of her corpse) tears a portal for 10 motes; each extra 5 motes weakens the ghost's contested pool by a die. An opposed Willpower+Essence contest, rolled each turn until one side leads by three successes, binds her to a year of service or a single open-ended task, or she escapes and cannot be recalled for a year. The Celestial Circle sorcery version follows the same rules but takes three hours to cast and cannot bind a ghost longer than a lunar month; Astrology gives no benefit against it.",
     "source": {
       "book": "The Abyssals",
       "page": 226
@@ -384,7 +384,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "Raises a single capable servant instead of a horde: a common zombie whose non-Appearance Attributes are at least 2, with Intelligence+Occult in Ability dots (none above the caster's own). Never decays, can speak in clipped phrases, and has full health levels.",
+    "description": "Raises a single capable servant instead of a horde: a common zombie whose non-Appearance Attributes are at least 2, with Intelligence+Occult in Ability dots (none above the caster's own). Never decays (though it reeks distinctively of the undead), can speak in clipped phrases, is not an extra, and has full health levels.",
     "source": {
       "book": "The Abyssals",
       "page": 226
@@ -423,7 +423,7 @@
     "cost": {
       "motes": 25
     },
-    "description": "Flares the caster's anima to full and, for the rest of the scene, grants 1 mote for every sentient being that dies within a league (up to her maximum). The Void version, Blood from the Slaughter (35 motes), instead regenerates a health level per kill.",
+    "description": "Flares the caster's anima to full and, for the rest of the scene, grants 1 mote for every sentient being that dies within a league (up to her maximum). The Void version, Blood from the Slaughter (35 motes), instead regenerates one level of bashing or lethal damage per end-of-turn kill within a league, capped at her permanent Essence in levels per turn.",
     "source": {
       "book": "The Abyssals",
       "page": 227
@@ -462,7 +462,7 @@
     "cost": {
       "raw": "15 motes + 2 motes per attack"
     },
-    "description": "Grows a whip of solidified darkness with Speed/Accuracy/Defense equal to Essence, reach four times that, and Strength+Essence base damage that can grapple and kill at range. Reflexively spending 2 motes on a hit forces an Essence roll or the mortal victim drops dead.",
+    "description": "Grows a whip of solidified darkness with Speed/Accuracy/Defense equal to Essence, reach four times that, and Strength+Essence base damage that can grapple and kill at range. Reflexively spending 2 motes on a hit forces an Essence roll or the victim drops dead; Exalts, spirits, Fair Folk and other magical beings are immune to this kill effect, as are ordinary creatures notably larger than humans if their Stamina exceeds the necromancer's Essence.",
     "source": {
       "book": "The Abyssals",
       "page": 228
@@ -514,7 +514,7 @@
     "cost": {
       "motes": 80
     },
-    "description": "A sunset-to-midnight ritual transforms a willing Solar into an Abyssal: she renounces her god, Caste Mark, Charms, and name, and at midnight her anima is swallowed by shadow. She gains matching Abyssal Charms and caste (Dawn→Dusk, etc.) and is thereafter a deathknight.",
+    "description": "A sunset-to-midnight ritual transforms a willing Solar into an Abyssal: she renounces her god, Caste Mark, Charms, and name, and at midnight her anima is swallowed by shadow. She gains a number of Abyssal Charms equal to the Solar Charms she knew, remembers any spells but can never again cast Solar Circle sorcery, and takes the matching caste (Dawn→Dusk, etc.). Her Virtue Flaw is replaced by the Abyssal Curse, and any magical items attuned to her lose attunement (though they may be reattuned). She is thereafter a deathknight.",
     "source": {
       "book": "The Abyssals",
       "page": 229
@@ -566,7 +566,7 @@
     "cost": {
       "raw": "5 or 15 motes"
     },
-    "description": "Seizes control of animated creatures, soulless intelligences and minor machine spirits (golems, zombies, automata, First Age devices) for one scene, overriding their programming. 5 motes takes one automaton; 15 motes takes (Essence x 2) automata or devices in a 10-yard radius. No effect on natural creatures, elementals, or machine spirits of Essence 3+. Countered by Emerald Countermagic, Essence Draining Defense, or an Alchemical whose permanent Essence exceeds the weaver's by 2+. Target: one nearby automaton, or all automata in a 30-foot radius. Minimum Clarity 3.",
+    "description": "Seizes control of animated creatures, soulless intelligences and minor machine spirits (golems, zombies, automata, First Age devices) for one scene, overriding their programming — only the weaver has override authority, and others trying to interact are ignored or dealt with as she sees fit. 5 motes takes one automaton; 15 motes takes (Essence x 2) automata or devices in a 10-yard radius. No effect on natural creatures, elementals, or machine spirits of Essence 3+. If the target was summoned by another Exalt of higher Essence, a contested Willpower roll decides who keeps control — a hazardous prospect if that Exalt is riding inside it at the time. Countered by Emerald Countermagic, Essence Draining Defense, or an Alchemical whose permanent Essence exceeds the weaver's by 2+. Target: one nearby automaton, or all automata in a 30-foot radius. Minimum Clarity 3.",
     "source": {
       "book": "The Autochthonians",
       "page": 147
@@ -618,7 +618,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "Conjures a silent floating pocket of roiling shadow — a tenebrapede — that the weaver and companions ride, carrying 200 lbs of cargo/passengers per point of the weaver's Essence. Flies at 200 mph (~600 yards/turn), 25 health levels, soak 25L/35B, 90% hard cover; only one attack may be made against it or its occupants unless matched in flight. Target: weaver. Duration: (Essence x 4) hours, or until it reaches its destination, lands, or is dispelled. Minimum Clarity 2.",
+    "description": "Conjures a silent floating pocket of roiling shadow — a tenebrapede — that the weaver and companions ride, carrying 200 lbs of cargo/passengers per point of the weaver's Essence; the view from inside is clear in 180 degrees, but outside observers see only darkness. Flies at 200 mph (~600 yards/turn), 25 health levels, soak 25L/35B, 90% hard cover; only one attack may be made against it or its occupants unless matched in flight. It protects riders from all but the most extreme climates (some elemental-pole or deep-Far-Reaches conditions may overwhelm it), and gives a minute to unload before it fades away at the end of its duration. Target: weaver. Duration: (Essence x 4) hours, or until it reaches its destination, lands, or is dispelled. Minimum Clarity 2.",
     "source": {
       "book": "The Autochthonians",
       "page": 148
@@ -1203,7 +1203,7 @@
     "cost": {
       "motes": 22
     },
-    "description": "Places a taint on a creature's soul that resonates against Creation: the victim is at a one-die penalty in Creation, and for every month he remains there suffers an unsoakable level of aggravated damage that will not heal by any means. Retreat to the Underworld lets the wounds fade at the rate of one every month; a heroic target is affected until countermagic or the necromancer lifts the curse.",
+    "description": "Places a taint on a creature's soul that resonates against Creation: the victim is at a one-die penalty in Creation, and for every month he remains there suffers an unsoakable level of aggravated damage that will not heal by any means. Retreat to the Underworld lets the wounds fade at the rate of one every month; a heroic target is affected until countermagic or the necromancer lifts the curse. The reverse spell, Baneful Shadow, instead binds a ghost to Creation (unable to regain Essence there) or bars a hero from the Underworld; a being cursed by either spell can travel shadowlands without penalty.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 131
@@ -1216,7 +1216,7 @@
     "cost": {
       "motes": 21
     },
-    "description": "Fires a black arrow at a target with a Wits + Archery roll, inflicting base damage of (Occult x 3) lethal and ignoring the effects of Arcanoi or ghostly artifacts that increase the target's soak. If the target is reduced below Incapacitated, grave-prison chains (Artifact ••) burst out and lock around another ghost of the necromancer's choice, remaining one day per point of the caster's permanent Essence (6 experience points makes them permanent and shatterable only by Obsidian Countermagic). Arrows inflict only half damage, before soak, on living targets.",
+    "description": "Fires a black arrow at a target with a Wits + Archery roll, inflicting base damage of (Occult x 3) lethal and ignoring the effects of Arcanoi or ghostly artifacts that increase the target's soak. If the target is reduced below Incapacitated, grave-prison chains (Artifact ••) burst out and lock around another ghost of the necromancer's choice, remaining one day per point of the caster's permanent Essence (6 experience points makes them permanent and shatterable only by Obsidian Countermagic). The Void Circle version, Blackstorm Wagon (48 motes), rains these arrows across a 100-yard radius centered within 500 yards, resolved as a single Perception + Archery attack against every target in the area (arrows that strike only earth, stone or metal dissolve to smoke); any ghost slain triggers the same shackling of the nearest surviving ghost, though these chains cannot be made permanent and dissolve after a month at most. Arrows from either spell inflict only half damage, before soak, on living targets.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 132
@@ -1229,7 +1229,7 @@
     "cost": {
       "raw": "15 motes (committed)"
     },
-    "description": "Encases the necromancer in opaque black crystal and sends his spirit forth as a simple, unremarkable ghost of Appearance ••; while projected he cannot access natural Charms or Martial Arts Charms beyond the Form Charm. The shell has 30L/20B soak, cracks over 20 levels of damage and shatters at 40 levels (dealing two levels of unsoakable aggravated damage), and if the spirit is slain the caster loses one dot of permanent Willpower.",
+    "description": "Encases the necromancer in opaque black crystal and sends his spirit forth as a simple, unremarkable ghost of Appearance ••; while projected he recovers Essence and may learn and use Arcanoi as a ghost would (usable only while shelled, though Moonshadow and Eclipse Castes may use their own Arcanoi outside it too), but cannot access natural Charms or Martial Arts Charms beyond the Form Charm. No spell of the Terrestrial or Shadowlands Circle can penetrate the shell, which has 30L/20B soak (any attack dealing raw damage under half those values does nothing at all), cracks over 20 levels of damage and shatters at 40 levels (dealing two levels of unsoakable aggravated damage), and if the spirit is slain the caster loses one dot of permanent Willpower.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 132
@@ -1242,7 +1242,7 @@
     "cost": {
       "motes": 18
     },
-    "description": "Requires an arcane link. Guided by the link, the necromancer seizes a nearby mortal or ghost as his mouthpiece, able to see, hear and speak with the victim's faculties but may not manipulate her motor skills or make her move. Only living creatures of Essence • or ghosts of Essence no greater than •• may be forced, and the victim suffers a single unsoakable level of lethal damage for every five minutes of discussion.",
+    "description": "Requires an arcane link. Guided by the link, the necromancer projects his awareness to scry the area (blockable by normal wards, in which case he can only try to seize the specific creature his link is tied to) before seizing a nearby mortal or ghost as his mouthpiece, able to see, hear and speak with the victim's faculties but may not manipulate her motor skills or make her move. Only living creatures of Essence • or ghosts of Essence no greater than •• may be forced, and the victim suffers a single unsoakable level of lethal damage for every five minutes of discussion — most mortals die around the half-hour mark but remain animate until the hour ends, while a possessed ghost loses cohesion and its plasm boils away.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 133
@@ -1255,7 +1255,7 @@
     "cost": {
       "motes": 24
     },
-    "description": "Returns a recently dead creature to life; the creature gains a single health level above Incapacitated which can only be harmed by aggravated damage, and remains alive for a number of turns equal to the caster's Essence. An individual cannot be affected more than once, and the spell will not work if the target has been dead for longer than one minute; when the creature finally dies it appears in the Underworld at half its normal health levels.",
+    "description": "Returns a recently dead creature to life; the creature gains a single health level above Incapacitated which can only be harmed by aggravated damage, and remains alive for a number of turns equal to the caster's Essence. An individual cannot be affected more than once, and the spell will not work if the target has been dead for longer than one minute; when the creature finally dies it appears in the Underworld at half its normal health levels. The Void Circle version, Barred Tomb, instead binds a recently departed soul back into its body for up to an hour with health levels equal to the caster's Essence, compelling it to obey him for the duration (also aggravated-damage-only, also incompatible with a second casting of either spell); a spirit released by Barred Tomb appears in the Underworld with only a single health level. Neither spell, nor any Obsidian Circle magic, can truly return the dead to life.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 133
@@ -1281,7 +1281,7 @@
     "cost": {
       "motes": 25
     },
-    "description": "Bars a ghost from affecting the necromancer with any manner of Arcanoi; only a ghost's self-moliation can affect her, and she is immune to any mental effects. Alternatively the caster may expend the spell in an instant, rolling Wits + Occult with an additional three successes to strike a single ghost unable to use his Arcanoi. Either effect lasts until the Calendar of Setesh next marks midnight.",
+    "description": "Bars a ghost from affecting the necromancer with any manner of Arcanoi — skinriders can't grasp her, phantasms appear transparent, and ghosts can't steal her Essence or affect her mind — though physical attacks (claws, teeth) and a ghost's self-moliation still work normally, and Aura-Reading Technique sees only a meaningless dull gray aura. Alternatively the caster may expend the spell in an instant, rolling Wits + Occult with an additional three successes to strike a single ghost unable to use his Arcanoi, ending any currently active and preventing new ones. Either effect lasts until the Calendar of Setesh next marks midnight.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 135
@@ -1333,7 +1333,7 @@
     "cost": {
       "raw": "22 motes (committed)"
     },
-    "description": "Bone fragments assemble around the caster into a scout or common warstrider for one hour, the deadline extendable at any time at 11 motes per additional hour; once encased, she is attuned to it as to a normal warstrider. Wounds and fatigue gained while in the warstrider do not magically disappear with the machine's integrity.",
+    "description": "Bone fragments assemble around the caster into a scout or common warstrider for one hour, the deadline extendable at any time at 11 motes per additional hour; once encased, she is attuned to it as to a normal warstrider, and wounds and fatigue gained while inside do not vanish with the machine's integrity. The Labyrinth version, Walking Gore Titan (16 motes committed), requires first sacrificing sentient beings of cumulative permanent Essence 10+ with an obsidian knife, raising an otherwise-identical crimson warstrider wielding a fighting chain of black entrails from their pooled blood. The Void version, Void Cocoon Warrior (28+ motes committed), instead forms a 20-foot noble warstrider or juggernaut armed with a Void-draining daiklave (other warstrider weapons may be added for their normal attunement cost, ammunition at 1 mote each); sacrificing a lethal health level (unhealable until the spell ends) upgrades it to a royal warstrider. It lasts only two hours, extendable an hour at a time for half its original cost.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 136
@@ -1424,7 +1424,7 @@
     "cost": {
       "raw": "12+ motes"
     },
-    "description": "A quick spell: the necromancer and his target enter a contested Essence + Willpower challenge, rolling each turn until one accumulates successes equal to the other's Essence. A triumphant necromancer may banish the ghost to the Underworld, into its tomb or body, or from his presence, for three days; extra motes may be spent at casting in increments of 3, each increment reducing the ghost's dice pool by one die.",
+    "description": "A quick spell: the necromancer and his target enter a contested Essence + Willpower challenge, rolling each turn until one accumulates successes equal to the other's Essence. A triumphant necromancer may banish the ghost to the Underworld, into its tomb or body (unable to stray more than 5 yards), or from his presence (suffering 1 bashing per turn if she's seen before the banishment lifts), for three days; extra motes may be spent at casting in increments of 3, each reducing the ghost's dice pool by one die.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 119
@@ -1437,7 +1437,7 @@
     "cost": {
       "motes": 18
     },
-    "description": "Takes total command of a ghost's body at a distance. The necromancer may make superficial or reconfiguring changes (Dexterity + Craft (Moliation) roll) or cripple the ghost, reducing its Dexterity or Strength by one dot per success; he may also lock the ghost into its form by rolling Conviction + Willpower against the ghost's Conviction, each success over indicating one week of binding. A successfully bound ghost takes on a black, burnt-wax color.",
+    "description": "Takes total command of a ghost's body at a distance. The necromancer may make superficial or reconfiguring changes (Dexterity + Craft (Moliation) roll) or cripple the ghost, reducing its Dexterity or Strength by one dot per success; he may also lock the ghost into its form by rolling Conviction + Willpower against the ghost's Conviction, each success over indicating one week of binding. A successfully bound ghost takes on a black, burnt-wax color. The Labyrinth Circle version, Willful Flesh Commands (24 motes), reshapes a willing ghost's form permanently over a painful six-hour ritual, letting the necromancer trade Attribute dots one-for-one or add new ones at 5 motes each (to a maximum of the ghost's Essence + 5), on top of any Black Candle Visage effect. The ghost keeps her Arcanoi but becomes immune to further ghost-flesh-altering Arcanoi from anyone; only countermagic or a second casting reverses it, and Deathlords use it to make barghests of willing servants.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 119
@@ -1450,7 +1450,7 @@
     "cost": {
       "motes": 16
     },
-    "description": "Stains and subjugates a living victim's soul so that a ghost invoking a body-controlling Arcanos upon her gains extra successes to the initial possession roll equal to the necromancer's Essence, and the duration of the Arcanos is extended to one week. A victim recovers most of her will following a month free of possession; Exalted and other magical beings recover after a week of freedom.",
+    "description": "Stains and subjugates a living victim's soul so that a ghost invoking a body-controlling Arcanos upon her gains extra successes to the initial possession roll equal to the necromancer's Essence, and the duration of the Arcanos is extended to one week. A victim recovers most of her will following a month free of possession; Exalted and other magical beings recover after a week of freedom. The related Consorting with Devils (10 motes) instead bonds one already-possessing ghost to its mortal host — the ghost must commit 3 motes at casting — granting the same easier-possession benefit going forward; breaking the bond, by countermagic or the host's death, costs the ghost a dot of permanent Willpower.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 120
@@ -1476,7 +1476,7 @@
     "cost": {
       "raw": "10 motes, 1 lethal health level"
     },
-    "description": "The necromancer cuts his palm and flings the spray of blood onto a mirror; the next time the target of the spell looks into a mirror, the message comes flowing out to be read. The target may then wipe the mirror clean, cut her fingertip and write a short reply, which will be seen by the necromancer when next he looks in a mirror.",
+    "description": "The necromancer cuts his palm and flings the spray of blood onto a mirror; the next time the target of the spell looks into a mirror, the message comes flowing out to be read. The target may then wipe the mirror clean, cut her fingertip and write a short reply, which will be seen by the necromancer when next he looks in a mirror. Related mirror-magics: Invisible Doorway (Shadowlands, 18 motes + 1 lethal health level) opens a three-turn portal between Creation and the Underworld through any reflective surface, after which the mirror shatters; White Shard (Labyrinth, 28 motes) lets two specially treated mirrors hold a face-to-face conversation for half an hour; The Barless Gate (Void, 42 motes) lets a necromancer step instantly between any two mirrors in the Underworld, violently shattering any wards against such travel at the destination.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 120
@@ -1489,7 +1489,7 @@
     "cost": {
       "motes": 16
     },
-    "description": "Commands complete obedience from a skeleton, which acts with its host's dice pools at a dice penalty of the host's Essence. A resisting host acts at -1 die and suffers two levels of lethal damage each turn (natural soak only), and the spell lasts a number of hours equal to the successes on the necromancer's Charisma + Occult roll; if the host is killed, the skeleton claws free and becomes a permanent zombie under the necromancer's control.",
+    "description": "Commands complete obedience from a skeleton, which acts with its host's dice pools at a dice penalty of the host's Essence. A resisting host acts at -1 die and suffers two levels of lethal damage each turn (natural soak only), and the spell lasts a number of hours equal to the successes on the necromancer's Charisma + Occult roll; if the host is killed, the skeleton claws free and becomes a permanent zombie under the necromancer's control. It can also be used to rip an already-animated skeleton from another necromancer's control, in which case the caster takes her own Essence in bashing damage (Stamina soak only) as spiritual backlash.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 121
@@ -1515,7 +1515,7 @@
     "cost": {
       "raw": "14 motes (seven committed)"
     },
-    "description": "Summons a small dead sailing ship whose prow bears a living spectre figurehead; it requires the necromancer's presence, can comfortably contain two passengers (five with effort), and has 8L soak and 8/16 health levels. Cast at night on Creation's seas it costs twice the Essence (the commitment is not doubled), and if the sun's rays strike the ship it loses one health level each turn.",
+    "description": "Summons a small dead sailing ship whose prow bears a living spectre figurehead; it requires the necromancer's presence, can comfortably contain two passengers (five with effort), and has 8L soak and 8/16 health levels. Cast at night on Creation's seas it costs twice the Essence (the commitment is not doubled), and if the sun's rays strike the ship it loses one health level each turn. The Labyrinth Circle version, Funerary Misted Vessel (22 motes, 11 committed), summons a larger vessel carrying 20 comfortably (50 uncomfortably, or 80 of the walking dead), doesn't require its summoner aboard, and travels wrapped in a fogbank (transparent to its own passengers, opaque to everyone else for miles equal to the caster's Essence) that only halves its soak rather than burning it in Creation's sun; treat it as a marine assault bireme with 14L soak and 16/32 health levels.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 121
@@ -1528,7 +1528,7 @@
     "cost": {
       "motes": 18
     },
-    "description": "Casts a single ghost within 50 yards into a harrowing replay of its own death; the necromancer's player rolls Willpower + Essence against the ghost's Willpower, and the difference in successes is the maximum number of loops forced. Each loop costs the ghost one dot of permanent Willpower, and a ghost reduced to zero Willpower dissolves, becoming a haunt of the scene that killed her. Cast on living targets it inflicts a one-die penalty to all attacks for the turn.",
+    "description": "Casts a single ghost within 50 yards into a harrowing replay of its own death; the necromancer's player rolls Willpower + Essence against the ghost's Willpower, and the difference in successes is the maximum number of loops forced. If the ghost instead out-rolls the necromancer, the spell rebounds and traps the caster in the loop instead. Each loop costs the victim one dot of permanent Willpower, and one reduced to zero Willpower dissolves, becoming a haunt of the scene that killed her. Cast on living (or rebounding onto a living necromancer), it inflicts only a one-die penalty to all attacks for the turn rather than any loops.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 122
@@ -1541,7 +1541,7 @@
     "cost": {
       "motes": 14
     },
-    "description": "Requires that the necromancer first personally oversee the painful sacrifice of a living mortal. Donning the cloak of plasm makes him appear as a fellow ghost; the difficulty for a ghost's Perception + Awareness roll to see through the disguise is set by his Essence + Craft (Moliation) roll, and mortals and living creatures cannot see the Death Mask at all. If the cloak suffers more than four health levels of damage it falls off; otherwise it regenerates one lethal health level per week.",
+    "description": "Requires that the necromancer first personally oversee the painful sacrifice of a living mortal. Donning the cloak of plasm makes him appear as a fellow ghost; the difficulty for a ghost's Perception + Awareness roll to see through the disguise is set by his Essence + Craft (Moliation) roll, and mortals and living creatures cannot see the Death Mask at all (though Essence-viewing magic can reveal its presence without piercing the disguise). If the cloak suffers more than four health levels of damage it falls off; otherwise it regenerates one lethal health level per week. A destroyed cloak means acquiring — and sacrificing for — a new one before the spell can be cast again.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 122
@@ -1554,7 +1554,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "Draws a translucent blue-flame blade from a ghost's corpus; if not discharged upon a ghost's corpus, the rime inflicts one unsoakable level of bashing damage every 10 minutes. The necromancer must strike her target with a bare hand, after which the weapon (a reaver daiklave's stats bolstered by one point per dot of the victim's permanent Essence, none above the necromancer's Essence + Occult) inflicts half damage to living creatures and aggravated damage to ghosts. Each ghost absorbed lets the necromancer add further points, to a maximum of (her Essence x 5).",
+    "description": "Draws a translucent blue-flame blade from a ghost's corpus; if not discharged upon a ghost's corpus, the rime inflicts one unsoakable level of bashing damage every 10 minutes. The necromancer must strike her target with a bare hand, after which the weapon (a reaver daiklave's stats bolstered by one point per dot of the victim's permanent Essence, none above the necromancer's Essence + Occult) inflicts half damage to living creatures and aggravated damage to ghosts, striking even immaterial ones. A fatal blow draws the slain ghost into the blade in a burst of blue flame, consuming its Essence — it is destroyed permanently and will never see the Underworld again. Each ghost absorbed lets the necromancer add further points, to a maximum of (her Essence x 5).",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 123
@@ -1580,7 +1580,7 @@
     "cost": {
       "raw": "12+ motes"
     },
-    "description": "Completely erases a single haunt of the caster's choice. For an additional cost of 1 mote per mile, the necromancer can relocate the haunt to a location of her choosing.",
+    "description": "Completely erases a single haunt of the caster's choice. For an additional cost of 1 mote per mile, the necromancer can relocate the haunt to a location of her choosing. The related Congealing the Last Thought (12 motes) instead creates a haunt, drawn from a cooperating ghost's mind or invented from whole cloth; one made in Creation lasts a month per point of the caster's permanent Essence, while one made in the Underworld is effectively permanent.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 123
@@ -1593,7 +1593,7 @@
     "cost": {
       "motes": 16
     },
-    "description": "Creates a thin-shafted silver mace that inflicts additional damage equal to the caster's Essence against ghosts; a blow dealing a number of health levels equal to or greater than a ghost's permanent Essence captures the ghost in one of the 12 faces of the weapon's head. After an hour the shaft dissolves and the head becomes a crystal jar (12L/12B soak, 20 health levels) holding the captured spirits, and a ghost freed from the jar by whatever method is bereft of Essence.",
+    "description": "Creates a thin-shafted silver mace that inflicts additional damage equal to the caster's Essence against ghosts; a blow dealing a number of health levels equal to or greater than a ghost's permanent Essence captures the ghost in one of the 12 faces of the weapon's head. After an hour the shaft dissolves and the head becomes a crystal jar (12L/12B soak, 20 health levels) holding the captured spirits — only the necromancer can open it without force, and effective countermagic shatters it automatically — and a ghost freed from the jar by whatever method is bereft of Essence.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 124
@@ -1658,7 +1658,7 @@
     "cost": {
       "raw": "10 or 20 motes"
     },
-    "description": "Grants the necromancer brief visions of a ghost's Fetters and Passions, one per turn, together bestowing clear details of each and every one. For an additional 10 motes spent after seeing them, she may overwrite them, exchanging each Fetter or Passion for one of her own design of the same rating; the changes fade after one month per point of the caster's permanent Essence.",
+    "description": "Grants the necromancer brief visions of a ghost's Fetters and Passions, one per turn, together bestowing clear details of each and every one. For an additional 10 motes spent after seeing them, she may overwrite them, exchanging each Fetter or Passion for one of her own design of the same rating; the changes fade after one month per point of the caster's permanent Essence. The Labyrinth Circle version, Puzzle Box of Love, permanently rearranges the ghost's Passions (any combination fitting his Virtues) and Fetters (any shape, so long as total dots don't increase); a heroic ghost may attempt once a year, on his death-day, a Willpower + lost-Passion-strength roll against the necromancer's Essence to break free and return to his old life, with no guarantee of safety from retribution.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 126
@@ -1697,7 +1697,7 @@
     "cost": {
       "motes": 8
     },
-    "description": "Casting upon the border of a shadowland weakens and confuses it, forcing it to deposit those who cross into whichever realm the necromancer wishes. Up to twice her Essence in yards of the border are affected, and they remain so for five minutes.",
+    "description": "Casting upon the border of a shadowland weakens and confuses it, forcing it to deposit those who cross into whichever realm the necromancer wishes. Up to twice her Essence in yards of the border are affected, and they remain so for five minutes. The Void Circle version, Folding Midnight (46 motes, cast by walking the shadowland's border at the time of day matching the desired effect), permanently curses it into a one-way portal in or out of the Underworld at all hours — a mortal who wanders in may never walk back out, or a ghost may find himself trapped unable to return.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 127
@@ -1710,7 +1710,7 @@
     "cost": {
       "motes": 12
     },
-    "description": "Shrouds a one-mile area in the trappings of death, which slowly return to normal over the course of a week; creatures who normally respire no Essence while in Creation recover 1 mote per full day spent within it. Cast in the Wyld, it reduces the strength of the Wyld by one, and the spell cannot be successfully cast upon a Demesne.",
+    "description": "Shrouds a one-mile area in the trappings of death, which slowly return to normal over the course of a week; creatures who normally respire no Essence while in Creation recover 1 mote per full day spent within it, and the effect counts as a significant fraction of the 'trappings of death' an Abyssal needs to shed Resonance. Cast in the Wyld, it reduces the strength of the Wyld by one, and the spell cannot be successfully cast upon a Demesne.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 127
@@ -1736,7 +1736,7 @@
     "cost": {
       "motes": 19
     },
-    "description": "While the caster's two iron rings resonate for the next hour, ghosts must make a successful Willpower check at difficulty 3 to approach within five yards, and the necromancer has an effective additional soak of 2L/3B against all blows a ghost attempts to land. Ranged attacks made from without the five-yard radius are unaffected.",
+    "description": "While the caster's two iron rings resonate for the next hour, ghosts must make a successful Willpower check at difficulty 3 to approach within five yards (or to hold their ground as he approaches them), and the necromancer has an effective additional soak of 2L/3B against all blows a ghost attempts to land; ghosts in his path tend to move out of it unconsciously. Ranged attacks made from without the five-yard radius are unaffected. The Labyrinth Circle version, Brick-by-Brick Solitude, instead raises an invisible wall at a radius of (the caster's permanent Essence x 10) yards that ghosts cannot pierce at all in melee (halving the successes of any ranged attack that does reach him); it doesn't add to his Strength, so a sufficiently determined mob of more than three times his Strength rating can still bar his way.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 128
@@ -1775,7 +1775,7 @@
     "cost": {
       "motes": 18
     },
-    "description": "A point of gray-white light struck against a ghost draws it far down the path to Lethe; the ghost's player rolls Willpower against a difficulty of 3, and a failure slips the ghost silently into Lethe (with no danger of Oblivion, even on a botch). Any ghost struck is also freed of necromantic shackles — spells of the Iron Circle and Charms of Essence 3 or less shatter and release their hold.",
+    "description": "A point of gray-white light, applied to a ghost either by an unarmed touch attack or hurled with a Wits + Thrown roll, draws it far down the path to Lethe; the ghost's player rolls Willpower against a difficulty of 3, and a failure slips the ghost silently into Lethe (with no danger of Oblivion, even on a botch). Any ghost struck is also freed of necromantic shackles — spells of the Iron Circle and Charms of Essence 3 or less shatter and release their hold. Two escalating versions exist: Black Vial (Labyrinth, 24 motes, thrown to affect all ghosts within 3 yards, frees Onyx Circle bindings and Essence 4 Charms or weaker) and Empty Night Future (Void, 32 motes, a 10-yard ripple hitting up to 10 ghosts, frees Obsidian Circle bindings and anything of lower Essence than the caster) — both drag failed ghosts into Oblivion instead of Lethe (Willpower difficulty 4 or 5 respectively to resist), each soul lost feeding the caster 1 mote.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 129
@@ -1853,7 +1853,7 @@
     "cost": {
       "raw": "10 motes, 1 permanent Willpower"
     },
-    "description": "Can only be cast once in the lifetime of the caster, and only in the instant before death. The form has the Attributes of the hungry ghost that would rise from the necromancer's corpse with her Essence added to Strength and Stamina, (her Essence x 5) -0 health levels and a single Incapacitated level, and lets her use any of her Charms for a cost of 1 mote (or spend a single mote in place of Willpower). If the form is destroyed, her soul is devoured by the Void without exception; if she survives, the spell is scoured from her memory and is active only for one scene.",
+    "description": "Can only be cast once in the lifetime of the caster, and only in the instant before death (even without the normal three turns of preparation or a free Charm action that turn), after a month spent learning it in prayer inside a Malfean patron's tomb. The form has the Attributes of the hungry ghost that would rise from the necromancer's corpse with her Essence added to Strength and Stamina, (her Essence x 5) -0 health levels and a single Incapacitated level, lets her use any of her Charms for a cost of 1 mote (or spend a single mote in place of Willpower), and should include three unique powers costing 5-10 motes each, devised with the Storyteller or imitating existing spells. If the form is destroyed, her soul is devoured by the Void without exception; if she survives, the spell is scoured from her memory and is active only for one scene.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 139
@@ -1879,7 +1879,7 @@
     "cost": {
       "raw": "50+ motes"
     },
-    "description": "Conjures a vast bone engine that creates a shadowland centered on itself with a radius of 50 miles, plus 50 miles for every additional 10 motes spent in the casting. The engine must be fed a series of living creatures with a total permanent Essence of no less than 10 times the Essence spent creating it; it soaks 22L/30B, needs 60 health levels of damage to be disabled, and Obsidian Countermagic destroys it instantly while Adamant Countermagic inflicts 10 health levels per invocation. If destroyed or not completed by the time the sun reaches its zenith the spell fails, and it has no effect when cast in the Underworld.",
+    "description": "Conjures a vast bone engine that creates a shadowland centered on itself with a radius of 50 miles, plus 50 miles for every additional 10 motes spent in the casting. The engine must be fed a series of living creatures (up to five per minute) with a total permanent Essence of no less than 10 times the Essence spent creating it; it soaks 22L/30B, needs 60 health levels of damage to be disabled, and Obsidian Countermagic destroys it instantly while Adamant Countermagic inflicts 10 health levels per invocation. Left unattended while sacrifices remain, it fights back with its claws (Speed -2, Accuracy +3, Damage +6L); when destroyed, it self-destructs in a fiery blast that flings bone and iron fragments up to 500 yards and boiling blood up to 50. If destroyed or not completed by the time the sun reaches its zenith the spell fails, and it has no effect when cast in the Underworld.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 140
@@ -1918,7 +1918,7 @@
     "cost": {
       "motes": 50
     },
-    "description": "Covers the caster in soulsteel armor granting +12L/+12B soak and ignoring all attacks that do less than 12 dice of raw damage, with a Strength bonus equal to his Essence; barehanded attackers suffer three dice of aggravated damage, and hurled balls of pyre flame (accuracy equal to the caster's Essence, three health levels of aggravated damage plus one die per extra success) cannot be parried without Charms. The spell ends when the caster cancels it, after an hour, or when struck by Obsidian Countermagic, whereupon all creatures within 30 yards suffer five levels of lethal and two levels of aggravated damage.",
+    "description": "Covers the caster in soulsteel armor granting +12L/+12B soak and ignoring all attacks that do less than 12 dice of raw damage, with a Strength bonus equal to his Essence; barehanded attackers suffer three dice of aggravated damage, and hurled balls of pyre flame (accuracy equal to the caster's Essence, three health levels of aggravated damage plus one die per extra success) cannot be parried without Charms. Any weapon not made of stone or the Five Magical Materials that strikes him catches fire, burning its wielder for 1 lethal per turn it's kept in use; anyone hit barehanded or scorched by a fireball keeps burning (2 lethal or 4 lethal per turn respectively) unless they spend a full action (three turns, faster with help) scraping the flame off. The spell ends when the caster cancels it, after an hour, or when struck by Obsidian Countermagic, whereupon all creatures within 30 yards suffer five levels of lethal and two levels of aggravated damage. The pyre flame it creates behaves as ordinary pyre flame — burning out within minutes of Creation sunlight, a year if never exposed, cycling with day and night in a shadowland, and permanent in the Underworld.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 142
@@ -1944,7 +1944,7 @@
     "cost": {
       "raw": "50 motes, 1 permanent Willpower"
     },
-    "description": "Lays a curse of eternal servitude upon a living creature: a scar that never heals appears, and identical scars appear on all the victim's descendants. On death the victim infallibly becomes a ghost with the Passion Obey She Who Cursed Me at a rating equal to his Conviction and the Fetter Master of rating •••••, forced to obey every command given him. Celestial Exalted cannot be enslaved but can be marked and pass the curse on to their children, and creatures without souls — such as Dragon Kings or the Mountain Folk — cannot be affected by this spell.",
+    "description": "Lays a curse of eternal servitude upon a living creature (castable at range through an arcane link, which the casting destroys): a scar that never heals appears, and identical scars appear on all the victim's descendants. On death the victim infallibly becomes a ghost with the Passion Obey She Who Cursed Me at a rating equal to his Conviction and the Fetter Master of rating •••••, forced to obey every command given him and seek out his master immediately upon dying. Even the caster's death doesn't free the cursed — they instead answer to her next incarnation, though they're free to take revenge on her original ghost if she lingers. Obsidian Countermagic frees one individual at a time (not his relatives or descendants); Adamant Countermagic also frees a victim but kills him in the process. Celestial Exalted cannot be enslaved but can still be marked and pass the curse to their children — freeing one requires a petition to the Unconquered Sun through a Zenith Caste priest and a Solar Circle sorcerer. Creatures without souls, such as Dragon Kings or the Mountain Folk, cannot be affected by this spell.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 143
@@ -1957,7 +1957,7 @@
     "cost": {
       "motes": 40
     },
-    "description": "A six-hour ritual, ending at dusk, that requires the death of both a mortal and a ghost (or a single Ghost-Blooded). The necromancer and the summoned hekatonkhire enter a contested Willpower + Essence test rolled each turn, the necromancer able to spend Essence in 7-mote increments to reduce the creature's dice pool by one die each; if the caster accumulates three more successes than the beast, it serves her loyally for a year and a day or is set to a single task of indefinite duration.",
+    "description": "A six-hour ritual, ending at dusk, that requires the death of both a mortal and a ghost (or a single Ghost-Blooded). The necromancer and the summoned hekatonkhire enter a contested Willpower + Essence test rolled each turn, the necromancer able to spend Essence in 7-mote increments to reduce the creature's dice pool by one die each; if the caster accumulates three more successes than the beast, it serves her loyally for a year and a day or is set to a single task of indefinite duration — if the beast wins instead, it most likely devours summoner and soul alike and returns to the Underworld. No hekatonkhire can truly die; a slain one simply reforms there, sometimes weaker, sometimes undiminished.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 143
@@ -1970,7 +1970,7 @@
     "cost": {
       "raw": "60 motes (committed)"
     },
-    "description": "With a minimum of three sacrificial ghosts behind him, the necromancer gains total control over 10 square miles of the Labyrinth, shaping it to his waking dreams and manifesting physical attacks (a Wits + Melee, Archery or Thrown roll, with additional successes equal to his Occult score). This control endures as long as he commits the Essence.",
+    "description": "With a minimum of three sacrificial ghosts behind him, the necromancer gains total control over 10 square miles of the Labyrinth, shaping it to his waking dreams and manifesting physical attacks (a Wits + Melee, Archery or Thrown roll, with additional successes equal to his Occult score); a Perception + Occult roll grants total awareness of anything within his controlled space. More elaborate creations, such as dangerous creatures borrowed from the Malfeans' own nightmares, are possible but slow to make and prone to being swallowed by entropy when the dreams recede. This control endures as long as he commits the Essence, or until a stirring dead god actively reclaims the territory.",
     "source": {
       "book": "Book of Bone and Ebony",
       "page": 140
@@ -1983,7 +1983,7 @@
     "cost": {
       "motes": 14
     },
-    "description": "Grants empathy with wood and woodlands: the caster can move unhindered at top speed without Athletics and gains a Strength bonus equal to her Essence for jumping and a Dexterity bonus for movement in forests. She must make a Willpower roll to harm plants, and cutting live wood or setting fires instantly ends the spell and its blessings.",
+    "description": "Grants empathy with wood and woodlands: the caster can move unhindered at top speed without Athletics and gains a Strength bonus equal to her Essence for jumping and a Dexterity bonus for movement in forests. No mundane tracking can follow her, supernatural trackers suffer +2 difficulty, and it renders useless any Charm or effect that makes her harder to track. She must make a Willpower roll to harm plants, and cutting live wood or setting fires instantly ends the spell and locks her out of recasting it for three days.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 101
@@ -2009,7 +2009,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "Enemies within 100 yards suffer a difficulty penalty equal to the caster's permanent Essence on all rolls for 10 minutes. Attackers who close their eyes suffer a -2 blind penalty.",
+    "description": "Enemies within 100 yards suffer a difficulty penalty equal to the caster's permanent Essence to attack her for 10 minutes, and anyone entering the field afterward is struck the same way; attackers beyond range are unaffected. Attackers who close their eyes avoid the penalty but suffer the normal -2 blind penalty unless they have vision-negating Charms. The caster may dispel it reflexively at will; only enemies are affected, and she need not be aware of them.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 102
@@ -2022,7 +2022,7 @@
     "cost": {
       "raw": "10 motes + 2 motes per additional hour (maximum 20 additional motes)"
     },
-    "description": "Calls a wind that lasts a number of hours equal to the caster's permanent Essence, adding three dice to Sail rolls for a vessel within Essence x 3 miles or imposing a three-die penalty on enemies. A spirit of air may commandeer the wind.",
+    "description": "Calls a wind that lasts a number of hours equal to the caster's permanent Essence, adding three dice to Sail rolls for a vessel within Essence x 3 miles or imposing a three-die penalty on enemies. Countered by countermagic or by casting Calling the Wind's Kiss in opposition. A spirit of the air with Essence equal or greater may seize control with a Willpower roll against the caster's permanent Essence (the caster always knows if this happens); the caster can dismiss the spell at will unless it has been so commandeered.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 102
@@ -2035,7 +2035,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "Commands up to (Essence x 2) animals within 20 yards, which must be of Intelligence 1 or less, for one scene. The spell has no effect on Wyld-shaped, magical, undead or similar creatures.",
+    "description": "Commands up to (Essence x 2) animals within 20 yards, which must be of Intelligence 1 or less, for one scene, granting the caster three bonus dice on Survival or Presence rolls to deal with them. The spell has no effect on Wyld-shaped, magical, undead or similar creatures, and is countered by Emerald Countermagic, beast-calming Charms, or another casting of itself. Others interacting with the commanded animals need a Charisma + Ride or Charisma + Survival roll against the caster's permanent Essence.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 103
@@ -2048,7 +2048,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Calls a chariot and steeds of Essence that carry up to 200 pounds per point of the caster's permanent Essence and travel at 200 mph; it may only be cast during daylight and lasts while the sun is up. The chariot has 25 health levels, 25L/35B soak and provides 90 percent cover.",
+    "description": "Calls a chariot and steeds of Essence that carry up to 200 pounds per point of the caster's permanent Essence and travel at 200 mph; it may only be cast during daylight and lasts while the sun is up, landing to give one minute to unload before it departs. The chariot has 25 health levels, 25L/35B soak, provides 90 percent cover, and only one attack per turn can be made against it or its occupants (and vice versa) unless matched in flight; extreme weather still hazards it, though Ride rolls in such conditions gain three dice.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 103
@@ -2061,7 +2061,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "The victim cannot speak of a single subject; if he tries, he vomits maggots. Breaking free requires a Stamina + Resistance roll against a difficulty equal to the caster's Occult, and the effect lasts until countermagic is cast or the caster dies.",
+    "description": "Cast by making eye contact within 10 yards, this curses the victim to be unable to speak of one chosen subject — including hedging around it or speaking in code. Any attempt makes him vomit maggots, crippling him (no action or movement, only reflexive Charms) while it happens. Exalts and physically manifested spirits may resist with a Stamina + Resistance roll against a difficulty equal to the caster's Occult, or parry/dodge it with Charms; otherwise the curse lasts until broken by countermagic or the caster's death.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 103
@@ -2074,7 +2074,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "Compels the victim to worship and grovel before the caster: the caster rolls Charisma + Occult at a difficulty equal to her permanent Essence, and the victim suffers a -3 penalty to all Social Attributes.",
+    "description": "Compels the victim to worship and grovel before the caster or a chosen subject: the victim's player rolls Charisma + Occult against a difficulty equal to the caster's permanent Essence to resist, or suffers a -3 penalty to all Social Attribute rolls for the scene (negatable with a social stunt). It does not stop the victim from attacking, only forces him to do so groveling and browbeaten.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 104
@@ -2087,7 +2087,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Conjures five smoke cobras that attack a single target within 30 yards; the cobras' venom must be resisted with a Stamina + Resistance roll at a difficulty equal to the caster's permanent Essence. Destroyed cobras regrow.",
+    "description": "Conjures five smoke cobras (Bite: Speed 8, Accuracy 12, Damage 5L, never parries; Soak 2L/4B; act as a group on one initiative) that swarm a single target within 30 yards, unerringly tracking him even if he tries to hide. Their venom is magical (Charms, spells and artifacts that ward against poison work normally against it), with a resistance difficulty equal to the caster's permanent Essence, 1L penalty on success, 2L on failure, and a 3-minute/-6 duration that stacks in length (not severity) with repeat bites. Destroyed cobras regrow on their next action; the swarm dissolves harmlessly when the spell ends.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 104
@@ -2113,7 +2113,7 @@
     "cost": {
       "raw": "10+ motes"
     },
-    "description": "A contested Willpower + Essence roll against a demon; the caster may spend extra Essence in 5-mote increments, each reducing the demon's dice pool by one die. If the demon wins, the sorcerer may not try again for five days; Sapphire and Adamant versions of the spell cost 15 and 20 motes respectively.",
+    "description": "A contested Willpower + Essence roll against a demon; the caster may spend extra Essence in 5-mote increments, each reducing the demon's dice pool by one die. If the demon wins, the sorcerer may not try again for five days; Sapphire and Adamant versions of the spell cost 15 and 20 motes respectively and grant three automatic successes when used against a demon one circle below their own (a First Circle demon is automatically banished by Adamant Circle Banishment).",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 105
@@ -2126,7 +2126,7 @@
     "cost": {
       "raw": "5 motes per participant"
     },
-    "description": "Links up to (Essence x 2) participants so that they share emotions through crystals. Each crystal requires a commitment of 1 mote and remains viable for a year and a day.",
+    "description": "Links up to (Essence x 2) participants so that they share emotions through faceted crystals (one facet per participant). Each crystal requires a commitment of 1 mote and remains viable for a year and a day; only a participant can use her own crystal to send emotions, though a crystal whose sorcerous nature is discovered can be used by others as an arcane link to scry or trace its bearer. If a bearer dies, her crystal dissolves and one facet blackens on every remaining crystal, and all other bearers instantly know who died.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 105
@@ -2139,7 +2139,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "Transforms the caster into a flock of birds that can travel up to 20 mph and cover a number of miles equal to her permanent Essence; while in this form she can only move and dodge. The number of birds is her Essence plus her health levels times 10.",
+    "description": "Transforms the caster into a flock of birds (color and species vary by her nature — Abyssals tend to manifest as raitons) that can travel up to 20 mph and cover a number of miles equal to her permanent Essence; while in this form she keeps her Attributes, Abilities, Willpower, health levels, Virtues and soak, adds her permanent Essence to her Dodge, but can only move and dodge — no Charms, attacks, parries or communication. The number of birds is her Essence plus her health levels times 10, and damage taken kills individual birds rather than wounding her directly (wounds appear on her body when she reverts). Onlookers with Occult may roll Perception + Occult, difficulty 3, to read her permanent Essence from the flock's size.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 106
@@ -2152,7 +2152,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "Targets a creature within 1,800 yards with a brilliant raptor of Essence; the attack has a base lethal damage of Perception + Occult plus automatic damage equal to the caster's permanent Essence, and the impact explodes in a 3-yard burst. A Stamina + Resistance roll at difficulty 3 resists the explosion.",
+    "description": "Targets a creature within 1,800 yards with a brilliant raptor of Essence; the reflexive Wits + Occult roll used to choose the target serves as the attack roll (dodge only, no parry without Charms), dealing base lethal damage of Perception + Occult plus automatic successes equal to the caster's permanent Essence, plus successes on the attack roll. For every two health levels the impact deals, the target suffers a die penalty to Dexterity rolls next turn, decreasing by one each following turn. The impact also explodes in a 3-yard burst that ignites flammables; a Stamina + Resistance roll at difficulty 3 avoids a two-die Physical penalty for two turns.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 106
@@ -2165,7 +2165,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "Hurls a crescent blade at a target within 500 yards, dealing base 18 lethal damage; a target reduced below Incapacitated is decapitated. The blade can travel 500 yards per turn.",
+    "description": "Hurls a spinning loop of razor chain at a target within 500 yards, moving at 500 yards per turn; the reflexive Perception + Occult attack roll gets bonus successes equal to the caster's Essence. It deals base 18 lethal damage plus additional dice for successes on the attack roll; if this exceeds the target's remaining health levels, she is decapitated and dies instantly rather than dropping to Incapacitated. Dodged, parried or countered attacks make it vanish in a flash of silver light.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 107
@@ -2191,7 +2191,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "After a one-hour meditation the caster gains +4 Perception against magical deception, +3 against non-magical lies and +2 against First Age artifacts, but suffers -2 to attacks, dodges and Athletics and -1 to Social rolls while the fugue holds.",
+    "description": "After a one-hour meditation the caster gains +4 Perception against magical deception, +3 against non-magical lies and +2 against First Age artifacts, and may resist mind-affecting spells targeting her with a reflexive Perception + Resistance roll against the attacker's permanent Essence. She suffers -2 to attacks, dodges and Athletics and -1 to Social rolls while the fugue holds, which ends if she botches a roll, is wounded, or leaves voluntarily; it can only be countered during the casting ritual itself.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 107
@@ -2204,7 +2204,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Creates an automaton tracker of Essence that can track prey up to 100 miles away for 8 hours; the hound cannot be healed. When it dies or the spell ends, everyone within 3 yards suffers 5 bashing damage.",
+    "description": "Creates an automaton tracker of Essence (Bite: Speed 9, Accuracy 12, Damage 7L, Defense 9; Soak 7L/7B) that can scent and track mortal prey automatically up to 100 miles away for 8 hours, serving as warrior, bodyguard or mount; it cannot be healed and can only be countered during casting. Charms and magic foiling mundane tracking are only a minor hindrance — it can track a Charm-user with Perception + Survival against a difficulty equal to the Charm user's permanent Essence, and only complete scent removal defeats it, resuming the chase the instant such an effect lapses within 100 miles. When it dies or the spell ends (it must otherwise be killed or banished), everyone within 3 yards suffers 5 bashing damage.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 108
@@ -2217,7 +2217,7 @@
     "cost": {
       "raw": "21 motes, and 10 motes to activate"
     },
-    "description": "Bone pipes inscribed with the 555 names of Luna, each holding a jewel (one per point of the caster's permanent Essence, committed at 3 motes each), can be played for up to 5 turns; mortals must roll Willpower against a difficulty equal to the number of turns played. The spell has no effect on undead, automata or creatures of Intelligence less than 2, and lasts a day-and-a-night.",
+    "description": "A ritual (Intelligence + Craft, difficulty 3, to build the pipes) creates bone pipes inscribed with the 555 names of Luna, each holding a jewel (one per point of the caster's permanent Essence, committed at 3 motes each), that can later be played for up to 5 turns to enthrall listeners and issue one command; mortals must roll Willpower against a difficulty equal to the number of turns played to resist. Exalted, elementals and spirits first roll Wits + Occult, difficulty 3, to notice the enchantment, then a reflexive Willpower roll at the same difficulty to shrug it off. If the piper is interrupted, the song fails and one gem plus its Essence is lost; if attacked while playing, he may abort to a dodge (breaking the spell, no Charms) or keep playing by beating a reflexive Stamina + Resistance roll against the damage taken. The spell has no effect on undead, automata or creatures of Intelligence less than 2, and its effects last a day-and-a-night; the pipes crumble once every jewel is spent.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 109
@@ -2230,7 +2230,7 @@
     "cost": {
       "raw": "20+ motes"
     },
-    "description": "A six-hour ritual that traces a boundary of salt, blocking Dematerialize and shadow-form within a radius equal to the caster's Occult + permanent Essence, for a number of days equal to his Occult + permanent Essence. The spell has no effect on creatures of greater Essence and may not be cast at a sanctum or with spirits present.",
+    "description": "A six-hour ritual that traces a boundary of salt, blocking Dematerialize and shadow-form within a radius equal to the caster's Occult + permanent Essence, for a number of days equal to his Occult + permanent Essence. Essence cannot be spent to dematerialize inside the area, but it is not wasted trying. Renewing it before it lapses only needs a one-hour shortened ritual and paying the 20 motes again. The spell has no effect on creatures of greater Essence and may not be cast at a sanctum or with spirits present.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 109
@@ -2243,7 +2243,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Sets a target's internal Essence alight: the caster rolls Willpower + Occult against a difficulty equal to the target's Stamina, for base 3 lethal damage plus the successes, soakable only by natural soak. The flame continues to inflict 1 lethal per turn for a number of turns equal to the caster's permanent Essence or until medical attention, the target suffers a -2 penalty for the scene, and mortals die within a month without magical healing.",
+    "description": "Requires line of sight within 300 yards. Sets a target's internal Essence alight: the caster rolls Willpower + Occult against a difficulty equal to the target's Stamina, for base 3 lethal damage plus the successes, soakable only by natural soak (Charms that boost soak still apply). The attack cannot be dodged, only parried with Charms. The flame continues to inflict 1 lethal per turn for a number of turns equal to the caster's permanent Essence or until medical attention (Intelligence + Medicine, difficulty 3); the target suffers a -2 wound penalty for the scene regardless of whether the initial attack hit, and mortals die within a month without magical healing capable of regenerating tissue, while Exalts, spirits and fey recover normally.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 109
@@ -2269,7 +2269,7 @@
     "cost": {
       "raw": "5+ motes (committed)"
     },
-    "description": "Animates an object of up to 10 pounds per point of Essence, granting it Physical Attributes of 1 dot per 5 pounds and one Ability equal to the caster's permanent Essence (no higher than the caster's own rating). Each additional Ability costs 5 motes, to a maximum of 20 motes.",
+    "description": "Animates an object of up to 10 pounds per point of Essence, granting it Physical Attributes of 1 dot per 5 pounds (other Attributes 1 dot each) and one Ability equal to the caster's permanent Essence (no higher than the caster's own rating), fitting the object's nature (a shovel digs, a pen writes). Each additional Ability costs 5 motes; alternatively, extra Essence can buy a +1 specialty in an Ability or +1 Attribute dot, to a maximum of 20 motes spent. The object obeys its last command until the sorcerer removes her committed Essence or it is destroyed.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 110
@@ -2282,7 +2282,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "Targets a ship within 1 mile; those within 20 yards must dodge at difficulty 1 or suffer 10 lethal damage, and the oar variant inflicts 5 lethal damage.",
+    "description": "Targets a ship within 1 mile and clearly visible; those within 20 yards must dodge at difficulty 1 or suffer 10 lethal damage, and the oar variant inflicts 5 lethal damage on rowers. A magically reinforced mast (or one on a First Age vessel) survives if the caster fails a reflexive Wits + Occult roll against the permanent Essence of whoever reinforced it; masts of the Five Magical Materials are wholly immune.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 110
@@ -2295,7 +2295,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "A 10-yard circle of mist sends those within into a deep sleep lasting until the sun next sets and rises; those awakened suffer a -3 penalty. No Essence is regained during the sleep, and the spell has no effect on Fair Folk, undead, intangible creatures or automata.",
+    "description": "A 10-yard circle of mist, castable anywhere within 50 yards, sends those it touches into a deep sleep lasting until the sun next sets and rises; those awakened suffer a -3 penalty, and no Essence is regained during the sleep, which is dreamless (proof against nightmare effects). It affects mortals instantly; Exalts, spirits and Wyld-shaped creatures may resist with Stamina + Resistance against the caster's permanent Essence. It has no effect on Fair Folk, undead, intangible creatures or automata, and the mist itself fades after three turns.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 111
@@ -2308,7 +2308,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Paralyzes creatures of Intelligence greater than 1 within 50 yards; each victim rolls Intelligence + Lore against a cumulative difficulty equal to the caster's permanent Essence. A victim is freed if attacked, and automata are unaffected.",
+    "description": "Paralyzes creatures of Intelligence greater than 1 within 50 yards who see the sigil or hear the caster's words (the blind-and-deaf are immune); it affects Fair Folk and intelligent undead but not automata. Each victim rolls Intelligence + Lore, a full action that cannot be split, against a cumulative difficulty equal to the caster's permanent Essence to break free; held actions and extended actions like a full dodge are immediately aborted, and only fully automatic defenses (Flow Like Blood, Five-Dragon Blocking Technique, Virtuous Guardian of Flame) still function. A victim is freed if attacked. The spell ends when all have solved it, it is countered, or the caster dies, and solvers forget the koan afterward.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 111
@@ -2321,7 +2321,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Surrounds the caster in a personal storm that provides 90 percent cover (-2 to hand-to-hand and -4 to ranged attacks against her) and halves her movement; it lasts one scene.",
+    "description": "Surrounds the caster in a personal storm that provides 90 percent cover (-2 to hand-to-hand and -4 to ranged attacks against her, without hindering her own attacks) and halves her movement; wrestling maneuvers against her suffer -2 regardless of whether she is already clinched. It lasts one scene, until dispelled, countered, or she is incapacitated.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 112
@@ -2334,7 +2334,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Bronze serpents hunt human-raised livestock at night only, and the spell may only be cast at night; the number of serpents equals twice the caster's Willpower, they hunt for a number of nights equal to the caster's permanent Essence, and their venom turns to granite. The range is 1,800 yards per point of the caster's Occult.",
+    "description": "Bronze serpents (Bite: Speed 10, Accuracy 8, Damage 1L, Soak 10L/10B, dying at 4 health levels of either type) hunt human-raised livestock at night only and flee if attacked; the spell may only be cast at night. The number of serpents equals twice the caster's Willpower, they hunt for a number of nights equal to the caster's permanent Essence, and their range is 1,800 yards per point of the caster's Occult. Their venom has a resistance factor of 7: failure deals 10 lethal (turning the victim to granite if this kills them), while resisting or surviving still costs 2 lethal and a -6 penalty for 8 hours. Mortals and beasts simply die and petrify within a couple of turns.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 112
@@ -2360,7 +2360,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "A dawn-to-noon ritual that empowers a mundane item of up to 5 pounds per point of the caster's Essence with an elemental spirit of Essence 3 or more; the item is struck five times, each strike costing 5 motes. An item can bear only one enchantment — the spell may replace an enchantment but not add to one.",
+    "description": "A dawn-to-noon ritual that empowers a mundane item of up to 5 pounds per point of the caster's Essence, performed with the aid of an elemental (Essence 3+) of matching affinity, who strikes the item five times at 5 motes per strike. Only mundane items qualify — artifacts, enchanted objects, Hearthstones and the Five Magical Materials are immune, as are the living, the dead, spirits, Fair Folk and demons. An item can bear only one enchantment; recasting may replace it but not stack effects. Air: halves — reduces the item to one-fifth weight (weapons +1 Speed, armor -1 fatigue/mobility), or instead makes it turn cold on command (committing 1 mote or a temporary Willpower point) for +3 dice to Endurance rolls in heat or +2L on a weapon's damage. Earth: adds 2L/2B soak and the item never wears out or needs sharpening. Fire: turns warm or hot on command (same activation cost) for +3 dice to Endurance rolls in cold or +2 health levels of lethal damage on a weapon, or instead makes the item immune to mundane burning. Water: lets the item change shape on command (same activation cost) while keeping its mass and material, retaining any damage across forms. Wood: heals the item at one health level per hour so long as it hasn't been destroyed.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 114
@@ -2373,7 +2373,7 @@
     "cost": {
       "raw": "15 + motes"
     },
-    "description": "Turns a flowing river (not standing pools) into blood for a number of miles equal to the caster's permanent Essence, at a cost of 3 motes per mile; anyone within a mile must make a daily Stamina + Endurance roll at difficulty 2. The river reverts after a number of days equal to the caster's Willpower.",
+    "description": "Turns a flowing river or stream (must be narrow enough to see the far shore; no effect on standing pools, lakes or seas) into blood for a number of miles equal to the caster's permanent Essence, extendable at 3 motes per extra mile. Living creatures in the water perish without a clean source, nearby plants sicken and die over days, and the corrupted blood nourishes nothing but attracts hungry ghosts, the walking dead and other malevolent creatures. Mortals and mortal beasts within a mile must make a daily Stamina + Endurance roll at difficulty 2 or fall incurably ill, suffering a -1 penalty for the spell's remaining duration. The river reverts after a number of days equal to the caster's Willpower, though it does not cure or revive anything that died from it.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 114
@@ -2386,7 +2386,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "Grants the ability to speak and be understood in any language, adding one die to Manipulation rolls; the caster wears a golden mask.",
+    "description": "Grants the ability to speak and be understood in any language and to understand any speech spoken around the caster, adding one die to Manipulation rolls when addressing an audience that hears it; the caster wears a visible golden mask while speaking. The obviously magical, otherworldly nature of the voice marks the caster as a powerful being, provoking respect, awe, fear or loathing but never indifference, and drawing attention and rumor with frequent use.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 115
@@ -2399,7 +2399,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Requires an arcane link: in a ritual cast from midnight to moonset, the caster pulls the victim's shadow away from his body. The shadow may serve as a messenger or be destroyed, imposing a penalty equal to the caster's permanent Essence for one week, and the shadow regrows over one lunar month.",
+    "description": "Requires an arcane link. A ritual cast from midnight until the moon sets pulls the victim's shadow from her body; it arrives before sunrise and is bound in the caster's pentagram only until the sun fully rises, giving him a limited window to use it. He may either dictate a message that only the target will hear clearly when the shadow reattaches, or destroy it in a burst of light — leaving the victim unable to act for one turn and imposing a penalty equal to the caster's permanent Essence to all actions for one full week (a wound penalty). A destroyed shadow takes a full lunar month to regrow.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 115
@@ -2412,7 +2412,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "Requires an arcane link; sends the target dreams or nightmares, though the victim cannot be directly controlled. Night terrors force a Willpower roll at a difficulty equal to the caster's permanent Essence, with the victim losing temporary Willpower equal to the caster's Essence.",
+    "description": "Requires an arcane link (blood, skin, or a memory-crafted portrait) and a short ritual with silvered mirrors and lotus incense (Resources •••, 10 minutes) that sends a dream to a sleeping target anywhere in Creation; it cannot directly control her, but colors how she weighs waking decisions. If the caster is urging a specific action contrary to her own inclinations, he rolls Willpower + Occult against a difficulty set by whichever of her Virtues best resists that action; success makes her regard the course as wisest. If instead the dream simply bolsters a course she already favors, she gains bonus dice equal to the caster's successes on one matching Virtue check. This bonus or penalty lasts until she next sleeps undisturbed. Alternatively, the caster can send nonspecific night terrors: the victim rolls Willpower on waking against a difficulty equal to the caster's permanent Essence or loses temporary Willpower equal to his Essence; repeated nightly use also inflicts a cumulative one-die penalty (floor zero) to her morning Conviction roll, and total Willpower loss triggers a permanent derangement. Victims regard the visions as natural unless a Perception + Occult roll (difficulty 4) reveals otherwise; many Hearthstones and artifacts ward against it.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 116
@@ -2425,7 +2425,7 @@
     "cost": {
       "raw": "15+ motes"
     },
-    "description": "May only be cast at night and ends at dawn; a one-minute casting wraps the caster in a stone cocoon. Each additional creature protected costs 5 motes, up to a maximum equal to the caster's Willpower; the dome has soak 15 and 30 health levels and ignores attacks dealing less than 5 damage.",
+    "description": "May only be cast at night and ends at dawn unless the sorcerer wakes early; a one-minute casting wraps the caster and any included allies in a stone cocoon that provides total cover, including against magical attacks that would normally ignore cover, and lets them sleep in armor without penalty. Each additional creature protected costs 5 motes beyond the initial 15, up to a maximum equal to the caster's Willpower; the dome has 15 bashing/lethal soak, 30 health levels (ignoring hits under 5 damage), and takes damage as an object. Sleepers are unaware of their surroundings until the dome is attacked, at which point a soft chime wakes them and the sorcerer may end the spell to release everyone or wait it out.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 117
@@ -2438,7 +2438,7 @@
     "cost": {
       "raw": "25 motes + 20 motes to activate"
     },
-    "description": "A ritual with paper and incense (Resources ••) and a jewel focus that lets the caster possess a living creature of Essence for up to 24 hours; the caster rolls Willpower + Occult against a difficulty equal to the target's Willpower + permanent Essence. The spell has no effect on undead, automata, plants or dematerialized creatures.",
+    "description": "A ritual with paper and incense (Resources ••) and a jewel focus, cast on an unconscious/immobilized or willing target, that lets the caster possess a living creature of Essence for up to 24 hours. Activating costs 20 committed motes and a 3-turn contest: Willpower + Occult against the target's Willpower + permanent Essence (the victim only feels a headache, unaware of the contest). Failure still spends the Essence (unrecoverable for a day), costs a temporary Willpower point, and lets the caster retry in 24 hours; the target may then roll Intelligence + Occult (difficulty 3, or 5/7 if it was unconscious) to notice and identify the spell. While possessing, the caster uses whichever is higher of his own or the creature's Abilities, the creature's Strength/Dexterity/Stamina/Perception/Appearance and his own Intelligence/Wits/Charisma/Manipulation, but none of the creature's Charms or spells (his own remain usable, costing his own Essence, though he cannot regain Essence spent while possessing). Damage to the possessed body deals equal bashing damage to the caster; if it dies, the jewel shatters, the spell ends, and he loses 3 temporary Willpower on top of the bashing damage. The spell has no effect on the undead, automata, plants or dematerialized creatures, and creatures of high permanent Essence are harder to possess.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 117
@@ -2464,7 +2464,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "An intangible sword with base lethal damage of Willpower + successes, speed +3, accuracy +2 and defense +2; it can only cut creatures with an Essence-Trait, cannot be parried by non-magical weapons, and harms dematerialized ghosts. Lasts one scene.",
+    "description": "An intangible sword with base lethal damage of Willpower + successes, speed +3, accuracy +2 and defense +2, using the better of Dexterity + Melee or Dexterity + Occult to attack and usable with Melee Charms. It only cuts creatures with an Essence Trait — it passes harmlessly through stone, dead wood, metal, clothing, objects, Essence constructs and automata — and can only be parried by weapons made of Essence, the Five Magical Materials, or otherwise enchanted (never by mundane weapons, which pass through it); it ignores non-magical armor, soakable only by Stamina or Charms. It can harm dematerialized ghosts and spirits the wielder can perceive. Lasts one scene.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 118
@@ -2477,7 +2477,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "Vines sprout from the ground and clinch a target within 30 yards; a Perception + Occult roll with automatic successes equal to the caster's permanent Essence determines the clinch, and the vines' damage ignores armor.",
+    "description": "Vines sprout from the ground and clinch a target within 30 yards; a Perception + Occult roll with automatic successes equal to the caster's permanent Essence determines the clinch, and the vines (an automaton: Clinch Speed 10, Accuracy 7, Damage 7B, Soak 3L/6B) maintain it on the caster's initiative using Strength + Brawl on later turns, with damage that ignores armor. Once the target is reduced to Incapacitated the shackles stop dealing damage but keep holding; they cannot be healed and revert to inanimate wood if destroyed.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 118
@@ -2490,7 +2490,7 @@
     "cost": {
       "raw": "15 motes (committed), 5 motes to possess"
     },
-    "description": "A three-hour ritual at full moon creates a shadow automaton that serves for a number of days equal to the caster's Intelligence + Occult; while it is active the caster has no shadow. The caster may possess the spy for 5 motes, taking no other actions; if the spy is countered or slain the caster loses 1 temporary Willpower and suffers 2 bashing damage, or suffers bashing damage equal to the damage and a 2-point temporary Willpower loss if he was possessing it.",
+    "description": "A three-hour ritual at full moon creates a shadow automaton (Dodge 8, Soak 6L/6B, Willpower 4, Essence pool 35; cannot wear armor or use weapons; mute but pantomimes) that serves for a number of days equal to the caster's Intelligence + Occult; while active the caster casts no shadow. It can slip through any opening that admits air and carries three inherent Charms it alone can use: Invasion of Darkness (5 motes, flattens to pass through cracks, +2 automatic successes on a clinch attack made this way), Swallow the Breath (10 motes, once it has dealt lethal damage in a clinch it deals 2 unsoakable lethal per turn the clinch holds), and Traverse the Depths of Night (7 motes + 1 Willpower, teleports between mundane shadows up to 5 miles at night, no need to have seen the destination, foiled by anti-teleportation wards). The caster may possess the spy for 5 motes, taking no other actions, using its Physical/Social Attributes and its own Charms (paid from its Essence pool) plus his own sorcery; if the spy is countered or slain the caster loses 1 temporary Willpower and suffers 2 bashing damage, or suffers bashing damage equal to the spy's damage taken and a 2-point temporary Willpower loss if he was possessing it at the time. Possessing it also transfers everything it has learned.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 119
@@ -2503,7 +2503,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "A hornet of ice strikes a target within 300 yards (able to travel 500 yards), dealing base 12 lethal plus the successes; the attack cannot be parried and ignores cover, and dodging requires a roll at difficulty 2 plus the caster's successes.",
+    "description": "A swarm of ice needles strikes a target within 300 yards (able to travel 500 yards, chasing at 120 yards/turn but unable to make sharp turns or stop suddenly), dealing base 12 lethal plus the successes; the attack cannot be parried and ignores cover, and dodging requires a roll at difficulty 2 plus the caster's successes. Against objects it shatters on steel, chips stone and pierces up to an inch of wood. The needles cannot be attacked while in flight but can be targeted by countermagic, and they dissolve one turn after impact (or after 5 turns of pursuit), leaving only a small pool of water as evidence.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 121
@@ -2516,7 +2516,7 @@
     "cost": {
       "motes": 25
     },
-    "description": "A six-hour ritual using oil (Resources •••) summons a number of automata equal to the caster's permanent Essence + Charisma; they serve for a year and a day and cannot speak.",
+    "description": "A six-hour ritual using oil (Resources •••) summons a number of automata (Punch 3B, Kick 5B, Soak 5L/5B, Dodge 7, Willpower 3) equal to the caster's permanent Essence + Charisma; they serve for a year and a day, obeying the caster or a designated lieutenant without question, cannot speak (though they pantomime), are immune to disease and poison, and cannot be healed of wounds. They require strict direction for anything beyond menial tasks and can be equipped like heroic mortals, but gear does not come with the spell and must be provided. A countered or destroyed minion crumbles to ash.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 121
@@ -2529,7 +2529,7 @@
     "cost": {
       "motes": 10
     },
-    "description": "Calls a lesser air elemental in the form of a horse that never tires, travels over water and lasts until the next sunrise. The horse is not a pack animal.",
+    "description": "Calls a lesser air elemental in the form of a horse (coloration set by the caster's elemental-pole proximity) that never tires, travels over water as easily as land, is fearless and never fails Valor checks, and lasts until the next sunrise. It carries the caster, his gear and one more rider, but balks at being used as a pack animal; if commanded to carry someone else instead, that rider cannot redirect it, and if unseated the horse rides on and dematerializes.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 108
@@ -2542,7 +2542,7 @@
     "cost": {
       "raw": "5 motes per pair"
     },
-    "description": "Grants extra pairs of arms for one scene: each pair adds +1 initiative, reduces the multi-action penalty by 2 dice, and grants one -0 health level. The maximum number of pairs equals the caster's permanent Essence.",
+    "description": "Grants extra pairs of arms (sharing the caster's Physical Attributes) for one scene: each pair adds +1 initiative, reduces the multi-action penalty by 2 dice (never below zero), and grants one -0 health level that is lost first to wounds and cannot be healed (though losing it doesn't destroy the arms). The maximum number of pairs equals the caster's permanent Essence; the arms turn to dead wood and fall away at scene's end or the caster's death.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 122
@@ -2555,7 +2555,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Steals a memory into an emerald (Resources ••); the caster rolls Charisma + Occult against a difficulty equal to the target's Willpower, and only that creature can regain the memory by swallowing the emerald. Charm and spell memories cannot be stolen, and the spell cannot be cast in combat.",
+    "description": "Requires a flawless thumbnail-sized emerald (Resources ••) held in the caster's palm and touching the victim with that hand as the spell completes; the caster rolls Charisma + Occult against a difficulty equal to the target's Willpower to crystallize a specific known memory into the gem, and only that creature can regain it by swallowing the gem (anyone else gets nothing but a swallowed emerald). The spell needs no words — a reflexive Dexterity + Larceny roll can disguise the Essence flash as something mundane, and onlookers need Perception + Occult against that roll (or the caster's permanent Essence if none was made) to notice it happened. Any creature may instead clasp the gem to its forehead and concentrate for a turn to relive the memory as a viewer, taking as long as the event and permitting no other actions meanwhile. Charm, spell and Trait memories cannot be stolen, only specific incidents. Failure or countering costs the caster a two-die penalty to all Mental rolls for the scene and blocks a second attempt on the same victim; it cannot be cast in combat.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 122
@@ -2594,7 +2594,7 @@
     "cost": {
       "motes": 1
     },
-    "description": "The caster immolates herself in a burst of Essence, leaving no ghost; Celestial Exalted reincarnate, and objects not possessed by the caster are unharmed.",
+    "description": "The caster immolates herself in a burst of Essence with only a turn's concentration and no gestures or words, making it a surprise even to learned foes; her body, spirit and possessions in contact with her are entirely consumed to white ash, leaving no ghost, though objects merely touching her (like binding chains) are unharmed and onlookers are at most momentarily blinded. Celestial Exalted reincarnate as usual, with no memory of their prior personality.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 123
@@ -2607,7 +2607,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "A jet of water 10 feet wide and 5 feet high slams into the target: Perception + Occult with automatic successes equal to the caster's permanent Essence, base 10 bashing, and a failed Stamina + Resistance roll at difficulty 5 knocks the target down. After 10 minutes the fountain becomes a stream that continues for a number of days equal to the caster's permanent Essence.",
+    "description": "A jet of water 10 feet wide and 5 feet high slams into the target: Perception + Occult with automatic successes equal to the caster's permanent Essence serves as an unparryable (dodge-only) attack roll, dealing base 10 bashing plus successes; a failed Stamina + Resistance roll at difficulty 5 knocks the target down. Standing back up needs Strength + Athletics against the caster's Occult (a handhold like a rope or tree grants +2 automatic successes), and every extra turn spent in the torrent deals 3 automatic bashing (soaked normally). After 10 minutes the fountain becomes a gentle, unpoisonable drinking stream that continues for a number of days equal to the caster's permanent Essence.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 123
@@ -2620,7 +2620,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "Wraps allies (up to the caster's permanent Essence in number, within 3 yards) in a mantle granting +1L/2B soak that does not stack with armor; it lasts while the wearers remain immersed.",
+    "description": "Wraps the caster and unarmored allies (up to the caster's permanent Essence in number, all within 3 yards) in a seaweed mantle that lets them breathe and swim or walk underwater at their normal running rate, granting +1L/2B soak that does not stack with armor. It lasts as long as the wearers stay immersed, shriveling off one turn after fully leaving the water, leaving them wet but unharmed.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 123
@@ -2633,7 +2633,7 @@
     "cost": {
       "raw": "25 motes (committed)"
     },
-    "description": "Calls a flame guardian that lasts until the next crossing of the horizon; it provides 75 percent cover against ranged attacks and parries hand-to-hand attacks using the target's Occult + Essence, parried barehanded attacks dealing 4 lethal damage. It parries a number of attacks per turn equal to the caster's Essence, and is not intelligent — it cannot defend against both ranged and hand-to-hand attacks at once.",
+    "description": "Calls a flame guardian that lasts until the next crossing of the horizon; when not defending it is torch-sized and can hide inside a lantern or on a torch within 3 yards of the caster (Intelligence + Occult, difficulty 5, to recognize it), instantly expanding to man-size the moment the caster is physically threatened. It provides 75 percent cover against ranged attacks and parries hand-to-hand attacks using the target's Occult + Essence, parried barehanded attacks dealing 4 lethal damage; it parries a number of attacks per turn equal to the caster's Essence. While protected, the sorcerer can act and split his dice pool normally, and need not spend a defensive action against any attack the guardian already parried. It is not intelligent, cannot attack, and if faced with both ranged and hand-to-hand attacks in the same turn the caster must choose which it defends against — it cannot do both.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 124
@@ -2646,7 +2646,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "Views past events from a location; the caster can see back a number of minutes equal to his Willpower, or 100 years per point of Occult. He may not view an event he has already viewed and cannot perform other actions while concentrating, and on taking damage his player must roll Stamina + Resistance at a difficulty equal to the health levels taken or lose the vision.",
+    "description": "Views past events from a location; the caster can see back a number of minutes equal to his Willpower, or 100 years per point of Occult, and may rewind and rewatch as often as he likes until the scene ends. If the Wyld has ever engulfed the area, he can only view back to the moment it took hold. He may not view an event he has already viewed and cannot perform other actions while concentrating, and on taking damage his player must roll Stamina + Resistance at a difficulty equal to the health levels taken or lose the vision.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 125
@@ -2659,7 +2659,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "A skeletal lion hunts the target for 101 days; the casting requires a living human sacrifice and two diamond eyes, each costing Resources ••. If the lion is slain, every piece must be destroyed or it rises again at the next sunset.",
+    "description": "A skeletal lion (Bite 14L, Claw 16L, Soak 10L/15B, Willpower 10, low animal intelligence but cunning enough to stalk and wait for an opening if a frontal attack fails) hunts the target for 101 days, tracking its general location by sorcerous bond and closing the last few hundred yards by mundane tracking; it runs day and night at a fast horse's pace, needs no food, water or air, and swims tirelessly. The casting requires a living human sacrifice and two diamond eyes, each costing Resources ••. If it kills its prey it collapses into a bony cairn over the body; if slain, every piece (including the eyes) must be destroyed by sorcery, Charms or fire, or it rises again at the next sunset and resumes the hunt.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 125
@@ -2672,7 +2672,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "A terrifying sound affects an area 800 yards per point of the caster's permanent Essence; those within suffer 2 lethal damage at the start of each turn, soakable only by Stamina and Stamina-Charms, and a two-die penalty, for a number of turns equal to the caster's permanent Essence x 2.",
+    "description": "A terrifying sound affects an area 800 yards per point of the caster's permanent Essence; those within suffer 2 lethal damage at the start of each turn, soakable only by Stamina and Stamina-Charms, plus a two-die penalty to all actions (Exalts and God-Blooded may make one Stamina + Resistance roll against the caster's permanent Essence to ignore the penalty for the duration). It lasts a number of turns equal to the caster's permanent Essence x 2, until countered, or until the caster is knocked unconscious; the caster is immune and can act normally, and the illusory visages that surround him move with him but grant no cover or defense.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 126
@@ -2685,7 +2685,7 @@
     "cost": {
       "motes": 25
     },
-    "description": "Creates a cloud that can carry 500 pounds per point of the caster's Essence at 100 mph; hiding it requires a Wits + Occult roll with automatic successes equal to the caster's permanent Essence. The caster cannot cast spells or use Charms while maintaining it.",
+    "description": "Creates a cloud that can carry 500 pounds per point of the caster's Essence at 100 mph indefinitely, so long as the caster keeps concentrating; hiding it requires a Wits + Occult roll with automatic successes equal to the caster's permanent Essence, becoming the difficulty for anyone (mundane trackers cannot follow it at all) to spot or track it. It shields occupants from weather and sight but offers no real protection from attack — anyone striking at it treats its occupants as unseen foes. The caster cannot cast spells or use Charms while maintaining it, but may converse or do simple tasks.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 126
@@ -2698,7 +2698,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "Encases an unconscious living creature in timeless crystalline stasis; the casting begins at dawn and takes all day, and the crystal encloses about 27 cubic feet. It soaks all non-magical damage and the first 50 health levels of magical damage before shattering, and a wand or Sapphire Countermagic crumbles it.",
+    "description": "Encases an unconscious living creature (or item) in a one-inch-thick shell of timeless crystalline stasis; the casting begins at dawn and takes all day, and the crystal encloses about 27 cubic feet. Sentient creatures inside perceive no time passing at all. It soaks all non-magical damage completely and automatically soaks the first 50 health levels from any single magical attack; exceeding that in one attack shatters it outright. A matching wand touched to the shell, or Sapphire Countermagic, crumbles it to harmless gold dust.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 127
@@ -2711,7 +2711,7 @@
     "cost": {
       "raw": "20 motes to cast, 20 motes to activate"
     },
-    "description": "An eight-hour ritual using sapphire dust (Resources •••) tattoos an ally with a Perception + Linguistics roll at difficulty 4, allowing the ally to transport to within 20 yards of the caster; a +5 mote cost provides an arcane link. The ally cannot cross beyond Creation, the tattoos are consumed, and the maximum number of tattoos equals the caster's permanent Essence.",
+    "description": "An eight-hour ritual using sapphire dust (Resources •••) tattoos matching marks on the caster and an ally, requiring a Perception + Linguistics roll (difficulty 4) to match exactly; onlookers may recognize the tattoo with Perception + Occult (difficulty 4) or Perception + Lore (difficulty 5), and paying 5 more motes makes it an arcane link (the target can notice this with Perception + Occult, difficulty 4). Either party can touch the tattoo and concentrate for a single turn to open a brief communication window — if it isn't completed within that turn the link breaks — after which spending 20 motes teleports one to the other's side (arrival order set by initiative, no disorientation, within 20 yards unless otherwise arranged). It cannot cross into the Underworld, the Wyld or Malfeas, is blocked by anti-teleportation wards, and can be countered by anyone who recognizes the working; both tattoos are consumed on use. A sorcerer may carry a number of these tattoos at once equal to his permanent Essence.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 127
@@ -2724,7 +2724,7 @@
     "cost": {
       "motes": 25
     },
-    "description": "Grows nonsentient life to full maturity. No sentient creature may be targeted, and nothing can be aged past its prime.",
+    "description": "Grows a nonsentient organism to full maturity at a rate of one year of life per turn — plants appear as in high summer and are ready for harvest, animals mature and emerge tame and biddable toward the caster as if hand-raised. No sentient creature may be targeted, and nothing can be aged past its prime.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 128
@@ -2737,7 +2737,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "A geyser of necrotic Essence erupts beneath a target within 50 yards (Dexterity + Occult or Dexterity + Thrown to hit), in a 20-yard diameter; it ignores 5 soak and deals 8 dice of aggravated damage per turn (3 aggravated to living creatures). Clean water washes the corruption away.",
+    "description": "A geyser of necrotic Essence erupts beneath a target within 50 yards (Dexterity + Occult or Dexterity + Thrown, whichever is greater, to hit; dodge only, parryable solely with Charms), covering a 20-yard diameter. It ignores 5 soak and deals 8 dice of aggravated damage per turn to objects and armor, or 3 aggravated per turn to living creatures, and keeps corroding until washed away with enough clean water to bathe the entire affected surface.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 128
@@ -2750,7 +2750,7 @@
     "cost": {
       "motes": 35
     },
-    "description": "Those in a 100-yard radius cannot speak intelligibly for a number of hours equal to twice the caster's permanent Essence, and the confusion spreads by speech; the caster and creatures of greater Essence are unaffected.",
+    "description": "Those in a 100-yard radius cannot speak intelligibly for a number of hours equal to twice the caster's permanent Essence, and the curse spreads to anyone who hears a victim's gibberish, resetting its own duration for each newly infected listener (even someone previously cured can be reinfected this way). Occult-trained onlookers may recognize the casting with Perception + Occult, or victims may notice their own affliction with a reflexive Perception + Awareness (difficulty 3); staying silent is the simplest way to avoid spreading or prolonging it. Sapphire Countermagic cures a single victim (immunizing them against catching it again from others) unless cast at the moment of casting, when it stops the spell entirely. The caster and anyone of greater permanent Essence are immune, and the curse only affects speech, not sorcery or Charm use.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 128
@@ -2763,7 +2763,7 @@
     "cost": {
       "raw": "15+ motes"
     },
-    "description": "An all-day ritual using a statue (Resources ••••) transmutes a willing mortal of permanent Essence lower than the caster's into an amalgam servant (Exalts are immune). Additions cost: Attribute 2 motes, Ability 1, Essence 4, 5 temporary Essence 4, Charm 3, Willpower 4; the amalgam's permanent Essence cannot be raised above the caster's Essence minus 1, no more dots than the caster's Occult + Essence may be added, and sorcery above the Terrestrial Circle cannot be granted.",
+    "description": "An all-day ritual using a statue (Resources ••••, reusable across castings on the same target until its imbued traits are exhausted) transmutes a willing mortal of permanent Essence lower than the caster's into a permanently modified amalgam, binding her with an arcane link that makes her servile and unable to disobey direct orders (interpreting anything beyond a literal command needs a Willpower roll). Additions cost: Attribute 2 motes, Ability 1, Essence 4, 5 temporary Essence 4, Charm 3, Willpower 4; the amalgam's permanent Essence cannot be raised above the caster's Essence minus 1, no more dots than the caster's Occult + Essence may be added to a given Trait, and any Charms granted must match the caster's own Exalt type (never sorcery above the Terrestrial Circle). Amalgams bleed, heal, resist disease and sorcery, and roll stunts and double 10s exactly as Exalts do, but are unmistakably magical constructs to close examination — never passable as ordinary mortals. Exalts and other Essence-users are immune to this spell.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 128
@@ -2776,7 +2776,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "Requires an arcane link; targets a number of creatures equal to the caster's Manipulation + Essence, all within 30 yards of each other. Each must roll Willpower at a difficulty equal to the caster's permanent Essence or believe everything they are told is a lie, for a number of days equal to the caster's Manipulation.",
+    "description": "Requires an arcane link; targets a number of creatures equal to the caster's Manipulation + Essence, all within 30 yards of each other. Each rolls Willpower at a difficulty equal to the caster's permanent Essence or believes everything they are told is a lie, for a number of days equal to the caster's Manipulation (an astonishing success of four or more successes tells the victim she was targeted by a spell). Essence-using victims may still roll a reflexive Willpower, difficulty 1, to avoid misreading any one specific statement while afflicted.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 129
@@ -2802,7 +2802,7 @@
     "cost": {
       "motes": 35
     },
-    "description": "Conjures a kraken of magma with 10 tentacles 15 yards long that can reach 500 yards; the tentacles have Strength 10, Dexterity equal to the caster's permanent Essence and Brawl equal to the caster's Occult, dealing raw 5 lethal + 10 + the caster's permanent Essence. The kraken ignores bashing damage, soaks the first 10 lethal damage, has 10 health levels and regenerates, and victims may be knocked over by a Dexterity + Athletics roll at difficulty 2.",
+    "description": "Conjures a kraken of magma with 10 tentacles 15 yards long that can reach 500 yards; the tentacles have Strength 10, Dexterity equal to the caster's permanent Essence, Brawl equal to the caster's Occult, no Mental, Social or Stamina Attributes, and deal fire damage of raw 5 lethal + 10 + the caster's permanent Essence, counting 10s as two successes as an extension of his Essence. The kraken ignores bashing damage and soaks the first 10 lethal damage per attack, has 10 health levels that regenerate each turn (a tentacle dies only if it takes 10 levels beyond its soak in a single turn). The caster may take full concentration (as a simple-type Charm, blocking non-reflexive Charms, dice-pool splits and spells) to personally direct one tentacle in a clinch, gaining one more under control each subsequent turn up to his Perception; controlled tentacles fight at full pool while the rest mindlessly attack the nearest foe, and breaking concentration releases every clinch at once. Victims near an eruption must dodge a knockdown with Dexterity + Athletics, difficulty 2.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 131
@@ -2815,7 +2815,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "A barrier proof against Emerald and Sapphire Circle magic, up to 100 yards in diameter per point of the caster's Essence, lasting until the sun next crosses the horizon; it blocks teleportation, scrying and enchanted items. Only Adamant Countermagic cast from outside can breach it, though Sapphire Countermagic cast at the center dispels it.",
+    "description": "A barrier proof against Emerald and Sapphire Circle magic, up to 100 yards in diameter per point of the caster's Essence, lasting until the sun next crosses the horizon; sorcery may still be cast inside it, but nothing can cross the boundary, and it flares visibly to warn defenders whenever a spell tries. It blocks teleportation, scrying and enchanted items. Only Adamant Countermagic cast from outside can breach it, though Sapphire Countermagic cast at the center dispels it.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 131
@@ -2828,7 +2828,7 @@
     "cost": {
       "motes": 25
     },
-    "description": "Transforms a room into a pocket of any Creation environment, 50 yards radius per point of the caster's Essence, that the caster has visited or holds an organic sample of; a candle (Resources ••) is consumed. The effect lasts one month (renewable for 25 motes), and the room reverts to normal after 3 days.",
+    "description": "Transforms a room into a pocket of any Creation environment, 50 yards radius per point of the caster's Essence, requiring either that the caster has visited the place or holds an organic sample of it; a candle (Resources ••) is consumed. A memory-cast environment disregards the calendar and always matches how the caster remembers it; a sample-cast one instead reflects the weather and season back at the sample's point of origin on the day of casting, which can mean snow falling inside a chamber on a summer day. The effect lasts one month (renewable for 25 motes spent inside the chamber), and the room reverts to normal over 3 days if left unmaintained.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 131
@@ -2854,7 +2854,7 @@
     "cost": {
       "raw": "20 motes (committed)"
     },
-    "description": "Unrolls a 20-yard-radius road of earth that can carry 100 marching humans or 50 mounted riders; the road lasts as long as the Essence is committed, and supernatural trackers gain +3 to track along it.",
+    "description": "Unrolls a 20-yard-radius road of earth that can carry 100 marching humans or 50 mounted riders, automatically clearing small obstacles (sand, mud, rockfall, marsh, low walls and fences) though not buildings, boulders, trees or large creatures, and not flattening the grade of hills or mountains. It negates weather penalties within its radius (no precipitation, a warm-spring-day feel) without affecting conditions just outside it, leaves no mundane trace of passage, and lasts as long as the sorcerer keeps her Essence committed — ending immediately if she is killed. Supernatural trackers gain +3 difficulty to follow it; mortal trackers cannot follow it at all.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 132
@@ -2867,7 +2867,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Calls a sparrow of blue flame that finds anything the caster has encountered, holds an arcane link to, or that lies within 500 yards; the sparrow persists until the goal is reached.",
+    "description": "Calls a sparrow of blue flame that finds anything the caster has encountered, holds an arcane link to, or that lies within 500 yards; it cannot leave the caster's presence, instead flying a short distance toward the goal and returning to perform a dance indicating rough distance (far, close, or very close) and whether the target is moving, rather than giving precise readings. The sparrow persists until the goal is reached, it is dismissed, or it or the caster is slain.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 133
@@ -2880,7 +2880,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "Steals the target's shadow into a crystal globe (Resources ••) and a portrait (Resources ••); the target is pulled toward the shadow, and if separated for more than a year becomes a mindless wanderer. For 5 motes the caster can see through the target's eyes for 5 turns, and the target may block with a Willpower roll at a difficulty equal to the caster's permanent Essence.",
+    "description": "Steals the target's shadow into a crystal globe (Resources ••) and a portrait (Resources ••); the target is pulled toward the shadow, and if separated for more than a year becomes a mindless wanderer trying to reach it. For 5 motes the caster can see through the target's eyes for 5 turns; an Essence-using target may block this with a reflexive Willpower roll against the caster's permanent Essence, and a remarkable success (3+) lets her realize she was being watched.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 133
@@ -2893,7 +2893,7 @@
     "cost": {
       "raw": "25+ motes"
     },
-    "description": "Creates a visual-only illusion of a past event, 20 yards radius per point of the caster's Essence; an additional 5 motes focuses the illusion on a single object.",
+    "description": "Creates a visual-only illusion of a past event, 20 yards radius per point of the caster's Essence, with no sound, smell or feel — onlookers pass right through it, and it persists only as long as the caster concentrates. An additional 5 motes lets her focus on one object at a time: if it's fixed in place she levitates beside it, and if it's small and portable an illusory figure appears to pick it up and demonstrate its use.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 134
@@ -2919,7 +2919,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "A column of darkness 1 mile in radius and 10 miles high descends, impairing normal vision (Valor difficulty 3 to enter) and imposing a two-die penalty on supernatural senses; others' difficulties are increased by the caster's permanent Essence. The darkness lasts 24 hours even if the caster is slain.",
+    "description": "A column of darkness 1 mile in radius and 10 miles high descends, impairing normal vision and muffling sound to disorienting effect; anyone hearing the reverberating cries of others trapped inside must make a Valor roll, difficulty 3, to keep a level head. Creatures with supernatural senses or tracking suffer a two-die penalty to move within it; everyone else suffers a difficulty increase equal to the caster's permanent Essence on all actions. The caster is not immune to these effects either, though most prepare an escape route in advance. It lasts 24 hours unless countered, even if the caster is slain.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 135
@@ -2932,7 +2932,7 @@
     "cost": {
       "motes": 25
     },
-    "description": "Summons an air spirit 500 feet long and 200 feet wide that can carry 1,000 tons, lift passengers over a mile and travel at 200 mph; the caster must be onboard or within Essence yards of it.",
+    "description": "Summons an air spirit (Crushing Grasp/Clinch: Speed 7, Accuracy 10, Damage 57B; Soak 10L/20B; Essence pool 71) 500 feet long and 200 feet wide that pays its own Essence cost to manifest, then carries up to 1,000 tons — a ship, wagon or small building — over a mile into the air at up to 200 mph, shielding it from wind and weather; the caster must be onboard or within Essence yards of it to summon it, and must have a direction in mind, though more can be given in flight. Only flat-bottomed vessels can safely land on ground without added supports; sorcerers also use the spirit to drop enemy ships or boulders onto fortifications from height. It remains until its destination is reached, it is ordered to land, or it is destroyed.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 136
@@ -2958,7 +2958,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "Summons a number of rust creatures equal to the caster's permanent Essence that rust metal, erode stone, rot wood and dissolve cloth; their touch ignores 6 soak and deals 8 lethal, and they eat for 25 turns (about 5 hours). They are immune to the Five Magical Materials, enchanted materials and living flesh.",
+    "description": "Summons a number of rust creatures (Claw 9L, Soak 8L/10B) equal to the caster's permanent Essence that rust metal, erode stone, rot wood and dissolve cloth on touch — ignoring 6 soak and dealing 8 lethal to the object, continuing to eat away at it for 25 turns. They have no real combat ability and are poor in a fight, but excel at demolishing structures (large stone buildings may survive an attack, though repairs are costly); they are immune to the Five Magical Materials, enchanted items and living flesh. They act for about five hours unless countered or destroyed, never stopping unless given orders — an unsupervised prince can just as easily wreck its summoner's own property.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 132
@@ -2971,7 +2971,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "Breeds two species together via a magical acorn to create a new hybrid monster; a mortal mother is killed by the pregnancy, which lasts one-tenth of normal gestation. The offspring inherits the best Traits of both parents, with Storyteller approval.",
+    "description": "Breeds two species together by draining a male's peripheral Essence into an acorn (usable within a month) then feeding it to a mate of a compatible species to trigger a magically accelerated pregnancy — birth comes in a tenth of the normal gestation time and kills any mortal mother; an Essence-using host needs a Stamina + Resistance roll against the new creature's permanent Essence to survive (difficulty 1 if the caster herself is the host). The offspring inherits the higher of each parent's Attributes, Virtues, Willpower, permanent Essence and shared Abilities, plus any Ability only one parent had, is an Essence user if either parent was, matures in one week, and is wholly devoted to the sorcerer. Countermagic can stop the ritual only before conception; afterward nothing reverses it, though mundane abortion remains possible at double the normal risk. Final Traits need Storyteller approval.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 134
@@ -2984,7 +2984,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "Binds the target's devotion to the caster; mortals are affected instantly, while Essence-users must roll Willpower at a difficulty equal to the caster's permanent Essence. The spell has no effect on creatures of greater permanent Essence, and the bound target may attempt to escape once each year on the anniversary of its birth.",
+    "description": "Binds the target's devotion to the caster, producing not a mindless drone but an intelligently loyal servant who asks clarifying questions and sincerely believes her love is genuine, even though outside observers can see she's ensorcelled; mortals are affected instantly, while Essence-users must roll Willpower at a difficulty equal to the caster's permanent Essence — success makes them permanently immune to this spell from that same caster. The spell has no effect on creatures of greater permanent Essence. Once a year, on her birthday, the bound target unknowingly attempts a fresh Willpower roll at the same difficulty to break free; success ends the binding for good, and failure leaves no memory of the attempt.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 136
@@ -2997,7 +2997,7 @@
     "cost": {
       "motes": 30
     },
-    "description": "A wall of water 20 yards high and 100 yards long falls from a body of water at least 50 yards across (the caster within 100 yards), rushing at 300 yards per turn. Fortifications suffer 45 bashing per turn and creatures 15 dice of bashing; Exalts may escape with a Dexterity + Athletics roll at a difficulty equal to the caster's permanent Essence.",
+    "description": "A wall of water 20 yards high and 100 yards long falls from a body of water at least 50 yards across (the caster within 100 yards), rushing inland at 300 yards per turn for a number of turns equal to the caster's permanent Essence, staying 20 yards high and 10 yards thick throughout. Fortifications suffer 45 bashing per turn and creatures 15 dice of bashing; Exalts may escape with a Dexterity + Athletics roll at a difficulty equal to the caster's permanent Essence. It moves boulders and trees with a combined Strength + Athletics of 35 and ruins any crops or gardens in its path. When it ends the source body of water returns to its normal level, but the devastated region stays flooded — dry ground becomes knee-deep mud and former plant growth turns to marsh.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 137
@@ -3010,7 +3010,7 @@
     "cost": {
       "raw": "20+ motes"
     },
-    "description": "Binds the dreams of participants, who must meditate together for a number of nights (10 motes per participant per night); the binding lasts a number of months equal to the caster's permanent Essence. Participants share dreams and gain a one-die bonus, and any kind of transport ends all effects.",
+    "description": "Invokes Venus, the Maiden of Serenity, binding the dreams of participants who meditate together for a number of nights equal to their number (10 motes per participant per night); the binding lasts a number of months equal to the caster's permanent Essence, ending early only to Sapphire or Adamant Countermagic. While asleep together, participants share fluid, hard-to-conceal dreams and gain a one-die bonus when working or fighting together; a participant can also try to follow one outside conversation that involves her, at a Perception + Awareness difficulty equal to the number of conversations followed (+1 if also participating in one directly, which makes her seem distant to onlookers). Any participant may ask the others to join her, physically transporting all of them to her side on the next turn — but invoking this permanently ends the shared dreaming and the action bonus for good.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 137
@@ -3036,7 +3036,7 @@
     "cost": {
       "motes": 35
     },
-    "description": "Those of Intelligence greater than 1 within a half-mile radius are caught in the turning of the heavens for half an hour per point of the caster's Essence; victims are unable to act and recall nothing afterwards. Plants and creatures of Intelligence 1 are unaffected.",
+    "description": "Those of Intelligence greater than 1 within a half-mile radius are caught in the turning of the heavens for half an hour per point of the caster's Essence; victims are unable to act and recall nothing afterwards. Plants and creatures of Intelligence 1 are unaffected, nor is the caster. Essence-using onlookers may roll Dexterity + Awareness against the caster's permanent Essence, whenever the sky is in view, to recognize the illusion and avert their eyes. The spell ends if Sapphire or Adamant Countermagic is cast at the sorcerer, if she is slain, or if any entranced creature is harmed.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 138
@@ -3049,7 +3049,7 @@
     "cost": {
       "motes": 20
     },
-    "description": "Grants bonus dice equal to the successes of an Intelligence + Occult roll toward a single named goal, lasting a number of minutes equal to twice the caster's permanent Essence; only one such effect may be active at a time, and if the goal is not pursued the dice become a penalty.",
+    "description": "Grants bonus dice equal to the successes of an Intelligence + Occult roll toward a single named goal, lasting a number of minutes equal to twice the caster's permanent Essence; only one such effect may be active at a time, dice are spent one at a time on a single action each, and any feat or stunt they're added to gains an automatic success. If the goal is not achieved before the dice expire, the caster suffers a penalty to all actions equal to the number of dice actually used, until the goal is finally met.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 138
@@ -3062,7 +3062,7 @@
     "cost": {
       "raw": "40 motes + 1 lethal health level"
     },
-    "description": "Protects a region 1 mile in diameter per point of the caster's Essence; a 5-hour preparation inscribes 25 sigils, and the lethal health level cost cannot be soaked. No sorcerous effect crosses the boundary and no Charms or sorcery may be used within it for 5 days; only a creature of greater Essence at the center can counter the spell.",
+    "description": "Protects a region 1 mile in diameter per point of the caster's Essence; a 5-hour preparation inscribes 25 sigils, and the lethal health level cost cannot be soaked. No sorcerous effect crosses the boundary and no Charms or sorcery may be used within it, though Hearthstones and their effects, the Five Magical Materials, and the powers of spirits with greater permanent Essence than the caster are unaffected. It lasts 5 days and can be renewed at the same cost from the center; only a creature of greater Essence, and only at the centermost markings, can counter it.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 138
@@ -3088,7 +3088,7 @@
     "cost": {
       "motes": 45
     },
-    "description": "Calls a chariot of golden Essence with five fiery steeds that carries the caster and up to five other people (or 2,000 pounds of cargo) at 750 miles per hour, able to travel anywhere in Creation, through the Wyld or to the Celestial City. It may only be cast between sunrise and sunset; it lasts until it reaches the destination, is dispelled or until sunset, and if the sun leaves the sky while it flies the crash deals 45L to all within. Passengers are protected from extremes of weather and Wyld mutation, and Emerald or Sapphire Circle sorcery cast against the chariot is harmlessly absorbed.",
+    "description": "Calls a chariot of golden Essence with five fiery steeds that carries the caster and up to five other people (or 2,000 pounds of cargo) at 750 miles per hour, able to travel anywhere in Creation, through the Wyld or to the Celestial City. It may only be cast between sunrise and sunset; it lasts until it reaches the destination, is dispelled or until sunset, and if the sun leaves the sky while it flies the crash deals 45L to all within. Passengers are protected from extremes of weather and Wyld mutation, Emerald or Sapphire Circle sorcery cast against it is harmlessly absorbed, mundane ranged weapons incinerate before striking it (90 percent cover for shots that could otherwise land), and any hand-to-hand attacker who successfully hits still takes 3 aggravated damage from the surrounding flame.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 139
@@ -3127,7 +3127,7 @@
     "cost": {
       "motes": 50
     },
-    "description": "Starts a chain reaction in the target's Essence that annihilates it utterly: after the beam strikes, the target suffers 10L damage every turn until it dies, the spell is countered or the caster dispels the inversion, and this damage can be soaked only with Stamina and Charms. Creatures can only parry or dodge the attack with Charms, and no mortal creature can escape the sorcerer's wrath; when the victim dies, its body implodes, leaving no physical remains.",
+    "description": "Starts a chain reaction in the target's Essence that annihilates it utterly: the caster rolls Intelligence + Occult as the spell's attack roll, which only Charms can parry or dodge (no mortal creature can escape it). After the beam strikes, the target suffers 10L damage every turn until it dies, the spell is countered or the caster dispels the inversion, soakable only with Stamina and Charms; an Exalted victim's anima banner flares mottled with purple-black bruising as the damage progresses. When the victim finally dies, its body implodes, leaving no physical remains.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 141
@@ -3153,7 +3153,7 @@
     "cost": {
       "motes": 50
     },
-    "description": "Blesses allied forces and damns their enemies: allies gain one dot to all Physical Attributes for the duration, while beings opposing a target of the incantation suffer a one-die penalty to attacks, dodges, parries and Valor checks while engaged in combat (under Mail and Steel, allied stacks gain +1 to Valor, Drill, Attack Traits and Might). Up to 5,000 creatures per point of the caster's permanent Essence may be blessed, and the caster must keep her hands raised, taking no other actions, making reflexive Stamina + Endurance and Stamina + Resistance rolls to hold on; the effects end if she loses concentration or is slain, the spell is countered or dispelled, or at the end of the battle.",
+    "description": "Blesses allied forces and damns their enemies: allies gain one dot to all Physical Attributes for the duration, while beings opposing a target of the incantation suffer a one-die penalty to attacks, dodges, parries and Valor checks while engaged in combat (under Mail and Steel, allied stacks gain +1 to Valor, Drill, Attack Traits and Might). Up to 5,000 creatures per point of the caster's permanent Essence may be blessed, and the caster must keep her hands raised, taking no other actions, making reflexive Stamina + Endurance and Stamina + Resistance rolls to hold on; the effects end if she loses concentration or is slain, the spell is countered or dispelled, or at the end of the battle. When it ends, she must roll Stamina against a difficulty equal to the hours she held concentration or pass out, sleeping off any shortfall a day at a time.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 142
@@ -3961,7 +3961,7 @@
     "cost": {
       "motes": 15
     },
-    "description": "Target: One inanimate object. This spell conjures a magical fire that will consume any non-magical material as if it were dry timber. The sorcerer concentrates on the spell for a turn and then points at the object she wishes to incinerate. A jet of blue-white flame shoots from her fingertip up to one yard away and will instantly ignite the substance at which she points. Dead wood will be instantly consumed. Granite will soften and burn like candle wax. Metals will crumble to ash and slag under the heat of the ravenous fire. The flames will only consume the material to which it was first set, but they can spread to any other material of the same type as long as it is in contact with the substance first touched. Thus, if the sorcerer were to set fire to a marble pillar, it would spread to any other marble that pillar touches, such as the floor or the ceiling. It would not, however, burn any metal inlays or gems set into the marble. The Ravenous Fire can consume 27 cubic feet (the size of a human-sized statue and base) for every point of permanent Essence the caster possesses, and it takes approximately one minute to consume that 27 cubic feet.",
+    "description": "Conjures a magical fire that consumes any non-magical material as if it were dry timber: dead wood is instantly consumed, granite softens and burns like wax, metal crumbles to ash and slag. The flame spreads only to contiguous material of the same type as what it first touched (marble spreads to marble, not to inlaid metal or gems). It consumes 27 cubic feet — a human-sized statue and base — per point of the caster's permanent Essence, taking about a minute per 27 cubic feet. After burning out, if the material was naturally flammable it keeps burning as an ordinary fire until spent or extinguished by non-magical means only through further sorcery — the Ravenous Fire itself cannot be put out mundanely. It cannot consume enchanted objects, the Five Magical Materials or any living substance; creatures who touch the flame feel an intense but harmless cold rather than heat.",
     "source": {
       "book": "Savant and Sorcerer",
       "page": 113
