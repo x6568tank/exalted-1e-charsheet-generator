@@ -1,55 +1,86 @@
-# Session handoff — 2026-09-01 (the Core Charm re-transcription)
+# Session handoff — 2026-09-02 (adversary catalogue picking; the M&F gate; a long wrong turn)
 
 # 👉 YOU ARE HERE
 
-Last FULL green suite: **3,115 passed, 1 skipped** (main PC, `main`, 7m02s), run after the
-last executable change. The tree is clean of half-finished work.
+Last FULL green suite: **3,135 passed, 2 skipped, 1 failed** (main PC, `main`, 8m12s), run
+after the last executable change. The one failure is
+`test_every_description_matches_the_source_text`, the conditional one — **it fails on a
+clean tree too**, so it is this session's inheritance, not its damage. Tree is clean;
+shipped as **v1.3.4** (`6e6660c`).
 
-⚠ The count moved 3,083 → 3,115 for a reason that is not this session's data work: the
-2026-09-01 commit `bb5adae` added `tests/test_extract_columns.py`, the column-splitting
-guards for the born-digital extractor.
+⚠ The count moved 3,115 → 3,135 on new tests only. No test was deleted.
 
-**One thing shipped: every Core Charm description was re-transcribed from the page, and
-32 wrong printed values were corrected.** The whole record — including the traps, which are
-worth more than the diff — is `docs/status/core-charm-retranscription.md`. Do not
-re-derive it here.
+## What shipped
 
-In one paragraph: Core's 220 ability-file Charms carried descriptions averaging **113 characters**
-against 500-1,000 for every other book, because they were authored from page images under a
-delegation brief that capped descriptions at "one or two sentences". They are now **581**.
-Four were not thin but **wrong** — Wise Arrow's dice cap, Rain of Feathered Death's target
-rule, an invented "dazzling foes" effect, an invented Dexterity cap — all in the 2e-shaped
-direction. A mechanical audit of the printed stat blocks then found **32 value
-discrepancies** (27 minimums, 3 costs, 2 types), which the human read and ruled on, and
-which are now applied.
+**1. Catalogue picking on the adversary roster** (`status/adversary-roster.md`). Five
+fields on the ST view's adversary editor gained an "Add from catalogue" button — Charms
+(1,861), Spells (306), Powers (99), Abilities (25), Backgrounds (42, deduped) — in BOTH
+shells. It validates nothing by design: no splat filter, no prerequisite, no minimum, and
+the dialog says so in its own subtitle. Picks append the printed NAME, so `charms`,
+`spells` and `powers` stay prose. `keep_open` and `render_cap` were added to the shared
+catalogue dialogs, both opt-in.
+
+**2. Merit & Flaw prerequisites reach a screen** (`status/merits-flaws.md`).
+`MeritFlawDefinition.prerequisites` had ONE read site — the validator — and appeared in
+neither UI; **32 entries stated no gate at all**. The "Requires:" line now lives in
+`view.merit_requirement_line` and both shells call it.
+
+**3. Awakened Essence supersedes the mortal Essence tree** (human ruling). New
+`MeritEffects.prerequisites_satisfied`; four superseded entries barred from God-Blooded via
+`barred_exalt_types`; the 4-pt God-Blooded Magical Attunement now requires Awakened Essence.
+⚠ That last one is on the human's authority, NOT a page — the transcribed p.66 text does
+not carry it.
+
+**4. Transcription markup stripped** from Destiny and Eternal Vow (`<!--TANGENT TABLE-->`),
+with a catalogue-wide guard.
 
 ## 👉 NEXT
 
 Nothing is blocked. In rough order of what would bite:
 
-- **No open questions.** Both were answered 2026-09-01 and are recorded in
-  `core-charm-retranscription.md`: the **necromancy provenance** was a `source.book`
-  corruption (pages right, book wrong — now `The Abyssals`, and the SECOND instance of that
-  exact fingerprint), and the **330 artifacts do NOT need the description audit** — the
-  "1-4 sentences" cap stays in both artifact briefs. ⚠ Do not re-propose either.
-- **The 265 delegated spells still under the old cap** — Savant and Sorcerer (94), Bone &
-  Ebony (62), Three Circles (48), Autochthonians (38), Abyssals (23). Same job as the 19
-  Core spells in `bb5adae` and the 220 Charms here, same sources, and the method is now
-  proven twice. This is the obvious next piece of the same thread.
+- **The 265 delegated spells still under the old description cap** — Savant and Sorcerer
+  (94), Bone & Ebony (62), Three Circles (48), Autochthonians (38), Abyssals (23). Method
+  proven twice. Still the obvious next piece of that thread, unchanged from 2026-09-01.
+- **46 M&F descriptions measurably short of source** — Undetectable Lie 10%, Subtle Glamour
+  12%, Chillikin Companion 15%, Aura of Power 29%. This is what
+  `test_every_description_matches_the_source_text` has been reporting all along; it is the
+  same authoring cap as the Core Charms. The failing test IS the worklist.
 - **Dispatch the release workflow by hand before tagging** — the four-asset matrix has
-  still never been run, and a tag is the wrong place to find that out. Unchanged from the
-  2026-08-28 handoff; `pack/BUILD.md`.
+  still never been run. ⚠ The matrix itself was verified intact this session (2 OSes x
+  webapp/Qt, macOS deliberately commented out), so the CLAUDE.md trap is not present; what
+  is unverified is whether it RUNS.
 - **The three Qt interplay checks and four never-used surfaces**, carried forward below.
-- **The comment pass** on `ui/`, `models/` and `engine/` outside validate — still the
-  largest tidy-up owed. ⚠ Re-measure the line counts first.
+- **The comment pass** on `ui/`, `models/` and `engine/` outside validate. ⚠ Re-measure
+  the line counts first.
 
-## What a human should click, and why it is short
+## What a human should click
 
-**Nothing in the UI changed** — this was data. Two things want eyes exactly once, because
-the descriptions are now 3-8x longer than the panels were laid out against:
+The adversary picker is tests-green and rendered-offscreen but **not browser- or
+app-clicked**. `/gm` → edit an adversary → hammer the Charms picker (1,861 rows, chips,
+stay-open, the render cap's "…and N more" footer), then the same on the Qt Party window.
 
-1. a **Charm detail panel** for any Solar corebook Charm (overflow, elision, buy control);
-2. the **printed/PDF sheet** for a Solar carrying several of them.
+## ⚠ Read this before debugging anything the human reports from the app
+
+This session spent **six rounds** on a bug that was already fixed, and the write-up in
+`status/merits-flaws.md` is worth reading in full. The short version:
+
+1. **Read the display-path code before measuring anything.** The answer was a
+   `description[:320]` slice; six rounds went into `QScrollArea` geometry instead.
+2. **`processEvents()` is not an event loop.** It produced `scroll max 0`, a confident
+   wrong root cause, and a fix for a bug that did not exist — which was then reverted.
+3. **Reproduce in the APP** (`main_window.py`, rail driven), never the page widget alone.
+4. **Three free discriminators**: a cut between two characters with no space is a slice,
+   not a wrap; a height-clipped `QLabel` cuts mid-glyph and adds no ellipsis; a stop at a
+   round number means `git log -S`.
+5. **To identify which BUILD is running, read its bytecode** —
+   `PyInstaller.archive.readers` → `PYZ.pyz` → walk `co_names`/`co_consts`. That is how
+   `dist/ExaltedBuilderQt` was shown to contain `_clamp` and the `~/Applications` download
+   shown not to.
+
+⚠ **The stale-binary warning was already in the last handoff and it still bit.** The
+mechanism is now known and recorded in CLAUDE.md's deferred list: the app self-installs a
+`.desktop` whose `Exec=` is pinned to the first frozen binary that ever ran, and nothing in
+the UI reports a version. **Do not trust "I'm running the latest build" — verify it.**
 
 ## Carried forward from 2026-08-28, still true
 
@@ -65,8 +96,8 @@ Four surfaces are still **rendered offscreen but never used**: the **Sheet tab**
 window's **Reference tab**, the **Thaumaturgy → Rituals tab** and the **Custom tab's
 Rituals sub-tab**.
 
-⚠ **The binary on disk is from 2026-08-27 and `dist/` is gitignored** — it has none of this
-session's work, or the last three sessions'. Rebuild before showing the app to anyone.
+⚠ **`dist/` is gitignored and its binary is from 2026-08-30** — it has none of this
+session's work. Rebuild before showing the app to anyone, and see the launcher trap above.
 
 ## Still deferred, still NOT gaps
 

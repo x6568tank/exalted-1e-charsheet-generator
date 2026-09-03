@@ -984,14 +984,44 @@ more.
 Reported the same day as *"the description is cut short artificially, ending in a … with
 the majority of the page left"*, with a screenshot of the Qt M&F detail pane. It is real
 and it is **already fixed**: `self._clamp(definition.description, 320)` came in with Qt
-milestone 3 (`97c3fa5`) and went out in **`2bbbf5b`, 2026-08-30**. The human was running
-the latest TAGGED BUILD, which is behind `main`.
+milestone 3 (`97c3fa5`) and went out in **`2bbbf5b`**, which is exactly what **v1.3.1**
+(2026-08-30) points at. Every build from v1.3.1 on has the fix.
 
-**The diagnosis that worked, after six rounds of the one that didn't:** the visible text
-ended at character **320 exactly**. A clean cut at a round number is a SLICE — go to
-`git log -S` on the symptom, not to widget geometry. Measuring `QScrollArea` heights
-produced a confident, wrong root cause and a fix for a bug that did not exist (the
-`scroll max 0` reading was an artifact of driving the widget with `processEvents()`
-instead of a real event loop; under one, a plain `QScrollArea` sizes and scrolls
-correctly). ⚠ **A symptom in the app must be reproduced in the APP** — `main_window.py`
-with the rail driven — not in the page widget alone.
+**What was actually running, and why nobody could have guessed it.** Not the latest tagged
+build — a LOCAL `dist/ExaltedBuilderQt` from 2026-08-30 11:20, one minute before the v1.3
+tag, reached through a **stale `.desktop` launcher**. `branding.install_desktop_entry()`
+writes `Exec=` from `sys.executable`, which for a frozen build is the absolute path of
+whichever binary is running; the entry is rewritten only when a DIFFERENT binary runs. The
+current release had been downloaded to `~/Applications/` and never made executable, so it
+never ran, so the launcher never re-pointed, so every menu launch kept starting the August
+build. ⚠ **The app self-installs a launcher pinned to the first binary you ever ran** —
+updating by downloading to a new path changes nothing until you run the new file directly.
+
+⚠ The 2026-08-28 handoff already warned that the binary on disk was stale. The warning was
+there and it still bit, because nothing in the app reports a version: "am I running current
+code?" is unanswerable from inside it. That gap is the follow-up in CLAUDE.md's deferred
+list, and it is the real cost here.
+
+**The diagnosis that worked, after six rounds of the one that didn't.** Three cheap
+discriminators, none of which needed the running machine:
+
+1. **The cut fell between `added` and `)`, with no space between them.** A word-wrap breaks
+   at whitespace and cannot do that. So it was a character-index slice, not a layout.
+2. **A height-clipped `QLabel` cuts MID-GLYPH and adds no ellipsis** — rendered one to
+   confirm. An ellipsis means code truncated the string.
+3. **The visible text ended at character 320 exactly.** A clean stop at a round number is a
+   slice; `git log -S320` found it in one command.
+
+Then, to identify the build without touching the user's machine state: **read the bytecode
+out of the binaries**. `PyInstaller.archive.readers` gives up the `PYZ.pyz`, and walking
+`co_names`/`co_consts` of `exalted_builder.qt.advantages` says outright whether that build
+contains `_clamp` and `320`. `dist/ExaltedBuilderQt` did; the `~/Applications` download did
+not. That is the tool for "which build is this?" and it beats every proxy for it.
+
+⚠ **What wasted the six rounds: measuring instead of reading, and measuring the wrong
+thing.** `QScrollArea` heights produced a confident, wrong root cause and a fix for a bug
+that did not exist — the `scroll max 0` reading was an artifact of driving the widget with
+`processEvents()` instead of a real event loop, and under one a plain `QScrollArea` sizes
+and scrolls correctly. ⚠ **A symptom in the app must be reproduced in the APP**
+(`main_window.py` with the rail driven), never in the page widget alone — and before
+reproducing anything, read the code on the display path.

@@ -219,7 +219,8 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite → `docs/testing.md`
-**3,115 passing, 1 skipped** (2026-09-01, main PC). ⚠ **The count is machine-dependent by
+**3,135 passing, 2 skipped, 1 failing** (2026-09-02, main PC — the failure is the
+conditional one named in `docs/testing.md`, and it fails on a clean tree too). ⚠ **The count is machine-dependent by
 DOZENS of tests, and by 522 more where the optional `qt` extra is missing** — a lower
 number is that working, not tests going missing. **Do not "reconcile" two machines'
 numbers.** ⚠ **One SKIP and one FAILURE are conditional and healthy.** `docs/testing.md`
@@ -334,6 +335,14 @@ Each is written up where it landed; these are the ones that catch people mid-tas
 - **No character may leave creation with Essence above 5** (`essence-above-elder-chargen-cap`).
 
 ## Deferred (open, just not now)
+- **The app reports no version anywhere** — no titlebar string, no About item, and
+  `pyproject.toml` still says `1.0.0`. "Am I running current code?" is therefore
+  unanswerable from inside the app, which is what turned a fixed bug into a long hunt
+  on 2026-09-02 (`status/merits-flaws.md`). ⚠ Pair it with the launcher trap:
+  `branding.install_desktop_entry()` writes `Exec=` from `sys.executable`, so the
+  desktop entry PINS to the first frozen binary that ever ran and only re-points when a
+  different one runs — downloading a new release to a new path changes nothing until you
+  execute it directly.
 - `chargen_budgets.json`/`costs_bonus.json`/`costs_xp.json` overrides beyond what's
   authored — optional, loader falls back to model defaults.
 - A per-session XP-grant ledger; state-reconciliation of hand-edited
