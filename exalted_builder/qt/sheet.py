@@ -146,8 +146,10 @@ def _advantages_blocks(view, c):
     if view.artifacts:
         rows = "".join(f"<tr><td style='padding-right:10px'>{esc(n)}</td>"
                        f"<td>{_dots(r, c)}</td>"
-                       f"<td style='color:{c.muted};padding-left:14px'>{esc(note)}{' · damaged' if d else ''}</td></tr>"
-                       for n, r, note, d in view.artifacts)
+                       f"<td style='color:{c.muted};padding-left:14px'>"
+                       f"{esc(' · '.join(x for x in (note, att) if x))}"
+                       f"{' · damaged' if d else ''}</td></tr>"
+                       for n, r, note, d, att in view.artifacts)
         blocks.append(f"<b>Artifacts</b><table style='border-collapse:collapse'>{rows}</table>")
     if view.merits_flaws:
         rows = "".join(f"<tr><td style='padding-right:10px'>{esc(n)}</td>"

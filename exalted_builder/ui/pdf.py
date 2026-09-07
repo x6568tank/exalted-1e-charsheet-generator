@@ -517,8 +517,13 @@ def _advantage_panels(view: SheetView, width: float, st, accent, columns: int) -
 
     if view.artifacts:
         p = _Panel("Artifacts", pw, st, accent)
-        for name, rating, source, damage in view.artifacts:
+        for name, rating, source, damage, attuned in view.artifacts:
             label = f"{name}{' · ' + source if source else ''}"
+            # An attuned artifact says so, and says what it costs. ⚠ The Essence pools
+            # printed elsewhere on the sheet are the FULL ones — only the Play tab
+            # subtracts — so on paper this marker is the whole account of the motes.
+            if attuned:
+                label += f" · {attuned}"
             # A damaged artifact says so: its soak is already reduced above, and an
             # unexplained low figure reads as a bug.
             if damage:

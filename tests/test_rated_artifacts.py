@@ -1526,3 +1526,53 @@ async def test_the_inventory_prints_N_A_rather_than_five_dots(user) -> None:
     as a fact, so it says N/A and names the channel instead."""
     await user.open('/legendary-gear')
     await user.should_see("Artifact N/A · by Merit")
+
+
+# --------------------------------------------------------------------------------------
+# The `attunement` backfill (2026-09-07). Every value was parsed out of the row's own
+# transcribed description; these guard the two ways that pass could be wrong.
+# --------------------------------------------------------------------------------------
+
+def test_the_catalogue_carries_real_attunement_costs(rs):
+    """The standalone-Wonder path has real data behind it, not just injected numbers.
+
+    Before the backfill all 330 rows were 0, so "authored clean" and "never backfilled"
+    were indistinguishable and every test of the path had to fabricate a cost."""
+    priced = [a for a in rs.artifact_catalog.values() if a.attunement > 0]
+    assert len(priced) >= 80
+
+
+@pytest.mark.parametrize("aid, motes", [
+    ("artifact.savant-sorcerer.ring-of-being", 15),   # the most expensive in the book
+    ("artifact.abyssals.hovering-iron-spirit", 9),
+    ("artifact.aspect-earth.emerald-thurible", 8),
+    ("artifact.core.hearthstone-amulet", 1),
+    ("artifact.castebook-night.belt-of-shadow-walking", 6),
+])
+def test_attunement_matches_the_transcribed_description(rs, aid, motes):
+    """Spot checks along the range. The description is the source the value came from,
+    so a row whose number no longer appears in its own prose has drifted from its page."""
+    entry = rs.artifact_catalog[aid]
+    assert entry.attunement == motes
+    assert str(motes) in entry.description
+
+
+def test_no_gear_statblocked_artifact_carries_its_own_attunement(rs):
+    """⚠ The double-count guard, at the DATA layer. A daiklave is one object with two
+    catalogue halves, and `artifact_items` gives the commitment to the gear row — so a
+    number here as well is a second copy that can drift, and the Skirmish Pike (whose
+    5 motes live in weapons.json) is exactly the row the backfill's parse would have
+    caught by accident."""
+    doubled = [a.name for a in rs.artifact_catalog.values()
+               if a.attunement > 0 and artifacts.gear_stat_line(rs, a.name)]
+    assert doubled == []
+
+
+def test_the_two_ruled_in_daiklave_costs(rs):
+    """⚠ Neither 5 is off a page. The Wavecleaver Daiklaive (Savage Seas p.126) and the
+    Direlance (core p.342's table) are daiklave-family weapons whose own pages print no
+    attunement cost, and the human ruled 2026-09-07 that they take the family's 5. Pinned
+    here because an inference from a sibling is the kind of value a later session
+    "corrects" — the notes on both rows say the same thing."""
+    assert rs.weapon_catalog["weapon.melee.wavecleaver-daiklaive"].attunement == 5
+    assert rs.weapon_catalog["weapon.melee.direlance"].attunement == 5

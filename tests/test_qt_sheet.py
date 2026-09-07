@@ -75,3 +75,18 @@ def test_sheet_page_reloads_from_context(qtbot, ruleset):
     char.name = "Second"
     page.reload()
     assert "Second" in page.view.toPlainText()
+
+
+def test_the_qt_sheet_marks_an_attuned_artifact(ruleset):
+    """The third sheet surface. All three read `attunement_mark`'s one string rather
+    than formatting their own — teaching one formatter a display fact and not its
+    siblings is how the panel and the dropdown ended up printing two different names
+    for one martial-arts style."""
+    from exalted_builder.models.character import Weapon
+    c = Character(id="c.qt", name="A", exalt_type="Solar", caste="dawn",
+                  essence_rating=3,
+                  weapons=[Weapon(name="Daiklave", artifact_rating=2, attunement=5,
+                                  attuned=True)])
+    assert "attuned · 5m" in sheet_html(build_sheet_view(ruleset, c))
+    c.weapons[0].attuned = False
+    assert "attuned · 5m" not in sheet_html(build_sheet_view(ruleset, c))

@@ -1578,9 +1578,9 @@
     "range": 0,
     "min_strength": 1,
     "artifact_rating": 2,
-    "attunement": 0,
+    "attunement": 5,
     "resources_cost": 0,
-    "notes": "Speed +6, Accuracy +2, Damage +5L, Defense +0, Minimum Strength •, Artifact •• (core p.342 Daiklave Table). Used as a lance (on a charge) it has Speed +14, Accuracy +1, Damage +3/+12L, Defense -1, Minimum Strength •• — the damage is +3 bashing normally and +12L on a charging strike. ⚠ Attunement cost is not printed on the table page and the weapon's description (core p.341) is not on disk — flagged; the catalogue entry for this artifact is blocked until that page lands. Uses Melee.",
+    "notes": "Speed +6, Accuracy +2, Damage +5L, Defense +0, Minimum Strength •, Artifact •• (core p.342 Daiklave Table). Used as a lance (on a charge) it has Speed +14, Accuracy +1, Damage +3/+12L, Defense -1, Minimum Strength •• — the damage is +3 bashing normally and +12L on a charging strike. ⚠ Neither the table page nor any page on disk prints its attunement cost; the 5 here is the daiklave family's number, ruled in by the human 2026-09-07 rather than read off a page. ⚠ Still separately blocked: the weapon's description (core p.341) is not on disk, so there is no artifact-catalogue entry for it. Uses Melee.",
     "tags": [
       "melee",
       "artifact"
@@ -1781,7 +1781,8 @@
     "defense": 1,
     "min_strength": 2,
     "artifact_rating": 2,
-    "notes": "The shortest of daiklaives, rarely over three feet of blade — made for belowdecks work. Two Hearthstone sockets. (Savage Seas, p.126)",
+    "attunement": 5,
+    "notes": "The shortest of daiklaives, rarely over three feet of blade — made for belowdecks work. Two Hearthstone sockets. (Savage Seas, p.126) ⚠ The page prints no attunement cost; the 5 here is the daiklave family's number, ruled in by the human 2026-09-07.",
     "tags": [
       "melee",
       "artifact"

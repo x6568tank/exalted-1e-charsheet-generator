@@ -14,6 +14,7 @@
     "id": "artifact.mountain-folk.hammerfist-bracer",
     "name": "Hammerfist Bracer",
     "rating": 1,
+    "attunement": 4,
     "description": "Bulky jade bracer (4 committed motes) that transmutes the arm below the elbow into indestructible stone until removed: the petrified fist parries lethal attacks without a stunt and inflicts +8L damage against animate targets (+10L against inanimate objects), at speed -2. Predominantly used as an excavation tool by Worker Caste miners.",
     "source": "The Mountain Folk (CH6) p.279",
     "tags": [
@@ -47,6 +48,7 @@
     "name": "Echo Jewel",
     "rating": 1,
     "rating_notes": "• or •••",
+    "attunement": 1,
     "description": "Crystal disk rimmed in jade: 1 committed mote links it to other echo jewels, relaying every vocal utterance within half a mile (50 yards above ground). Artifact ••• versions are four-foot disk arrays laid in a Manse's central chamber that transmit life-sized images to one another across up to (Manse rating × 1,000) miles.",
     "source": "The Mountain Folk (CH6) p.280",
     "tags": [
@@ -92,6 +94,7 @@
     "name": "Shieldstone Gauntlet",
     "rating": 2,
     "rating_notes": "•• or •••",
+    "attunement": 4,
     "description": "Fingerless glove (4 committed motes) that projects a luminous force shield (+2 to the difficulty of all attacks against the wearer) when the bearer presents the palm or back-of-hand stone. The Artifact ••• version can instead raise a freestanding wall of raw Essence with 3B/2L soak per mote spent.",
     "source": "The Mountain Folk (CH6) p.282",
     "tags": [
@@ -113,6 +116,7 @@
     "id": "artifact.castebook-dawn.shield-bracer",
     "name": "Shield Bracer",
     "rating": 2,
+    "attunement": 3,
     "description": "Single ornamented bracer that guides the wearer's arm to block missile and melee attacks: when activated it protects like a tower shield, reducing the successes of all melee attacks by -1 and all missile attacks by -2. The wearer cannot wear any other bracer but is not otherwise encumbered. Has a single Hearthstone setting; commits 3 motes.",
     "source": "Caste Book: Dawn p.78",
     "tags": [
@@ -153,6 +157,7 @@
     "id": "artifact.castebook-night.spider-grippers",
     "name": "Spider Grippers",
     "rating": 2,
+    "attunement": 3,
     "description": "Boots, gloves, elbow pads and kneepads that let the wearer cling to walls like a spider — walking up a wall at (Dexterity+12)/2 yards a turn, even sheer slick surfaces — and walk wet, mossy or narrow ledges without slipping. The wearer can fight without penalty while clinging and carry any weight she could normally carry. The pieces resize to fit; commit 3 motes.",
     "source": "Caste Book: Night p.79",
     "tags": [
@@ -163,6 +168,7 @@
     "id": "artifact.castebook-night.belt-of-shadow-walking",
     "name": "Belt of Shadow Walking",
     "rating": 3,
+    "attunement": 6,
     "description": "Night-black belt of giant-bat leather that thickens shadow around the wearer, raising the difficulty of all Perception + Awareness rolls to see or hear him by 2. Expending 5 motes while the sun is down transforms him into a shadow for a scene — slipping under doors and through the thinnest cracks, harmed only by sorcery, Charms or weapons of the Five Magical Materials, and leaving any carried living things behind. Commits 6 motes; no Hearthstone setting.",
     "source": "Caste Book: Night p.80",
     "tags": [
@@ -173,6 +179,7 @@
     "id": "artifact.castebook-night.circlet-of-spirits",
     "name": "Circlet of Spirits",
     "rating": 3,
+    "attunement": 3,
     "description": "A circlet formed of one of the Five Magical Materials, with a single Hearthstone setting, that lets the wearer see and hear all immaterial spirits. Its material adds a second property: orichalcum eases sensing spirits, moonsilver stealth from them, jade attacks and defenses against them, starmetal bargaining with them, and soulsteel makes the dead's attacks against the wearer more difficult. Commits 3 motes.",
     "source": "Caste Book: Night p.80",
     "tags": [
@@ -216,6 +223,7 @@
     "name": "Bracer of the Hawk",
     "rating": 2,
     "rating_notes": "•• per the page — human confirmed 2026-08-08; the guide lists •",
+    "attunement": 2,
     "description": "Single steel bracer, rarely found in pairs, with the image of a screaming bird of prey worked into it in one of the Five Magical Materials. The owner commits 2 motes to summon from it a hawk of pure Essence that serves at his command: the bird has the attributes of a strix (main rulebook p.317), a one-meter wingspan and a soak of 8L/12B, and can reenter the bracer on returning. If it is slain outside the bracer, the bracer becomes no more than useful armor and the hawk spirit is lost forever. The bracer has a setting for a single Hearthstone.",
     "source": "Caste Book: Twilight p.79",
     "tags": [
@@ -301,6 +309,7 @@
     "id": "artifact.castebook-twilight.scabbard-of-the-living-weapon",
     "name": "Scabbard of the Living Weapon",
     "rating": 3,
+    "attunement": 5,
     "description": "An elegantly worked sheath of red dragonskin and orichalcum, sized to fit a daiklave or reaver daiklave. Attuned with 5 committed motes, it is magically precisely the right size for its owner's blade and never needs cleaning or mending. While the daiklave is sheathed the wearer is invulnerable to all non-magical damage — weapons turn against his skin, clubs and rocks bounce off him, fires prove harmless — though magical weapons, Charms, attacks augmented by Charms, spells, glamour and similar directed uses of Essence still affect him. Drawing the weapon ends the protection.",
     "source": "Caste Book: Twilight p.80",
     "tags": [
@@ -354,6 +363,7 @@
     "id": "artifact.castebook-eclipse.players-mask",
     "name": "Player's Mask",
     "rating": 1,
+    "attunement": 1,
     "description": "Ornate theatrical masks used by Exalted actors in certain highly stylized styles of amphitheater performance in the First Age. Attuned and worn, a player's mask can switch between a comedy and a tragedy mask at will; some are also able to become an expressionless face and to vanish and reappear as the wearer wishes. Their real power is concealing the identity of the wearer, so that an audience sees only the role and not the actor. Committing 1 mote activates the mask; it adds two to the difficulty of rolls to discern the identity or motives of the wearer.",
     "source": "Caste Book: Eclipse p.79",
     "tags": [
@@ -375,6 +385,7 @@
     "id": "artifact.castebook-eclipse.seven-jeweled-peacock-fans",
     "name": "Seven-Jeweled Peacock Fans",
     "rating": 2,
+    "attunement": 2,
     "description": "Fine folding war-fans with leaves of orichalcum inlaid with gem-work in seven brilliant colors and engraved with fine traceries, wielded together as a pair. They have the same statistics as wind-fire wheels and require the same Abilities to wield them, and their construction grants +1 to Speed, Accuracy and Defense. Attuning the fans commits 2 motes of Essence.",
     "source": "Caste Book: Eclipse p.80",
     "tags": [
@@ -405,6 +416,7 @@
     "id": "artifact.castebook-eclipse.folding-ship",
     "name": "Folding Ship",
     "rating": 4,
+    "attunement": 4,
     "description": "A blue-water merchant (see Savage Seas, pp.56-57) with double masts and sails of the finest and strongest silk, able to sail on its own at the command of its owner without need for a crew — merely someone at the helm to direct it. At a command from its owner (who must commit 4 motes of Essence to attune it), the ship collapses in on itself, folding into a box of finely carved wood about a foot long and six inches tall and wide, and unfolds back into a ship on another command. A folding ship that spends a full day or night in box-form repairs all damage it has suffered. Still limited by needing a body of water to sail upon.",
     "source": "Caste Book: Eclipse p.81",
     "tags": [
@@ -603,6 +615,7 @@
     "id": "artifact.bone-ebony.storm-running-boots",
     "name": "Storm-Running Boots",
     "rating": 1,
+    "attunement": 3,
     "description": "Boots sewn from savanna lion skin and set with soulsteel rivets that draw on the raw energies of Underworld tempests. After committing 3 motes to attune, the wearer within an area being hit by a storm may run at full speed without growing tired and without being affected by the weather — but only while actually moving with the storm. The enchantment cannot be shared with others.",
     "source": "Book of Bone and Ebony p.62",
     "tags": [
@@ -669,6 +682,7 @@
     "id": "artifact.bone-ebony.bone-bridge",
     "name": "Bone Bridge",
     "rating": 2,
+    "attunement": 5,
     "description": "A chain of human vertebrae linked with dried sinew, flexible enough to wear as a belt. Once the owner attunes by committing 5 motes of Essence, she can cast it down over a river, chasm or soft ground and it grows into a curved bone bridge three feet wide spanning up to 100 yards. It stays solid until the owner places a hand on it and wishes it back to its smaller form — from either side, or even while standing on it.",
     "source": "Book of Bone and Ebony p.63",
     "tags": [
@@ -755,6 +769,7 @@
     "id": "artifact.bone-ebony.hairpin-blade",
     "name": "Hairpin Blade",
     "rating": 2,
+    "attunement": 5,
     "description": "A slender white-jade hairpin that is actually an artfully carved miniature model of a full daiklave. If its owner commits 5 motes of Essence, she can expand it to a full daiklave at a moment's notice — with all the normal statistics of a jade daiklave, though no sockets for Hearthstones — remaining at full size for the rest of the scene or until she shrinks it back.",
     "source": "Book of Bone and Ebony p.66",
     "tags": [
@@ -798,6 +813,7 @@
     "id": "artifact.bone-ebony.onyx-soul-window",
     "name": "Onyx Soul Window",
     "rating": 2,
+    "attunement": 5,
     "description": "A circular obsidian lens bound with crimson ribbons, set in front of one eye after a commitment of 5 motes. It provides automatic, constant use of the Spirit-Catching Eye Technique Arcanos and use at will of Sensing the Delicate Strands at the usual price. Its flaw: the wearer is always visible to other ghosts as though using Spirit-Catching Eye, however hard he conceals himself, unless he removes the window from his eye.",
     "source": "Book of Bone and Ebony p.67",
     "tags": [
@@ -810,6 +826,7 @@
     "name": "Patch Hide Armor",
     "rating": 2,
     "rating_notes": "•• usual; ••• without the Appearance penalty",
+    "attunement": 3,
     "description": "Ghost armor made by peeling skin from parts of the body and fastening raw spectre-hide in its place with soulsteel rivets. In return for a permanent commitment of 3 motes, the ghost gains a bonus of 6L/4B to any other soak she may have, most often at the price of a -2 Appearance penalty. Versions without the penalty are Artifact •••.",
     "source": "Book of Bone and Ebony p.67",
     "tags": [
@@ -927,6 +944,7 @@
     "id": "artifact.bone-ebony.bow-of-screaming-doom",
     "name": "Bow of Screaming Doom",
     "rating": 3,
+    "attunement": 7,
     "description": "A soulsteel long powerbow chased with screaming faces and twisted bodies; on attunement and commitment of 7 motes it functions as a soulsteel long powerbow. By spending 5 additional motes the wielder taints his next shot: if it slays the victim, he arises as an undead creature controlled by a hungry ghost — the physical statistics of the victim but an essentially animal intelligence — that obeys the wielder. Only one feral zombie per turn, and the possessed corpse deliquesces a day after combat.",
     "source": "Book of Bone and Ebony p.70",
     "tags": [
@@ -938,6 +956,7 @@
     "id": "artifact.bone-ebony.chart-of-the-final-lands",
     "name": "Chart of the Final Lands",
     "rating": 3,
+    "attunement": 5,
     "description": "A map penned on white grave-linen with ink from corpse-ashes, requiring an investment of 5 motes to attune. Unrolled with another 5 motes, it redraws itself in shadowy lines to show the owner's location at the center of a chosen scale, and can track other people given an arcane link (a body part, blood or an attuned artifact) unless the target is shielded by Celestial Circle magic or above. An arrow at the top of the map always points toward Stygia.",
     "source": "Book of Bone and Ebony p.71",
     "tags": [
@@ -949,6 +968,7 @@
     "id": "artifact.bone-ebony.the-codex-of-the-damned",
     "name": "The Codex of the Damned",
     "rating": 3,
+    "attunement": 5,
     "description": "A hefty tome of flayed human skin bound with soulsteel, inscribed in blood. After spending 5 motes to attune, the owner finds the secrets of Moliation, Pandemonium and Soulforging laid out before her — she automatically gains a dot in each of the three Craft Abilities (to a maximum of 3), extendable to a maximum of 5 in any Ability by sacrificing her Fetters. While attuned she is as bound by Oblivion as any wearer of grave-prison chains, and breaking attunement loses the dots without returning sacrificed Fetters.",
     "source": "Book of Bone and Ebony p.72",
     "tags": [
@@ -993,6 +1013,7 @@
     "id": "artifact.bone-ebony.girdle-of-skulls",
     "name": "Girdle of Skulls",
     "rating": 3,
+    "attunement": 5,
     "description": "An elegant ivory girdle laced with the hair of old women and clasped with soulsteel, studded with miniature skulls perfect in every detail; committing 5 motes makes it fit the wearer perfectly. On a word of command, a dozen skulls detach, grow to full human size and float around the owner, functioning much like the Dolorous Reflection spell — catching missiles in their teeth or deflecting them away, never hurling them back. They do not interfere with hand-to-hand combat and return at the owner's command or the end of the scene.",
     "source": "Book of Bone and Ebony p.73",
     "tags": [
@@ -1014,6 +1035,7 @@
     "id": "artifact.bone-ebony.hand-snare-chains",
     "name": "Hand Snare Chains",
     "rating": 3,
+    "attunement": 5,
     "description": "A fragile-seeming tangle of soulsteel chains worn as a bracelet that fits its owner perfectly after a commitment of 5 motes. At a moment's notice she can point at someone within 10 feet and the chains leap out to wrap around the victim, who may dodge with Perception + Dodge against the wielder's Dexterity + Occult. Once caught, the chains thicken to grave-prison size, immobilizing the victim and preventing him from spending Essence or using Arcanoi; they free their captive after an hour or whenever the wielder desires.",
     "source": "Book of Bone and Ebony p.73",
     "tags": [
@@ -1069,6 +1091,7 @@
     "id": "artifact.bone-ebony.razor-teeth",
     "name": "Razor Teeth",
     "rating": 3,
+    "attunement": 5,
     "description": "A necklace of carved soulsteel incisors that, placed against the wearer's mouth, painfully burrows into her gums, displacing her natural teeth with razor-edged soulsteel (5 motes permanently lost in attunement). It gives her a bite attack — Speed 5, Accuracy 5, Damage 5L — and lets her consume the flesh of enemies: for every five health levels of lethal damage consumed she gains a bonus of one die to her next Strength or Stamina roll, to a maximum of three dice, which cannot be saved beyond the end of the scene.",
     "source": "Book of Bone and Ebony p.75",
     "tags": [
@@ -1203,6 +1226,7 @@
     "id": "artifact.outcaste.ashigaru-battle-armor",
     "name": "Ashigaru Battle Armor",
     "rating": 2,
+    "attunement": 4,
     "description": "Lightweight First Age armor, equal in protection to a reinforced breastplate, whose design can still be produced today. It sharpens the wearer's senses (negating penalties for darkness less than 'utter blackness' and adding two dice to all Awareness pools), filters out poison and disease (+2 dice to Resistance pools, completely shielding the wearer from breathed toxins for up to an hour) and can camouflage the wearer (+2 dice to Stealth when moving, +3 when stationary). Mortals must spend one temporary Willpower to activate it (treated as committed, lowering maximum temporary Willpower) and age one extra week for every season or part of a season used; Exalts commit 4 motes with no other effect. Requires maintenance every 150 hours of operation.",
     "source": "The Outcaste p.50",
     "tags": [
@@ -1213,6 +1237,7 @@
     "id": "artifact.outcaste.reaper-daiklave",
     "name": "Reaper Daiklave",
     "rating": 2,
+    "attunement": 5,
     "description": "A great slashing sword — a perfectly balanced, four-foot-long, four-inch-wide, gently curved razor ground to a fine point — that favors speed and defense over raw striking power (Speed +5, Accuracy +3, Damage +4L, Defense +3). Requires 5 motes to attune. Popular among the Dragon-Blooded of Lookshy, who prefer its elegance and speed over the more common reaver or grand daiklaves.",
     "source": "The Outcaste p.51",
     "tags": [
@@ -1245,6 +1270,7 @@
     "name": "Elemental Lens",
     "rating": 3,
     "rating_notes": "A lens built into another artifact adds • to that artifact's rating if it starts below •••",
+    "attunement": 5,
     "description": "One of the more common weapons of the First Age, few survive outside of Lookshy; a lens can take many shapes, made as part of a glove or gauntlet or built into talismans, weapons or suits of armor. Requires 5 motes to attune (adding 2 motes to the attunement cost of an artifact it is added to). It amplifies the effects of a Dragon-Blooded's elemental attacks — Elemental Bolt Attack does 4L damage per mote invested, Elemental Burst Technique 3L per mote or increases damage radius by one yard, and Dragon Vortex Attack's radius or damage rises with motes spent above 10 — and can improve up to three Charms at the Storyteller's discretion, limited to straightforward elemental manipulations of Charms with Essence or Ability requirements no higher than 3.",
     "source": "The Outcaste p.52",
     "tags": [
@@ -1266,6 +1292,7 @@
     "id": "artifact.outcaste.fire-lance",
     "name": "Fire Lance",
     "rating": 3,
+    "attunement": 4,
     "description": "A refinement of the flame spear resembling a fairly conventional spear, once common and still numerous in the arsenals of Lookshy; it holds 20 motes of Essence. Charged with 1 mote, the head becomes wreathed in colorless flames that explode over a target when next successfully used to attack in melee; 2 motes disgorge streamers of colorless fire at a target; 5 motes spray the fire in an arc against up to three adjacent targets. Fire lances use Melee or Archery as appropriate and are compatible with Melee but not Archery Charms; an Exalt may attune for a 4-mote commitment and power it directly.",
     "source": "The Outcaste p.53",
     "tags": [
@@ -1276,6 +1303,7 @@
     "id": "artifact.outcaste.gunzosha-combat-armor",
     "name": "Gunzosha Combat Armor",
     "rating": 3,
+    "attunement": 5,
     "description": "The pinnacle of First Age artifacts designed for use by mortals, equivalent in protection to a suit of articulated plate. It conceals the wearer when desired (+4 dice to all Stealth pools), doubles ground speed, protects from diseases and poisons (+2 dice on all Resistance checks), recovers one bashing health level per turn, steadies the hand (+2 on all attacks and parries) and enhances strength (+2 Strength for purposes of damage and lifting). Before first donning, the wearer must undergo a month of rituals culminating in the implantation of amulets at major pulse points (Dexterity + Medicine, difficulty 3; the surgeon needs Medicine and Occult at ••• or higher), and while the amulets are implanted the wearer ages at twice the normal rate — the Seventh Legion requires that no gunzosha serve for more than a decade. Exalts commit 5 motes; requires maintenance every 100 hours of operation.",
     "source": "The Outcaste p.53",
     "tags": [
@@ -1296,6 +1324,7 @@
     "id": "artifact.outcaste.infinite-weapon",
     "name": "Infinite Weapon",
     "rating": 3,
+    "attunement": 6,
     "description": "A single weapon that replaces an arsenal, originally designed for those who wanted to travel light; in its normal state it resembles a mace with a perfectly spherical head of one of the Five Magical Metals. For the expenditure of 1 mote the wielder can shift it to any of about 10 distinct weapon forms (the weapon cannot be used in the turn it shifts); returning to its normal state is reflexive. It requires a commitment of 6 motes, and ammunition such as arrows must be supplied separately. Infinite weapons receive the Magical Material bonus of their composition.",
     "source": "The Outcaste p.54",
     "tags": [
@@ -1318,6 +1347,7 @@
     "name": "Crimson Armor of the Unseen Assassin",
     "rating": 5,
     "rating_notes": "•••••; •••• in a game without Sidereal astrology",
+    "attunement": 10,
     "description": "Prized and rare armor used by the most dangerous rangers — part armor, part concealment, and exceedingly dangerous: bright scarlet flowing robes and armor (Soak 8L/12B, +2 Strength) that obscure the wearer's form completely. It doubles all movement rates and adds four dice to the wearer's Stealth pool, applying to any means of detection and specifically bypassing any Charm or ability that negates magical invisibility; for 3 motes per scene this rises to +6 dice, rendering the wearer invisible to all but the most keen-eyed observers. It also adds 2 to Awareness, negates penalties for darkness and grants Essence sight at 2 motes per minute; for 5 motes the wearer can blur into an indistinct red shadow, reducing all actions against him by three successes (attacks and parries, not dodges). So long as it is worn the wearer is removed from destiny, untargetable by Sidereal astrology; it requires 10 committed motes, and there are warnings against wearing it too long, lest one's soul become permanently detached from destiny and the cycle of reincarnation.",
     "source": "The Outcaste p.59",
     "tags": [
@@ -1338,6 +1368,7 @@
     "id": "artifact.outcaste.warstrider-fire-lance",
     "name": "Warstrider Fire Lance",
     "rating": 4,
+    "attunement": 4,
     "description": "A warstrider-scaled version of the fire lance, intended to smash fortifications and troop units; this version carries only 10 motes of Essence. Spending 2 motes charges the head for melee use, 4 motes throws a streamer of colorless fire, and 10 motes throws a fire fan that affects an entire area rather than individual targets. Uses Melee or Archery as appropriate and is compatible with Melee but not Archery Charms; requires 4 committed motes.",
     "source": "The Outcaste p.59",
     "tags": [
@@ -1368,6 +1399,7 @@
     "id": "artifact.outcaste.manta",
     "name": "Manta",
     "rating": 5,
+    "attunement": 3,
     "description": "One of a family of similar-sized and -purposed medium transports in the Lookshy fleet: carved from a diamond the size of a building and given the shape of a giant faceted crystal with small wings on either side, over 60 feet long with a body nearly 12 feet wide. She can carry two warstriders as cargo or a talon of infantry for short distances; requires a crew of five including two Exalted, is powered by two Air Hearthstones (level 2 or higher) in sockets near the twin Essence furnaces, and each of the Exalts must commit 3 motes for the skyship to fly. Speed 5, Maneuver 1, Armor 15L/20B, armament of two fire lances, 40 health levels, Repair 3. A reliable craft requiring maintenance every 100 hours of flight, there are more craft like Manta in existence than any other type of flying craft save the chariot of the infinite heavens.",
     "source": "The Outcaste p.63",
     "tags": [
@@ -1399,6 +1431,7 @@
     "id": "artifact.outcaste.helm-of-hearts-desire",
     "name": "Helm of Heart's Desire",
     "rating": 5,
+    "attunement": 10,
     "description": "A precious First Age artifact constructed of all five types of jade, with the wheel itself of orichalcum and three moonsilver compasses set beside it — the first pointing toward the Elemental Pole of Earth at the heart of the Realm, the second toward the helmsman's desire, the third toward his worst nightmare. The owner must have the Helm set into his ship and attune it by committing 10 motes of temporary Essence; if unattuned, or if anyone else lays a hand on it, the wheel stays fixed and unmoving and the ship shudders, tears itself in two and sinks if out of sight of land. Once attuned it serves as a normal helm, and seeking a desired image costs 5 motes of temporary Essence a day: the Wyld opens before the ship and it sails the desired waters for a dozen hours before reemerging into more normal seas, navigation resolved with a Perception + Sail roll against difficulty 6. The Helm deals with desires and fantasies, not real things — it cannot magically transport the ship to a real location deliberately focused upon.",
     "source": "The Outcaste p.92",
     "tags": [
@@ -1420,6 +1453,7 @@
     "id": "artifact.outcaste.perfected-flame",
     "name": "Perfected Flame",
     "rating": 3,
+    "attunement": 5,
     "description": "Torches that begin as the horn of a Fair Folk cataphract's fell unicorn mount, suffused with liquid cold jade over the course of a year and tempered in the ashes of a burned-out star. Only those with the Glowing Coal Radiance Charm can attune a perfected flame to their anima, requiring a 5-mote commitment; it functions as a jade dire lance. If the character reverses the weapon and spends 5 motes, the thicker end ignites in a brilliant radiance lasting the remainder of the scene, and the character thereafter benefits from Glowing Coal Radiance — for each point of temporary Willpower spent, she can either extend the Charm's protection to one ally or add 1 to the difficulty of an opponent's reflexive Willpower tests against it. Blind opponents and opponents who close their eyes ignore the flame's abilities but suffer the normal penalty of two fewer successes on all attack rolls.",
     "source": "The Outcaste p.121",
     "tags": [
@@ -1440,6 +1474,7 @@
     "id": "artifact.outcaste.veil-of-the-anointed",
     "name": "Veil of the Anointed",
     "rating": 2,
+    "attunement": 1,
     "description": "Thin, nearly transparent veils that cling of their own volition when pressed against someone's face, without interfering with breath or sight — though others can no longer see the wearer's eyes, and orbs of brilliant light now seem set in that person's skull. A character who holds a veil for a day and commits 1 mote to it can remove it from others at will, merely gesturing for it to fly to his hand; others must succeed at a Willpower roll or spend a temporary Willpower point to remove it. Anyone wearing one perceives the perfected vision of Creation found in the Sea of Mind rather than its true form, but the veils permit any given person at most 28 visits to the Sea of Mind in his lifetime, each lasting up to a day and a night.",
     "source": "The Outcaste p.121",
     "tags": [
@@ -1484,6 +1519,7 @@
     "id": "artifact.rathess.thorn-thrower",
     "name": "Thorn Thrower",
     "rating": 3,
+    "attunement": 6,
     "description": "A thin flexible branch four feet long holding many large thorns; committing 6 motes lets the user coil it into a six-inch coil carried on a belt. Flicked like a whip, it throws large thorns coated with azure sap that promotes blood loss, or can be used like a short whip in close combat. Thrown use: Acc +3, 8L, Rate 2, Range 20; like a target arrow it is armor-piercing, and anyone wounded loses one health level every 10 turns due to bleeding, with all attempts to stop it at +1 difficulty. Hand-to-hand: Speed +4, Acc +2, +6L, Def +3, Min D•••. Each ranged attack costs 1 additional mote.",
     "source": "Ruins of Rathess p.83",
     "tags": [
@@ -1547,6 +1583,7 @@
     "id": "artifact.rathess.healing-orchid",
     "name": "Healing Orchid",
     "rating": 2,
+    "attunement": 4,
     "description": "A finger-thick vine encircling the wearer's arm, bearing several dozen thumb-sized leaves and half a dozen emerald-green flowers, that lets the wearer heal far faster than normal. Exalts wearing it heal one level of bashing damage per hour or one level of lethal damage every three hours, and roll two additional dice to resist poison, disease or infection. Dragon Kings and Exalts must commit 4 motes of Essence to keep it healthy; mortal humans must instead eat three times as much food whenever it is active, and unExalted wearers need a Stamina of at least 4 to support it.",
     "source": "Ruins of Rathess p.82",
     "tags": [
@@ -1589,6 +1626,7 @@
     "id": "artifact.rathess.lizard-tail-regrowth-sphere",
     "name": "Lizard Tail Regrowth Sphere",
     "rating": 4,
+    "attunement": 10,
     "description": "A glittering green globe laced with red stripes and full of warm, translucent green slime. Those placed within it heal at 20 times the normal rate, whether lethal or bashing, and regrow lost limbs and appendages as if under the effects of Bodily Regeneration Prana: small appendages take (10 - Stamina) days, minimum 1, and limbs take (21 - Stamina) days, minimum 3. Proper use requires at least 1 dot of Medicine (3 dots to regenerate a limb); the technician commits 10 motes, and each activation consumes a one-use tube of herbal and alchemical reagents costing Resources •••.",
     "source": "Ruins of Rathess p.87",
     "tags": [
@@ -1693,6 +1731,7 @@
     "id": "artifact.autochthonians.omnimodal-wardrobe-unit",
     "name": "Omnimodal Wardrobe Unit",
     "rating": 1,
+    "attunement": 1,
     "description": "An entire wardrobe compressed into a single garment, appearing by default as a basic citizen uniform of artificial silk that is unusually light, glossy oil black and faintly iridescent, with a fine lattice of moonsilver wires. Attuned for 1 committed mote, it changes form with a thought: each change is a reflexive action costing 1 mote, as hundreds of thumbnail-sized spider automata weave and transmute the fibers into the new template in a single turn, also cleaning and repairing any damage. It can become any clothing type from a single glove to a full outfit; in all forms it is unusually durable (+1L soak, not armor or natural soak, cumulative with armor), but it can only become clothes, never actual armor.",
     "source": "The Autochthonians p.184",
     "tags": [
@@ -1745,6 +1784,7 @@
     "id": "artifact.autochthonians.industrial-exoskeleton",
     "name": "Industrial Exoskeleton",
     "rating": 3,
+    "attunement": 8,
     "description": "A humanoid frame of steel and magical alloys close to 12 feet tall, covered in plates of armor over clockwork machinery, with long four-part vice pincer arms and articulated plate claws. A human or Essence 2-3 Alchemical climbs in; after a wire filament threads up into her brain, committing 8 motes (or 2 Willpower for beings unable to channel Essence) makes the exoskeleton an extension of her body. It adds 12 to Strength for lifting, breaking and strength-based damage, and counts as armor with soak 12L/12B (hardness 6L/6B), mobility penalty -8 and fatigue 2 (lighter unarmored models: soak 6L/6B, mobility -3, fatigue 1); heavily armored models halve the user's ground speed and cannot jump or climb. Requires a two-dot Essence capacitor installed to function at all.",
     "source": "The Autochthonians p.187",
     "tags": [
@@ -1758,6 +1798,7 @@
     "rating": 1,
     "description": "A light armor of high-quality fiber-weave threaded with a lattice of wires or embedded nodes of Magical Materials, extremely supple and thin and roughly equivalent to an enchanted chain shirt. It requires a commitment of 3 motes and is intended for discreet or covert situations, since it can be worn under normal clothes. Lethal piercing attacks based on actual kinetic penetration do not halve the armor's soak unless the raw damage is at least twice the base lethal soak. Artifact •• versions also incorporate all the properties of an omnimodal wardrobe unit except its soak bonus, with the same 3-mote attunement.",
     "rating_notes": "• or ••",
+    "attunement": 3,
     "source": "The Autochthonians p.189",
     "tags": [
       "armor",
@@ -1768,6 +1809,7 @@
     "id": "artifact.autochthonians.gyroscopic-chakram",
     "name": "Gyroscopic Chakram",
     "rating": 3,
+    "attunement": 5,
     "description": "Six-inch metal disks with five holes spread for gripping, the most widely used and feared thrown weapons of the Alchemical Exalted, normally carried strapped to the small of the back or the side of the thigh. Hurled by an attuned owner (5-mote commitment), clockwork deploys a ring of three-inch blades that spin at high velocity and the disk banks to follow its quarry: if it misses due to a dodge or parry it swoops back for another attempt on the following turn, acting at initiative 20 with a pool of 10 dice until it hits or botches, then arcs back to its owner's hand at the end of the turn. Additional powers depend on the Magical Material used to make it, and the disks can also be used in close combat as saws.",
     "source": "The Autochthonians p.189",
     "tags": [
@@ -1780,6 +1822,7 @@
     "id": "artifact.autochthonians.beam-klave",
     "name": "Beam-Klave",
     "rating": 4,
+    "attunement": 3,
     "description": "The signature melee weapons of the Alchemical Exalted: unassuming cylinders of reinforced alloys and Magical Materials tipped with a small crystal spike, most between 9 and 12 inches long. Once attuned for a commitment of 3 motes, an additional 5 motes per scene extends a blade of glowing Essence from the jewel to an average length of three feet, combining heat and pure force; the blade can set flammable objects alight and emits a flickering light comparable to a torch, its color depending on the Magical Material. Active beam klaves have the same statistics and Magical Material benefits as daiklaves, and if a parry against a non-magical weapon achieves any successes, the parried weapon is destroyed by the heat and focused energy of the klave.",
     "source": "The Autochthonians p.190",
     "tags": [
@@ -1801,6 +1844,7 @@
     "id": "artifact.players-guide.bracer-of-crystal-bolts",
     "name": "Bracer of Crystal Bolts",
     "rating": 2,
+    "attunement": 4,
     "description": "A large bracer of clear rock crystal set with orichalcum inlays, holding two bolts also made of enchanted rock crystal that the wearer can fire with a thought; spending 1 mote draws the bolts back to the weapon. If either bolt is damaged or broken it repairs itself within a few hours. Committing 4 motes activates the bracer, resizes it to fit and allows the wearer to fire it, after which it can only be removed by the wearer or upon her death; it has a setting for a single Hearthstone. It uses the Thrown Ability, to which Thrown Charms apply: Acc +2, 6L (armor-piercing), Rate 2, Range 100.",
     "source": "Player's Guide p.193",
     "tags": [
@@ -1812,6 +1856,7 @@
     "id": "artifact.players-guide.fire-claw",
     "name": "Fire Claw",
     "rating": 2,
+    "attunement": 5,
     "description": "An orichalcum bracelet set with a large red stone that fits perfectly on the wrist of a Dragon King and is not uncomfortable worn by an Exalt. Expend 2 motes to make a curving blade of golden sunfire spring forth and arc in front of the wearer's hand (a diceless reflexive action); the claw endures for one full scene and can be made to exist indefinitely for 2 motes per scene. A wearer must commit 5 motes of Essence to use it, and it contains a setting for a single Hearthstone. It is wielded with the Melee Ability and cannot be used as a claw-type weapon for the purposes of Tiger Style or Lunar natural fighting techniques. Stats: Spd +2 (+3 for a Dragon King or Solar), Acc +2 (+3), +5L, Def +1 (+2), Min S••, D•••.",
     "source": "Player's Guide p.193",
     "tags": [
@@ -1823,6 +1868,7 @@
     "id": "artifact.players-guide.swordstick",
     "name": "Swordstick",
     "rating": 1,
+    "attunement": 4,
     "description": "A long, flat club of semi-living wood with a row of iron-hard thorns along either side, just like the teeth in the jaws of a sawfish; the Dragon Kings' vegetative technology grows low bushes that produce a cluster of three or four swordsticks every two years. Empowered with 4 motes of committed Essence it comes to life: the thorns ooze a sap that makes all wounds exceptionally painful (+1 wound penalties for the rest of the scene, once per scene) and the club-like blade bends itself to the user's will, aiding his attacks. Stats: Spd +2, Acc +1, +5L, Def +1, Min S•••.",
     "source": "Player's Guide p.193",
     "tags": [
@@ -1834,6 +1880,7 @@
     "id": "artifact.players-guide.crystal-warclub",
     "name": "Crystal Warclub",
     "rating": 3,
+    "attunement": 6,
     "description": "A flattened angular club of smoky quartz set with a single row of bright ruby crystals on both of its two blade-like edges. When activated by spending 2 motes of Essence, a triangular blade of glowing energy issues from each crystal and remains for the next full scene. Anyone who wields the club must also commit 6 motes of Essence to it. Stats: Spd +3 (+4 for a Dragon King or Solar), Acc +2 (+3), +9L (+10L), Def +0, Min S•••, D•••.",
     "source": "Player's Guide p.194",
     "tags": [
@@ -1845,6 +1892,7 @@
     "id": "artifact.players-guide.necklace-of-solar-charisma",
     "name": "Necklace of Solar Charisma",
     "rating": 3,
+    "attunement": 3,
     "description": "A necklace of golden circular crystals connected by slender orichalcum chains. When the wearer attunes it by committing 3 motes of Essence, he becomes infused with a small fraction of the Unconquered Sun's majesty: three dice on all Charisma and Appearance rolls, and everyone with a permanent Essence less than the wearer's regards him as attractive and not in any way odd or disturbing (a Dragon King would be a cause for wonder, not of fear or disgust). It has a setting for a single Hearthstone; its crystals are inscribed with images of the Unconquered Sun, and loyal followers of the Immaculate Dragons would never consider wearing it.",
     "source": "Player's Guide p.194",
     "tags": [
@@ -1876,6 +1924,7 @@
     "id": "artifact.players-guide.obsidian-sheath",
     "name": "Obsidian Sheath",
     "rating": 4,
+    "attunement": 6,
     "description": "A lightweight suit of articulated plate made from a glassy yet flexible black stone, similar in appearance to obsidian and trimmed with orichalcum; it provides the orichalcum Magical Material bonus when attuned by a Solar or a Dragon King. When worn by a living creature who expends 6 motes of Essence to attune to it, the armor bonds with its user, acting like a second skin. It has soak 8/8, mobility penalty -0 and fatigue 1, and raises the wearer's Strength to 8 (or by +2 if it is already 8 or greater). Very tough and maneuverable, it is associated with service to the Unconquered Sun and has a hardness of 4 (half its lethal soak).",
     "source": "Player's Guide p.195",
     "tags": [
@@ -1954,6 +2003,7 @@
     "id": "artifact.core.dragon-tear-tiara",
     "name": "Dragon Tear Tiara",
     "rating": 2,
+    "attunement": 2,
     "description": "Tiaras and circlets forged from all the Magical Materials, each with a setting for a Hearthstone located directly over the character's Caste Mark. They require the commitment of 2 motes of Essence to activate the Hearthstone and the tiara's own powers. When activated, a tiara adds 1 die to the character's Perception for normal perception rolls, a bonus that increases to 3 dice when she performs geomancy, astrology, detects spirits or otherwise attempts tasks requiring occult sensitivity.",
     "source": "Core p.337",
     "tags": [
@@ -1976,6 +2026,7 @@
     "id": "artifact.core.hearthstone-amulet",
     "name": "Hearthstone Amulet",
     "rating": 1,
+    "attunement": 1,
     "description": "Amulets forged from the Five Magical Materials but too small to provide special benefits based on their material, each with a setting for a single Hearthstone. A character wearing such an amulet against her skin gains the basic benefits of a Hearthstone — the ability to regain Essence more quickly. Committing 1 mote of Essence makes the amulet resonate and activates the Hearthstone; if the amulet is removed, the benefit dissipates.",
     "source": "Core p.337",
     "tags": [
@@ -2009,6 +2060,7 @@
     "id": "artifact.core.hearthstone-bracers",
     "name": "Hearthstone Bracers",
     "rating": 2,
+    "attunement": 4,
     "description": "A pair of bracers, one with a setting for a single Hearthstone and the other imbued with magical power, providing powerful defensive bonuses that only work for an Exalted of the appropriate type. They require the commitment of 4 motes of Essence (2 for each bracer) and will not activate unless worn as a pair. The bonus depends on the material: orichalcum adds 2 to all attack damage, moonsilver adds 2 to lethal soak, jade adds 2 to base initiative, starmetal adds 1 to weapon attack, defense and initiative rolls, and soulsteel decreases a target's soak by 2 against the Abyssal's attacks, never below 0.",
     "source": "Core p.338",
     "tags": [
@@ -2032,6 +2084,7 @@
     "id": "artifact.savant-sorcerer.collar-of-dawns-cleansing-light",
     "name": "Collar of Dawn's Cleansing Light",
     "rating": 1,
+    "attunement": 1,
     "description": "A piece of neck jewelry — studded bands, chokers, collars, torcs or delicate necklaces — that keeps the wearer clean inside and out, negating all penalties to Social rolls that would be applied for being dirty or unkempt. Attuning to the collar extends its powers beyond the Exalt's clothing to her physical body, and its cleansing light adds two dice to Resistance rolls against disease or poison. The collar requires the commitment of 1 mote of Essence to become active.",
     "source": "Savant and Sorcerer p.40",
     "tags": [
@@ -2044,6 +2097,7 @@
     "id": "artifact.savant-sorcerer.mask",
     "name": "Mask",
     "rating": 2,
+    "attunement": 5,
     "description": "Seemingly plain ivory face masks that have played an important part in Exalted political and emotional intrigues since the First Age. A mask allows an Exalt to alter her appearance to look like anyone she wishes and completely control the emotions her face shows, adding four dice to her Intelligence + Larceny pool for any attempt at disguise. Once attuned, at the normal cost of 5 motes for a Level •• item, it also grants an extra four dice to any attempt to misdirect another as to the wearer's true motives, such as during certain Presence, Socialize and Bureaucracy rolls.",
     "source": "Savant and Sorcerer p.41",
     "tags": [
@@ -2056,6 +2110,7 @@
     "id": "artifact.savant-sorcerer.ring-of-being",
     "name": "Ring of Being",
     "rating": 4,
+    "attunement": 15,
     "description": "Rings made by the great Twilight artificer Jervon during the height of the First Age, each a pure and perfect representation of the Magical Material from which it was made. No magic or power of the dead, the Fair Folk, demons, spirits or the Wyld can affect the wearer's innate form or mind — no Charm can change her, no spell addle her mind, and no demon may claim her soul while she is attuned. Attunement is costly: 15 motes must be invested, and only an Exalt can attune to a ring made of the appropriate Magical Material.",
     "source": "Savant and Sorcerer p.41",
     "tags": [
@@ -2076,6 +2131,7 @@
     "id": "artifact.savant-sorcerer.soul-mirror",
     "name": "Soul Mirror",
     "rating": 5,
+    "attunement": 8,
     "description": "A soulsteel grand daiklave forged by the Lover Clad in Raiment of Tears, sharing a grand daiklave's statistics and attunement cost, with an additional Hearthstone setting on the handle (four total). On striking an opponent it drains one point of temporary Willpower and a number of motes of Essence equal to its wielder's permanent Essence, half (rounded down) passed to the bearer. When it takes a life the victim's ghost is drawn into the blade rather than passing to the Underworld, and the wielder may consume a contained soul to add 1 to the weapon's speed, accuracy and damage for seven days, up to four souls at a time. Those who face it in battle must succeed at a Willpower roll — difficulty 4 for mortals, 3 for Exalted and other magical beings, 2 for Solars or Abyssals — or suffer a four-die penalty to attack rolls.",
     "source": "Savant and Sorcerer p.43",
     "tags": [
@@ -2451,6 +2507,7 @@
     "id": "artifact.botc.wedding-bands",
     "name": "Wedding Bands",
     "rating": 1,
+    "attunement": 1,
     "description": "Paired rings made for a Solar and Lunar marriage — orichalcum for the Lunar, moonsilver for the Solar — each partner committing one mote at the ceremony that cannot be regained until the spouse's death. Both wearers feel the other's emotional state and gain four additional dice on Social or Perception rolls dealing with the partner. The orichalcum ring adds two dice to track the spouse through any terrain without penalty; the moonsilver ring grants two additional bashing and lethal soak.",
     "source": "Book of Three Circles p.92",
     "tags": [
@@ -2462,6 +2519,7 @@
     "id": "artifact.botc.horn-of-the-ways",
     "name": "Horn of the Ways",
     "rating": 2,
+    "attunement": 5,
     "description": "A horn taken from a beast of the Wyld and inlaid with moonsilver; blowing it makes a mournful howl and opens a path that did not exist before and vanishes shortly after the Exalt follows it. Use commits 5 motes until the destination is reached. In the wilderness it adds +4 dice to Survival rolls to travel between locations or escape an area and eliminates all penalties for adverse conditions; used against an impassable barrier such as a fortress wall it adds +4 dice to Larceny rolls to open doors or passages and eliminates penalties for lacking tools.",
     "source": "Book of Three Circles p.93",
     "tags": [
@@ -2473,6 +2531,7 @@
     "id": "artifact.botc.thunderbolt-shield",
     "name": "Thunderbolt Shield",
     "rating": 2,
+    "attunement": 5,
     "description": "An enchanted target shield that adds 2 to the difficulty of melee or ranged attacks against its bearer and causes no mobility penalty, for 5 committed motes — doubled if its material is dissimilar to the wielder's type; otherwise it works as a normal target shield. Orichalcum and soulsteel shields raise the difficulty by 3 rather than 2; moonsilver subtracts 1 from any mobility penalty the user suffers; jade adds +2 soak; and starmetal subtracts one success from damage rolls inflicted on a Sidereal carrying it, cumulative with starmetal armour.",
     "source": "Book of Three Circles p.93",
     "tags": [
@@ -2485,6 +2544,7 @@
     "id": "artifact.botc.traveler-s-staff",
     "name": "Traveler's Staff",
     "rating": 2,
+    "attunement": 5,
     "description": "A gnarled branch from an ancient tree, usable as a normal quarterstaff, though that is not its purpose. Planted into the earth at sunset for 5 committed motes it grows into a full-size fruit tree — usually apple — bearing enough ripe fruit to feed the Exalt and several companions for the evening, and its branches yield readily burning firewood. Come morning she cuts a large branch to replace the original staff; the tree dies and rots away, leaving no sign by sunset, and the Essence is released.",
     "source": "Book of Three Circles p.94",
     "tags": [
@@ -2496,6 +2556,7 @@
     "id": "artifact.botc.blood-seed",
     "name": "Blood Seed",
     "rating": 3,
+    "attunement": 10,
     "description": "A fist-sized hollow acorn with a razor-edged hole: the Exalt cuts a finger on it and fills it with blood, taking one health level that cannot be soaked or reduced, then commits 10 motes and sprinkles the blood over an area in a line, circle or similar shape. Over five turns, one armed and armoured elite trooper rises per turn from the marked ground; they are never treated as extras and return to the earth at the end of the scene. The seed forges no anima bond, so a mismatched Magical Material costs nothing extra. Orichalcum seeds add a dot to each Physical Attribute; moonsilver gives bestial soldiers whose fists do one extra point of lethal damage and who can follow a scent trail; jade adds +3 soak; starmetal adds three initiative and two to all attack and defense; soulsteel animates the dead, ignoring wound penalties and adding three health levels.",
     "source": "Book of Three Circles p.94",
     "tags": [
@@ -2592,6 +2653,7 @@
     "id": "artifact.aspect-air.dragonflys-ranging-eye",
     "name": "Dragonfly's Ranging Eye",
     "rating": 1,
+    "attunement": 1,
     "description": "A simple item resembling a jeweler's lens on a loop, meant to be worn over one eye. While attuned and worn, the user enjoys both her normal field of vision and an additional point of view located anywhere within Essence x 20 yards of her person, so long as it is within her line of sight. Having two separate points of perception is confusing, so all Perception rolls are made at +1 difficulty. Attunement costs 1 mote.",
     "source": "Aspect Book: Air p.75",
     "tags": [
@@ -2626,6 +2688,7 @@
     "id": "artifact.aspect-air.veil-of-privacy",
     "name": "Veil of Privacy",
     "rating": 1,
+    "attunement": 1,
     "description": "A favourite of those who by choice or circumstance often deal with sensitive matters in social environments. Made in a variety of materials and styles, which periodically go in and out of fashion. Besides the mundane effect of foiling lip-readers, a veil of privacy puts any who would spy or eavesdrop on the character at +2 difficulty to do so. Attunement costs 1 mote.",
     "source": "Aspect Book: Air p.76",
     "tags": [
@@ -2637,6 +2700,7 @@
     "id": "artifact.aspect-air.windslave-disk",
     "name": "Windslave Disk",
     "rating": 1,
+    "attunement": 3,
     "description": "A common First Age item, these flat jade-alloy disks are still in common use all over the Realm and are manufactured in limited numbers even today. By attaching a disk to a non-living object and committing 3 motes, the disk invests the object with Essence resonant of air, effectively making it lighter: a windslave disk reduces the weight of an object by half or by 500 pounds, whichever is lesser. Attaching multiple windslave disks to one object has no effect.",
     "source": "Aspect Book: Air p.76",
     "tags": [
@@ -2649,6 +2713,7 @@
     "id": "artifact.aspect-air.essence-union-dart",
     "name": "Essence Union Dart",
     "rating": 2,
+    "attunement": 2,
     "description": "A barbed dart that exploits the connection between an Exalt and the Essence he commits to an artifact, designed to forge a strong bond with whoever attunes to it. After successfully attacking with an Essence union dart, the character may use the link between herself and the dart to make further ranged attacks against that target with other weapons; such attacks ignore penalties for cover or concealment and increase the target's dodge difficulty by an amount equal to the attacker's Essence. The effects persist for a number of hours equal to the attacking character's permanent Essence. Essence union darts use the statistics for throwing knives but have a base damage of 0L. Attunement costs 2 motes.",
     "source": "Aspect Book: Air p.76",
     "tags": [
@@ -2672,6 +2737,7 @@
     "id": "artifact.aspect-air.lightning-box",
     "name": "Lightning Box",
     "rating": 2,
+    "attunement": 3,
     "description": "A sturdy glass box containing a metallic helix within several brass armatures. The helix is constructed of layer upon layer of various metals and pale-blue/purple jade, each material gathering the ambient Essence of lightning from a one-mile radius and shunting it into the next, until the ambient energy of storms is spun out through copper plates on the back of the box and into the attuned bearer. A character commits 3 motes to attune and must wear it on his person or attach it to his armor. He is immune to all electrical damage, and all lightning in a one-mile radius will move to strike him. An Aspect of Air wearing a lightning box recovers Essence as if he were in a meditative state, but only during electrical storms. Requires maintenance by a character with Occult 3, Lore 3 and an appropriate Craft 2 after every 90 days of daily wear; the service needs at least a professional field toolkit with tools valued at Resources 2 and consumes Resources 2 worth of trace jade and other common materials.",
     "source": "Aspect Book: Air p.76",
     "tags": [
@@ -2720,6 +2786,7 @@
     "id": "artifact.aspect-air.reaver-dragonfly",
     "name": "Reaver Dragonfly",
     "rating": 4,
+    "attunement": 4,
     "description": "An autonomous killing device, uncommon even before the Usurpation and in the Second Age more often seen in family museums than on the battlefield, its high maintenance requirements limiting its usefulness to non-savants. Similar to a larger version of the automaton assassin, it is thought of as weapon-jewelry that got too large for stealth, and all are incredibly ornate examples of the death-dealing arts: a metallic flying insect about three feet long, more like a wasp than a dragonfly, with a long metallic stinger and many long razor-tipped legs. It must be attuned to the Exalt who commands it, whereupon it hovers above and slightly behind him, ready to strike at his foes. Attunement costs 4 motes and reduces the motes the character regains per hour by 4; if he does not regain 4 or more motes per hour, the dragonfly drains what it needs from his Essence pools until it taps them out and becomes inactive or he shuts it down. It also requires 30 minutes of maintenance by a character of Lore 3 for every 24 hours of operation, with reagents and repair parts costing Resources 2 per day, available only in large cities or from a savant with a chemistry works. Reaver dragonflies are intelligent in a limited way — tremendously good at hunting and killing, but unable to speak and with no interests or personality — and will not go more than (100 x the attuned character's permanent Essence) yards from that character. They can track, but are not supernatural trackers.",
     "source": "Aspect Book: Air p.81",
     "tags": [
@@ -2744,6 +2811,7 @@
     "name": "Cache Egg",
     "rating": 1,
     "rating_notes": "• to ••• — the size of the egg sets the rating: • up to six inches, •• up to two feet, ••• up to four feet",
+    "attunement": 1,
     "description": "A simple vessel of jade with the texture and shape of a large egg. Larger models probably existed but were never popular or widely manufactured. Attuning requires a number of motes equal to its Artifact rating; the eggs are specifically designed to be compatible with all Exalted and do not impose the usual doubled mote commitment for non-Terrestrials. An attuned owner can open or close a cache egg with a touch, opening as much as half the shell from any desired point, and the hollow interior gives storage appropriate to its size. Once sealed shut, a cache egg may be banished or summoned as an automatic dice action for 1 mote. Banished eggs remain attuned to their owners indefinitely as they fade into the Essence of the world, unreachable by anyone save their owners as they simultaneously exist everywhere, nowhere and Elsewhere. Celestial Exalted can sometimes recall an egg banished and lost by a previous incarnation, but this requires substantial effort, a mote of Essence and an Intelligence + Occult roll at difficulty 6. Characters may not voluntarily withdraw Essence committed to a banished cache egg.",
     "source": "Aspect Book: Earth p.79",
     "tags": [
@@ -2756,6 +2824,7 @@
     "id": "artifact.aspect-earth.hearthstone-compass",
     "name": "Hearthstone Compass",
     "rating": 1,
+    "attunement": 2,
     "description": "A three-inch-diameter sphere of jade and adamant whose concentric rings spin and move in three dimensions as if of their own volition. Attunement costs 2 motes. It serves two functions. In its default state it allows any attuned user with Essence sight — such as through All-Encompassing Sorcerer's Sight or similar magic — to perceive a thread of light leading toward the central chamber of the nearest Manse, the thread ending at the exact spot where the Manse's Hearthstone forms. Alternately, an attuned user can press the correct series of pressure plates to make it unfold and open, requiring an Intelligence + Lore roll at standard difficulty; a Hearthstone may then be placed inside and the device closed, and the user can perceive the thread of Essence leading back to that Hearthstone's own Manse regardless of the distance separating the gem from its source. This lets treasure hunters locate abandoned and ownerless Manses from a 'useless' Hearthstone found set in the socket of an artifact.",
     "source": "Aspect Book: Earth p.79",
     "tags": [
@@ -2781,6 +2850,7 @@
     "name": "Perfected Kata Bracers",
     "rating": 4,
     "rating_notes": "•••• for a pair",
+    "attunement": 8,
     "description": "Matched bracers with the appearance of prayer strips coiled around the wearer's wrists and forearms, fine calligraphy etched in Old Realm along the metal or stone revealing sutras of martial wisdom, each coil carrying a setting for a single Hearthstone on the back of the wrist. Attuned for 8 motes, the paired bracers augment any Form-type Charm the wearer activates, ribbons of light uncoiling and swirling around the martial artist; the ribbons vanish within seconds but their power remains as long as the character continues to use the augmented Form. The augmentation adds the character's permanent Essence to the accuracy, damage and defense of all her unarmed Martial Arts attacks — attacks made with weapons permitted by the style of the augmented Form are also considered unarmed — and she may choose whether to inflict bashing or lethal damage with any of these strikes. Further benefits depend on the Magical Material used. Jade: add her Essence rating to her natural bashing and lethal soak and to the speed modifier of all her unarmed Martial Arts attacks. Moonsilver: the Lunar strikes from unexpected angles, opening new possibilities for stunts and reducing the penalty for unarmed Martial Arts attacks against opponents protected by shields or cover by the attacker's Essence. Orichalcum: all unarmed Martial Arts attacks against demons, ghosts and the walking dead inflict additional dice of aggravated damage equal to the Exalt's permanent Essence, applied separately after the normal damage. Soulsteel: if the deathknight's unarmed Martial Arts attacks cumulatively inflict more levels of damage to a mortal victim in a single turn than her Stamina, the victim dies at the end of the turn; Exalted and other magical beings are immune. Starmetal: reduces the Essence cost of Martial Arts Charms of the same style as the augmented Form by 3 motes, never below 1, and not cumulative with a student's sutra or elder sutra for a secret style.",
     "source": "Aspect Book: Earth p.80",
     "tags": [
@@ -2793,6 +2863,7 @@
     "name": "Dueling Torcs",
     "rating": 3,
     "rating_notes": "••• for a pair",
+    "attunement": 1,
     "description": "Somewhat common during the Dragon-Blooded Shogunate, these paired collars of white jade enforced duels in which Charms were banned in favour of pure physical prowess and skill. Both opponents place the collars on their necks and close the iron clasp at their throats; the clasp will not lock until the wearer willingly commits a mote of Essence. As soon as both clasps lock the torcs activate together: all ongoing Charms that are not permanent enhancements abruptly end, and the wearers become incapable of using Charms, casting sorcery, using anima powers or employing any other effect that involves or requires Essence. The dampening lasts only as long as both torcs remain within 100 yards of one another — journeying beyond this range causes both collars to unlock and fall off automatically, as does the death of either wearer. A third party with a higher permanent Essence than both wearers can touch either collar and spend a mote to unlock both, a safety precaution for emergencies rather than a common-use function. Dueling torcs cannot suppress the powers of beings with permanent Essence 6 or greater; the clasps simply refuse to lock shut on such mighty beings. Any artifact that could restrain the Essence of elder Exalted and gods willing to permit voluntary suppression would be Artifact •••• at minimum.",
     "source": "Aspect Book: Earth p.81",
     "tags": [
@@ -2804,6 +2875,7 @@
     "id": "artifact.aspect-earth.emerald-thurible",
     "name": "Emerald Thurible",
     "rating": 5,
+    "attunement": 8,
     "description": "A horrific relic in the form of an incense burner sculpted from mottled green crystal — any educated demonologist recognizes the shade as the very colour of the mad green sun shining on the Demon City of Malfeas. Exalted or God-Blooded with access to Essence must commit 8 motes to attune it, while mortal users instead commit two points of temporary Willpower and a lethal health level that does not heal for the duration of the commitment. Once attuned, it allows any Celestial Exalt to cast Demon of the First Circle, Demon of the Second Circle and Demon of the Third Circle as though she were a sorcerer who knew those spells; Terrestrial Exalted and Dragon Kings are limited to the first two Circles, while God-Blooded and mortals can cast only Demon of the First Circle. The bearer need not learn the spells or the sorcery Charms enabling their use, nor meet the Trait prerequisites normally associated with that level of sorcery. It also allows users to convert blood sacrifices into motes for powering demon-summoning spells and weakening summoned demons during binding: each lethal health level of human blood spilled by the bearer as a dedicated sacrifice counts as 1 mote, so butchered extras offer only 3 motes. Sacrifices may be performed and banked to provide a phantom Essence pool, but the pool depletes each day at sunrise. Mortals without Essence pools can only summon and bind demons with the Thurible by using sacrifices. If copies exist besides the one hanging from Mnemon's belt, they remain well hidden in the tombs and towers of First Age sorcerers.",
     "source": "Aspect Book: Earth p.81",
     "tags": [
@@ -2840,6 +2912,7 @@
     "id": "artifact.aspect-water.stamp-of-ultimate-authority",
     "name": "Stamp of Ultimate Authority",
     "rating": 2,
+    "attunement": 5,
     "description": "A stamp seal made from all five colours of jade, a favourite of devious bureaucrats and con artists alike. It can duplicate both the signature and any associated stamps, seals or similar marking the user has ever seen. It cannot reproduce the power inherent in magical seals or stamps — such as the mark the Perfect of Paragon uses to control and monitor his subjects — but it can exactly reproduce any purely mundane seal, and can also create non-magical duplicates of magical seals or stamps. To reproduce a signature, seal or stamp the character commits 5 motes to the stamp, touches it to the document to be signed or stamped and spends 1 mote; the stamp then produces the desired mark in an instant.",
     "source": "Aspect Book: Water p.80",
     "tags": [
@@ -2864,6 +2937,7 @@
     "id": "artifact.aspect-water.resplendent-dolphin-undersea-courier",
     "name": "Resplendent Dolphin Undersea Courier",
     "rating": 4,
+    "attunement": 7,
     "description": "Built during the First Age, these vessels were designed for speed and discretion, but were unarmed and only lightly armoured. When inactive the item appears to be a large jade egg just small enough to fit within an ordinary barrel. Committing 7 motes lets the user command the egg to transform instantly into a small, fast ship that sails both on the surface and deep in the ocean depths. All versions are shaped like somewhat stylized fish of jade, steel and silver; fully unfolded the vessel is 25 feet long and eight feet in diameter, using Essence rotors to move at up to 40 miles per hour on the surface or 25 underwater. The top consists of a narrow three-foot walkway flanked by rows of stylized fins serving as a low railing, with a small hatch amidships through which one character can enter or leave per turn. The interior is small but luxurious, seating up to seven in exceedingly comfortable seats that recline into cramped but usable beds, with a closed storage space behind holding either four barrels four feet high and three in diameter or two uncomfortable extra passengers. The vessel supplies pure air and fresh water and has facilities for long-term occupancy. The front carries two large transparent windows resembling the huge eyes of deep-sea fish, and the foremost seat is larger, with an easy-to-use control panel on each arm. Piloting requires Sailing ••• and Lore ••. The hull has a lethal and bashing soak of 15 and the same resistance to damage as other First Age hulls. Couriers are not armed and cannot be effectively armed; a few have added mounts for a light implosion bow on the top walkway, but diving with the weapon in place both halves the courier's speed and destroys the weapon, so it must be removed and taken inside first — 15 minutes of careful work, and safely disassembling and moving it also requires Lore •••.",
     "source": "Aspect Book: Water p.81",
     "tags": [
@@ -2876,6 +2950,7 @@
     "name": "Chalcedony Chamberlain's Flutes",
     "rating": 1,
     "rating_notes": "• for the pair",
+    "attunement": 1,
     "description": "Fashioned from a single piece of green serpent chalcedony, these drinking glasses are indistinguishable from one another. Originally crafted during the Shogunate Era, they are highly desired within the halls of the Dragon-Blooded courts. Aside from the exquisite artistry of their crafting the flutes do not appear to have any magical properties, and do not until an Exalted attunes to their subtle power. Once attuned, the Exalt is unaffected by any poison or drug that fills them, including the recreational and pleasurable effects derived from alcohol or hallucinogenic elixirs. Their applications, though not as immediately grand as many First Age artifacts, are incredibly versatile — allowing the attuned character to remain sober during drunken negotiations, or to poison an enemy with no great effort. They require a commitment of 1 mote for the pair.",
     "source": "Aspect Book: Wood p.79",
     "tags": [
@@ -2900,6 +2975,7 @@
     "id": "artifact.aspect-wood.saram-sarus-oracular-hookah",
     "name": "Saram Saru's Oracular Hookah",
     "rating": 3,
+    "attunement": 4,
     "description": "Assumed to be of the Shogunate era, this Southern-style water pipe stands about a yard tall. Although awkward to transport when assembled, the jade and starmetal body separates into seven pieces to be stored in its ironwood-and-jade-inlay box. According to its Sidereal creator, Saram Saru, the water chamber was fashioned according to First Age talismanic principles and acts as a prism of sorts: the prism, when filled with pure water, grants its user dreamlike visions that provide a small measure of insight into the workings of fate. When the Hookah is filled with any smoking mixture — tobacco, marijuana and the like — the inhalation of the fumes induces strong and detailed visions of importance to the smoker. The visions never reveal the identities of the people in them, nor whether the vision is from the past or the future. The character using the Hookah must make a successful Occult + Essence roll at difficulty 3 to experience a genuine vision; a roll of five or more successes results in a staggering vision of great significance to the character, while a failed roll results in a normal experience of whatever was smoked. Saram Saru's Oracular Hookah requires a commitment of 4 motes.",
     "source": "Aspect Book: Wood p.80",
     "tags": [
@@ -2911,6 +2987,7 @@
     "id": "artifact.aspect-wood.the-prey-stalking-bow",
     "name": "The Prey Stalking Bow",
     "rating": 4,
+    "attunement": 8,
     "description": "A short green jade powerbow said to have been carried out of the forests of the Far East by the King of Endless Branches at the end of the Shogunate Era, delicately wrought from almost translucent green and blue jade. The first arrow fired from the bow in combat emits a piercing shriek announcing the impending doom of its target; the subject of this attack is transfixed by the sound, unable to move, and the attack may not be dodged, though it can be parried normally. Any target wounded by an attack from the Prey Stalking Bow is attached to it by an almost insubstantial thread of air Essence, which allows its bearer to track him more easily: for the remainder of the day, or until the wounded character immerses himself completely in an element other than air, add three successes to all attempts by the bearer to track and pursue him. The bow requires a commitment of 8 motes.",
     "source": "Aspect Book: Wood p.81",
     "tags": [
@@ -2980,6 +3057,7 @@
     "id": "artifact.cult.the-holy-writ-of-twilight",
     "name": "The Holy Writ of Twilight",
     "rating": 3,
+    "attunement": 3,
     "description": "A massive tome that looks gold and gleaming as new but is centuries old, pure orichalcum weaved through the cover of this lost book of the First Age. It fell into the hands of a Twilight Caste Solar when she stole it from some Immaculate monks; their pursuit of her alerted the Cult to her existence, and she and the book landed safely in the Cult's training camps. The book is useless in the hands of any but Solars of the Twilight Caste: it attunes to whoever is reading it for 3 motes and increases that Solar's Occult Ability by 2 for the next hour, to a maximum of 7. If a non-Twilight Caste read it, they would discover the sorcery initiation diaries of ten First Age Solars, a priceless historical account in itself.",
     "source": "Cult of the Illuminated p.69",
     "tags": [
@@ -2991,6 +3069,7 @@
     "id": "artifact.cult.the-tears-of-the-harvest",
     "name": "The Tears of the Harvest",
     "rating": 3,
+    "attunement": 5,
     "description": "Orichalcum bracers crafted by the First Age Exalt Onyx. Some gold does not come from the hard shine of orichalcum but from the soft grains of wheat that feed the Realm, and though most First Age Exalts had no concern for the mortals who fed them, some held the farmers in high regard, knowing that if they died the Exalts would have to sully their own hands with menial labor. Onyx felt this keenly when he unwittingly led a battle through his own kingdom's farmland: when the ground was soaked with mortal blood he realized no one would be left to heal the land and work the farms, and out of respect for those who died in his battle he crafted the Tears of the Harvest, his feeling being that if the farmers had owned bows to defend themselves and the endurance to last the battle, things might have been different. Once the wearer has committed 5 motes he becomes attuned to the bracers. The Tears of the Harvest have one empty Hearthstone setting and allow the wearer's player to subtract 4 from the difficulty of all Archery rolls, to a minimum difficulty of 1.",
     "source": "Cult of the Illuminated p.69",
     "tags": [
@@ -3213,6 +3292,7 @@
     "name": "Grave-Prison Chains",
     "rating": 2,
     "rating_notes": "•• , or ••• for the rare sets that let the prisoner use Essence at the owner's discretion (marked by red rather than black stones)",
+    "attunement": 5,
     "description": "The dead are notoriously difficult to keep as prisoners, a fact which drove the Deathlords to create a method of controlling such unruly captives. Grave-prison chains normally consist of five shackles — one each for the ankles, wrists and neck — though sets have been modified to fit prisoners of inhuman form. Each shackle is connected by chains to two others and to a ring designed for attachment to leads and staples. The manacles and chains are a uniform dull grey marked with mottled patches of rust and other stains, with a small black stone set into each shackle. Every set has its own unique key, and no key will open more than one set. Prisoners lose more than freedom of motion: any ghost bound with the chains can no longer spend Essence and thus cannot use any of his Arcanoi. Any attempt still extracts the Essence cost, along with any associated Willpower or other costs, but achieves no effect; careful observers may see the stones flare with dark light at these times, but there is no other effect. A few rare sets (Artifact •••) allow the prisoner to use Essence at the owner's discretion, and are marked by red rather than black stones. Unless a prisoner is released there is only one escape from grave-prison chains: Oblivion. Ghosts destroyed while in them descend directly to Oblivion with no chance to accept Lethe, which is why they are the preferred tools of the Deathlords. After being worn for one scene the chains extract a 5-mote attunement cost from their victim, though their powers are effective even before they attune.",
     "source": "The Abyssals p.257",
     "tags": [
@@ -3225,6 +3305,7 @@
     "name": "Morning Star Guide",
     "rating": 2,
     "rating_notes": "•• , or •••• for the very rare few that can find individuals and objects rather than only fixed locations",
+    "attunement": 7,
     "description": "One of the rarest and most invaluable things one can find in the lands of the dead is a truly reliable guide. Wracked by monstrous storms, largely uninhabited and tied to the ever-changing Labyrinth, the Underworld is very easy to get lost in, which is why morning star guides are so prized and why those who bear them are among the most sought-after guides there. In appearance one is unremarkable — a wrought-iron lantern with an oddly shaped crystal inside — though the lantern is strangely light and always feels warm to the touch. Its true power comes from the crystal, which grows only in the deepest pits of the Labyrinth; many are mined by the Deathlords or the nephwracks and shaped by skilled ghosts enthralled into their service. Attunement costs 7 committed motes. To use it the character holds it up and spends a single mote; once activated, the owner concentrates on his destination, and once he has fixed it firmly in mind the guide shines brightest when held toward that goal and grows steadily dimmer when turned away. Once a destination is locked in its sense of direction is infallible, and it takes another mote to reset it. The guide always illuminates the shortest path, not necessarily the safest — it may point across pits, bogs, pyre flame eruptions or other hazards, unconcerned for the safety of its user. Morning star guides cannot be dimmed, though they can be hooded; the searing brightness carries a long way in the gloam of the Underworld and can serve as a beacon for brigands, hungry ghosts and worse.",
     "source": "The Abyssals p.257",
     "tags": [
@@ -3237,6 +3318,7 @@
     "name": "Soulfire Mask",
     "rating": 2,
     "rating_notes": "masks of similar concept range from Artifact • to N/A; this is the common •• example",
+    "attunement": 7,
     "description": "The most common type of defensive mask worn by the dead, found in many shapes and versions all across the Underworld. Weaker and stronger versions exist. Regardless of appearance, this example has two universal stone mounts; if the character has no better stones for them, the mask comes equipped with two six-point soulfire crystals. By expending 3 motes of the mask's Essence the character may conjure a crackling nimbus of energy that reflexively increases his soak by 4L/6B against a single attack, and this may be done more than once for a given attack. By spending 4 motes he can unleash the same blue-white arc against targets up to 20 yards away. A ghost must commit 7 motes to attune to a soulfire mask. The mask has no inherent energy capacity — it must be set with soulfire or Essence-containing gems in order to function.",
     "source": "The Abyssals p.257",
     "tags": [
@@ -3259,6 +3341,7 @@
     "id": "artifact.abyssals.demon-embracing-robes",
     "name": "Demon-Embracing Robes",
     "rating": 3,
+    "attunement": 5,
     "description": "Proper dress is important to functionaries in the courts of the Deathlords, but only a very few are blessed with demon-embracing robes. At first glance they are indistinguishable from the normal clothing of a functionary in the bureaucracy of the dead — fine workmanship, excellent embroidery, superb taste, and nothing more. When activated, however, the sleeves stretch forward, acting as arms and striking with devastating force. Each sleeve is capable of an independent attack at Speed 7, Accuracy +7, Damage 7B plus extra successes, and the robes also serve as armor at Soak 6L/4B, Mobility Penalty 0, Fatigue 0. They respond only to their owners: should another ghost attempt to wear them the sleeves immediately begin attacking the usurper and will not stop until he has struggled out of the garment or been pummeled into Lethe, escape requiring a successful Dexterity + Athletics roll at difficulty 2 as the robes twist and turn to hold him. Attuning requires 5 motes; spending 3 experience points and committing 3 additional motes seals the bargain and renders the robes constantly active, otherwise they become 'ownerless' if they go unattuned and may be stolen. In no case will the robes ever cooperate with someone who slew a previous owner. There is no way to tell whether a set of robes is in fact demon-embracing until one puts them on, at which point the garment's true nature manifests itself.",
     "source": "The Abyssals p.258",
     "tags": [
@@ -3283,6 +3366,7 @@
     "id": "artifact.abyssals.the-tongue-of-the-eleven-demon-howl",
     "name": "The Tongue of the Eleven Demon Howl",
     "rating": 3,
+    "attunement": 5,
     "description": "Cut from the mouths of a creature dwelling deep within the Labyrinth and bound with slivers of forged souls, the tongue of the eleven demon howl is more often forced upon a ghost than accepted voluntarily, because though it brings power it also brings permanent agony. Once inserted into its bearer's mouth it devours the ghost's real tongue and grafts itself in the devastated organ's place; this serves as the attunement process, which also requires 5 motes, effectively lost forever. Once in place the tongue changes the ghost permanently — her voice becomes deep and guttural, her speech filled with obscenities and blasphemies. There are benefits, most prominently the ability to use, without any training, the Arcanos Call the Ravening Hound three times per day. The ghost is also capable of bellowing loud enough to be heard for a mile in any direction, deafening any within 100 yards whose players do not succeed on a Stamina + Endurance roll at difficulty 2. Bellowing in this fashion is a dice action that requires no roll.",
     "source": "The Abyssals p.259",
     "tags": [
@@ -3306,6 +3390,7 @@
     "id": "artifact.abyssals.virtue-enhancing-flask",
     "name": "Virtue-Enhancing Flask",
     "rating": 3,
+    "attunement": 5,
     "description": "Among the rarest commodities in the Underworld. Each appears as a small iron flask, often decorated with inlaid symbolic patterns, holding but a single draught and yet curiously heavy when full. Attuning one requires its owner to wear it on her person for a day, after which the attunement lasts until it is worn by another individual for that length of time, in which case it swaps over. An unattuned flask produces no Virtue and can easily be overlooked as a common drinking vessel. Maintaining a functioning flask requires the commitment of 5 motes, plus 2 more every time it needs refilling. The liquid is clear and warm and, depending on which Virtue it enhances, has a unique scent apparent once unstoppered, which quickly fills the immediate vicinity: orchids for Compassion, green tea for Temperance, hot iron in the forge for Conviction, fresh blood for Valor. The contents raise the appropriate Virtue of the drinker by one point, to a maximum of 5, which allows the ghost to learn Arcanoi she might otherwise not be able to, but does not add to Passions. A ghost lucky enough to possess more than one flask can drink in series for a greater temporary boost, but the increase lasts only one scene. Each flask contains enough for one drink at a time and requires a day to regenerate its contents; anyone attempting a second draught from an empty flask finds a mouthful of dust instead. Ghosts using a flask to learn Arcanoi beyond their normal capabilities must drink before any instruction begins and cannot receive useful instruction once the effect has waned, so such training necessarily takes a long time. However, once the knowledge has been passed on a ghost does not lose it even if her actual Virtue rating is below the minimum threshold for that Charm — it remains available to her if she drinks from an appropriate flask.",
     "source": "The Abyssals p.260",
     "tags": [
@@ -3317,6 +3402,7 @@
     "id": "artifact.abyssals.hovering-iron-spirit",
     "name": "Hovering Iron Spirit",
     "rating": 4,
+    "attunement": 9,
     "description": "A faithful, indefatigable guardian for the ghost lucky enough to possess one: a small figure forged out of soulsteel into the shape of a protector. Most appear as birds of prey, though in truth their appearance does not matter — it is their function that makes them so valuable. Attunement takes a week, during which the item must be constantly in the attuning ghost's presence; a single instant of separation wrecks the process and requires starting over. Attunement costs 9 motes and an experience point. Once attuned, the spirit hovers behind its master, never staying still and never straying more than a yard from its post. It attempts to circumvent any attempt to separate it from its master, potentially causing harm to anyone trying — many have been crafted with sharp edges for just this reason. Should there be any threat, the iron spirit places itself between its owner and the danger and waits there, and once combat starts it automatically moves to catch projectiles fired at its master.",
     "source": "The Abyssals p.260",
     "tags": [
@@ -3387,6 +3473,7 @@
     "id": "artifact.rathess.ring-of-disguise",
     "name": "Ring of Disguise",
     "rating": 3,
+    "attunement": 4,
     "description": "This item is an orichalcum ring set with a transparent violet stone that shines with an inner opalescence. It can resize itself to fit any mortal or Dragon King hand if the wearer commits 4 motes of Essence to attune the ring. The ring allows the wearer to project intangible illusions around herself; the only limit is that each illusion projected requires the expenditure of 8 motes of Essence. The illusion lasts for a scene and can be continued if the wearer simply spends another 8 motes. The ring can create an illusion of any person, Dragon King or other human-shaped and sized creature around the wearer. This illusion can look like anyone the wearer chooses and is familiar with, but it is merely a visual illusion: the wearer smells and sounds the same as always, and anyone touching the wearer will instantly recognize that something is wrong if the wearer feels too different from the image being projected (such as a Dragon King disguising herself as a human).",
     "source": "Ruins of Rathess p.86",
     "tags": [
@@ -3398,6 +3485,7 @@
     "id": "artifact.sidereals.aerial-rickshaw",
     "name": "Aerial Rickshaw",
     "rating": 4,
+    "attunement": 5,
     "description": "One of the most common means of short- and medium-distance transport in Yu-Shan. Since they are small enough to fit through the gateways to Creation, some gods and Sidereal Exalted also use them there. Some are fantastically decorated, but most are relatively plain; all are 14-foot-long, 6-foot-wide jade ovals with a depression in the front where the driver sits and windows on the sides — but not the front — of the passenger compartment. A rickshaw holds two passengers in comfort, or five who are exceedingly friendly, on a wide bench seat, plus one driver who sits in the open and powers the vehicle while the passengers sit in a roomy closed compartment that maintains a comfortable temperature. To operate it the driver must commit 5 motes. Gods of air, fire or flight and Air- or Fire-aspected Dragon-Blooded can then run it by simply spending 3 additional motes per hour; other gods, God-Blooded and Exalts must insert a Celestial, Air or Fire Hearthstone of at least level 2. The pilot must also have Sail •• or more. Aerial rickshaws are immune to bashing damage and have a soak of 10L and 10L/20B health levels. Passengers are completely protected by this soak and the driver is mostly protected (75 percent cover), so all attacks specifically targeting the driver are made at +3 difficulty. They are not designed for combat: passengers cannot open the doors into the cabin unless the vehicle has landed and the windows do not open, so they cannot fire out, and the driver is busy operating the vehicle and also cannot attack. They are relatively slow, with a maximum speed of only 50 mph. Unless damaged they are simple to maintain, requiring only an hour of minor repairs after every 100 hours of continuous use; the character performing the repairs must know both Occult •• and Lore ••, and the repairs cost Resources ••. Alternately, a single minor servant can easily maintain this craft.",
     "source": "The Sidereals p.24",
     "tags": [
@@ -3419,6 +3507,7 @@
     "id": "artifact.sidereals.the-collar-of-dutiful-submission",
     "name": "The Collar of Dutiful Submission",
     "rating": 5,
+    "attunement": 2,
     "description": "This item insures that its wearer obeys the wishes of whoever put the collar on him. To use it, the owner spends a mote of Essence to activate it — she recovers this Essence normally — then places the collar on the person she wishes to wear it and orders him to commit 2 motes to the collar. Since the collar will not lock until the wearer has committed this Essence, the owner will know if he refuses; once committed, the Essence cannot be uncommitted until the collar is removed. Until then, any time the wearer attempts to directly attack the owner, or whenever the owner wishes to punish him for disobedience, the collar slowly tightens, doing one die of unsoakable bashing damage every turn until the wearer is rendered unconscious or the owner orders it to stop. This damage cannot be healed by any means until the collar stops inflicting additional damage. Used for a sufficiently long period the collar will render the wearer unconscious, but it stops before causing any lethal damage, and if desired the owner can order it to keep him unconscious indefinitely. The owner can cause the collar to constrict at any time merely by spending a single mote, and regardless of the distance between them it begins to constrict immediately — even if the owner is in Yu-Shan and the wearer in Creation or the Underworld. The owner can easily remove the collar by touching it and spending another mote. The only other ways to remove one are by the direct action of one of the Celestial Incarna or by an exceedingly rare spell of Solar Circle Sorcery. No other magic or Charm will affect these collars, and they are completely immune to all forms of attack.",
     "source": "The Sidereals p.39",
     "tags": [

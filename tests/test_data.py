@@ -502,7 +502,11 @@ def test_the_gear_artifact_rows_from_the_backlog_batch():
     assert hooks.defense == 5 and hooks.damage_type == "L"
     assert hooks.min_strength == 2 and hooks.min_dexterity == 3 and hooks.min_martial_arts == 3
     lance = rs.weapon_catalog["weapon.melee.direlance"]
-    assert lance.artifact_rating == 2 and lance.attunement == 0
+    # ⚠ The 5 is NOT off a page. No page on disk prints the Direlance's attunement, and
+    # the human ruled 2026-09-07 that it takes the daiklave family's cost, as the
+    # Wavecleaver Daiklaive does. This assertion held 0 until then, so it was a negative
+    # control that has gone positive — it now pins the ruling instead of the absence.
+    assert lance.artifact_rating == 2 and lance.attunement == 5
     assert lance.speed == 6 and lance.accuracy == 2 and lance.damage == 5 and lance.defense == 0
     assert lance.min_strength == 1
     # The Direlance has NO standalone catalogue entry — and that is now a finding, not

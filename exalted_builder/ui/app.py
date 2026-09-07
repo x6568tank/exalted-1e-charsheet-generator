@@ -165,10 +165,17 @@ def render_sheet(view: viewmod.SheetView) -> None:
                 with _panel().classes("flex-1 min-w-[14rem]"):
                     ui.label("Artifacts").classes("text-xs font-semibold").style(
                         f"color:{pal.accent}")
-                    for name, rating, source, damage in view.artifacts:
+                    for name, rating, source, damage, attuned in view.artifacts:
                         with ui.row().classes("w-full items-center gap-1 no-wrap"):
                             label = f"{name}{' · ' + source if source else ''}"
                             ui.label(label).classes("text-sm flex-1 truncate")
+                            # An attuned artifact says so, and says what it costs. ⚠ The
+                            # Essence pools printed above are the FULL ones — only the
+                            # Play tab subtracts a commitment — so this marker is the
+                            # sheet's only account of the motes.
+                            if attuned:
+                                ui.label(attuned).classes("text-xs font-mono").style(
+                                    f"color:{pal.accent}")
                             # A damaged artifact says so on the sheet: its soak is
                             # already reduced in the numbers above, and an unexplained
                             # low figure reads as a bug.

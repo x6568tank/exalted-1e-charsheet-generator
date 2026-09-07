@@ -559,3 +559,20 @@ def test_export_filenames_are_made_safe(ruleset, typed, expected):
     assert got == (expected if expected is not None else pdf.suggested_filename(view))
     assert "/" not in got and "\\" not in got
     assert got.endswith(".pdf")
+
+
+def test_an_attuned_artifact_is_marked_on_paper(ruleset):
+    """Phase 3 of attunement (human, 2026-09-07: "printed sheet should"). ⚠ The Essence
+    pools on the same page are the FULL ones — only the Play tab subtracts — so this
+    marker is the printed sheet's whole account of where the motes went."""
+    from exalted_builder.models.character import Weapon
+    character = Character(id="c.pdf", name="Attuned", exalt_type="Solar", caste="dawn",
+                          essence_rating=3,
+                          weapons=[Weapon(name="Daiklave", artifact_rating=2,
+                                          attunement=5, attuned=True)])
+    text = _text(pdf.build_pdf(viewmod.build_sheet_view(ruleset, character)))
+    assert "attuned" in text and "5m" in text
+
+    character.weapons[0].attuned = False
+    bare = _text(pdf.build_pdf(viewmod.build_sheet_view(ruleset, character)))
+    assert "attuned" not in bare      # nothing auto-attunes; the default prints nothing

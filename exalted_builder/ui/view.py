@@ -1972,12 +1972,14 @@ class SheetView:
     health: list[str]                                 # formatted level labels
     # advantages / gear
     backgrounds: list[tuple[str, int, str]]           # (name, rating, note)
-    # Individually rated artifacts (E:Ab p.131), as (name, rating, note, damaged) —
-    # every one the character owns, folded from the standalone list AND from artifact
-    # weapons and armour, so the sheet's combined total matches the one the budget
-    # check reads. `damaged` is points of Damaged Artifact against that item, 0 for
-    # sound ones. Empty for the many characters who own none, which drops the panel.
-    artifacts: list[tuple[str, int, str, int]]
+    # Individually rated artifacts (E:Ab p.131), as (name, rating, note, damaged,
+    # attunement) — every one the character owns, folded from the standalone list AND
+    # from artifact weapons and armour, so the sheet's combined total matches the one
+    # the budget check reads. `damaged` is points of Damaged Artifact against that item,
+    # 0 for sound ones. `attunement` is `attunement_mark`'s output — the pre-formatted
+    # "attuned · 5m", or "" for an item that is not attuned or has no printed cost.
+    # Empty for the many characters who own none, which drops the panel.
+    artifacts: list[tuple[str, int, str, int, str]]
     # (name, printed cost with sign, detail, "merit"|"flaw"|"either", tooltip) — the
     # sign carries the direction so a Flaw never reads as something the character paid
     # for. The tooltip is the printed cost line plus the rules text: the sheet has no
@@ -2747,9 +2749,32 @@ def _cost_str(cost: CharmCost) -> str:
     return ", ".join(parts) if parts else "—"
 
 
+def attunement_mark(motes: int, attuned: bool) -> str:
+    """The sheet's marker for an attuned item — "attuned · 5m", or "" for one that is
+    not attuned or carries no printed cost.
+
+    ONE helper for all three sheet surfaces (screen, Qt, PDF), for the same reason the
+    Play tab's clamp and note are single helpers: three copies of a wording drift, and
+    the last time a display fact was taught to one formatter and not its siblings the
+    panel and the dropdown printed two different names for one style.
+
+    `motes` is the EFFECTIVE cost `derive.attunement_cost` returns, already doubled
+    where the wielder is not a user of the item's material — the sheet prints what this
+    character actually commits, not the catalogue's printed figure.
+
+    ⚠ The pools beside it are still the FULL ones. Only the Play tab subtracts a
+    commitment (a deliberate split, `status/rated-artifacts.md`), so this marker is the
+    sheet's only account of where those motes went.
+    """
+    if not attuned or motes <= 0:
+        return ""
+    return f"attuned · {motes}m"
+
+
 def _artifact_rows(ruleset: RuleSet, character: Character
-                   ) -> list[tuple[str, int, str, int]]:
-    """Every rated artifact for the sheet, as (name, rating, source label, damage).
+                   ) -> list[tuple[str, int, str, int, str]]:
+    """Every rated artifact for the sheet, as (name, rating, source label, damage,
+    attunement mark).
 
     Reads `engine.artifacts.artifact_items` rather than `character.artifacts` so an
     artifact daiklave appears here as well as in the weapons table — the p.131 budget
@@ -2762,7 +2787,8 @@ def _artifact_rows(ruleset: RuleSet, character: Character
     damaged = meritsmod.merits_and_flaws_calc(ruleset, character).damaged_artifacts
     return [(i.name, i.rating,
              "" if i.source == artifactsmod.SOURCE_ARTIFACT else i.source,
-             damaged.get(i.key, 0))
+             damaged.get(i.key, 0),
+             attunement_mark(derive.attunement_cost(ruleset, character, i), i.attuned))
             for i in artifactsmod.artifact_items(character)]
 
 

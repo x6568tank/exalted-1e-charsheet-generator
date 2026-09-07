@@ -1,95 +1,92 @@
-# Session handoff — 2026-09-03 (artifact attunement, and two rules with no implementation)
+# Session handoff — 2026-09-07 (the artifact-attunement backfill)
 
 # 👉 YOU ARE HERE
 
-Last FULL green suite: **3,238 passed, 1 skipped** (main PC, `main`, 17m22s).
-**4 commits ahead of `origin/main`, not pushed** — `ceac278` (attunement blockers + the
-comment-pass correction), `46a4f30` (attunement phase 1), `bbdc661` (phase 2 + two Merit
-fixes), plus the two carried from the previous session — and ⚠ **the working tree is
-DIRTY**: the ST toggle, the species-3 fix and this whole close-out are uncommitted.
+Last full suite on this machine (**the laptop**): **3,251 passed · 1 failed · 1 skipped**,
+8m22s. ⚠ **The failure is the known machine-dependent one** —
+`test_merits_flaws.py::test_every_description_matches_the_source_text`, 46 entries — and it
+**fails identically on the stashed tree**, so it is not this session's work.
 
-⚠ The count moved 3,181 → 3,238; all 57 are tests added this session. Nothing was fixed
-by accident and nothing went missing.
+⚠ **The count rose 3,194 → 3,253 and only 14 of that is new tests.** The other 45 were
+already written and were being SKIPPED: `tests/test_pdf.py` module-skips when `pypdf` is
+missing, and it was missing from this venv even though `pyproject.toml` declares it in the
+test extra. It is installed now — which is why the skip count also fell from 2 to 1. ⚠ **A
+sheet change on this machine was therefore unverifiable until then**, and the skip said so
+in one grey line at the bottom of a run. Check `-rs` before trusting a green PDF run. `docs/testing.md` for how to read a
+run's numbers honestly; **do not reconcile this against the main PC's 3,238.**
+
+The tree at session start was **clean and level with `origin/main`** — everything the
+2026-09-03 handoff listed as uncommitted went out in `754ea95`. This session's work is
+**uncommitted**.
 
 ## What shipped
 
-**1. Artifact attunement, phases 1 and 2** (`status/rated-artifacts.md`, and
-`plans/artifact-attunement.md` for the full design). An owned artifact with a printed
-cost can commit its motes, and the Play tab's maxima come down by the total, on all four
-mote surfaces. The flag is the player's — nothing auto-attunes. The derivation walks
-`artifacts.artifact_items()`, the one enumeration, so a daiklave entered as both an
-artifact row and its weapon stat line commits once; the **gear row wins** (human's
-ruling). **Not browser-verified.**
+**1. The `ArtifactType.attunement` backfill** — the top NEXT item from the last handoff,
+now done. 89 of the 330 catalogue rows carry a printed commitment (1 to 15 motes); the other
+241 print no figure. **No page was opened**: every value was parsed out of the row's own
+human-vetted `description`. The standalone-Wonder path is no longer unexercised by real
+data. Method, guards and both deferral lists: `status/rated-artifacts.md`.
 
-**2. `MeritEffects.no_magical_material_bonus`** (`status/merits-flaws.md`). Both Magical
-Attunement Merits refuse the material bonus in as many words and nothing implemented it —
-the right answer arrived by coincidence, because a Mortal/God-Blooded exalt_type matches
-no material. The same pages settled the attunement doubling: a character no material
-resonates with pays the **printed** cost.
+Three tests came out of the pass's two guards — the number must appear in the description
+it was read from, and **no gear-statblocked duplicate may carry a number** (the daiklaves,
+the powerbows, the five artifact armours and the Skirmish Pike stay 0 because
+`weapons.json`/`armor.json` own their cost).
 
-**3. `MeritEffects.essence_pool_split_thirds`** (`status/godblooded.md`). Aura of Power
-was read from the save, stored, and had **zero read sites**. `essence_pool_is_merged`
-asked the splat first, and a God-Blooded's `single_essence_pool` is True, so the Flaw
-never got a vote. Reported from the human's own save; Taban now reads Personal 10 ·
-Peripheral 21 instead of Single pool 31.
+**2. Attunement phase 3 — the sheet marks it.** "Printed sheet should" (human), so the
+artifact row now prints **`attuned · 5m`** on all three sheet surfaces (screen, Qt, PDF)
+through ONE helper, `view.attunement_mark`. The number is the effective cost, doubled where
+the wielder is not a user of the item's material. It appears in the **Artifacts** panel
+only, and that is complete rather than partial: `_artifact_rows` folds artifact weapons and
+armour into that panel, so every attunable thing is marked exactly once. ⚠ The pools beside
+it are still the FULL ones — only the Play tab subtracts — which is why the mark carries
+the cost and not just the word. `SheetView.artifacts` is a 5-tuple now.
+
+**That closes artifact attunement** apart from a human click-through.
+
+**NOT browser-verified.** Nothing was clicked.
 
 ## 👉 NEXT
 
-Nothing is blocked. In rough order of what would bite:
+Nothing is blocked.
 
-- **The `ArtifactType.attunement` backfill.** All 330 rows are 0, so the
-  standalone-Wonder path is unexercised by real data. It is a **parse job, not a
-  re-read**: 74 rows state a commitment in their transcribed description. ⚠ Exclude
-  gear-statblocked duplicates first (`gear_stat_line`) — the Skirmish Pike is in the 74
-  and must stay 0 because `weapons.json` holds its 5.
-- **Attunement phase 3's remainder** — whether the printed sheet marks an attuned item.
-  Low priority, untouched.
+- **A human click-through of attunement** — now the ONLY thing left in it, and it has real
+  catalogue data behind it. The five-item list is unchanged and lives at the bottom of
+  `status/rated-artifacts.md`'s 2026-09-03 section; pick a **daiklave**, then a
+  **standalone Wonder** (the Ring of Being at 15 motes is the loudest), then the mortal
+  case that was silently free until 2026-09-03 — and now also **the sheet and the PDF**,
+  which should say `attuned · Nm` beside the item while the pools stay full.
+- **Eight gear rows genuinely need a page** — what is left of the 19-row hole after the
+  human asked for a glance. Cold Wind Knives, the Powerbow of Perfect Accuracy, the Most
+  Terrifying Armor of the Air Dragon and five Aspect Book weapons; all from books
+  transcribed as stat lines only. `status/rated-artifacts.md` has the triage that cleared
+  the other eleven.
 - **`qt/` is the one real comment-pass gap** (carried; `docs/comment-standard.md`).
-- **The Backgrounds in the scan-only splat books** — still the one known content gap, a
-  reading job.
+- **The Backgrounds in the scan-only splat books** — still the one known content gap.
 
-## Rules questions — both ANSWERED 2026-09-03, none outstanding
+## Rules questions — one answered, two open
 
-- **`free_max` and committed motes** became an ST toggle rather than a ruling:
-  `HouseRules.committed_motes_reduce_free_essence`, PER-CHARACTER, default OFF. The app
-  cannot decide it, because both Willpower rolls involved are the table's.
-- **Aura of Power's anima clause needs no implementation** — anima is a user-entered
-  field. Not a gap; do not re-raise it.
+**ANSWERED 2026-09-07: the four transient commitments are ordinary attunement.** The Horn
+of the Ways (5), the Traveler's Staff (5), the Blood Seed (10) and the Lizard Tail
+Regrowth Sphere (10) commit motes for the duration of a USE and say the Essence comes
+back; the human's ruling is that **the toggle already on the artifact/gear row is the
+control** — opt-in per item, ticked for the scene and unticked after. No transient-vs-
+standing distinction in the model. ⚠ Do not re-raise it as a modelling gap.
 
-⚠ **The toggle's own test found a SPECIES 3 house bug in the phase-2 work, and the
-DEFAULT VALUE was the off switch.** A mortal's pool is entirely Personal and
-`attuned_pool` defaults to `"peripheral"`, so a mortal's commitment landed on a
-0-maximum pool and cost nothing — checkbox ticked, number right, tracker untouched.
-Fixed by generalising the merged-pool case: **a commitment allocated to a pool the
-character does not have is re-routed to the one they do.** Found by accident, because an
-unrelated test's fixture happened to be a mortal. `status/rated-artifacts.md`.
+**ANSWERED 2026-09-07: the Wavecleaver Daiklaive and the Direlance commit 5** — the
+daiklave family's cost, neither printed on any page on disk. ⚠ Both `notes` strings record
+that the number is a ruling rather than a reading, and a test pins each; the ruling also
+turned `test_data.py`'s `lance.attunement == 0` from a true statement about an absence into
+a failure, the negative-control-goes-positive shape again.
 
-## What a human should click
+Still open: whether the printed sheet marks an attuned item (carried from 2026-09-03).
 
-**Nothing this session was browser- or app-clicked.** In priority order:
+## What the pass turned up
 
-1. A **daiklave** on the Gear tab in both shells — real catalogue attunement (5 motes).
-   Checkbox appears; pool dropdown only once checked.
-2. The **Play tab** after attuning it — the pool shrinks and the note says why.
-3. A **ghost** (merged pool) — no pool choice offered at all.
-4. A **mortal** with Essence Awareness and an attuned artifact — the motes must come out
-   of Personal (their only pool), and the new ST toggle should appear on ST Options and
-   move the free-mote line when flipped. This is the path that was silently free until
-   2026-09-03.
-5. **Taban's sheet and printed PDF** — the split reads Personal 10 · Peripheral 21.
-
-## ⚠ Two test traps this session paid for, both re-bitable elsewhere
-
-1. **Qt: `isVisible()` is False for everything on a page that is never shown.** A
-   headless visibility assertion passes against a control that is *always* shown, and its
-   positive half cannot pass at all. Use **`isHidden()`**.
-2. **A fixture that omits the axis a rule keys on produces a confident, WRONG gap
-   report.** A synthetic God-Blooded built with no `caste` showed an Essence pool of 0,
-   and that was written up as "Awakened Essence grants no pool" — a fabricated second
-   bug. The pool formula is heritage-keyed and had worked all along. It was the human's
-   real save that corrected it. Same shape bit the merged-pool test the same day: a
-   synthetic ruleset with no Ghost exalt made it assert the exact bug it guarded.
-   **Splat-shape and merged-pool tests need the REAL `ruleset` fixture.**
+⚠ **Six rows state in as many words that they cost NOTHING to attune** (Iron Horse, Slayer
+Khatar, Essence Storing Crystal, Face of Discretion, Skin-Mount Amulet, Winterbreath Jar).
+They are correct at 0 — but their 0 is now indistinguishable from the 245 rows that simply
+have no printed figure. The same authored-clean-vs-never-backfilled ambiguity this pass
+closed for the other 85, one level down. Not worth a field unless it bites.
 
 ## Carried forward, still true
 
@@ -97,18 +94,20 @@ The Qt port is feature-complete and the Party window is clicked. Four surfaces a
 **rendered offscreen but never used**: the **Sheet tab**, the Party window's **Reference
 tab**, the **Thaumaturgy → Rituals tab** and the **Custom tab's Rituals sub-tab**.
 
-⚠ **`dist/` is gitignored and its binaries are from 2026-08-14 / 2026-08-30** — neither
-has this session's work. Rebuild before showing the app to anyone, and remember the
-launcher trap: `branding.install_desktop_entry()` pins `Exec=` to the first frozen binary
-that ever ran, and nothing in the UI reports a version. ⚠ **This session, the stale-binary
-theory was WRONG** — the suspected fix predated the binary by a month. Check the dates
-before blaming the build.
+⚠ **`dist/` is gitignored and its binaries are from 2026-08-14 / 2026-08-30** — neither has
+this work. Rebuild before showing the app to anyone, and remember the launcher trap:
+`branding.install_desktop_entry()` pins `Exec=` to the first frozen binary that ever ran,
+and nothing in the UI reports a version. ⚠ **Check the DATES before blaming the build** —
+on 2026-09-03 the stale-binary theory was wrong twice over.
+
+⚠ **The two test traps from 2026-09-03 are still live elsewhere**: Qt's `isVisible()` is
+False for everything on a page that is never shown (use `isHidden()`), and a fixture that
+omits the axis a rule keys on produces a confident, WRONG gap report (splat-shape and
+merged-pool tests need the REAL `ruleset` fixture).
 
 ## Still deferred, still NOT gaps
 
 The Mist numina and Cult Abyssals (both indefinitely), the one martial-arts absence
-(`enlightenment`), and Haltan pets. Training times are still a no.
-
-⚠ **The other splats' Charms were explicitly left as they are** (human, 2026-09-01),
-including the `min_essence == min_ability` duplication grep that found three bad rows in
-Core. Untested, not verified.
+(`enlightenment`), and Haltan pets. Training times are still a no. The artifacts were ruled
+FINE on description quality (human, 2026-09-01) — that ruling is about prose, and did not
+bar this pass, which read those descriptions rather than judging them.

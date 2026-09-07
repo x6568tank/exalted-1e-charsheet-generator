@@ -523,3 +523,55 @@ def test_a_commitment_never_vanishes_into_a_pool_the_character_lacks(ruleset):
     assert derive.committed_attunement(ruleset, c) == {"personal": 6, "peripheral": 0}
     view = viewmod.build_play_view(ruleset, c)
     assert view.personal_max == personal_cap - 6
+
+
+# --------------------------------------------------------------------------- #
+# artifact attunement — the SHEET marks it (phase 3, 2026-09-07)
+# --------------------------------------------------------------------------- #
+
+def _attuned_solar(ruleset, **kw):
+    """A Solar carrying one orichalcum daiklave, attuned unless told otherwise."""
+    from exalted_builder.models.character import Weapon
+    return Character(id="c.sheet", name="Attuned", exalt_type="Solar", caste="dawn",
+                     essence_rating=3,
+                     weapons=[Weapon(name="Daiklave", artifact_rating=2, attunement=5,
+                                     material="orichalcum", **kw)])
+
+
+def test_the_sheet_marks_an_attuned_artifact(ruleset):
+    """The artifact row says it is attuned and what it costs. `_artifact_rows` folds
+    artifact weapons and armour into the Artifacts panel, so marking there covers every
+    attunable thing exactly once — the same one-object rule the p.131 budget uses."""
+    view = viewmod.build_sheet_view(ruleset, _attuned_solar(ruleset, attuned=True))
+    row = next(r for r in view.artifacts if r[0] == "Daiklave")
+    assert row[4] == "attuned · 5m"
+
+
+def test_the_sheet_says_nothing_about_an_unattuned_one(ruleset):
+    """⚠ The negative half, and the one that matters: nothing auto-attunes, so an owned
+    artifact is the DEFAULT state and a mark on it would be wrong on most sheets."""
+    view = viewmod.build_sheet_view(ruleset, _attuned_solar(ruleset))
+    row = next(r for r in view.artifacts if r[0] == "Daiklave")
+    assert row[4] == ""
+
+
+def test_the_sheet_marks_the_DOUBLED_cost(ruleset):
+    """A wielder who is not a user of the item's material commits double, and the sheet
+    prints what this character actually commits — not the catalogue's printed 5."""
+    c = _attuned_solar(ruleset, attuned=True)
+    c.exalt_type = "Dragon-Blooded"          # orichalcum is not theirs
+    c.caste = ""
+    view = viewmod.build_sheet_view(ruleset, c)
+    assert next(r for r in view.artifacts if r[0] == "Daiklave")[4] == "attuned · 10m"
+
+
+def test_the_sheet_still_prints_the_FULL_pools(ruleset):
+    """⚠ Deliberate, and the reason the mark exists at all: only the Play tab subtracts
+    a commitment, so the sheet's Essence figures are unchanged by attuning and the
+    marker is the sheet's whole account of where the motes went."""
+    from exalted_builder.engine import derive
+    bare = _attuned_solar(ruleset)
+    attuned = _attuned_solar(ruleset, attuned=True)
+    assert derive.essence_pools(ruleset, bare) == derive.essence_pools(ruleset, attuned)
+    assert (viewmod.build_sheet_view(ruleset, bare).essence_personal
+            == viewmod.build_sheet_view(ruleset, attuned).essence_personal)

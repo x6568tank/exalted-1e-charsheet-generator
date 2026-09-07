@@ -768,3 +768,141 @@ A **daiklave** on the Gear tab (real catalogue attunement, 5 motes): the checkbo
 the pool dropdown only once checked. Then the **Play tab** — the pool shrinks and the note
 explains it. Then a **merged-pool character** (a ghost), which should offer no pool choice
 at all.
+
+---
+
+# The `attunement` backfill — 89 rows (2026-09-07)
+
+Closes the item the 2026-09-03 write-up left open: `ArtifactType.attunement` was 0 on all
+330 catalogue rows, so the standalone-Wonder path was **unexercised by real data** and
+every test of it had to inject a number. It is now 0 on 241 and printed on 89, plus two ruled-in gear rows.
+
+**3,251 passed · 1 failed · 1 skipped** on the laptop, and see the count note in the
+handoff — 45 of that rise is `pypdf` being installed, not tests being written. ⚠ The failure is `test_merits_flaws.py::
+test_every_description_matches_the_source_text`, the machine-dependent one `docs/testing.md`
+names — 46 entries, and it **fails identically on the stashed tree**, so it is not this
+work. **NOT browser-verified.**
+
+## Method — a parse, not a re-read
+
+No page was opened. Every value came out of the row's OWN `description`, which is
+human-vetted transcription and an allowed source. The pass was a script with two guards,
+both of which now survive as tests:
+
+1. **The number must appear in the description it was read from.** Two rows are exempt
+   and say why in a comment: the Soul Mirror (whose text cites "a grand daiklave's
+   ... attunement cost" rather than a figure — 8, from `weapons.json`) and the Cache Egg
+   ("a number of motes equal to its Artifact rating" — 1 for the rating-1 row).
+2. **No gear-statblocked duplicate may be given a number.** 31 catalogue rows are also a
+   `weapons.json`/`armor.json` entry, and `artifact_items` gives the commitment to the
+   gear row (human, 2026-09-03). Every one of them was excluded by hand and the guard
+   proves it: the Skirmish Pike, all ten Core daiklaves/powerbows and all five artifact
+   armours stay 0 because the gear catalogue already holds their cost.
+
+The range runs 1 (hearthstone amulet, echo jewel, wedding bands) to **15** (the Ring of
+Being, the most expensive in the build).
+
+## What the work turned up on the way
+
+* ⚠ **Six catalogue rows state that they cost NOTHING to attune** — the Iron Horse, the
+  Slayer Khatar, the Essence Storing Crystal, the Face of Discretion, the Skin-Mount
+  Amulet and the Winterbreath Jar. They are correct at 0 and were left there, but **their
+  0 is now indistinguishable from the 245 rows that simply have no printed figure**. The
+  field cannot tell "the book says free" from "nobody looked", which is the same
+  authored-clean-vs-never-backfilled ambiguity this pass just closed for the other 85.
+  Not worth a field of its own unless it bites.
+* ⚠ **19 gear rows carry `artifact_rating > 0` and NO `attunement`.** Because the gear row
+  owns the commitment, such an item is free to attune from **both** halves of the
+  catalogue, and the artifact half is now barred from patching it by the guard above. The
+  human asked for a glance (2026-09-07) and it shrank the hole a lot — see the triage
+  below. **Nine of the 19 need nothing at all.**
+* The parse's own recall is honest but not total: 130 of 330 descriptions mention
+  attuning or committing, 85 gave a usable number, and the rest name no figure at all.
+
+## The transient commitments — AUTHORED, on the human's ruling (2026-09-07)
+
+Four rows commit motes for the duration of a **use**, not of ownership, and the text says
+the Essence comes back: the Horn of the Ways (5, "until the destination is reached"), the
+Traveler's Staff (5, "the Essence is released" at sunset), the Blood Seed (10, the troops
+"return to the earth at the end of the scene") and the Lizard Tail Regrowth Sphere (10 —
+committed by the *technician*, not the owner, for the duration of a treatment).
+
+They were held back a day as a question — writing a scene-long spend into a field the Play
+tab subtracts until unticked makes it look permanent — and the human's answer was that
+**the toggle already on the artifact/gear row IS the control**: the commitment is opt-in
+per item, so the player ticks it for the scene and unticks it after. No new machinery, no
+transient-vs-standing distinction in the model. ⚠ **Do not re-raise this as a modelling
+gap** — it was asked and answered.
+
+Two rows were skipped as version-specific rather than transient: the Essence-Scrying
+Visor's 4 motes belong to its Artifact •• version (the rating-1 row spends per scene), and
+the Shock Pike's 5-mote commitment belongs to the Exalt-specific variant (the standard
+pike stores motes instead).
+
+## The 19 unpriced gear rows, triaged (2026-09-07)
+
+The human asked for a glance rather than a re-read, so this is what the transcribed text
+already on disk says. **Nothing was authored from it** — the three groups are what the next
+session should act on.
+
+**Nine need no page: no attunement exists.** The Light Implosion Bow (1-2 motes *per shot*,
+emplaced), the Lightning Ballista (3 per shot), the Repeating Maggot-Caster (1 per shot,
+drawn from its own soulfire crystal), the Vessel of the Pyre (a thrown jug) and the Essence
+Pulse Grenade (thrown; 6 motes to *recharge*) all have full descriptions on disk that price
+a per-use cost and never mention a commitment. The Crossbow, Mechanized Crossbow,
+Flamecaster and Pyromantic Grenade are Mountain Folk gear a **mortal** uses — and for the
+last two the notes already record that the table prints a Resources cost only and **our
+`artifact_rating` is a mirror of it**, put there so the dual-nature toggle could fund them.
+⚠ Their 0 is the right answer, which means it is also the six-rows-that-are-free problem
+above, nine more times.
+
+**Two wanted a ruling, not a page — RULED 5 (human, 2026-09-07).** The **Wavecleaver
+Daiklaive** (Savage Seas p.126, two Hearthstone sockets) and the **Direlance** (core p.342's
+Daiklave Table) are daiklave-family weapons whose own pages print no attunement cost, and
+both take the family's 5. ⚠ **Neither 5 is off a page**, so both `notes` strings say so in
+as many words and `test_the_two_ruled_in_daiklave_costs` pins them — an inference from a
+sibling is exactly the kind of value a later session "corrects" back to nothing.
+
+⚠ **It also tripped a negative control.** `test_data.py::
+test_the_gear_artifact_rows_from_the_backlog_batch` asserted `lance.attunement == 0`, which
+was a true statement about an absence until this ruling filled it. Same shape as the
+recorded lesson: **an assertion about a thing not being there keeps passing until someone
+authors the thing, and then it is the only thing standing in the way.** It now pins the
+ruling instead. The Direlance's OTHER blocker is still live and its note still says so —
+core p.341 is not on disk, so the weapon has no artifact-catalogue entry.
+
+**Eight genuinely need a page**, and they are all from books transcribed as stat lines
+only: Cold Wind Knives (Kingdom of Halta p.93 — its description says "once attuned to an
+Exalt" and "the person to whom they are attuned", so the attunement exists and only the
+figure is missing), the Powerbow of Perfect Accuracy (Caste Book: Dawn pp.80-81), the Most
+Terrifying Armor of the Air Dragon (Aspect Book: Air p.81 — its 5 motes are the cost to
+*fly*), Forge-Hand Gauntlets and the Eye of the Fire Dragon (Aspect Book: Fire p.81), Black
+Widow Razors and Death at the Root (Aspect Book: Wood p.83) and the Gauntlets of Distant
+Touch (Aspect Book: Water p.80).
+
+## Phase 3 — the sheet marks it (2026-09-07)
+
+"Printed sheet should" (human, 2026-09-07), so it does, on **all three sheet surfaces**:
+the artifact row prints **`attuned · 5m`**.
+
+* **One helper, `view.attunement_mark(motes, attuned)`**, and three callers — the screen
+  sheet, the Qt sheet and the PDF. Same reason the Play tab's clamp and note are single
+  helpers: three copies of a wording drift, and the last display fact taught to one
+  formatter and not its siblings left the panel and the dropdown printing two different
+  names for one martial-arts style.
+* **The Artifacts panel is the only place it appears, and that is complete rather than
+  partial.** `_artifact_rows` already folds artifact weapons and armour into that panel,
+  so every attunable thing is marked exactly once — the same one-object rule the p.131
+  budget and `committed_attunement` use. The Equipment panel's existing `A2/5m` is the
+  CATALOGUE's printed cost and is left alone.
+* **The number is the EFFECTIVE cost**, through `derive.attunement_cost`, so a wielder
+  carrying another Exalt's material sees the doubled figure. Tested.
+* ⚠ **The pools beside it are still the FULL ones** — only the Play tab subtracts, which
+  is deliberate and recorded above. That makes this marker the sheet's ONLY account of
+  where the motes went, and it is why "attuned" alone was not enough: the cost prints too.
+* `SheetView.artifacts` went from a 4-tuple to a 5-tuple; all three consumers were updated
+  in the same change.
+
+## Open questions for the human
+
+* **The eight rows above** — worth pulling those pages?

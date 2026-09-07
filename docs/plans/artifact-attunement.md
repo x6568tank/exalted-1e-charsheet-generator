@@ -1,20 +1,22 @@
 # Artifact attunement — commit the motes
 
-**Status: PHASES 1 AND 2 DONE (2026-09-03); phase 3 partly done, the backfill open.**
+**Status: DONE. Phases 1 and 2 (2026-09-03), the BACKFILL and PHASE 3 (2026-09-07) —
+`status/rated-artifacts.md`. What is left is a human click-through.**
 Planned 2026-09-02; the four blocking questions were resolved 2026-09-03 against the
 corebook, a Dragon-Blooded Aspect book and the Player's Guide — see **Resolved
 questions** below.
 
 The feature works end to end: an attuned artifact's motes come off the Play tab's
-maxima, in all four surfaces that render a `PlayView`. What is left is the
-`ArtifactType.attunement` **backfill** (all 330 rows still 0 — see the parse lead under
-resolved question 4), the PDF/sheet question, and **a human click-through**, which has
-not happened.
+maxima, in all four surfaces that render a `PlayView`, and all three sheet surfaces mark
+the attuned item. What is left is **a human click-through**, which has not happened.
 
-⚠ **The catalogue backfill being empty means the standalone-Wonder path is UNEXERCISED
-by real data.** Every test of it uses an injected or hand-set number. Weapons and
-armour are fine — 46 catalogue rows carry real costs — but no shipped artifact row
-does, so "it works" for Wonders rests on tests alone.
+⚠ **The backfill ran 2026-09-07** — the parse lead under resolved question 4, executed:
+89 of the 330 rows now carry a printed cost (1 to 15 motes), read out of their own
+transcribed descriptions, with gear-statblocked duplicates excluded. The
+standalone-Wonder path is no longer unexercised by real data. The four transient
+commitments were authored the next day on the human's ruling that the per-item toggle is
+the control;
+`status/rated-artifacts.md` has the method, the guards and both lists.
 
 ## The ask
 

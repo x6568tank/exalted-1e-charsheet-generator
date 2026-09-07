@@ -219,7 +219,7 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite → `docs/testing.md`
-**3,238 passing, 1 skipped** (2026-09-03, main PC). ⚠ **The count is machine-dependent by
+**3,238 passing, 1 skipped** (2026-09-03, main PC), **+14 added 2026-09-07** (the attunement backfill and the sheet marker). ⚠ **The count is machine-dependent by
 DOZENS of tests, and by 522 more where the optional `qt` extra is missing** — a lower
 number is that working, not tests going missing. **Do not "reconcile" two machines'
 numbers.** ⚠ **The SKIP is conditional and healthy, and one M&F test is machine-dependent
@@ -251,7 +251,7 @@ are pointers only; the traps and history live in the files.
 | Phase-2 scan — the two scan-only books, DONE 2026-08-15; **every book in `sources/` has now been opened** | `status/phase-2-scan.md` |
 | Book of Three Circles — spells, artifacts, the Merit-gated plot devices | `status/book-of-three-circles.md` |
 | Corebook Wonders — Hearthstones, Greater Wonders, the Hearthstone allowance | `status/corebook-wonders.md` |
-| Rated artifacts — the Artifact budget, dual-nature devices, the corebook default, and **attunement** (the commitment, phases 1-2 DONE 2026-09-03) | `status/rated-artifacts.md` |
+| Rated artifacts — the Artifact budget, dual-nature devices, the corebook default, and **attunement** (the commitment, DONE — phases 1-2 2026-09-03, the 89-row backfill and the sheet marker 2026-09-07) | `status/rated-artifacts.md` |
 | 1E artifact backlog — the discovery layer (parse method + per-book page lists) | `status/artifact-backlog.md` |
 | Martial-arts STYLE entity — 21 of 22 authored, tiers, `Charm.ma_tier` access | `status/martial-arts-styles.md` |
 | Merits & Flaws — the centralized calc (decision 0011), all 100 authored | `status/merits-flaws.md` |
@@ -270,7 +270,7 @@ are pointers only; the traps and history live in the files.
 | Adversary roster — GM-mode extras/beasts/NPCs | `status/adversary-roster.md` |
 | The `engine/validate/` split — 15 modules, `validate.X` is the ONE public path | `plans/validate-refactor.md` |
 | The Qt port — decision 0018; the build record. **FEATURE-COMPLETE 2026-08-27**: milestones 1–6, the **ST Options**, **Custom** and **Combos** tabs and the **Party / ST window**, all human-clicked (the Party window 2026-08-28, after its roster gained adversary cards). Milestone 5 SETTLES the one layout; milestone 6, Identity+Traits and the Party tab are its three written exceptions | `plans/qt-port.md` |
-| Artifact attunement — the design, the four resolved rules questions, the double-count guard extended from dots to MOTES, and the `ArtifactType.attunement` backfill that is still open | `plans/artifact-attunement.md` |
+| Artifact attunement — the design, the four resolved rules questions, the double-count guard extended from dots to MOTES; DONE apart from a click-through | `plans/artifact-attunement.md` |
 | Variant-menu Charms — the generic `variant_purchases` list, `Charm.variants_unique`, and why Ox-Body and the Gifts were deliberately NOT migrated onto it | `plans/variant-menu-charms.md` |
 | Core Charm re-transcription — the 220 descriptions, the 32 corrected values, the offset trap | `status/core-charm-retranscription.md` |
 | The 265 delegated spells re-transcribed — restored variant-spell mentions, a truncated entry, two resistance-direction bugs | `status/spell-retranscription.md` |
