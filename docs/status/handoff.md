@@ -2,10 +2,23 @@
 
 # 👉 YOU ARE HERE
 
-Last full suite on this machine (**the laptop**): **3,251 passed · 1 failed · 1 skipped**,
-8m22s. ⚠ **The failure is the known machine-dependent one** —
+Last full suite on this machine (**the MAIN PC**): **3,251 passed · 1 failed · 1 skipped**,
+8m22s. ⚠ **I called it the laptop twice before the human corrected me** — inferred from the
+count and from the M&F test failing here, which `docs/testing.md` records as the outcome on
+*some* machines. The arithmetic actually agrees with the main PC once `pypdf` is accounted
+for: 3,194 collected + the 45 skipped PDF tests = 3,239, against the 3,238 + 1 skip recorded
+here on 2026-09-03. **A test count does not identify a machine** — an absent optional
+dependency moves it by more than the gap between two machines. ⚠ **The failure is the known machine-dependent one** —
 `test_merits_flaws.py::test_every_description_matches_the_source_text`, 46 entries — and it
 **fails identically on the stashed tree**, so it is not this session's work.
+
+⚠ **But "machine-dependent" is not "noise", and the mechanism deserves stating**: that test
+reads the source `.md` chapters off disk and **DEFERS any Merit whose chapter is not
+there**. So it goes green by having less source available, and a machine where it FAILS is
+the machine where the check actually ran. Here it ran and found 46 descriptions under 92%
+of their printed text — the same order-of-magnitude-too-thin shape as the Core Charms
+before their re-transcription, not a machine quirk. `docs/testing.md` has it as an oddity;
+what it is measuring is real.
 
 ⚠ **The count rose 3,194 → 3,253 and only 14 of that is new tests.** The other 45 were
 already written and were being SKIPPED: `tests/test_pdf.py` module-skips when `pypdf` is
@@ -55,11 +68,17 @@ Nothing is blocked.
   **standalone Wonder** (the Ring of Being at 15 motes is the loudest), then the mortal
   case that was silently free until 2026-09-03 — and now also **the sheet and the PDF**,
   which should say `attuned · Nm` beside the item while the pools stay full.
-- **Eight gear rows genuinely need a page** — what is left of the 19-row hole after the
-  human asked for a glance. Cold Wind Knives, the Powerbow of Perfect Accuracy, the Most
-  Terrifying Armor of the Air Dragon and five Aspect Book weapons; all from books
-  transcribed as stat lines only. `status/rated-artifacts.md` has the triage that cleared
-  the other eleven.
+- **Six gear rows need a page, and they are all Aspect Book rows** — the Most Terrifying
+  Armor of the Air Dragon (Air p.81), Forge-Hand Gauntlets + Eye of the Fire Dragon (Fire
+  p.81), Black Widow Razors + Death at the Root (Wood p.83), Gauntlets of Distant Touch
+  (Water p.80). ⚠ **No Aspect Book material is under `images/` on the main PC** as of
+  2026-09-07, though `derive.py` cites an `images/Dragonblooded/Aspects/…` path and the six
+  stat lines were authored from those books. That citation was deliberately NOT "fixed" —
+  an absent path is not a missing source. The pages need putting in front of me.
+- **Two more want a ruling, not a page** — Cold Wind Knives and the Powerbow of Perfect
+  Accuracy. Both pages ARE on disk and were read 2026-09-07; neither prints a commitment,
+  and the Powerbow's whole spread has every neighbour's cost already authored, so its 0 is
+  right-by-absence. `status/rated-artifacts.md`.
 - **`qt/` is the one real comment-pass gap** (carried; `docs/comment-standard.md`).
 - **The Backgrounds in the scan-only splat books** — still the one known content gap.
 

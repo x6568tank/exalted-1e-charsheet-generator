@@ -219,10 +219,15 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite → `docs/testing.md`
-**3,238 passing, 1 skipped** (2026-09-03, main PC), **+14 added 2026-09-07** (the attunement backfill and the sheet marker). ⚠ **The count is machine-dependent by
-DOZENS of tests, and by 522 more where the optional `qt` extra is missing** — a lower
-number is that working, not tests going missing. **Do not "reconcile" two machines'
-numbers.** ⚠ **The SKIP is conditional and healthy, and one M&F test is machine-dependent
+**3,251 passing, 1 failing, 1 skipped** (2026-09-07, main PC; +14 tests this session).
+⚠ The FAILURE is the machine-dependent M&F description test, and it fails here because the
+source chapters it checks against are present — it defers, and goes green, where they are
+not. ⚠ **The count is machine-dependent by
+DOZENS of tests, by 45 where `pypdf` is missing, and by 522 more where the optional `qt`
+extra is missing** — a lower number is that working, not tests going missing. **Do not
+"reconcile" two machines' numbers, and never infer WHICH machine you are on from the
+count**: an absent optional dependency moves it further than the gap between two machines
+(2026-09-07). ⚠ **The SKIP is conditional and healthy, and one M&F test is machine-dependent
 in OUTCOME** — pass-with-deferrals on some machines, a real failure on others, neither a
 regression. `docs/testing.md` has both by name, how to read a run's numbers honestly, and
 the Qt-font trap that looks like a machine crash.

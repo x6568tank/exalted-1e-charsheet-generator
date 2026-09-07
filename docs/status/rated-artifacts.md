@@ -777,7 +777,7 @@ Closes the item the 2026-09-03 write-up left open: `ArtifactType.attunement` was
 330 catalogue rows, so the standalone-Wonder path was **unexercised by real data** and
 every test of it had to inject a number. It is now 0 on 241 and printed on 89, plus two ruled-in gear rows.
 
-**3,251 passed · 1 failed · 1 skipped** on the laptop, and see the count note in the
+**3,251 passed · 1 failed · 1 skipped** on the MAIN PC, and see the count note in the
 handoff — 45 of that rise is `pypdf` being installed, not tests being written. ⚠ The failure is `test_merits_flaws.py::
 test_every_description_matches_the_source_text`, the machine-dependent one `docs/testing.md`
 names — 46 entries, and it **fails identically on the stashed tree**, so it is not this
@@ -871,15 +871,39 @@ authors the thing, and then it is the only thing standing in the way.** It now p
 ruling instead. The Direlance's OTHER blocker is still live and its note still says so —
 core p.341 is not on disk, so the weapon has no artifact-catalogue entry.
 
-**Eight genuinely need a page**, and they are all from books transcribed as stat lines
-only: Cold Wind Knives (Kingdom of Halta p.93 — its description says "once attuned to an
-Exalt" and "the person to whom they are attuned", so the attunement exists and only the
-figure is missing), the Powerbow of Perfect Accuracy (Caste Book: Dawn pp.80-81), the Most
-Terrifying Armor of the Air Dragon (Aspect Book: Air p.81 — its 5 motes are the cost to
-*fly*), Forge-Hand Gauntlets and the Eye of the Fire Dragon (Aspect Book: Fire p.81), Black
-Widow Razors and Death at the Root (Aspect Book: Wood p.83) and the Gauntlets of Distant
-Touch (Aspect Book: Water p.80).
+**Eight looked like they needed a page. Two did not** — their pages were already on disk
+and were read on 2026-09-07:
 
+* **Cold Wind Knives** (Kingdom of Halta p.93, `images/_extracted/Kingdom of Halta.md`).
+  The entry is complete and prints NO commitment: "Once attuned to an Exalt, they confer
+  several benefits", and the stat line gives Spd/Acc/Dmg/Defense only. The attunement
+  demonstrably exists and the figure was never printed.
+* **Powerbow of Perfect Accuracy** (Caste Book: Dawn pp.80-81,
+  `images/Solars/Castebooks/Dawn/79-80.png` and `81.png`). Its entry runs across both pages
+  and prices nothing; the p.81 table gives it Accuracy/Damage/Rate/Range/Minimums with no
+  Commitment column at all. ⚠ **And the spread corroborates the rest of the pass**: every
+  neighbouring entry already carries its printed commitment — Razor Claws 2, Lightning
+  Chain 5, Flame Spear 6, Spirit Sword 10, Daiklave of Conquest 10, artifact Chain Shirt 3.
+  So this 0 is right-by-absence, not an oversight.
+
+Both therefore want a **ruling**, like the Direlance — except neither has an obvious family
+to borrow a number from.
+
+⚠ While reading that table I misread the Chain Shirt's row as "Commitment 0 / Artifact 3"
+by slipping a column; it is Commitment 3 / Artifact ••, which is exactly what the build
+holds. **The verification-shape trap, in its purest form** — anchor on the column, not the
+value that looks plausible.
+
+**Six genuinely need a page**, all Aspect Book rows: the Most Terrifying Armor of the Air
+Dragon (Air p.81), Forge-Hand Gauntlets and the Eye of the Fire Dragon (Fire p.81), Black
+Widow Razors and Death at the Root (Wood p.83) and the Gauntlets of Distant Touch (Water
+p.80). ⚠ **There is no Aspect Book material under `images/` on the main PC** as of
+2026-09-07 — no `Aspects` tree, and nothing in `_extracted` — even though `derive.py`'s
+`attunement_cost` cites `images/Dragonblooded/Aspects/Earth/CH 6 - Miracles of Pasaip.md`
+and the six rows' stat lines were authored from those books. **That citation was NOT
+"fixed"**: a recorded path being absent is not evidence the source is missing, and the
+machines organise `images/` differently (CLAUDE.md's standing warning). The pages simply
+need to be put in front of me.
 ## Phase 3 — the sheet marks it (2026-09-07)
 
 "Printed sheet should" (human, 2026-09-07), so it does, on **all three sheet surfaces**:
@@ -905,4 +929,6 @@ the artifact row prints **`attuned · 5m`**.
 
 ## Open questions for the human
 
-* **The eight rows above** — worth pulling those pages?
+* **Cold Wind Knives and the Powerbow of Perfect Accuracy** — both pages read, neither
+  prints a cost. A ruling, or leave them at 0?
+* **The six Aspect Book rows** — worth putting those pages in `images/`?
