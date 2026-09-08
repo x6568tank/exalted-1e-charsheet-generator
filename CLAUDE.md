@@ -136,7 +136,7 @@ costs — read the record before proposing anything that contradicts it.
 | 0016 | **Base dice pools are in scope; resolution is not** — narrows 0008, leaves 0009 untouched |
 | 0017 | **Artifacts have acquisition CHANNELS** — the Artifact Background is pre-game (core p.342, budgeted); cash is in-play (M&C pp.122-125). ⚠ A **third** joined 2026-08-13/14 and is not yet its own record: a plot device printing "(ARTIFACT N/A)" is bought with the **Legendary Artifact** 10-pt Merit and charged to no budget — the standing answer for the shape, still confirm each. `docs/status/book-of-three-circles.md` |
 | 0018 | **The Qt port is committed** — a PySide6 native app alongside the NiceGUI webapp; the plan doc becomes the build record |
-| 0019 | **A dumb dice roller, UNWIRED from the pools** — rolls a dice COUNT, never a named roll. Reverses 0009 narrowly (the human reopened it, 2026-09-08); amends 0016's initiative clause |
+| 0019 | **A dumb dice roller, UNWIRED from the pools** — rolls a dice COUNT, never a named roll. Reverses 0009 narrowly (the human reopened it, 2026-09-08); amends 0016's initiative clause. **BUILT 2026-09-08** in both shells, with the initiative RATING and the GM's batch roll: `status/dice-roller.md` |
 
 **Permanently out of scope** — 0008 and 0010 (no combat/attack derivation, no Fair Folk);
 both closed. ⚠ **0009 is NO LONGER a blanket bar** — the human reopened it 2026-09-08 and
@@ -223,7 +223,7 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite → `docs/testing.md`
-**3,238 passing, 1 skipped** (2026-09-03, main PC). ⚠ **The count is machine-dependent by
+**3,356 passing, 1 skipped** (2026-09-08, main PC). ⚠ **The count is machine-dependent by
 DOZENS of tests, and by 522 more where the optional `qt` extra is missing** — a lower
 number is that working, not tests going missing. **Do not "reconcile" two machines'
 numbers.** ⚠ **The SKIP is conditional and healthy, and one M&F test is machine-dependent
@@ -265,6 +265,7 @@ are pointers only; the traps and history live in the files.
 | Thaumaturgy — cross-splat Arts/Sciences/Rituals/Formulas | `status/thaumaturgy.md` |
 | Custom content — user-authored Charms/styles/spells/**rituals**/gear, the `/custom` page | `status/custom-content.md` |
 | Dice pools — decision 0016, the Play-tab sidebar | `status/dice-pools.md` |
+| The dumb dice roller — decision 0019: the roller, the initiative RATING, the GM's batch roll, and the tests that guard the no-wire rule | `status/dice-roller.md` |
 | Elder Exalts — Essence to the splat cap, the p.259 downtime calculator | `status/elder-exalts.md` |
 | Edit⇄XP merge — one trait surface both sides of the lock | `status/edit-xp-merge.md` |
 | Advantages tab — Backgrounds + M&F on one both-sides tab | `status/advantages-tab.md` |
@@ -364,7 +365,10 @@ Each is written up where it landed; these are the ones that catch people mid-tas
   different one runs — downloading a new release to a new path changes nothing until you
   execute it directly. ⚠ **But check the DATES before blaming the build**: on 2026-09-03
   the stale-binary theory was wrong twice over — the suspected fix predated the binary by
-  a month, and the real bug was in the code all along.
+  a month, and the real bug was in the code all along. ⚠ The same question bit again on
+  2026-09-08 in its **server** form: `reload=False` plus a `fuser -k` that silently
+  failed left port 8080 answering **200** with the previous build. Kill by PID and
+  confirm the port is dead before relaunching.
 - `chargen_budgets.json`/`costs_bonus.json`/`costs_xp.json` overrides beyond what's
   authored — optional, loader falls back to model defaults.
 - A per-session XP-grant ledger; state-reconciliation of hand-edited

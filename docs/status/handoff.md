@@ -1,101 +1,79 @@
-# Session handoff — 2026-09-03 (artifact attunement, and two rules with no implementation)
-### + 2026-09-08 addendum: decision 0019, the dice roller — see the first NEXT section
+# Session handoff — 2026-09-08 (the dumb dice roller, initiative, the GM's batch roll)
 
 # 👉 YOU ARE HERE
 
-Last FULL green suite: **3,238 passed, 1 skipped** (main PC, `main`, 17m22s).
-**4 commits ahead of `origin/main`, not pushed** — `ceac278` (attunement blockers + the
-comment-pass correction), `46a4f30` (attunement phase 1), `bbdc661` (phase 2 + two Merit
-fixes), plus the two carried from the previous session — and ⚠ **the working tree is
-DIRTY**: the ST toggle, the species-3 fix and this whole close-out are uncommitted.
+Last FULL green suite: **3,356 passed, 1 skipped** (main PC, `main`, 9m08s).
+**4 commits ahead of `origin/main`, not pushed** (unchanged from the last session:
+`ceac278`, `46a4f30`, `bbdc661`, plus two carried) — and ⚠ **the working tree is
+DIRTY**: everything below is uncommitted, on top of the previous session's uncommitted
+close-out.
 
-⚠ The count moved 3,181 → 3,238; all 57 are tests added this session. Nothing was fixed
-by accident and nothing went missing.
+⚠ The count moved from 3,238; the difference is tests added this session and nothing
+else. Nothing was fixed by accident and nothing went missing.
+
+**The full record is `docs/status/dice-roller.md`.** What follows is the session
+summary; do not restate that file here.
 
 ## What shipped
 
-**1. Artifact attunement, phases 1 and 2** (`status/rated-artifacts.md`, and
-`plans/artifact-attunement.md` for the full design). An owned artifact with a printed
-cost can commit its motes, and the Play tab's maxima come down by the total, on all four
-mote surfaces. The flag is the player's — nothing auto-attunes. The derivation walks
-`artifacts.artifact_items()`, the one enumeration, so a daiklave entered as both an
-artifact row and its weapon stat line commits once; the **gear row wins** (human's
-ruling). **Not browser-verified.**
+Decision **0019** is now built, in both shells. Read the record before touching any of
+it — its **no-wire rule** is the whole safety mechanism and no test catches its loss by
+accident.
 
-**2. `MeritEffects.no_magical_material_bonus`** (`status/merits-flaws.md`). Both Magical
-Attunement Merits refuse the material bonus in as many words and nothing implemented it —
-the right answer arrived by coincidence, because a Mortal/God-Blooded exalt_type matches
-no material. The same pages settled the attunement doubling: a character no material
-resonates with pays the **printed** cost.
+**1. The roller** (`engine/dice.py`, `view.roll_dice`, `ui/play.py`, `qt/play.py`). A
+dice COUNT the player types, a target number, a free-text label and two switches →
+faces, successes, botch. Carries the **Rule of Ten** (a 10 is TWO successes, p.90) and
+the **Rule of One** (no success plus at least one 1, p.89; ⚠ 1s never subtract). RNG
+injectable. Results are a transcript: capped at 12, never written to a `Character`. The
+newest roll shows and the rest fold behind "Previous rolls (N)" — the fold was the
+human's ask after seeing a session's worth of log.
 
-**3. `MeritEffects.essence_pool_split_thirds`** (`status/godblooded.md`). Aura of Power
-was read from the save, stored, and had **zero read sites**. `essence_pool_is_merged`
-asked the splat first, and a God-Blooded's `single_essence_pool` is True, so the Flaw
-never got a vote. Reported from the human's own save; Taban now reads Personal 10 ·
-Peripheral 21 instead of Single pool 31.
+**2. The initiative RATING** (`engine/initiative.py`). Dexterity + Wits + weapon Speed,
+itemised, in its own card captioned "A RATING, NOT A POOL", with the `+1d10 each turn`
+line and the tie-break. Speed is adjusted by the magical material and by unmet weapon
+minimums — both through `derive.effective_weapon` and `pools.weapon_minimum_shortfall`,
+which already owned those rules. ⚠ Mobility, encumbrance, fatigue and wound penalties
+are all OUT, per the human's ruling of 2026-09-08 (wounds reach initiative only under
+**Power Combat**, which this build does not implement).
 
-## 👉 NEXT — the dice roller (decision 0019, new 2026-09-08)
+**3. The GM's batch roll** (`view.roll_batch`, `ui/gm.py`, `qt/party.py`). A name for
+the batch, one typed count per roster row, one press; the log folds under the batch's
+name and opening it shows a line per row. A row at 0 sits out. Adversaries included.
+⚠ Shape **B** of three the human was offered — the pool-filled version is the wire 0019
+rejects by name, and building it needs the decision reopened.
+
+**4. Two Qt layout defects, both PRE-EXISTING and neither mine** — the wrapped health
+track drawing at two different pitches (`qt/play.py` AND `qt/party.py`, the same bug one
+widget class apart), and a long roster name pushing its batch row's controls out of
+line. Both fixed, both covered by geometry tests, both negative-controlled.
+
+**Browser/app-verified?** The human clicked the **roller** and the **initiative rating**
+mid-session and reported them fine. ⚠ **The fold, the batch roll and both layout fixes
+have only been rendered offscreen** — `status/dice-roller.md` has the click list.
+
+## ✅ DONE — the dice roller (decision 0019). Kept below: what it did NOT decide
 
 ⚠ **0009 ("no dice rolling, ever") was REOPENED BY THE HUMAN on 2026-09-08** and
 narrowly reversed by **`docs/decisions/0019-a-dumb-dice-roller.md`**. Read that record
 before writing a line of it; `0009` and `0016` carry amendment pointers, and CLAUDE.md's
 "permanently out of scope" line no longer names 0009.
 
-**Build this first, and standalone.** It needs no server, works in both shells, and it
-tells the human whether reversing 0009 feels right at the table *before* the ~12 days of
-hosting work below. **~2–3 days.**
+Built 2026-09-08, both shells. **The record is `docs/status/dice-roller.md`**; the
+rules, their page cites and the rejected alternatives are in the decision record. The
+spec that stood here has been deleted rather than left to rot beside two copies that
+are now more accurate than it.
 
-- `engine/` gets a pure roller: `(count, target_number, die_faces)` → faces + success
-  count + botch flag, applying the Rule of Ten and the Rule of One below. **Injectable
-  RNG** — a roller that cannot be seeded cannot be tested. No `RollDefinition`, no
-  `PoolBreakdown`, no character, ever, in its signature. Both rules are properties of a
-  handful of dice and know nothing about the character, so neither breaches the no-wire
-  rule.
-- **The initiative rating** is a separate, tiny derivation (Dex + Wits + weapon Speed) —
-  a sheet line, not a roll. See below.
-- Surfaces in `ui/play.py` **and** `qt/play.py`. One shell only is how the two products
-  drift.
-- Results are **not persisted** to the character — a transcript, not play-state.
-- ⚠ **The no-wire rule is 0019's load-bearing clause and NO TEST WILL CATCH ITS LOSS.**
-  Pre-filling the dice box from a pool row is legal only if the field stays editable, the
-  player presses Roll, and **the result never carries the roll's name**. Put "the result
-  is not labelled with the roll's name" on the click-through list.
+⚠ Two things from that spec are worth keeping in front of a reader's eyes, because
+they are the parts that decay silently:
 
-### ⚠ The three dice rules — SOURCED 2026-09-08, and two overturned what we assumed
-
-Grepped out of `images/_extracted/Exalted Core.md`. **Nothing here is blocked any more.**
-Full quotes and page cites are in 0019; the short form:
-
-⚠ Page numbers are from the book's **index** (`Rule of One 89`, `Rule of Ten 90`); the
-transcription's `<!--PAGE-->` markers sit one page early here — the known offset trap.
-
-1. **Rule of Ten (p.90): a 10 counts as TWO successes.** ⚠ Neither the human nor the
-   model raised this — plain `d >= tn` counting would have shipped silently wrong. This
-   is the roller's core arithmetic; get it right first and test it first. General, with
-   two printed per-effect exceptions (damage rolls; the Rune), each switching off double
-   10s **and** botching together — hence two default-ON switches on the roller, not logic.
-2. **Rule of One (p.89): botches DO exist.** No die at target-or-higher **and** at
-   least one 1. One success or more and all 1s are ignored. ⚠ **1s NEVER subtract
-   successes** — that is another edition's convention; refuse it if proposed. (The
-   human's "1e has no botch logic by default" was overturned on the first half and
-   correct on the second.)
-3. **Initiative (p.226; weapon Speed p.326) is NOT a dice pool.** Base = **Dexterity +
-   Wits**, adjusted by the weapon's Speed — *"added to or subtracted from the character's
-   initiative total"*, a **flat modifier, not dice** — then **+1d10 every turn**.
-   ⚠ **Do not author an initiative row in `data/dice_pools.json`.** It is a derived
-   rating line (trait arithmetic, in scope under 0016) plus a `1d10` the dumb roller
-   already does. Cheaper than the row that was planned. `Weapon.speed`'s comment
-   (`models/rules.py:1206`) was right all along.
-
-⚠ **Those Core passages are glyph-ciphered** — "Iowever" for However, and in the worked
-examples `1` renders as `0` and `10` as `/`. The **prose rules are clean**; nothing above
-came from an example's digits, and nothing later should.
-
-✅ **`README.md` is already updated** (2026-09-08) — both the "NO FUCKING DICE" bullet and
-the Play-tab paragraph that said to go roll on a table. The bullet's replacement is the
-human's own words and is the one-line statement of this whole design: *"There is a dumb
-dice roller. It has a label, and you input how many dice. I will not do charm effects for
-you, fuck off."*
+- **The no-wire rule is 0019's load-bearing clause and NO TEST CATCHES ITS LOSS by
+  accident.** The tests that catch it deliberately are listed in `status/dice-roller.md`
+  — deleting one of those is deleting the mechanism, not tidying a test.
+- **The page numbers for the two dice rules come from the book's INDEX** (`Rule of One
+  89`, `Rule of Ten 90`); the transcription's `<!--PAGE-->` markers sit one page early
+  here. That is the known offset trap, and it is why the rules were quoted from the
+  prose and never from a worked example's digits — ⚠ those examples are glyph-ciphered,
+  rendering `1` as `0` and `10` as `/`.
 
 ### Costed but NOT ruled — hosting, a shared roll log, a whiteboard
 
@@ -126,6 +104,31 @@ readable). Two cheap mitigations, neither ruled: **copy that disclaimer**, and *
 gate `description` in the hosted build** (a build-time filter, not a refactor — the sheet,
 pools and trackers all work without it).
 
+## 👉 TODO — raised by the human 2026-09-08, at the end of the roller session
+
+Both captured verbatim; neither is started, and neither was a defect report.
+
+1. **The Qt Party window is still shaped like a copy of the webapp.** Human's words:
+   *"The gm party view is still structured as a 'copy' of the webapp; write that down
+   to fix sometime."* Deliberately vague on the remedy because they did not name one.
+   ⚠ Note before acting: the Party tab is one of the **three written exceptions** to the
+   port's ONE tab layout (`docs/plans/qt-port.md` — it is a live TRACKER with nothing to
+   select, so it has no detail pane on purpose). This TODO is NOT licence to fold it back
+   into the collection layout; the exception stands until the human reopens it. What they
+   are pointing at is the *card-grid-and-scroll* structure reading as a ported web page
+   rather than a native window. Ask what shape they want before designing one.
+
+2. **The batch roll must not be all-or-nothing.** Human's words: *"I do not want to roll
+   for everyone immediately. I want to be able to choose how many rolls I make, and for
+   who."* ⚠ Read that as the INTERACTION shape, not a missing capability: a row left at 0
+   dice already sits the batch out (`view.roll_batch` skips it), so "for who" is possible
+   today but only by zeroing everyone you *don't* want. The ask is for selecting the
+   participants directly, and for controlling **how many rolls** are made — which may mean
+   several rolls for one character, a shape the batch does not have at all today (one row
+   = one roll). **Ask which of the two they meant before building either.**
+   ⚠ Whatever the shape, decision 0019 is unchanged: counts stay typed, no row may offer a
+   named roll to fill itself from, and a result may never carry a roll's name.
+
 ## 👉 NEXT — carried
 
 Nothing is blocked. In rough order of what would bite:
@@ -141,7 +144,16 @@ Nothing is blocked. In rough order of what would bite:
 - **The Backgrounds in the scan-only splat books** — still the one known content gap, a
   reading job.
 
-## Rules questions — both ANSWERED 2026-09-03, none outstanding
+## Rules questions — NONE OUTSTANDING
+
+This session's were all answered by the human on the spot (2026-09-08): the two dice
+rules off the page, and the initiative modifiers — magical material, unmet weapon
+minimums, and the exclusion of mobility, encumbrance, fatigue and wound penalties. ⚠ The
+mobility exclusion is explicitly the human's **reading of p.332's scope**, not an
+explicit exclusion in the text; it is recorded as a ruling in `engine/initiative.py` and
+`status/dice-roller.md`, and reversing it is theirs to do.
+
+### Carried, both ANSWERED 2026-09-03
 
 - **`free_max` and committed motes** became an ST toggle rather than a ruling:
   `HouseRules.committed_motes_reduce_free_essence`, PER-CHARACTER, default OFF. The app
@@ -159,7 +171,23 @@ unrelated test's fixture happened to be a mortal. `status/rated-artifacts.md`.
 
 ## What a human should click
 
-**Nothing this session was browser- or app-clicked.** In priority order:
+**This session, the roller and the initiative rating WERE clicked** (human, 2026-09-08,
+both approved). ⚠ **Everything else below is still owed** — the fold, the batch roll and
+the two layout fixes have only been rendered offscreen, and the whole attunement list
+below is carried unclicked from 2026-09-03.
+
+**From this session** — the full list with expected numbers is in
+`status/dice-roller.md`; the three that matter most:
+
+1. ⚠ **Roll with the label box EMPTY, both shells.** The transcript line must carry the
+   outcome and the dice and **no roll name anywhere**. This is 0019's safety mechanism
+   and no test failure will ever tell you it broke.
+2. **The batch roll** on the party surface, both shells — name it, give two rows dice,
+   leave one at 0; the fold shows the name, opening it shows a line per row.
+3. **A wrapped health track** (Yarak's 19 levels) on the Play tab **and** a party card —
+   one pitch across both rows.
+
+**Carried from 2026-09-03, attunement, still unclicked:**
 
 1. A **daiklave** on the Gear tab in both shells — real catalogue attunement (5 motes).
    Checkbox appears; pool dropdown only once checked.
@@ -171,7 +199,25 @@ unrelated test's fixture happened to be a mortal. `status/rated-artifacts.md`.
    2026-09-03.
 5. **Taban's sheet and printed PDF** — the split reads Personal 10 · Peripheral 21.
 
-## ⚠ Two test traps this session paid for, both re-bitable elsewhere
+## ⚠ Test traps paid for, all re-bitable elsewhere
+
+**New, 2026-09-08:**
+
+1. **`qtbot.waitExposed` returns BEFORE a nested `QScrollArea` lays its contents out.**
+   Every widget then reports the same `y`, so a geometry assertion reads one row where
+   there are two — it fails confusingly, or passes vacuously. Needs `qtbot.wait(50)`
+   before measuring. ⚠ Adding that wait across a file by search-and-replace broke an
+   unrelated scroll test whose assertion depended on the original timing: apply it ONLY
+   where geometry is measured.
+2. **A `QHBoxLayout` of fixed-size cells spreads its slack BETWEEN them.** Stretching
+   only the last row of a wrapped track justifies the full rows and packs the short one,
+   changing box pitch mid-track. Invisible to widget-count and text assertions; a human
+   spotted it on sight. Test by measuring pitch per row.
+3. **`_StatLine` cannot be given a fixed width** — its `Ignored` horizontal size policy
+   beats `setFixedWidth` and collapses the label to nothing. The collapse was invisible
+   to every test and showed only in a render.
+
+**Carried from 2026-09-03:**
 
 1. **Qt: `isVisible()` is False for everything on a page that is never shown.** A
    headless visibility assertion passes against a control that is *always* shown, and its
@@ -193,9 +239,16 @@ tab**, the **Thaumaturgy → Rituals tab** and the **Custom tab's Rituals sub-ta
 ⚠ **`dist/` is gitignored and its binaries are from 2026-08-14 / 2026-08-30** — neither
 has this session's work. Rebuild before showing the app to anyone, and remember the
 launcher trap: `branding.install_desktop_entry()` pins `Exec=` to the first frozen binary
-that ever ran, and nothing in the UI reports a version. ⚠ **This session, the stale-binary
-theory was WRONG** — the suspected fix predated the binary by a month. Check the dates
-before blaming the build.
+that ever ran, and nothing in the UI reports a version. ⚠ **On 2026-09-03 the
+stale-binary theory was WRONG** — the suspected fix predated the binary by a month.
+Check the dates before blaming the build.
+
+⚠ **A stale RUNNING SERVER wears the same disguise, and it bit on 2026-09-08.**
+`ui/builder.py` runs `reload=False`, so a server started before an edit serves old code
+— and `fuser -k 8080/tcp` silently failed to kill it, the replacement exited with
+"address already in use", and `curl` still answered **200**. The port looked healthy
+while serving the previous build. **Kill by PID and re-check the port is 000 before
+relaunching**, whenever you are about to show the human something.
 
 ## Still deferred, still NOT gaps
 

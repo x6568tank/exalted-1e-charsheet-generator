@@ -47,7 +47,7 @@ async def test_every_row_shows_its_arithmetic_not_just_a_total(user: User) -> No
 async def test_it_states_what_it_excludes(user: User) -> None:
     await user.open('/pools')
     await user.should_see("These are BASE pools. They do not include:")
-    await user.should_see("No dice are rolled here, and nothing is resolved.")
+    await user.should_see("Nothing is resolved here, and no row rolls itself — the roller takes a number you type.")
 
 
 @pytest.mark.asyncio
@@ -303,3 +303,54 @@ async def test_an_unarmed_character_still_gets_the_notice(user: User) -> None:
     """The negative control for the test above — deleting the branch would pass it."""
     await user.open('/pools-bare')
     await user.should_see("No weapon owned")
+
+
+# ------------------------------------------------------- initiative (0019) --- #
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_initiative_rating_shows_with_its_arithmetic(user: User) -> None:
+    """CHAR_POOLS is Dexterity 4; the fixture's Wits is 1, so unarmed reads 5."""
+    await user.open('/pools')
+    await user.should_see("INITIATIVE  ·  A RATING, NOT A POOL")
+    await user.should_see("+4 dex +1 wits")
+    await user.should_see("Unarmed")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_rating_says_it_takes_one_d10_and_how_ties_break(user: User) -> None:
+    """⚠ The line that stops the rating being picked up as a handful of dice —
+    the roller is on the same tab, and a bare number beside it invites exactly
+    that. Decision 0019 is why it is a rating and not a pool row."""
+    await user.open('/pools')
+    await user.should_see("Add 1d10 each turn")
+    await user.should_see("Ties break on the higher Dexterity + Wits")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_rating_states_what_it_leaves_out(user: User) -> None:
+    await user.open('/pools')
+    await user.should_see("Speardancer Concentration")          # Charms excluded
+    await user.should_see("Power Combat")                        # wounds excluded
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_choosing_a_weapon_moves_the_rating(user: User) -> None:
+    """The Short Sword is Speed 0 in the fixture, so the discriminator is the
+    weapon NAME replacing 'Unarmed' — a rating that ignored the selection would
+    keep saying Unarmed."""
+    await user.open('/pools')
+    _weapon_select(user).set_value(0)
+    await user.should_see("Short Sword")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_initiative_is_not_in_the_pool_list(user: User) -> None:
+    """⚠ 0019 forbids an initiative ROW in `data/dice_pools.json`. The rating has
+    its own card; a row would put a rating among numbers that mean dice."""
+    await user.open('/pools')
+    await user.should_not_see("Initiative — ")

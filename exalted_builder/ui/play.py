@@ -9,6 +9,11 @@ NO game logic here and none in the engine for this: no auto mote-accounting, no
 damage-wrapping rules, no auto-healing — the ST stays in control. This layer never
 feeds back into chargen validation, the XP audit, or the permanent derivations.
 
+⚠ The tab also carries the **dice roller** (decision 0019). It rolls a COUNT the
+player types under a LABEL the player writes, and must never learn which roll it is
+rolling — a Roll button on a pool row, or a label filled in from one, re-creates what
+decision 0009 was written to prevent, and no test will fail. Read 0019 first.
+
 Run:
     python -m exalted_builder.ui.play [path/to/foo.character.json] [--show] [--port N]
 """
@@ -23,7 +28,7 @@ from nicegui import ui
 from .. import persistence, rules_db
 # `merits` is imported for its LIMIT_MAX constant only. Reading a constant is not
 # branching on a Merit id, which is what decision 0011 forbids.
-from ..engine import derive, merits, play as engineplay
+from ..engine import derive, dice, merits, play as engineplay
 from ..models.character import Character, Damage, PlayState
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import theme
@@ -175,6 +180,127 @@ def custom_pool_panel(ruleset: RuleSet, character: Character,
                  "nothing rolled.").classes("text-xs text-gray-500")
 
 
+def initiative_panel(ruleset: RuleSet, character: Character, pal: theme.Palette,
+                     state: dict) -> None:
+    """The initiative rating (core p.227), reading the same weapon the pool
+    sidebar's "Attack with" control names.
+
+    ⚠ Its OWN card, deliberately outside the DICE POOLS list. A rating shown among
+    pool rows reads as dice, and the roller is on the same tab — which is how a
+    player picks up nine dice for a number that takes ONE d10. The caption says
+    what it is; keep it saying so. `engine/initiative.py` owns the rule and the
+    exclusions, and decision 0019 owns the condition.
+    """
+    iv = viewmod.build_initiative(ruleset, character, weapon_index=state["weapon"])
+    with ui.card().classes(f"w-full p-3 {pal.card_soft} gap-1"):
+        ui.label("INITIATIVE  ·  A RATING, NOT A POOL").classes(
+            "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
+        with ui.row().classes("w-full items-baseline gap-2 no-wrap"):
+            ui.label(f"{iv.total}").classes(
+                "text-xl font-bold shrink-0").style(f"color:{pal.accent}")
+            with ui.column().classes("gap-0 min-w-0"):
+                ui.label(iv.weapon or "Unarmed").classes("text-sm leading-tight")
+                ui.label(iv.compact).classes("text-xs text-gray-600 leading-tight")
+        ui.label(iv.turn_note).classes("text-xs text-gray-600")
+        ui.label(iv.tie_break).classes("text-xs text-gray-500")
+        # The 0016/0008 mitigation, same as the pool list's: a surface that shows
+        # the total must show what the total leaves out.
+        ui.label("Not included:").classes("text-xs font-semibold mt-1")
+        for line in iv.excludes:
+            ui.label(f"· {line}").classes("text-xs text-gray-600 leading-tight")
+
+
+def dice_roller_panel(pal: theme.Palette, state: dict, on_roll) -> None:
+    """The dumb dice roller (decision 0019).
+
+    A dice COUNT the player types, a label the player writes, two switches, and a
+    transcript of what came up. That is the whole surface.
+
+    ⚠ Read 0019 before changing this, and its no-wire rule first. What keeps this
+    inside decision 0008's boundary is what the panel does NOT have: no roll to
+    pick, no difficulty or stunt field, no odds, and above all no app-written
+    label. A future change that fills the label from a pool row — or adds a Roll
+    button to one — re-creates exactly the thing 0009 was written to prevent, and
+    NO TEST WILL FAIL. It is on the click-through list for that reason.
+
+    `on_roll` is the caller's refresh for this panel alone: a roll must not
+    rebuild the health tracker beside it.
+    """
+    def _set(key, value) -> None:
+        # Deliberately no refresh: the panel is rebuilt on Roll, and redrawing it
+        # under a player mid-way through typing a label takes the focus with it.
+        state[key] = value
+
+    with _panel("DICE ROLLER", pal):
+        with ui.row().classes("w-full gap-2 items-end flex-wrap"):
+            ui.number("Dice", value=state["count"], min=0, max=dice.MAX_DICE,
+                      format="%d", on_change=lambda e: _set("count", e.value)
+                      ).classes("w-24").props("dense outlined")
+            ui.number("Target", value=state["target_number"], min=2, max=10,
+                      format="%d",
+                      on_change=lambda e: _set("target_number", e.value)
+                      ).classes("w-24").props("dense outlined")
+            # Free text, and the only thing that names the roll. See the docstring.
+            ui.input("Label (yours)", value=state["label"],
+                     placeholder="Attack on the bandit",
+                     on_change=lambda e: _set("label", e.value)
+                     ).classes("flex-1 min-w-40").props("dense outlined")
+            ui.button("Roll", icon="casino", on_click=on_roll).props(
+                f"color={pal.button}").mark("roller-roll")
+        with ui.row().classes("gap-4 items-center"):
+            # Both default ON — the printed rules are general and their exceptions
+            # are per-effect, so the player flips these because the Storyteller
+            # said so, not because the app worked out which roll this is.
+            ui.switch("10s count double", value=state["doubles_tens"],
+                      on_change=lambda e: _set("doubles_tens", e.value)
+                      ).props("dense").classes("text-xs")
+            ui.switch("Can botch", value=state["can_botch"],
+                      on_change=lambda e: _set("can_botch", e.value)
+                      ).props("dense").classes("text-xs")
+        ui.label(viewmod.ROLLER_CAVEAT).classes("text-xs text-gray-500")
+
+        newest, older = viewmod.roll_log_split(state)
+        if newest is not None:
+            ui.separator()
+            _roll_entry(newest, pal)
+            if older:
+                # The fold, so a long session's transcript does not push the
+                # controls off the panel. The newest line stays OUTSIDE it — the
+                # roll you just made is the one you are reading.
+                with ui.expansion(viewmod.previous_rolls_label(len(older)),
+                                  value=state["log_open"],
+                                  on_value_change=lambda e: _set("log_open", e.value)
+                                  ).classes("w-full").props("dense"
+                                                            ).mark("roller-older"):
+                    for entry in older:
+                        _roll_entry(entry, pal)
+            ui.label("This session only — rolls are not saved to the character."
+                     ).classes("text-xs text-gray-500 mt-1")
+
+
+def _roll_entry(entry: "viewmod.RollEntry", pal: theme.Palette) -> None:
+    """One transcript line: the outcome, the player's own label if they wrote
+    one, the faces, and the switches it was rolled under."""
+    with ui.row().classes("w-full items-baseline gap-2 no-wrap"):
+        ui.label(entry.outcome).classes("text-sm font-bold shrink-0").style(
+            f"color:{'#b45309' if entry.botch else pal.accent}")
+        with ui.column().classes("gap-0 min-w-0"):
+            if entry.label:
+                ui.label(entry.label).classes("text-sm leading-tight")
+            with ui.row().classes("gap-1 items-baseline flex-wrap"):
+                for face in entry.faces:
+                    ui.label(str(face.value)).classes(
+                        "text-xs leading-tight " + _FACE_CLASS[face.kind])
+            ui.label(entry.detail).classes("text-xs text-gray-500 leading-tight")
+
+
+# A 10 and a 1 are the two faces a player looks for; the rest is context.
+_FACE_CLASS = {"double": "font-bold text-amber-700",
+               "hit": "font-semibold",
+               "one": "font-bold text-red-700",
+               "miss": "text-gray-500"}
+
+
 def dice_pool_sidebar(ruleset: RuleSet, character: Character,
                       pal: theme.Palette, state: dict, on_change) -> None:
     """The base dice-pool sidebar (decision 0016).
@@ -291,7 +417,12 @@ def dice_pool_sidebar(ruleset: RuleSet, character: Character,
             "text-xs font-semibold mt-2")
         for line in sv.excludes:
             ui.label(f"· {line}").classes("text-xs text-gray-600 leading-tight")
-        ui.label("No dice are rolled here, and nothing is resolved.").classes(
+        # ⚠ The second clause is decision 0019's no-wire rule stated on the
+        # surface: no row here rolls itself, and the roller below cannot know
+        # which roll a number came from. A "Roll" button on a pool row is the
+        # regression 0019 exists to prevent.
+        ui.label("Nothing is resolved here, and no row rolls itself — the "
+                 "roller takes a number you type.").classes(
             "text-xs text-gray-500 mt-1")
 
     with ui.card().classes(f"w-full p-3 {pal.card_soft} gap-2"):
@@ -306,8 +437,12 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
     title/Save bar is omitted (the embedding app provides one). The tab is live
     regardless of chargen lock — play happens after creation, but never blocks."""
     pal = theme.palette(character.exalt_type)
-    # Outside `body`, deliberately — see new_pool_state.
+    # Outside `body`, deliberately — see new_pool_state. The roller's state is
+    # outside for the same reason AND one more: it holds the session transcript,
+    # which a rebuild would throw away (decision 0019 — not persisted anywhere
+    # else, because a roll is not play-state).
     pool_state = new_pool_state(ruleset)
+    roller_state = viewmod.new_roller_state()
 
     # ---- mutations -------------------------------------------------------- #
     def clear_damage() -> None:
@@ -318,6 +453,15 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
         engineplay.clear_motes(character)
         body.refresh()
         ui.notify("Motes spent cleared.", type="positive")
+
+    # ---- the roller (decision 0019) --------------------------------------- #
+    def do_roll() -> None:
+        viewmod.roll_dice(roller_state)
+        roller.refresh()
+
+    @ui.refreshable
+    def roller() -> None:
+        dice_roller_panel(pal, roller_state, do_roll)
 
     # ---- body ------------------------------------------------------------- #
     @ui.refreshable
@@ -503,6 +647,12 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
             if pool_state:
                 custom_pool_panel(ruleset, character, pal, pool_state, body.refresh)
 
+            # --- the dumb roller (decision 0019) ------------------------- #
+            # Its OWN refreshable, not `body.refresh`: a roll must repaint the
+            # transcript and nothing else. Rebuilding the tab would take the
+            # health tracker and the pool sidebar with it on every button press.
+            roller()
+
             ui.button("Clear motes spent", icon="refresh", on_click=clear_motes).props(
                 f"flat color={pal.button}").tooltip(
                 "Resets Personal and Peripheral motes spent to 0. "
@@ -515,6 +665,9 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
         with ui.row().classes("w-full gap-4 items-start justify-center"):
             if pool_state:
                 with ui.column().classes("w-80 shrink-0 gap-2"):
+                    # Above the pool list and outside its card: it reads the same
+                    # weapon selection but is a RATING, not a row. See its docstring.
+                    initiative_panel(ruleset, character, pal, pool_state)
                     dice_pool_sidebar(ruleset, character, pal, pool_state,
                                       body.refresh)
             with ui.column().classes("flex-1 min-w-0 max-w-3xl gap-3"):

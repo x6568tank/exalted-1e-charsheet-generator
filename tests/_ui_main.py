@@ -142,6 +142,15 @@ CHAR_POOLS_BARE = Character(id="dpb", name="Peasant", exalt_type="Mortal", caste
 def page_pools_bare():
     play.build_play(RS, CHAR_POOLS_BARE, Path("x.json"), with_header=False)
 
+# (i2) the dumb roller (decision 0019). Its own character and route: the roller's
+# transcript lives in the page's closure, and a route another test drives would
+# carry that test's rolls into this one's assertions.
+CHAR_ROLLER = Character(id="rlr", name="Roller", caste="dawn")
+
+@ui.page('/roller')
+def page_roller():
+    play.build_play(RS, CHAR_ROLLER, Path("x.json"), with_header=False)
+
 @ui.page('/xp')
 def page_xp():
     editor.build_editor(RS, CHAR_XP, Path("x.json"), with_header=False)
@@ -309,6 +318,16 @@ GM_CLICK = _gm_ctx(Character(id="c1", name="First", caste="dawn"),
 @ui.page('/gm-click')
 def page_gm_click():
     gm.build_gm(RS, GM_CLICK, with_header=False)
+
+# the batch roller's own party: it holds typed counts and a session log in the
+# page closure, so a route another test presses Roll on would carry that test's
+# batches into this one's assertions.
+GM_BATCH = _gm_ctx(Character(id="b1", name="Yarak", caste="dawn"),
+                   Character(id="b2", name="Taban", caste="zenith"))
+
+@ui.page('/gm-batch')
+def page_gm_batch():
+    gm.build_gm(RS, GM_BATCH, with_header=False)
 
 GM_CYCLE = _gm_ctx(Character(id="cy", name="Cycler", caste="dawn"))
 
