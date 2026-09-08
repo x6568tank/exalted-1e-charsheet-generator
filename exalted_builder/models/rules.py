@@ -182,6 +182,9 @@ class CharmCost(BaseModel):
     # which is the case for every one of the 52 printed Charms with a health cost, so
     # it is the default and renders exactly as before. Set it only where a source
     # names the type, or on homebrew where the author decides.
+    # ⚠ NOT homebrew-only, despite having no printed consumer when it was created:
+    # Stolen Wax Discipline (E:Ab p.237, "5 motes, one lethal health level") became
+    # the first on 2026-08-01. Do not remove it as dead homebrew scaffolding.
     health_type: Optional[Damage] = None
     committed: bool = False                # committed motes reduce the pool until released
     raw: str = ""                          # display string; authoritative for variable costs

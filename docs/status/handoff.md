@@ -1,4 +1,5 @@
 # Session handoff — 2026-09-03 (artifact attunement, and two rules with no implementation)
+### + 2026-09-08 addendum: decision 0019, the dice roller — see the first NEXT section
 
 # 👉 YOU ARE HERE
 
@@ -33,7 +34,99 @@ asked the splat first, and a God-Blooded's `single_essence_pool` is True, so the
 never got a vote. Reported from the human's own save; Taban now reads Personal 10 ·
 Peripheral 21 instead of Single pool 31.
 
-## 👉 NEXT
+## 👉 NEXT — the dice roller (decision 0019, new 2026-09-08)
+
+⚠ **0009 ("no dice rolling, ever") was REOPENED BY THE HUMAN on 2026-09-08** and
+narrowly reversed by **`docs/decisions/0019-a-dumb-dice-roller.md`**. Read that record
+before writing a line of it; `0009` and `0016` carry amendment pointers, and CLAUDE.md's
+"permanently out of scope" line no longer names 0009.
+
+**Build this first, and standalone.** It needs no server, works in both shells, and it
+tells the human whether reversing 0009 feels right at the table *before* the ~12 days of
+hosting work below. **~2–3 days.**
+
+- `engine/` gets a pure roller: `(count, target_number, die_faces)` → faces + success
+  count + botch flag, applying the Rule of Ten and the Rule of One below. **Injectable
+  RNG** — a roller that cannot be seeded cannot be tested. No `RollDefinition`, no
+  `PoolBreakdown`, no character, ever, in its signature. Both rules are properties of a
+  handful of dice and know nothing about the character, so neither breaches the no-wire
+  rule.
+- **The initiative rating** is a separate, tiny derivation (Dex + Wits + weapon Speed) —
+  a sheet line, not a roll. See below.
+- Surfaces in `ui/play.py` **and** `qt/play.py`. One shell only is how the two products
+  drift.
+- Results are **not persisted** to the character — a transcript, not play-state.
+- ⚠ **The no-wire rule is 0019's load-bearing clause and NO TEST WILL CATCH ITS LOSS.**
+  Pre-filling the dice box from a pool row is legal only if the field stays editable, the
+  player presses Roll, and **the result never carries the roll's name**. Put "the result
+  is not labelled with the roll's name" on the click-through list.
+
+### ⚠ The three dice rules — SOURCED 2026-09-08, and two overturned what we assumed
+
+Grepped out of `images/_extracted/Exalted Core.md`. **Nothing here is blocked any more.**
+Full quotes and page cites are in 0019; the short form:
+
+⚠ Page numbers are from the book's **index** (`Rule of One 89`, `Rule of Ten 90`); the
+transcription's `<!--PAGE-->` markers sit one page early here — the known offset trap.
+
+1. **Rule of Ten (p.90): a 10 counts as TWO successes.** ⚠ Neither the human nor the
+   model raised this — plain `d >= tn` counting would have shipped silently wrong. This
+   is the roller's core arithmetic; get it right first and test it first. General, with
+   two printed per-effect exceptions (damage rolls; the Rune), each switching off double
+   10s **and** botching together — hence two default-ON switches on the roller, not logic.
+2. **Rule of One (p.89): botches DO exist.** No die at target-or-higher **and** at
+   least one 1. One success or more and all 1s are ignored. ⚠ **1s NEVER subtract
+   successes** — that is another edition's convention; refuse it if proposed. (The
+   human's "1e has no botch logic by default" was overturned on the first half and
+   correct on the second.)
+3. **Initiative (p.226; weapon Speed p.326) is NOT a dice pool.** Base = **Dexterity +
+   Wits**, adjusted by the weapon's Speed — *"added to or subtracted from the character's
+   initiative total"*, a **flat modifier, not dice** — then **+1d10 every turn**.
+   ⚠ **Do not author an initiative row in `data/dice_pools.json`.** It is a derived
+   rating line (trait arithmetic, in scope under 0016) plus a `1d10` the dumb roller
+   already does. Cheaper than the row that was planned. `Weapon.speed`'s comment
+   (`models/rules.py:1206`) was right all along.
+
+⚠ **Those Core passages are glyph-ciphered** — "Iowever" for However, and in the worked
+examples `1` renders as `0` and `10` as `/`. The **prose rules are clean**; nothing above
+came from an example's digits, and nothing later should.
+
+✅ **`README.md` is already updated** (2026-09-08) — both the "NO FUCKING DICE" bullet and
+the Play-tab paragraph that said to go roll on a table. The bullet's replacement is the
+human's own words and is the one-line statement of this whole design: *"There is a dumb
+dice roller. It has a label, and you input how many dice. I will not do charm effects for
+you, fuck off."*
+
+### Costed but NOT ruled — hosting, a shared roll log, a whiteboard
+
+No decision record exists for these on purpose: the human asked the cost, not for a
+ruling. Estimates from 2026-09-08, built on `docs/plans/hosting-state-model.md`:
+
+| Piece | Cost |
+|---|---|
+| Hosting/session refactor (the gate for anything shared) | **10–12 days** |
+| Shared roll log broadcast to the party | +2 days |
+| Shared whiteboard (freehand + text, last-write-wins) | +4–6 days, **web only** |
+| *Cheaper substitute:* shared notes + pasted-image pane | +1 day |
+
+⚠ **The `ctx` isolation defect is real today and independent of hosting.**
+`ui/builder.py:456` builds `ctx` once in `main()` and both routes close over it — one
+process serves one `Character` to every connection. Harmless for a desktop app; it is
+§3 of the hosting plan and its §3.8 isolation test (**must fail on today's code**) is
+worth writing whenever that area is touched.
+
+⚠ **The copyright question is still open and hosting changes its shape.** `data/` carries
+~1.8M characters of transcribed prose (~361 pages), which is why the repo is private. The
+human cites the Exalted Essence fan app (`exalted-essence-app.vercel.app`) as precedent —
+that app has campaigns and a wiki, no dice roller, and an explicit *"unofficial, fan-made
+… no copyright infringement is intended"* notice attributing Onyx Path and Paradox. ⚠ **Its
+clean record is evidence about enforcement appetite, not about verbatim prose** — whether
+it ships descriptions or only mechanics was not determined (SPA; only the homepage was
+readable). Two cheap mitigations, neither ruled: **copy that disclaimer**, and **strip or
+gate `description` in the hosted build** (a build-time filter, not a refactor — the sheet,
+pools and trackers all work without it).
+
+## 👉 NEXT — carried
 
 Nothing is blocked. In rough order of what would bite:
 

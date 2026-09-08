@@ -746,7 +746,7 @@ def test_health_type_is_unset_wherever_the_page_does_not_name_a_damage_type():
     printed Charm with a health cost just said "1 health level", so the field had to
     default to unset and change nothing about how they read.
 
-    **That stopped being true on 2026-08-01.** Stolen Wax Discipline (E:Ab p.238) is
+    **That stopped being true on 2026-08-01.** Stolen Wax Discipline (E:Ab p.237) is
     the first PRINTED Charm to name the type — "5 motes, one lethal health level" —
     so the field gained a book-data consumer. Fertile Soul Endowment (Player's Guide
     p.83, authored 2026-08-11) is the second: "10 motes, 1 Willpower, 1 lethal health

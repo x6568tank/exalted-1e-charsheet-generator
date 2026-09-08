@@ -136,11 +136,15 @@ costs — read the record before proposing anything that contradicts it.
 | 0016 | **Base dice pools are in scope; resolution is not** — narrows 0008, leaves 0009 untouched |
 | 0017 | **Artifacts have acquisition CHANNELS** — the Artifact Background is pre-game (core p.342, budgeted); cash is in-play (M&C pp.122-125). ⚠ A **third** joined 2026-08-13/14 and is not yet its own record: a plot device printing "(ARTIFACT N/A)" is bought with the **Legendary Artifact** 10-pt Merit and charged to no budget — the standing answer for the shape, still confirm each. `docs/status/book-of-three-circles.md` |
 | 0018 | **The Qt port is committed** — a PySide6 native app alongside the NiceGUI webapp; the plan doc becomes the build record |
+| 0019 | **A dumb dice roller, UNWIRED from the pools** — rolls a dice COUNT, never a named roll. Reverses 0009 narrowly (the human reopened it, 2026-09-08); amends 0016's initiative clause |
 
-**Permanently out of scope** — 0008, 0009 and 0010 (no combat/attack derivation, no dice
-rolling of any kind, no Fair Folk); all three are closed. ⚠ 0008's boundary was NARROWED
-by 0016: computing a BASE dice pool is in scope — read 0016 before citing 0008 against a
-pool calculation.
+**Permanently out of scope** — 0008 and 0010 (no combat/attack derivation, no Fair Folk);
+both closed. ⚠ **0009 is NO LONGER a blanket bar** — the human reopened it 2026-09-08 and
+0019 reversed it in a narrow shape: a roller taking a dice COUNT is in scope; a roller
+that knows *which roll* it is rolling is not, and that gap is the whole safety mechanism.
+⚠ 0008's boundary was NARROWED by 0016: computing a BASE dice pool is in scope — read
+0016 before citing 0008 against a pool calculation. **Read 0019 before citing 0009 at
+all.**
 
 ### Standing bars that are not numbered decisions
 - **⚠ Backwards compatibility with old saves is NOT a concern** (human, 2026-08-22:
@@ -334,7 +338,7 @@ Each is written up where it landed; these are the ones that catch people mid-tas
   build with no page behind it** — supplied by the human 2026-07-29.
 - **An `Adversary` is NOT a `Character` and must never become one** — a test asserts it.
 - **Passions are a LIVE DERIVATION of the Virtues** on both sides of the lock, never
-  bought with BP or XP (E:Ab p.283).
+  bought with BP or XP — `derive.passion_pool` carries the rule and its page.
 - **No character may leave creation with Essence above 5** (`essence-above-elder-chargen-cap`).
 - **An attuned artifact's motes come off the PLAY pools only** — `build_play_view`
   subtracts, the sheet still prints the full pools, and no `engine/validate/` module may
@@ -374,8 +378,5 @@ Each is written up where it landed; these are the ones that catch people mid-tas
 - **Merits & Flaws were ripped out 2026-06-15** (the old system bundled balance-wrecking
   Charm rewrites) and **restored 2026-07-30** as decision 0011's single centralized calc.
   The reason they were removed is the reason no caller may name a Merit id.
-- `CharmCost.health_type` was homebrew-only with no printed use when created, but
-  acquired its first printed consumer on 2026-08-01 — Stolen Wax Discipline (E:Ab
-  p.238), "5 motes, one lethal health level". Don't treat it as homebrew-only.
 - Full multi-splat plan: `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
 - DB chargen numbers as verified from source pages: [[db-chargen-findings]].

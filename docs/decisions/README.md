@@ -22,13 +22,14 @@ status log says so rather than guessing.
 | [0006](0006-play-state-is-isolated.md) | Play-state is a separate, validation-isolated layer | Accepted (reverses an earlier exclusion) |
 | [0007](0007-ids-for-invariant-content-inline-copies-for-variable.md) | Ids for invariant content, inline copies for variable content | Accepted |
 | [0008](0008-no-combat-derivation.md) | No combat or attack derivation | Accepted |
-| [0009](0009-no-dice-rolling.md) | No dice rolling, ever | Accepted |
+| [0009](0009-no-dice-rolling.md) | No dice rolling, ever | ⚠ **Reversed in a narrow shape by [0019](0019-a-dumb-dice-roller.md)** |
 | [0010](0010-fair-folk-out-of-scope.md) | The Fair Folk are permanently out of scope | Accepted |
 | [0011](0011-merits-and-flaws-return-centralized.md) | Merits & Flaws return as one centralized calculation | Accepted |
 | [0012](0012-homebrew-library-plus-carried-copies.md) | Homebrew: a library is the store, saves carry copies | Accepted |
 | [0013](0013-edit-and-xp-are-one-surface.md) | Edit and XP are one surface; the dot track is the buy control | Accepted |
 | [0014](0014-essence-xp-purchasable-no-age-chart.md) | Essence is XP-purchasable to the splat cap; the age chart is gone | Accepted |
 | [0015](0015-exalt-tier-hierarchy.md) | The Exalt tiers are a ranked hierarchy, not a flat label | Accepted |
-| [0016](0016-base-dice-pools-are-in-scope.md) | Base dice pools are in scope; resolution is not (amends 0008's boundary) | Accepted |
+| [0016](0016-base-dice-pools-are-in-scope.md) | Base dice pools are in scope; resolution is not (amends 0008's boundary) | Accepted (two clauses amended by [0019](0019-a-dumb-dice-roller.md)) |
 | [0017](0017-two-acquisition-channels-for-artifacts.md) | Artifacts have two acquisition channels — the Background is pre-game, cash is in-play; only the first is budgeted | Accepted |
 | [0018](0018-qt-port-committed.md) | The Qt port is committed — a PySide6 native app alongside the NiceGUI webapp | Accepted |
+| [0019](0019-a-dumb-dice-roller.md) | A dumb dice roller, unwired from the pools — rolls a COUNT, never a named roll (reverses 0009 narrowly; amends 0016) | Accepted |
