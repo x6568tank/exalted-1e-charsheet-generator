@@ -1576,3 +1576,28 @@ def test_the_two_ruled_in_daiklave_costs(rs):
     "corrects" — the notes on both rows say the same thing."""
     assert rs.weapon_catalog["weapon.melee.wavecleaver-daiklaive"].attunement == 5
     assert rs.weapon_catalog["weapon.melee.direlance"].attunement == 5
+
+
+def test_the_ruled_zero_attunement_rows(rs):
+    """⚠ The MIRROR of the ruling above, and the more fragile direction. Three complete
+    entries print no commitment anywhere, and the human ruled 2026-09-09 that no printed
+    attunement means 0 — for the Forge-Hand Gauntlets (Aspect Book: Fire, pp.80-81), then
+    for the other two by name. Each 0 is a RULING, not an unauthored blank, and it is
+    stored as an ABSENT field — so nothing on the row distinguishes it from one whose page
+    was never read. This test is that distinguisher.
+
+    ⚠ Where a same-spread neighbour prints a commitment it is pinned alongside, because a
+    bare `== 0` restates the current value and discriminates nothing: the Eye of the Fire
+    Dragon shares the Gauntlets' spread, and Razor Claws / Lightning Chain / Daiklave of
+    Conquest corroborate the Powerbow's. **Cold Wind Knives has no such neighbour on disk**
+    — Kingdom of Halta p.93 is a lone entry here — so its 0 rests on the ruling alone.
+    """
+    ruled_zero = ["weapon.melee.forge_hand_gauntlets",
+                  "weapon.archery.powerbow_of_perfect_accuracy",
+                  "weapon.melee.cold-wind-knives"]
+    assert [rs.weapon_catalog[w].attunement for w in ruled_zero] == [0, 0, 0]
+    # The discriminators: same books, printed commitments, so a 0 above means absence.
+    assert rs.weapon_catalog["weapon.melee.eye_of_the_fire_dragon"].attunement == 10
+    assert [rs.weapon_catalog[w].attunement for w in
+            ("weapon.melee.razor_claws", "weapon.melee.lightning_chain",
+             "weapon.melee.daiklave_of_conquest")] == [2, 5, 10]

@@ -889,6 +889,31 @@ and were read on 2026-09-07:
 Both therefore want a **ruling**, like the Direlance — except neither has an obvious family
 to borrow a number from.
 
+### ✅ The ruling: no printed attunement means 0 (human, 2026-09-09)
+
+Asked about the **Forge-Hand Gauntlets** (Aspect Book: Fire, pp.80-81), whose entry is
+complete across both pages and prices nothing: *"If no attunement, leave it as 0."*
+
+⚠ **A ruled 0 and an unread page look IDENTICAL in the data** — both are an absent
+`attunement` field falling back to the model default. Nothing on the row says which it is,
+which is precisely how a later session "fills the gap" with a number off its own knowledge.
+So the ruling is pinned by `test_the_ruled_zero_attunement_rows`, which asserts the
+Gauntlets' 0 **against its chapter-neighbour the Eye of the Fire Dragon's 10** — same
+spread, one prints a commitment and one does not, so the pair discriminates a real absence
+from a missed read. Same reasoning as the Direlance's 5, opposite direction.
+
+**Extended to all three** (human, 2026-09-09, asked and answered: *"Pin them the same
+way"*). **Cold Wind Knives and the Powerbow of Perfect Accuracy are therefore CLOSED too**
+— they are no longer waiting on a ruling, and the two bullets above are history, not an
+open item. All three sit at 0 and all three are pinned.
+
+⚠ **The discriminator is per-row and one of them has none.** The Gauntlets are pinned
+against the Eye of the Fire Dragon (same spread, prints 10) and the Powerbow against Razor
+Claws 2 / Lightning Chain 5 / Daiklave of Conquest 10 (same castebook spread), so a 0 there
+means a real absence. **Cold Wind Knives has no neighbour on disk** — Kingdom of Halta p.93
+is a lone entry — so its 0 rests on the ruling alone. If that book's other gear ever lands,
+add one.
+
 ⚠ While reading that table I misread the Chain Shirt's row as "Commitment 0 / Artifact 3"
 by slipping a column; it is Commitment 3 / Artifact ••, which is exactly what the build
 holds. **The verification-shape trap, in its purest form** — anchor on the column, not the
