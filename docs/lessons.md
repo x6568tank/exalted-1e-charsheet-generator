@@ -138,3 +138,22 @@ See also the standing port rules in `docs/plans/qt-port.md`.
   shrink gracefully — fixed-size boxes — get painted through whatever is under them. No
   word-wrap on a card a grid lays out, and a hard `setMinimumHeight` on the fixed part;
   a `QSizePolicy.Fixed` alone does not save you. Invisible to every test.
+- **A RULED absence and an unread page are byte-identical in the data**, because both are
+  an omitted field falling back to a model default. Nothing on the row records that a human
+  looked and found nothing — which is precisely how a later session "fills the gap" from
+  its own 2e knowledge. ⚠ **A bare `== 0` does not fix this: it restates the current value
+  and discriminates nothing.** Pin the absence against a DISCRIMINATOR that would differ if
+  the source had simply not been read — a same-spread neighbour that does print the value
+  (`test_the_ruled_zero_attunement_rows`). Where no discriminator exists, say so in the
+  docstring rather than implying one. Applies to any defaulted field, `source.book`
+  included.
+- **A handoff describes a moment, and the session keeps moving after it is written.** The
+  2026-09-09 handoff's most alarming line — "Working tree is DIRTY and nothing is
+  committed" — was the one false thing in it; the commit landed afterwards. **Check
+  `git status` and `git log` against the handoff's claims before acting on them**, and
+  never re-report a handoff's tree state as current fact.
+- **A test can go green by checking LESS.** The M&F description test passed on 2026-09-09b
+  by deferring 71 entries where it had deferred 46 and failed — the missing chapters route
+  to nothing, so the entries are skipped, not verified. The deferral count lives only in the
+  warnings summary. **When a known failure turns green, find out whether it was fixed or
+  merely stopped looking.**
