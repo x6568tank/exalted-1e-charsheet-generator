@@ -127,6 +127,25 @@ number you type."*
   orichalcum Daiklave reading **+4** (3 printed, +1 material) is the real-data proof
   that the material path reaches initiative.
 
+## Planned — roll initiative for everyone, once the GM page holds real characters
+
+**Not now, and it has a hard precondition.** Today the party surface owns its own
+roster entries, not links to the players' characters, so it has no Dexterity, Wits or
+wielded weapon to read. **Once the GM page is linked to the players' actual characters
+rather than being its own separate thing** — the hosted/VTT shape in
+`docs/plans/hosting-state-model.md` — add a way to roll initiative for the whole table
+in one press: `engine.initiative` per linked character for the rating, plus one d10
+each, sorted descending, with the printed tie-break (higher Dex + Wits, then a
+roll-off).
+
+⚠ **This does NOT breach 0019's no-wire rule, and the reason is specific to
+initiative**: the +1d10 is a *fixed, printed* die count (p.227) that no Charm, stunt or
+ST modifier feeds into, so the roller is still being handed a number rather than a
+named roll. **Nothing else on the sheet gets this treatment** — the moment a
+"roll everyone's Join Battle/attack/Melee" appears next to it, the wire 0009 barred is
+back. Keep it a one-off, and keep it out of `data/dice_pools.json` (see the initiative
+test above, which forbids that row by id and by name).
+
 ## Open — for the human
 
 Two TODOs the human raised at the end of the session are in

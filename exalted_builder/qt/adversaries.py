@@ -135,6 +135,14 @@ class AdversaryTrackers(QWidget):
     on a roster card the surrounding card already supplies the shade, and a card inside a
     card reads as a rendering fault.
 
+    ⚠ **`dense` is presentation only too, and it is a MODE rather than a second widget.**
+    It lays the three panels SIDE BY SIDE instead of stacking them, which is what the
+    party page's roster blocks need — stacked, three headed panels are ~130px per
+    adversary and six of them are a screenful. Forking a compact copy would break the
+    one-widget rule above, and drift here means two answers to "how hurt is this bandit".
+    `dense` implies unframed: side-by-side cards inside a card is the fault `framed`
+    already warns about, doubled.
+
     ⚠ **A click never rebuilds this widget** (see `trackers.restyle`). The one change
     that legitimately re-lengthens the boxes is an edit to `health_levels`, and that goes
     through the owner's rebuild, not through here.
@@ -142,13 +150,14 @@ class AdversaryTrackers(QWidget):
 
     def __init__(self, entry: Adversary, accent: str, *, prefix: str = "adv",
                  on_change=None, framed: bool = True, box_size: int = 28,
-                 boxes_per_row: int = _BOXES_PER_ROW, parent=None):
+                 boxes_per_row: int = _BOXES_PER_ROW, dense: bool = False, parent=None):
         super().__init__(parent)
         self._a = entry
         self._accent = accent
         self._prefix = prefix
         self._on_change = on_change or (lambda: None)
-        self._framed = framed
+        self._framed = framed and not dense
+        self._dense = dense
         self._box_size = box_size
         self._per_row = boxes_per_row
 
@@ -159,11 +168,13 @@ class AdversaryTrackers(QWidget):
         self._essence_head: QLabel | None = None
         self._motes_spin: QSpinBox | None = None
 
-        self._lay = QVBoxLayout(self)
+        self._lay = QHBoxLayout(self) if dense else QVBoxLayout(self)
         self._lay.setContentsMargins(0, 0, 0, 0)
-        self._lay.setSpacing(4 if framed else 3)
+        self._lay.setSpacing(10 if dense else (4 if self._framed else 3))
         self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         self._build()
+        if dense:
+            self._lay.addStretch(1)
         # ⚠ A HARD floor, set after building, and it is not belt-and-braces. A card is a
         # stack of word-wrapped labels, and a word-wrapped QLabel answers
         # `heightForWidth` — which makes the enclosing QGridLayout's idea of how tall the
@@ -192,6 +203,17 @@ class AdversaryTrackers(QWidget):
         # and the boxes it labels.
         body.setContentsMargins(0, 0, 0, 0)
         body.setSpacing(3)
+        if self._dense:
+            # A COLUMN per panel, side by side. The heading still sits over its own
+            # boxes — it carries a live count that `sync` re-texts, so it cannot become
+            # a shared caption.
+            column = QVBoxLayout()
+            column.setContentsMargins(0, 0, 0, 0)
+            column.setSpacing(2)
+            column.addWidget(head)
+            column.addLayout(body)
+            self._lay.addLayout(column)
+            return body, head
         if not self._framed:
             self._lay.addWidget(head)
             self._lay.addLayout(body)
@@ -271,10 +293,15 @@ class AdversaryTrackers(QWidget):
             self._motes_spin = spin
             row = QHBoxLayout()
             label = QLabel("Motes spent")
-            label.setStyleSheet(f"color:{MUTED};")
-            label.setMinimumWidth(90)
+            label.setStyleSheet(f"color:{MUTED};" + (" font-size:11px;"
+                                                     if self._dense else ""))
+            # ⚠ A MINIMUM width in the detail pane, where the row is wide and the label
+            # should line up with the ones above it — but a minimum in a dense column is
+            # 90px this panel does not have to spare, so dense hands it its own size.
+            if not self._dense:
+                label.setMinimumWidth(90)
             row.addWidget(label)
-            spin.setFixedWidth(88)
+            spin.setFixedWidth(64 if self._dense else 88)
             row.addWidget(spin)
             row.addStretch(1)
             body.addLayout(row)

@@ -720,10 +720,19 @@ def test_a_wrapped_card_health_track_keeps_one_pitch(make_window, qtbot):
     """⚠ The same missing-stretch defect the Play tab carried, one widget class
     over — a card's track wraps past `_BOXES_PER_ROW` and drew its full row
     justified while the short row packed left. A defect one class over is still
-    ours (`docs/plans/qt-port.md`)."""
+    ours (`docs/plans/qt-port.md`).
+
+    ⚠ The fixture is sized against `party._BOXES_PER_ROW`, which went 10 → 20 when the
+    card grid became a list (a track that wraps costs the block a whole second line, and
+    at 20 almost nobody wraps). It is DERIVED here rather than typed, because the failure
+    mode when it drifts is a test that passes while measuring one row — and the assertion
+    below is the only thing that notices.
+    """
     from exalted_builder.models.character import OxBodyPurchase
+    from exalted_builder.qt import party as partymod
     char = _solar("Tank")
-    char.ox_body = [OxBodyPurchase(variant="v", health_levels=[2, 2, 2])] * 4
+    purchases = -(-(partymod._BOXES_PER_ROW + 3) // 3)      # comfortably past one row
+    char.ox_body = [OxBodyPurchase(variant="v", health_levels=[2, 2, 2])] * purchases
     window, _, _ = make_window(_party(char))
     page = window.party_page
     window.resize(1200, 900)

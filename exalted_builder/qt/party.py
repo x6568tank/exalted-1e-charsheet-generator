@@ -32,6 +32,16 @@ select and a detail pane would hide the health tracks the surface exists to show
 Adversaries tab beside it IS a collection, because its entries are edited as well as
 tracked — the two halves of this window are deliberately different shapes.
 
+⚠ **A LIST plus a fixed rail, not a card grid** (human, 2026-09-09, from the
+`spikes/qt_party_dense` spike — *"it's currently card-based, which feels off compared to
+the rest of the app… for gm management i don't think we need to use that much space &
+scrolling"*). Members are two-line blocks stacked one per row; adversaries go two-up
+underneath; the batch roller and the session notes live in a fixed-width rail OUTSIDE the
+scroll area. Measured on ten combatants at 1250x950: 2,097px of scrolling content became
+505px, so a full table fits above the fold. **This did not make it a collection** — there
+is still nothing to select and no detail pane. What changed is the card grid, which was
+never what made this tab an exception.
+
 ⚠ **Play-state stays isolated (decision 0006).** Nothing on this window enters chargen
 validation, the XP audit or a permanent derivation. There is ZERO game logic here: every
 number comes from `view.build_party_card_view`.
@@ -75,16 +85,40 @@ from .sheet import (SheetColors, build_document, print_colors, screen_colors,
 from .theme import CARD, INPUT, MUTED, accent as accent_light
 from .trackers import MARK_FILL, box as tracker_box, restyle as restyle_box
 
-_BOXES_PER_ROW = 10
+# ⚠ 16, not 10. A member's track wraps at this, and wrapping costs the block a whole
+# extra line — with the block down to two lines that is the difference between four
+# members on screen and two. It is not higher because the block's second line has to hold
+# the Essence, Willpower and Limit panels BESIDE the track: 16 boxes is what leaves room
+# for them at the narrowest window worth supporting. 7 base levels covers everyone who
+# has not bought Ox-Body; a heavy Solar at 19 wraps, and the wrap rules in `_health`
+# are what make that safe.
+#
+# ⚠ This number, the tracker box sizes and `_RAIL_WIDTH` are ONE budget. Line 2 holds the
+# track, the Essence pools, Willpower and Limit side by side, and the widest real member
+# (a 19-level Ox-Body Solar) came to 887px against an 856px viewport — a horizontal
+# scrollbar on the shipped window at its design size. Changing any one of them without
+# re-measuring the others brings it back. Below 1250px wide the scrollbar is the
+# intended degradation; at 1250 it must not appear.
+_BOXES_PER_ROW = 14
 
 # The batch roll's name column. Fixed so every row's dice box lines up.
-_BATCH_NAME_WIDTH = 160
+# ⚠ Narrower than the Play tab's: the roller now lives in a fixed-width rail.
+_BATCH_NAME_WIDTH = 104
 
 # A botched row in a batch log, the same amber the Play tab uses for "your call".
 _BATCH_BOTCH = "#d9a441"
 
-# One card is unreadable much under this; the grid takes as many columns as fit.
-_CARD_WIDTH = 430
+# The right rail — the batch roller and the session notes. FIXED, and outside every
+# scroll area: the roller being a function of how many combatants are on the board is
+# exactly the complaint this layout answers (human, 2026-09-09).
+# ⚠ Sized by the BATCH ROW, which is the widest thing in it: a tick, a name column, a
+# dice box, a repeat box and a free-text label. Narrower and the label field is unusably
+# small — and it is the only place the Storyteller can say what a row's dice were for.
+_RAIL_WIDTH = 380
+
+# One adversary block is unreadable much under this; the roster grid takes as many
+# columns as fit. ⚠ The MEMBERS are no longer a grid — see `reload`.
+_CARD_WIDTH = 400
 
 # The Great Geas, core CH6 p.235 (Mountain Folk). Divergence is Storyteller-adjudicated
 # and never engine-enforced — whether an oath was broken is an ST call — so the nine
@@ -150,8 +184,28 @@ class _StatLine(QLabel):
         self._elide()
 
 
+def _row_button(label: str, tip: str) -> QPushButton:
+    """A block's action button: small, quiet, and BORDERED.
+
+    ⚠ The border is the whole point (human, 2026-09-09). These sit inline on a stat line
+    rather than in a button row of their own, and the spike drew them as flat muted text
+    — at which weight they read as more stat text. A full-weight QPushButton beside four
+    others on every row is too loud; an outline is what says "clickable" for the least
+    ink. ⚠ Its OWN border rule, so the shell QSS's `:disabled` and `:hover` rules still
+    apply — a colour set here would not have replaced those, and none of these is ever
+    disabled anyway.
+    """
+    button = QPushButton(label)
+    button.setToolTip(tip)
+    button.setCursor(Qt.CursorShape.PointingHandCursor)
+    button.setStyleSheet(
+        f"QPushButton {{ color:{MUTED}; font-size:10px; padding:1px 6px; "
+        f"border:1px solid {INPUT}; border-radius:3px; background:transparent; }}")
+    return button
+
+
 # --------------------------------------------------------------------------- #
-# The Party tab — live cards
+# The Party tab — live blocks
 # --------------------------------------------------------------------------- #
 
 class PartyPage(QWidget):
@@ -183,53 +237,70 @@ class PartyPage(QWidget):
         body = QWidget()
         outer_body = QVBoxLayout(body)
         outer_body.setContentsMargins(8, 8, 8, 8)
-        outer_body.setSpacing(8)
-        self._grid = QGridLayout()
-        self._grid.setContentsMargins(0, 0, 0, 0)
-        self._grid.setSpacing(8)
-        self._grid.setAlignment(Qt.AlignmentFlag.AlignTop)
-        outer_body.addLayout(self._grid)
+        outer_body.setSpacing(6)
+        # ⚠ A LIST, not a grid. One member per row, full width — the two-line block reads
+        # left-to-right, so a second column would halve the space the health track needs
+        # and buy back nothing (a block is ~62px tall either way).
+        self._members_lay = QVBoxLayout()
+        self._members_lay.setContentsMargins(0, 0, 0, 0)
+        self._members_lay.setSpacing(4)
+        outer_body.addLayout(self._members_lay)
         # The opposition, under the party it is fighting — the ONE screen a fight is run
-        # off. `_roster_lay` holds a heading and its own card grid, both rebuilt together.
+        # off. `_roster_lay` holds a heading and its own block grid, both rebuilt
+        # together. This one IS a grid: an adversary block is short and narrow enough
+        # that two-up wastes nothing.
         self._roster_lay = QVBoxLayout()
         self._roster_lay.setContentsMargins(0, 0, 0, 0)
-        self._roster_lay.setSpacing(6)
+        self._roster_lay.setSpacing(4)
         outer_body.addLayout(self._roster_lay)
-        # The batch roll, BELOW both rosters because it rolls for both: its rows
-        # are party members and adversaries alike (a dice count does not care
-        # which). Decision 0019 — read `_build_batch` before changing it.
-        self._batch_lay = QVBoxLayout()
-        self._batch_lay.setContentsMargins(0, 0, 0, 0)
-        self._batch_lay.setSpacing(4)
-        outer_body.addLayout(self._batch_lay)
-        self._batch_state = viewmod.new_batch_state()
-        self._batch_keys: list[str] = []
-        self._batch_folds: dict[int, tuple] = {}
-        self._build_batch()
         outer_body.addStretch(1)
         self._scroll = QScrollArea()
         self._scroll.setWidgetResizable(True)
         self._scroll.setWidget(body)
 
-        notes_panel = QWidget()
-        notes_lay = QVBoxLayout(notes_panel)
-        notes_lay.setContentsMargins(8, 0, 8, 4)
-        notes_lay.setSpacing(2)
+        # ---- the rail ---------------------------------------------------- #
+        # ⚠ Fixed width, and OUTSIDE the scroll area. The batch roller used to sit under
+        # both rosters, so three characters pushed it entirely off the window — the
+        # complaint this layout answers. Nothing in here may be a function of how many
+        # combatants are on the board.
+        rail = QWidget()
+        rail.setObjectName("partyRail")
+        rail.setFixedWidth(_RAIL_WIDTH)
+        # ⚠ Inline, on the widget itself — an ancestor stylesheet beats a set palette.
+        rail.setStyleSheet(f"QWidget#partyRail {{ background:{CARD}; }}")
+        rail_lay = QVBoxLayout(rail)
+        rail_lay.setContentsMargins(8, 8, 8, 6)
+        rail_lay.setSpacing(6)
+        # The batch roll rolls for BOTH rosters: its rows are party members and
+        # adversaries alike (a dice count does not care which). Decision 0019 —
+        # read `_build_batch` before changing it.
+        self._batch_lay = QVBoxLayout()
+        self._batch_lay.setContentsMargins(0, 0, 0, 0)
+        self._batch_lay.setSpacing(4)
+        rail_lay.addLayout(self._batch_lay)
+        self._batch_state = viewmod.new_batch_state()
+        self._batch_keys: list[str] = []
+        self._batch_folds: dict[int, tuple] = {}
+        self._build_batch()
+        rail_lay.addStretch(1)
+
         heading = QLabel("SESSION NOTES")
-        heading.setStyleSheet(f"font-weight:700; letter-spacing:1px; color:{MUTED};")
-        notes_lay.addWidget(heading)
+        heading.setStyleSheet(f"font-weight:700; letter-spacing:1px; color:{MUTED}; "
+                              f"font-size:11px;")
+        rail_lay.addWidget(heading)
         self.session_notes = QPlainTextEdit()
         self.session_notes.setObjectName("party.session_notes")
         self.session_notes.setPlaceholderText(
             "What happened, what's next, who owes whom…")
-        self.session_notes.setFixedHeight(76)
+        self.session_notes.setFixedHeight(110)
         self.session_notes.textChanged.connect(self._write_session_notes)
-        notes_lay.addWidget(self.session_notes)
+        rail_lay.addWidget(self.session_notes)
 
-        outer = QVBoxLayout(self)
+        outer = QHBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
         outer.addWidget(self._scroll, 1)
-        outer.addWidget(notes_panel)
+        outer.addWidget(rail)
         self.reload()
 
     # ---- plumbing -------------------------------------------------------- #
@@ -245,15 +316,21 @@ class PartyPage(QWidget):
         self._party().session_notes = self.session_notes.toPlainText()
 
     def resizeEvent(self, event: QResizeEvent) -> None:      # noqa: N802 - Qt override
-        """Re-flow the cards when the column count changes.
+        """Re-flow the ADVERSARY blocks when their column count changes.
 
-        ⚠ Only when it CHANGES. A redraw on every resize event would tear down the card
-        the Storyteller is typing notes into, on a window drag."""
+        ⚠ Only when it CHANGES. A redraw on every resize event would tear down the block
+        the Storyteller is typing notes into, on a window drag.
+
+        ⚠ Only the roster reflows now — the members are a full-width list and have no
+        column count to change. `_reload_roster` is therefore the redraw, not `reload`,
+        which is also what keeps a member's notes box alive through a window drag."""
         super().resizeEvent(event)
         if self._fit_columns() != self._columns:
-            self.reload()
+            self._columns = self._fit_columns()
+            self._reload_roster()
 
     def _fit_columns(self) -> int:
+        """How many ADVERSARY blocks fit across. The members do not use this."""
         return max(1, (self._scroll.viewport().width() - 16) // _CARD_WIDTH)
 
     @staticmethod
@@ -279,29 +356,33 @@ class PartyPage(QWidget):
             self.session_notes.setPlainText(notes)
             self.session_notes.blockSignals(False)
 
-        clear_layout(self._grid)
-        # ⚠ Cleared with the cards it points at. These are the widgets a play-state
+        clear_layout(self._members_lay)
+        # ⚠ Cleared with the blocks it points at. These are the widgets a play-state
         # click repaints IN PLACE rather than rebuilding, so a stale entry here is a
         # reference to a deleted C++ object.
         self._card_boxes = {}
         self._columns = self._fit_columns()
         members = self._party().members
+        self._members_lay.addWidget(self._section("PARTY", len(members)))
         if not members:
-            empty = QLabel("No characters in the party yet.\nUse “Add character” to "
+            empty = QLabel("No characters in the party yet.  Use “Add character” to "
                            "load a .character.json, or load a saved .party.json.")
+            empty.setWordWrap(True)
             empty.setStyleSheet(f"color:{MUTED};")
-            self._grid.addWidget(empty, 0, 0)
+            self._members_lay.addWidget(empty)
         for index, member in enumerate(members):
-            # ⚠ Aligned TOP, per card. Without it the grid stretches every card in a row
-            # to the height of the tallest, and a QVBoxLayout hands that spare height to
-            # the gaps between panels — a Solar beside a Sidereal came out with 40px of
-            # nothing under each heading.
-            self._grid.addWidget(self._card(index, member),
-                                 index // self._columns, index % self._columns,
-                                 Qt.AlignmentFlag.AlignTop)
-        self._even_columns(self._grid, self._columns)
+            self._members_lay.addWidget(self._card(index, member))
         self._reload_roster()
         self._sync_batch_rows()
+
+    @staticmethod
+    def _section(title: str, count: int) -> QLabel:
+        """A section rule over a stack of blocks. The count is live — an empty roster
+        must say so, and "ADVERSARIES (0)" says it before the note underneath does."""
+        label = QLabel(f"{title}  ({count})")
+        label.setStyleSheet(f"font-weight:700; letter-spacing:1px; color:{MUTED}; "
+                            f"font-size:10px;")
+        return label
 
     # ---- the opposition -------------------------------------------------- #
 
@@ -319,12 +400,7 @@ class PartyPage(QWidget):
         # `reload_roster` is reachable before the first full `reload` has measured the
         # viewport, and a column count of 0 is a division by zero rather than a layout.
         columns = self._columns or self._fit_columns()
-        head = QHBoxLayout()
-        title = QLabel(f"ADVERSARIES  ({len(entries)})")
-        title.setStyleSheet(f"font-weight:700; letter-spacing:1px; color:{MUTED};")
-        head.addWidget(title)
-        head.addStretch(1)
-        self._roster_lay.addLayout(head)
+        self._roster_lay.addWidget(self._section("ADVERSARIES", len(entries)))
         if not entries:
             note = QLabel("No adversaries yet — add extras, beasts or NPCs on the "
                           "Adversaries tab and they appear here beside the party.")
@@ -362,28 +438,24 @@ class PartyPage(QWidget):
         card.setStyleSheet(f"QFrame#advCard {{ background:{CARD}; border-radius:6px; }}")
         card.setMinimumWidth(_CARD_WIDTH - 40)
         lay = QVBoxLayout(card)
-        lay.setContentsMargins(10, 8, 10, 8)
-        lay.setSpacing(4)
+        lay.setContentsMargins(8, 4, 8, 4)
+        lay.setSpacing(2)
 
+        # Line 1: who it is, then the actions, on ONE row. The old block spent a line on
+        # the title, a line on the sub-line and a line on the button row.
+        head = QHBoxLayout()
+        head.setSpacing(6)
         title = QLabel(entry.name or "(unnamed)")
-        title.setStyleSheet(f"font-weight:700; font-size:14px; color:{accent};")
-        lay.addWidget(title)
+        title.setStyleSheet(f"font-weight:700; font-size:13px; color:{accent};")
+        head.addWidget(title)
         line = "  ·  ".join(x for x in (adv.category_label(entry), entry.nature,
                                         entry.caste) if x)
         if line:
             sub = _StatLine(line)
-            sub.setStyleSheet(f"color:{MUTED}; font-size:11px;")
-            lay.addWidget(sub)
-
-        trackers = AdversaryTrackers(
-            entry, accent, prefix=f"adv.{entry.id}", framed=False, box_size=24,
-            on_change=self._on_roster_change)
-        self._adv_trackers[entry.id] = trackers
-        lay.addWidget(trackers)
-        self._adversary_stats(lay, entry)
-
-        buttons = QHBoxLayout()
-        buttons.addStretch(1)
+            sub.setStyleSheet(f"color:{MUTED}; font-size:10px;")
+            head.addWidget(sub, 1)
+        else:
+            head.addStretch(1)
         # ⚠ `_c=False` FIRST in every one of these. `clicked` carries a `checked` bool,
         # and it lands in the first default argument — a `lambda e=entry:` is handed
         # False as its entry and dies inside the handler, where the Qt event loop
@@ -395,12 +467,20 @@ class PartyPage(QWidget):
                  lambda _c=False, e=entry: self._duplicate_adversary(e)),
                 ("Edit", "Open this entry on the Adversaries tab",
                  lambda _c=False, e=entry: self._on_edit_adversary(e.id))):
-            button = QPushButton(label)
+            button = _row_button(label, tip)
             button.setObjectName(f"adv.{entry.id}.{label.lower()}")
-            button.setToolTip(tip)
             button.clicked.connect(slot)
-            buttons.addWidget(button)
-        lay.addLayout(buttons)
+            head.addWidget(button)
+        lay.addLayout(head)
+
+        # ⚠ `dense` — the three tracker panels SIDE BY SIDE rather than stacked. Stacked
+        # they are ~130px per adversary and six of them are a screenful on their own.
+        trackers = AdversaryTrackers(
+            entry, accent, prefix=f"adv.{entry.id}", framed=False, box_size=20,
+            dense=True, on_change=self._on_roster_change)
+        self._adv_trackers[entry.id] = trackers
+        lay.addWidget(trackers)
+        self._adversary_stats(lay, entry)
         return card
 
     def _pal_for_roster(self):
@@ -481,14 +561,19 @@ class PartyPage(QWidget):
         the Storyteller's cursor.
         """
         body = self._panel(self._batch_lay, "BATCH ROLL", self._accent())
-        controls = QHBoxLayout()
+        # ⚠ TWO rows, because the panel is now a fixed-width rail rather than a
+        # full-width band under the rosters. On one row the name field, the target and
+        # the Roll button each clipped the next; the batch name is the field that wants
+        # the width, so it gets a row to itself.
         self._batch_name = QLineEdit()
         self._batch_name.setObjectName("party.batch.name")
         self._batch_name.setPlaceholderText("Name this roll — e.g. Join Battle")
         self._batch_name.textChanged.connect(
             lambda t: self._batch_state.update(name=t))
         self._batch_name.returnPressed.connect(self._do_batch_roll)
-        controls.addWidget(self._batch_name, 1)
+        body.addWidget(self._batch_name)
+
+        controls = QHBoxLayout()
         target = QSpinBox()
         target.setObjectName("party.batch.target")
         target.setRange(2, 10)
@@ -497,6 +582,7 @@ class PartyPage(QWidget):
             lambda v: self._batch_state.update(target_number=v))
         controls.addWidget(QLabel("Target"))
         controls.addWidget(target)
+        controls.addStretch(1)
         roll = QPushButton("Roll all")
         roll.setObjectName("party.batch.roll")
         roll.clicked.connect(self._do_batch_roll)
@@ -517,9 +603,21 @@ class PartyPage(QWidget):
         switches.addStretch(1)
         body.addLayout(switches)
 
+        # ⚠ The row list SCROLLS inside the rail. It is the one thing in here that grows
+        # with the roster, and a rail that grows with the roster re-creates the defect
+        # the rail exists to fix — it just eats the note and the log from below instead
+        # of pushing the whole roller off the window.
         self._batch_rows_lay = QVBoxLayout()
+        self._batch_rows_lay.setContentsMargins(0, 0, 0, 0)
         self._batch_rows_lay.setSpacing(2)
-        body.addLayout(self._batch_rows_lay)
+        rows_box = QWidget()
+        rows_box.setLayout(self._batch_rows_lay)
+        rows_scroll = QScrollArea()
+        rows_scroll.setWidgetResizable(True)
+        rows_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        rows_scroll.setMaximumHeight(280)
+        rows_scroll.setWidget(rows_box)
+        body.addWidget(rows_scroll)
         note = QLabel("Tick who is rolling and type the dice each picks up; x2 "
                       "takes that many rolls for one character. An unticked row, "
                       "or one at 0 dice, sits out. "
@@ -673,21 +771,36 @@ class PartyPage(QWidget):
         batch = next(b for b in self._batch_state["log"] if b.key == key)
         self._sync_batch_caption(batch)
 
-    def _panel(self, lay, title: str, accent: str) -> QVBoxLayout:
-        """A heading over a body. `self._last_head` is the heading just added — every
-        one of these carries a live count that is re-texted rather than rebuilt."""
-        head = QLabel(title)
-        head.setStyleSheet(f"font-weight:700; letter-spacing:1px; color:{accent};"
-                           f" font-size:11px;")
-        self._last_head = head
-        lay.addWidget(head)
-        body = QVBoxLayout()
+    def _panel(self, lay, title: str | None, accent: str) -> QVBoxLayout:
+        """A heading over a body, as a COLUMN added to `lay`.
+
+        `self._last_head` is the heading just added — every one of these carries a live
+        count that is re-texted rather than rebuilt. `title` of None is a body with no
+        heading, which is what the health strip wants: its counts ride the stat line on
+        the row above, so a second copy here would be two things to keep in step.
+
+        ⚠ A column, not two additions to `lay`. The blocks lay their panels out
+        HORIZONTALLY now, and a heading added straight to a QHBoxLayout lands *beside*
+        the boxes it labels rather than over them.
+        """
+        column = QVBoxLayout()
         # ⚠ Margins zeroed. A nested QVBoxLayout inherits an 11px default on all four
-        # sides, and six of them down a card add 130px of nothing between the heading
+        # sides, and six of them down a block add 130px of nothing between each heading
         # and the boxes it labels.
+        column.setContentsMargins(0, 0, 0, 0)
+        column.setSpacing(1)
+        self._last_head = None
+        if title is not None:
+            head = QLabel(title)
+            head.setStyleSheet(f"font-weight:700; letter-spacing:1px; color:{accent};"
+                               f" font-size:9px;")
+            self._last_head = head
+            column.addWidget(head)
+        body = QVBoxLayout()
         body.setContentsMargins(0, 0, 0, 0)
         body.setSpacing(3)
-        lay.addLayout(body)
+        column.addLayout(body)
+        lay.addLayout(column)
         return body
 
     def _card(self, index: int, member: PartyMember) -> QFrame:
@@ -701,48 +814,68 @@ class PartyPage(QWidget):
         card = QFrame()
         card.setObjectName("partyCard")
         # ⚠ Inline, on the widget itself. An ancestor stylesheet beats a set palette
-        # every time, so a card that relied on a QPalette would paint the page shade.
-        card.setStyleSheet(f"QFrame#partyCard {{ background:{CARD}; border-radius:6px; }}")
-        card.setMinimumWidth(_CARD_WIDTH - 40)
+        # every time, so a block that relied on a QPalette would paint the page shade.
+        card.setStyleSheet(f"QFrame#partyCard {{ background:{CARD}; border-radius:4px; }}")
         lay = QVBoxLayout(card)
-        lay.setContentsMargins(10, 8, 10, 8)
-        lay.setSpacing(4)
+        lay.setContentsMargins(8, 4, 8, 4)
+        lay.setSpacing(2)
         self._card_boxes[index] = {"health": [], "willpower_spent": [], "count": [],
                                    "health_head": None, "willpower_head": None,
                                    "count_head": None, "character": character}
 
-        title = QLabel(cv.name + ("   🔒" if cv.chargen_locked else ""))
+        # ---- line 1: who, what they can take, what to do with them -------- #
+        head = QHBoxLayout()
+        head.setSpacing(8)
+        title = QLabel(cv.name + ("  🔒" if cv.chargen_locked else ""))
         title.setToolTip("Chargen locked — in play" if cv.chargen_locked else "")
-        title.setStyleSheet(f"font-weight:700; font-size:14px; color:{accent};")
-        lay.addWidget(title)
-        identity = QLabel(cv.identity_line)
-        identity.setStyleSheet(f"color:{MUTED}; font-size:11px;")
-        lay.addWidget(identity)
+        title.setStyleSheet(f"font-weight:700; font-size:13px; color:{accent};")
+        head.addWidget(title)
+        # ⚠ `_StatLine`, so it ELIDES under pressure instead of forcing the line wider
+        # than the window. Line 1 carries six things and four of them have a hard minimum
+        # (the name, the live health readout, the notes box, the four buttons); if the
+        # two informational labels could not shrink, the buttons were pushed off the
+        # right edge and the page grew a horizontal scrollbar — which is what the first
+        # render of this layout did.
+        identity = _StatLine(cv.identity_line)
+        identity.setStyleSheet(f"color:{MUTED}; font-size:10px;")
+        head.addWidget(identity, 1)
+        # The permanent numbers a Storyteller calls a roll against. ⚠ Kept SEPARATE from
+        # the live label beside it: nothing here changes from a play-state click, so
+        # folding the two into one string would make `_sync_card` rewrite three derived
+        # numbers on every health box press for no reason — and `dodge` is a stored
+        # Ability rating, not a pool, which is a distinction a shared label loses.
+        permanent = _StatLine(f"Soak {cv.soak.bashing}B/{cv.soak.lethal}L/"
+                              f"{cv.soak.aggravated}A · Dodge {cv.dodge} · "
+                              f"Essence {cv.essence_rating}")
+        permanent.setStyleSheet(f"color:{MUTED}; font-size:10px;")
+        head.addWidget(permanent, 2)
+        # ⚠ This label is `health_head`, and it is the one `_sync_card` re-texts. The
+        # heading it replaces read "HEALTH · penalty -1 · 1/ 0x 0*" over its own boxes;
+        # with the boxes on the line below, the same live counts ride the stat line. A
+        # repaint that moved the boxes and not this reads as a card that did nothing.
+        stats = QLabel(self._health_title(cv, marks))
+        stats.setStyleSheet(f"color:{MUTED}; font-size:10px;")
+        self._card_boxes[index]["health_head"] = stats
+        head.addWidget(stats)
 
-        self._health(lay, index, character, cv, marks, accent)
-        self._motes(lay, index, character, cv, cur, accent)
-        self._willpower(lay, index, character, cv, cur, accent)
-        self._limit(lay, index, character, cur, accent)
-
-        stats = QLabel(f"Soak {cv.soak.bashing}B / {cv.soak.lethal}L / "
-                       f"{cv.soak.aggravated}A   ·   Dodge {cv.dodge}   ·   "
-                       f"Essence {cv.essence_rating}")
-        stats.setStyleSheet(f"color:{MUTED}; font-size:11px;")
-        lay.addWidget(stats)
-
-        # ⚠ No reload on change: redrawing the card per keystroke would delete the box
-        # mid-word and steal the focus. Nothing else on the card reads the notes.
+        # ⚠ No reload on change: redrawing the block per keystroke would delete the box
+        # mid-word and steal the focus. Nothing else on the block reads the notes.
+        # ⚠ It takes the STRETCH on this line rather than a line of its own — a
+        # third line for a field that is empty on most members is what the card grid
+        # was spending height on.
         notes = QPlainTextEdit(member.notes)
         notes.setObjectName(f"party.{index}.notes")
         notes.setPlaceholderText("Notes…")
-        notes.setFixedHeight(52)
-        notes.setStyleSheet(f"background:{INPUT};")
+        notes.setFixedHeight(22)
+        # ⚠ A FIXED width, not a stretch. Given the stretch it wins the whole line's
+        # slack and squeezes the two elided labels beside it to nothing.
+        notes.setFixedWidth(150)
+        notes.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        notes.setStyleSheet(f"background:{INPUT}; font-size:10px;")
         notes.textChanged.connect(
             lambda m=member, w=notes: setattr(m, "notes", w.toPlainText()))
-        lay.addWidget(notes)
+        head.addWidget(notes)
 
-        buttons = QHBoxLayout()
-        buttons.addStretch(1)
         for label, tip, slot in (
                 ("Sheet", "The character sheet, read-only",
                  lambda: self._on_sheet(character)),
@@ -752,12 +885,25 @@ class PartyPage(QWidget):
                  lambda: self._on_open(index)),
                 ("Remove", "Remove from the party",
                  lambda: self._on_remove(index))):
-            button = QPushButton(label)
+            button = _row_button(label, tip)
             button.setObjectName(f"party.{index}.{label.lower()}")
-            button.setToolTip(tip)
             button.clicked.connect(slot)
-            buttons.addWidget(button)
-        lay.addLayout(buttons)
+            head.addWidget(button)
+        lay.addLayout(head)
+
+        # ---- line 2: everything that is clicked --------------------------- #
+        # ⚠ Aligned BOTTOM. The health cells are two rows tall (a wound-penalty caption
+        # over each box) and everything beside them is one; aligned any other way the
+        # spin boxes float against the captions instead of lining up with the boxes.
+        track = QHBoxLayout()
+        track.setSpacing(10)
+        track.setAlignment(Qt.AlignmentFlag.AlignBottom)
+        self._health(track, index, character, cv, marks, accent)
+        self._motes(track, index, character, cv, cur, accent)
+        self._willpower(track, index, character, cv, cur, accent)
+        self._limit(track, index, character, cur, accent)
+        track.addStretch(1)
+        lay.addLayout(track)
         return card
 
     @staticmethod
@@ -768,8 +914,9 @@ class PartyPage(QWidget):
                 f"{counts[Damage.AGGRAVATED]}*")
 
     def _health(self, lay, index, character, cv, marks, accent) -> None:
-        body = self._panel(lay, self._health_title(cv, marks), accent)
-        self._card_boxes[index]["health_head"] = self._last_head
+        """The track, with no heading of its own — `_card` puts the live counts on the
+        stat line and keeps the handle to re-text them."""
+        body = self._panel(lay, None, accent)
         row = None
         rows: list[QHBoxLayout] = []
         for i, box in enumerate(cv.play.health_boxes):
@@ -788,7 +935,7 @@ class PartyPage(QWidget):
             caption.setAlignment(Qt.AlignmentFlag.AlignHCenter)
             caption.setStyleSheet(f"color:{MUTED}; font-size:9px;")
             cell.addWidget(caption)
-            button = tracker_box(f"party.{index}.health.{i}", 24,
+            button = tracker_box(f"party.{index}.health.{i}", 18,
                                  MARK_FILL[mark] if mark else INPUT, accent,
                                  mark.value if mark else "")
             button.setToolTip(f"Wound penalty {box.label}")
@@ -813,10 +960,14 @@ class PartyPage(QWidget):
         so a Personal box would sit at a permanent 0/0 and read as broken. `single_pool`
         is carried on the view for exactly this, and the card honours it the way the Play
         tab does."""
-        body = self._panel(lay, "ESSENCE — SINGLE POOL (motes spent)" if cv.play.single_pool
-                           else "ESSENCE (motes spent)", accent)
+        # ⚠ The heading is short because the panel is now a COLUMN in a row of them, not
+        # a full-width band — "ESSENCE — SINGLE POOL (motes spent)" set the whole block's
+        # minimum width on its own. The distinction it drew is kept in the input's own
+        # caption ("All motes") and its tooltip, which is where it is read anyway.
+        body = self._panel(lay, "ESSENCE" if cv.play.single_pool
+                           else "ESSENCE (spent)", accent)
         row = QHBoxLayout()
-        row.setSpacing(8)
+        row.setSpacing(4)
         # ⚠ `view.spent_motes`, not `cur.*` — see its docstring.
         spent_p, spent_pp = viewmod.spent_motes(cv.play, cur)
         if not cv.play.single_pool:
@@ -840,17 +991,23 @@ class PartyPage(QWidget):
             body.addWidget(note)
 
     def _mote_input(self, row, index, character, caption, field, value, cap, accent) -> None:
-        label = QLabel(caption)
-        label.setStyleSheet(f"color:{MUTED}; font-size:11px;")
+        # ⚠ The caption is ABBREVIATED on the block and spelled out in the tooltip. Two
+        # of these sit side by side in a column a few hundred pixels wide; "Personal" and
+        # "Peripheral" both start "Per" and neither fits, so the short forms are the ones
+        # that can actually be told apart at a glance.
+        label = QLabel({"Personal": "P", "Peripheral": "Pp"}.get(caption, caption))
+        label.setToolTip(caption)
+        label.setStyleSheet(f"color:{MUTED}; font-size:10px;")
         row.addWidget(label)
         spin = QSpinBox()
         spin.setObjectName(f"party.{index}.{field}")
         spin.setRange(0, cap)
         spin.setValue(min(value, cap))
-        spin.setToolTip(f"{cap} motes in this pool")
+        spin.setToolTip(f"{caption} — {cap} motes in this pool")
+        spin.setFixedWidth(54)
         row.addWidget(spin)
         left = QLabel(f"{max(0, cap - value)}/{cap}")
-        left.setStyleSheet(f"color:{MUTED}; font-size:11px;")
+        left.setStyleSheet(f"color:{MUTED}; font-size:10px;")
         row.addWidget(left)
         # ⚠ No card reload from a spin box: the redraw would delete it mid-keystroke and
         # take the focus with it. The one label that depends on the value is re-texted
@@ -863,7 +1020,7 @@ class PartyPage(QWidget):
 
     @staticmethod
     def _willpower_title(cv, cur) -> str:
-        return (f"WILLPOWER   ({cv.play.willpower_max - cur.willpower_spent}"
+        return (f"WILLPOWER  ({cv.play.willpower_max - cur.willpower_spent}"
                 f"/{cv.play.willpower_max})")
 
     def _willpower(self, lay, index, character, cv, cur, accent) -> None:
@@ -877,10 +1034,10 @@ class PartyPage(QWidget):
         ruleset = self._ruleset
         if derive.uses_clarity(ruleset, character):
             cl = derive.clarity(ruleset, character)
-            return (f"CLARITY   ({cl.total}/{derive.CLARITY_MAX}  ·  {cl.permanent} perm "
-                    f"+ {cl.temporary} temp  ·  band {cl.band})")
+            return (f"CLARITY  ({cl.total}/{derive.CLARITY_MAX}  ·  {cl.permanent}p "
+                    f"+ {cl.temporary}t  ·  band {cl.band})")
         label = derive.limit_label(ruleset, character).upper()   # "PARADOX" for a Sidereal
-        return (f"{label}   ({cur.limit}/10"
+        return (f"{label}  ({cur.limit}/10"
                 f"{f'  — {label} BREAK' if cur.limit >= 10 else ''})")
 
     def _limit(self, lay, index, character, cur, accent) -> None:
@@ -898,7 +1055,10 @@ class PartyPage(QWidget):
             # ⚠ A BUTTON, not a hover. Divergence is Storyteller-adjudicated and never
             # engine-enforced, so the nine clauses are the card's copy of the page — and
             # a page nobody can find is not on the card.
-            geas = QPushButton("The Great Geas — Divergence triggers…")
+            # ⚠ The label is short and the sentence moved into the tooltip: this sits in
+            # a column beside three others now, and a button captioned with a full clause
+            # sets the whole block's minimum width on its own.
+            geas = _row_button("Great Geas…", "The nine Divergence triggers (CH6 p.235)")
             geas.setObjectName(f"party.{index}.geas")
             geas.clicked.connect(self._show_geas)
             body.addWidget(geas)
@@ -917,7 +1077,7 @@ class PartyPage(QWidget):
                 row = QHBoxLayout()
                 row.setSpacing(3)
                 body.addLayout(row)
-            button = tracker_box(f"party.{index}.{field}.{i}", 16,
+            button = tracker_box(f"party.{index}.{field}.{i}", 13,
                                  accent if i < spent else INPUT, accent)
             button.clicked.connect(
                 lambda _c=False, c=character, i=i, f=field, m=cap, x=index:

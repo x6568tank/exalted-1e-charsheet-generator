@@ -75,22 +75,47 @@ the Eye of the Fire Dragon prints one, which is the argument that the absence is
 — the same right-by-absence shape the human took for the Powerbow of Perfect Accuracy.
 **Left at 0 pending the ruling.** Asked twice on 2026-09-09, not yet answered.
 
+## ⚠⚠ FIRST THING NEXT SESSION — the Party rebuild is UNVERIFIED
+
+**The Qt Party tab was rebuilt from a card grid into a list-plus-rail on 2026-09-09 and
+the work is NOT finished being checked.** It is written up in `docs/plans/qt-port.md`
+("The Party tab is a LIST plus a fixed RAIL"). Two things are owed before it can be
+called done:
+
+1. **⚠ The suite was NOT run to completion after the last edits.** `tests/test_qt_party.py`
+   + `tests/test_qt_adversaries.py` went **118 passed** — but that was BEFORE the final
+   width-budget pass (`_BOXES_PER_ROW` 16→14, count boxes 14→13, mote spin 60→54,
+   `_CARD_WIDTH` 430→400). Nothing has been run since. **Run the qt tests first, then the
+   full suite.** The one test most likely to bite is
+   `test_a_wrapped_card_health_track_keeps_one_pitch`, whose fixture is now DERIVED from
+   `party._BOXES_PER_ROW` for exactly this reason — it should follow the constant down,
+   but that has not been observed.
+2. **No click-through.** Nothing below has been seen outside an offscreen render.
+
+**Working tree is DIRTY and nothing is committed.** Changed: `exalted_builder/qt/party.py`
+(the rebuild), `exalted_builder/qt/adversaries.py` (`AdversaryTrackers(dense=True)`, a new
+side-by-side mode), `tests/test_qt_party.py` (the derived fixture), `docs/plans/qt-port.md`,
+`docs/status/dice-roller.md`, this file, and the untracked `spikes/qt_party_dense/`.
+
+⚠ **The width budget is the trap this rebuild leaves behind.** `_BOXES_PER_ROW`, the
+tracker box sizes and `_RAIL_WIDTH` are ONE budget — line 2 of a member block holds four
+panels side by side, and the widest real member (a 19-level Ox-Body Solar) hit 887px
+against an 856px viewport, i.e. a horizontal scrollbar at the window's own design size.
+**No test can see it** — every widget is present either way. Measure
+`page._scroll.widget().minimumSizeHint().width()` against
+`page._scroll.viewport().width()`; it currently reads **830 vs 856**.
+
 ## 👉 NEXT — carried, in rough order of what would bite
 
-- **The Qt Party window is still shaped like a copy of the webapp** (human, 2026-09-08;
-  refined 2026-09-09: *"it's currently card-based, which feels off compared to the rest
-  of the app… for gm management i don't think we need to use that much space &
-  scrolling"*). **NOT STARTED.** The human asked for a couple of SPIKES, not a rebuild.
-  ⚠ Evidence to design against, measured this session: three characters fill a
-  1250x950 window and push the batch roller entirely below the fold. ⚠ The Party tab
-  is one of the **three written exceptions** to the port's ONE tab layout
-  (`docs/plans/qt-port.md`) — it is a live TRACKER with nothing to select, so it has no
-  detail pane ON PURPOSE. This is not licence to fold it back into the collection
-  layout; what is being pointed at is the card-grid-and-scroll structure.
 - **`qt/` is the one real comment-pass gap** — human parked it 2026-09-09 ("yeah, it
   can wait"). Carried.
 - **The Backgrounds in the scan-only splat books** — still the one known content gap,
   a reading job, ~1,800 pages.
+- **Roll initiative for the whole table — BLOCKED on the GM page holding real
+  characters** (human, 2026-09-09). Written up in `status/dice-roller.md`: it needs the
+  party roster to link to the players' characters instead of owning its own entries, and
+  it stays a one-off because initiative's +1d10 is a printed fixed count. Do not
+  generalise it to other rolls.
 - **Two artifacts want a ruling, not a page** — Cold Wind Knives and the Powerbow of
   Perfect Accuracy; neither prints a commitment. `status/rated-artifacts.md`.
 
@@ -104,7 +129,24 @@ the Eye of the Fire Dragon prints one, which is the argument that the absence is
 
 ## What a human should click
 
-Unverified in a browser, all from this session:
+**The rebuilt Qt Party tab** (`python -m exalted_builder.qt`, then Party on the toolbar),
+all of it render-only so far. Scoped to what a display can settle and a test cannot:
+
+1. **The wound-penalty ladder over the health boxes.** The human asked for it back
+   explicitly over hover-only; the question is whether it survived being shrunk to 9px
+   over 18px boxes, or has become noise.
+2. **The four row actions** — Sheet / PDF / Builder / Remove. They are bordered rather
+   than flat text, at the human's call. Do they read as buttons at that weight?
+3. **A window NARROWER than 1250.** The width budget above fits at 1250 and degrades to a
+   horizontal scrollbar below it. Drag it narrow and confirm that degradation is the one
+   that happens — not clipped buttons or overlapping labels.
+4. **An Ox-Body character** (Yarak, 19 levels) — the track wraps to a second row. Both
+   rows must hold ONE pitch, and the Essence/Willpower/Limit panels must still line up
+   against the boxes rather than the captions.
+5. **Six-plus adversaries** — they go two-up; check the block grid reflows on a resize
+   (only the roster reflows now, members never do).
+
+Carried from last session, still unverified:
 
 1. **`/gm` and the Qt Party window** — add two characters, give one 5 dice and the
    other 3, Roll all. Two lines, one of 5 faces and one of 3. ⚠ This is the

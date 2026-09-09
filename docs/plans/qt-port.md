@@ -1613,6 +1613,52 @@ is the whole design, not drift.
 Identity+Traits, and the Party tab. ST Options' missing toolbar remains a partial, not a
 fourth.
 
+### ⚠ The Party tab is a LIST plus a fixed RAIL, not a card grid (2026-09-09)
+
+The exception above survives unchanged — there is still nothing to select and still no
+detail pane. What was replaced is the **card grid**, which was never what made this tab an
+exception, on the human's note of 2026-09-09: *"it's currently card-based, which feels off
+compared to the rest of the app… for gm management i don't think we need to use that much
+space & scrolling."* Three characters filled a 1250x950 window and pushed the batch roller
+entirely below the fold.
+
+Two shapes were spiked side by side against the shipped page in one window
+(`spikes/qt_party_dense`, throwaway, still on disk); the human took **B** — *"B is easily
+the best"*. What shipped:
+
+- **Members are a full-width LIST**, one two-line block each. Line 1 is name · identity ·
+  Soak/Dodge/Essence · the live health readout · a one-line notes box · the four actions.
+  Line 2 is everything clickable: the track, the Essence pools, Willpower and Limit, side
+  by side. No `QGridLayout` for members at all.
+- **Adversaries stay a grid**, two-up, with `AdversaryTrackers(dense=True)` — a new mode
+  that lays the three tracker panels side by side instead of stacking them. A **mode, not
+  a second widget**: the one-trackers-widget rule still holds, and drift there is two
+  answers to "how hurt is this bandit".
+- **The batch roller and the session notes moved into a fixed 380px rail**, outside every
+  scroll area. Nothing in the rail may be a function of how many combatants are on the
+  board — which is why the roller's own row list scrolls at 280px.
+
+Measured on ten combatants at 1250x950: **2,097px of scrolling content became 830x962**,
+so the whole table plus its roller is on one screen.
+
+**Two answers the human gave with it**: the per-box wound-penalty caption **stays** (it is
+the biggest single height saving and it was still worth its 12px — hover was not enough),
+and the row actions get **a border** rather than flat text or full-weight buttons —
+`_row_button` carries both.
+
+⚠ **`_BOXES_PER_ROW`, the tracker box sizes and `_RAIL_WIDTH` are ONE width budget.** Line
+2 holds four panels side by side and the widest real member — a 19-level Ox-Body Solar —
+came to 887px against an 856px viewport, i.e. a horizontal scrollbar on the shipped window
+at its own design size. Changing any one of those numbers without re-measuring the others
+brings it straight back, and **no test can see it**: the widgets are all present either
+way. Measure `scroll.widget().minimumSizeHint().width()` against
+`scroll.viewport().width()`.
+
+⚠ **The webapp's `/gm` was deliberately NOT changed** (human, same day): *"Qt only.
+They're two separate design surfaces over different engines; webapp is fine as is."* The
+two shells now differ in layout on this surface. That is a ruling, not drift — and it does
+not relax the shared-engine rule for anything behind the widgets.
+
 ### What the collection layout bought on the roster, and what it cost
 
 The webapp renders adversaries as cards, and cards did exactly one thing better: six
