@@ -20,6 +20,7 @@ through JSON using the enum *string values* as keys, e.g. {"strength": 3}.
 
 from __future__ import annotations
 
+import uuid
 from enum import Enum
 from typing import Literal, Optional
 
@@ -878,6 +879,19 @@ class PlayState(BaseModel):
 # --------------------------------------------------------------------------- #
 # The character
 # --------------------------------------------------------------------------- #
+
+def new_character_id() -> str:
+    """A fresh, unique character id.
+
+    ⚠ Every app path that made a blank character used to hand it the literal
+    `"char.new"`, so two characters added to one party carried ONE id. Anything
+    keyed by `character.id` then silently merged them: the Storyteller's batch
+    roller gave both rows the same dice, because the second row's count
+    overwrote the first's under the shared key. The id is the only thing telling
+    two unnamed characters apart, so it cannot be a constant.
+    """
+    return f"char.{uuid.uuid4().hex[:12]}"
+
 
 class Character(BaseModel):
     # --- identity / concept ---

@@ -642,6 +642,80 @@ def test_every_batch_row_lines_its_dice_box_up(make_window, qtbot):
     assert len(xs) == 1, f"batch rows drew their dice boxes at {sorted(xs)}"
 
 
+# --- choosing who rolls, and how many times (human's ask, 2026-09-09) -------
+
+def test_every_batch_row_offers_a_tick_and_a_repeat_count(make_window):
+    from PySide6.QtWidgets import QCheckBox
+    window, _, _ = make_window(_party(_solar("Yarak"), _solar("Taban")))
+    page = window.party_page
+    ticks = [w for w in page.findChildren(QCheckBox)
+             if w.objectName().startswith("party.batch.include.")]
+    times = [w for w in page.findChildren(QSpinBox)
+             if w.objectName().startswith("party.batch.times.")]
+    assert len(ticks) == 2 and len(times) == 2
+    assert all(not t.isChecked() for t in ticks)
+    assert all(b.value() == 1 for b in times)
+
+
+def test_typing_dice_ticks_the_row_on_screen(make_window):
+    """⚠ The build-time half of the silent no-op: the BOX must show ticked, not
+    merely be ticked in state, or the Storyteller sees dice in an unticked row
+    and presses Roll to no effect."""
+    from PySide6.QtWidgets import QCheckBox
+    window, _, _ = make_window(_party(_solar("Yarak")))
+    page = window.party_page
+    tick = _named(page, "party.batch.include.m:c.Yarak", QCheckBox)
+    assert not tick.isChecked()
+    _named(page, "party.batch.count.m:c.Yarak", QSpinBox).setValue(4)
+    assert tick.isChecked()
+
+
+def test_unticking_a_row_leaves_its_typed_dice_alone(make_window):
+    """Parking a row must not destroy what was typed — that is the whole
+    difference between the tick and zeroing the count."""
+    from PySide6.QtWidgets import QCheckBox
+    from exalted_builder.ui import view as viewmod
+    window, _, _ = make_window(_party(_solar("Yarak")))
+    page = window.party_page
+    box = _named(page, "party.batch.count.m:c.Yarak", QSpinBox)
+    box.setValue(6)
+    _named(page, "party.batch.include.m:c.Yarak", QCheckBox).setChecked(False)
+    assert box.value() == 6
+    assert viewmod.batch_rows(page._batch_state,
+                              viewmod.batch_roster(page._party()))[0].rolls == 0
+
+
+def test_one_row_rolling_three_times_makes_three_lines(make_window):
+    window, _, _ = make_window(_party(_solar("Yarak")))
+    page = window.party_page
+    _named(page, "party.batch.count.m:c.Yarak", QSpinBox).setValue(5)
+    _named(page, "party.batch.times.m:c.Yarak", QSpinBox).setValue(3)
+    _named(page, "party.batch.roll").click()
+    batch = page._batch_state["log"][0]
+    assert [r.label for r in batch.rolls] == [
+        "Yarak (1 of 3)", "Yarak (2 of 3)", "Yarak (3 of 3)"]
+
+
+def test_the_new_controls_keep_every_batch_row_in_line(make_window, qtbot):
+    """⚠ Two widgets joined each row; a long name must still not push the rest
+    out of line. Geometry is the only kind of test that notices — the widgets are
+    all present either way (`docs/plans/qt-port.md`)."""
+    from PySide6.QtWidgets import QCheckBox
+    window, _, _ = make_window(_party(_solar("Ix"),
+                                      _solar("Gearheart-of-the-Ninefold-Cog")))
+    page = window.party_page
+    window.resize(1200, 900)
+    window.show()
+    qtbot.waitExposed(window)
+    qtbot.wait(50)          # see the note on the dice-box alignment test above
+    for prefix, cls in (("party.batch.include.", QCheckBox),
+                        ("party.batch.times.", QSpinBox)):
+        widgets = [w for w in page.findChildren(cls)
+                   if w.objectName().startswith(prefix)]
+        xs = {w.mapTo(window, w.rect().topLeft()).x() for w in widgets}
+        assert len(xs) == 1, f"{prefix} drew at {sorted(xs)}"
+
+
 def test_a_wrapped_card_health_track_keeps_one_pitch(make_window, qtbot):
     """⚠ The same missing-stretch defect the Play tab carried, one widget class
     over — a card's track wraps past `_BOXES_PER_ROW` and drew its full row

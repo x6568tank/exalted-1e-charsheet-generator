@@ -16,7 +16,7 @@ from PySide6.QtWidgets import QApplication, QMessageBox
 
 import exalted_builder
 from exalted_builder import branding, persistence, rules_db
-from exalted_builder.models.character import Character
+from exalted_builder.models.character import Character, new_character_id
 from exalted_builder.qt.main_window import MainWindow
 
 _DATA_DIR = Path(exalted_builder.__file__).parent / "data"
@@ -40,7 +40,7 @@ def open_character(argv: list[str]) -> tuple[Character, Path, str]:
             complaint = f"Could not open {path}: {ex}\n\nStarted a new character instead."
     else:
         complaint = ""
-    character = Character(id="char.new")
+    character = Character(id=new_character_id())
     return (character,
             persistence.default_save_dir() / persistence.suggested_filename(character),
             complaint)

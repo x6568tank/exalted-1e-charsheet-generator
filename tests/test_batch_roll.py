@@ -30,8 +30,12 @@ _ROWS = [("m.yarak", "Yarak"), ("m.taban", "Taban")]
 
 
 def _state(**counts) -> dict:
+    """Counts go in through `set_batch_count`, exactly as both shells write them
+    — typing dice into a row is what ticks it into the batch, so a test that
+    poked `state["counts"]` directly would build a state no surface can produce."""
     state = viewmod.new_batch_state()
-    state["counts"].update(counts)
+    for key, count in counts.items():
+        viewmod.set_batch_count(state, key, count)
     return state
 
 
@@ -139,12 +143,16 @@ def test_counts_follow_the_row_key_when_the_roster_renumbers():
     state = _state(**{"m.taban": 4})
     shrunk = [("m.taban", "Taban")]
     rows = viewmod.batch_rows(state, shrunk)
-    assert rows == [("m.taban", "Taban", 4, "")]
+    assert [(r.key, r.name, r.count, r.label) for r in rows] == [
+        ("m.taban", "Taban", 4, "")]
 
 
 def test_an_untouched_row_offers_zero_dice():
-    assert viewmod.batch_rows(viewmod.new_batch_state(), _ROWS) == [
+    rows = viewmod.batch_rows(viewmod.new_batch_state(), _ROWS)
+    assert [(r.key, r.name, r.count, r.label) for r in rows] == [
         ("m.yarak", "Yarak", 0, ""), ("m.taban", "Taban", 0, "")]
+    assert [(r.included, r.times, r.rolls) for r in rows] == [
+        (False, 1, 0), (False, 1, 0)]
 
 
 # --- 0019's no-wire rule, at the seam where it is most tempting -----------
@@ -168,5 +176,138 @@ def test_the_state_holds_no_pool_or_character_reference():
     """The GM roller's state is counts, labels and switches. A character or a
     ruleset in it would mean something in the batch can look a pool up."""
     state = viewmod.new_batch_state()
-    assert set(state) == {"name", "counts", "labels", "target_number",
-                          "doubles_tens", "can_botch", "log", "open", "next_key"}
+    assert set(state) == {"name", "counts", "labels", "included", "times",
+                          "target_number", "doubles_tens", "can_botch", "log",
+                          "open", "next_key"}
+
+
+# --- choosing who rolls, and how many times (human's ask, 2026-09-09) -------
+#
+# ⚠ Both halves stay inside 0019: the tick chooses a CHARACTER, and the repeat
+# count is a number the Storyteller types. Neither names a roll.
+
+def test_typing_dice_ticks_the_row_into_the_batch():
+    """⚠ Without the auto-tick a Storyteller types dice, presses Roll and gets
+    nothing, with the number sitting right there on screen. The silent no-op is
+    the reason `set_batch_count` exists instead of a dict write per shell."""
+    state = viewmod.new_batch_state()
+    viewmod.set_batch_count(state, "m.yarak", 5)
+    assert viewmod.batch_rows(state, _ROWS)[0].included
+
+
+def test_unticking_a_row_sits_it_out_without_clearing_its_dice():
+    """Parking a row must not destroy what was typed — that is the whole
+    difference between the tick and zeroing the count."""
+    state = _state(**{"m.yarak": 3, "m.taban": 2})
+    viewmod.set_batch_included(state, "m.yarak", False)
+    batch = viewmod.roll_batch(state, _ROWS, rng=_Fixed([9, 9]))
+    assert [r.label for r in batch.rolls] == ["Taban"]
+    assert viewmod.batch_rows(state, _ROWS)[0].count == 3
+
+
+def test_a_ticked_row_with_no_dice_still_sits_out():
+    """The two ways out of a batch must agree: ticking someone in does not
+    conjure dice for them."""
+    state = viewmod.new_batch_state()
+    viewmod.set_batch_included(state, "m.yarak", True)
+    assert viewmod.batch_rows(state, _ROWS)[0].rolls == 0
+    assert viewmod.roll_batch(state, _ROWS) is None
+
+
+def test_one_row_can_roll_several_times():
+    state = _state(**{"m.yarak": 1})
+    viewmod.set_batch_times(state, "m.yarak", 3)
+    batch = viewmod.roll_batch(state, _ROWS, rng=_Fixed([10, 5, 1]))
+    assert [r.faces_text for r in batch.rolls] == ["10", "5", "1"]
+    assert [r.label for r in batch.rolls] == [
+        "Yarak (1 of 3)", "Yarak (2 of 3)", "Yarak (3 of 3)"]
+
+
+def test_a_single_roll_carries_no_ordinal_suffix():
+    """"(1 of 1)" on every line of an ordinary batch would be noise."""
+    batch = viewmod.roll_batch(_state(**{"m.yarak": 1}), _ROWS, rng=_Fixed([7]))
+    assert batch.rolls[0].label == "Yarak"
+
+
+def test_repeats_use_the_storytellers_label_when_given():
+    state = _state(**{"m.yarak": 1})
+    state["labels"]["m.yarak"] = "search the room"
+    viewmod.set_batch_times(state, "m.yarak", 2)
+    batch = viewmod.roll_batch(state, _ROWS, rng=_Fixed([7, 7]))
+    assert [r.label for r in batch.rolls] == [
+        "search the room (1 of 2)", "search the room (2 of 2)"]
+
+
+def test_times_floors_at_one_and_is_capped():
+    """⚠ 0 must not become a second way to say "sit out" — the tick owns that,
+    and two controls meaning the same thing is how one silently overrides the
+    other."""
+    state = viewmod.new_batch_state()
+    viewmod.set_batch_times(state, "m.yarak", 0)
+    assert state["times"]["m.yarak"] == 1
+    viewmod.set_batch_times(state, "m.yarak", 999)
+    assert state["times"]["m.yarak"] == viewmod.MAX_BATCH_REPEATS
+
+
+def test_repeat_labels_are_ordinals_and_never_a_roll_name():
+    """⚠ 0019's no-wire rule at the new seam: "(2 of 3)" says which of the
+    Storyteller's own repeats a line is. A batch may never emit a line naming
+    what was rolled."""
+    state = _state(**{"m.yarak": 2})
+    viewmod.set_batch_times(state, "m.yarak", 2)
+    batch = viewmod.roll_batch(state, _ROWS, rng=_Fixed([7, 7, 7, 7]))
+    for entry in batch.rolls:
+        assert not set(vars(entry)) & {"roll", "roll_id", "definition", "pool"}
+        assert entry.label.startswith("Yarak (")
+
+
+def test_the_batch_detail_counts_the_repeats_not_the_rows():
+    state = _state(**{"m.yarak": 1})
+    viewmod.set_batch_times(state, "m.yarak", 3)
+    batch = viewmod.roll_batch(state, _ROWS, rng=_Fixed([7, 7, 7]))
+    assert batch.detail.startswith("3 rolls · ")
+
+
+# --- the duplicate-id collision (found at the browser, 2026-09-09) ----------
+
+def test_two_characters_sharing_an_id_still_get_their_own_dice():
+    """⚠ THE regression test for the bug the human hit: every app path that made
+    a blank character handed it the literal "char.new", so two of them in one
+    party keyed to ONE row. The second row's count overwrote the first's and both
+    characters rolled the same number of dice.
+
+    `new_character_id` stops NEW parties from reaching this shape; parties already
+    saved with the duplicate cannot be migrated, so `batch_roster` must keep the
+    keys unique on its own.
+    """
+    from exalted_builder.models.character import Character
+    from exalted_builder.models.party import Party, PartyMember
+    party = Party(id="p", members=[
+        PartyMember(character=Character(id="char.new", name="Yarak", caste="dawn")),
+        PartyMember(character=Character(id="char.new", name="Taban", caste="dawn")),
+    ])
+    rows = viewmod.batch_roster(party)
+    assert len({key for key, _ in rows}) == 2
+    state = viewmod.new_batch_state()
+    viewmod.set_batch_count(state, rows[0][0], 5)
+    viewmod.set_batch_count(state, rows[1][0], 3)
+    assert [(r.name, r.count) for r in viewmod.batch_rows(state, rows)] == [
+        ("Yarak", 5), ("Taban", 3)]
+    batch = viewmod.roll_batch(state, rows, rng=_Fixed([7] * 8))
+    assert [len(r.faces) for r in batch.rolls] == [5, 3]
+
+
+def test_a_blank_character_gets_a_unique_id():
+    """The root fix. Two blanks made the same way must not be the same record."""
+    from exalted_builder.models.character import new_character_id
+    assert new_character_id() != new_character_id()
+
+
+def test_no_app_path_hands_out_a_constant_character_id():
+    """⚠ A grep, because the defect was one literal repeated across SEVEN sites in
+    both shells — fixing the one the bug surfaced in would have left six."""
+    import pathlib
+    root = pathlib.Path(__file__).resolve().parent.parent / "exalted_builder"
+    guilty = [str(p.relative_to(root)) for p in root.rglob("*.py")
+              if 'id="char.new"' in p.read_text()]
+    assert guilty == [], f"constant character id still created in: {guilty}"

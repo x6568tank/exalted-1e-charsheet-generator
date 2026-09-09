@@ -29,7 +29,7 @@ from nicegui import app, ui
 
 from .. import custom_content, persistence, rules_db
 from ..engine import lifecycle, validate
-from ..models.character import Character
+from ..models.character import Character, new_character_id
 from ..models.party import Party
 from ..models.rules import RuleSet
 from . import advantages
@@ -324,7 +324,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         _apply_loaded(loaded, None, e.file.name)
 
     def new_character(dialog=None) -> None:
-        ctx["char"] = Character(id="char.new")
+        ctx["char"] = Character(id=new_character_id())
         ctx["dir"] = persistence.default_save_dir()
         ctx["path"] = ctx["dir"] / persistence.suggested_filename(ctx["char"])
         if dialog is not None:
@@ -492,7 +492,7 @@ def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character, 
         path = Path(character_path)
         character = persistence.load_character(path)
         return ruleset, character, path
-    character = Character(id="char.new")
+    character = Character(id=new_character_id())
     path = persistence.default_save_dir() / persistence.suggested_filename(character)
     return ruleset, character, path
 

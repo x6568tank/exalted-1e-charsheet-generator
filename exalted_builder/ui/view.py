@@ -3801,7 +3801,7 @@ def new_batch_state() -> dict:
     """
     from ..engine import dice as dicemod
     return {"name": "",
-            "counts": {}, "labels": {},
+            "counts": {}, "labels": {}, "included": set(), "times": {},
             "target_number": dicemod.DEFAULT_TARGET_NUMBER,
             "doubles_tens": True, "can_botch": True,
             "log": [], "open": set(), "next_key": 1}
@@ -3817,22 +3817,108 @@ def batch_roster(party) -> list[tuple[str, str]]:
     onto another's row. Adversaries are in because a batch rolls a NUMBER: an
     `Adversary` is not a `Character` and never may be, but a dice count does not
     care which it came from.
+
+    ⚠ A DUPLICATE id gets a `#n` suffix so the keys stay unique. Every app path
+    that made a blank character once handed it the literal `"char.new"`, so two
+    of them in one party shared a key and the second row's dice silently
+    overwrote the first's — both rows then rolled the same count (human, found at
+    the browser 2026-09-09). `new_character_id` fixes new characters; parties
+    already SAVED with the duplicate cannot be migrated (there are no save
+    migrations here), so the key derivation has to be total on its own. The
+    suffix is positional and therefore carries the renumbering trap above — but
+    only among records that were already indistinguishable, where there is
+    nothing better to key on.
     """
-    rows = [(f"m:{m.character.id}", m.character.name or "(unnamed)")
-            for m in party.members]
-    rows += [(f"a:{a.id}", a.name or "(unnamed)") for a in party.adversaries]
+    rows: list[tuple[str, str]] = []
+    seen: dict[str, int] = {}
+    for prefix, record, name in (
+            [("m", m.character, m.character.name) for m in party.members]
+            + [("a", a, a.name) for a in party.adversaries]):
+        key = f"{prefix}:{record.id}"
+        seen[key] = seen.get(key, 0) + 1
+        if seen[key] > 1:
+            key = f"{key}#{seen[key]}"
+        rows.append((key, name or "(unnamed)"))
     return rows
 
 
-def batch_rows(state: dict, rows: Sequence[tuple[str, str]]) -> list[tuple[str, str, int, str]]:
-    """In: the state and the roster as (key, display name) pairs. Out: one
-    `(key, name, count, label)` tuple per row, with whatever the Storyteller has
-    typed so far and 0 dice for a row they have not touched.
+# How many times one row may be rolled in a single batch. A guard on the input
+# field, not a rule — nothing printed caps it. Low enough that a fat-fingered
+# entry cannot render a thousand transcript lines.
+MAX_BATCH_REPEATS = 20
 
-    A row left at 0 is how the Storyteller says "not this one" — see `roll_batch`.
+
+@dataclass(frozen=True)
+class BatchRow:
+    """One roster row as the batch controls show it: who, how many dice, how
+    many times, the Storyteller's label, and whether the row is in the batch.
+
+    ⚠ `count` and `times` are both TYPED. Neither is read from a pool, and the
+    row carries the CHARACTER's name, never a roll's — see the module note above.
     """
-    return [(key, name, int(state["counts"].get(key) or 0),
-             state["labels"].get(key, "")) for key, name in rows]
+    key: str
+    name: str
+    count: int
+    label: str
+    included: bool
+    times: int
+
+    @property
+    def rolls(self) -> int:
+        """How many transcript lines this row will produce: `times` when it is
+        actually taking part, 0 otherwise. One place answers it, so the controls
+        and `roll_batch` cannot disagree about whether a row sits out."""
+        return self.times if (self.included and self.count > 0) else 0
+
+
+def set_batch_count(state: dict, key: str, count) -> None:
+    """Store a row's typed dice count, and tick the row INTO the batch when the
+    count goes above 0.
+
+    ⚠ The auto-tick is the whole reason this is a function rather than a dict
+    write in each shell. Without it a Storyteller types dice into an unticked row,
+    presses Roll and nothing happens — a silent no-op with the number sitting
+    right there. Unticking afterwards still parks the row without clearing what
+    was typed, which is the point of keeping the two fields apart.
+    """
+    value = max(0, int(count or 0))
+    state["counts"][key] = value
+    if value > 0:
+        state["included"].add(key)
+
+
+def set_batch_included(state: dict, key: str, included: bool) -> None:
+    """Tick a row into the batch or out of it, leaving its typed dice alone."""
+    if included:
+        state["included"].add(key)
+    else:
+        state["included"].discard(key)
+
+
+def set_batch_times(state: dict, key: str, times) -> None:
+    """Store how many times this row rolls, clamped to 1..`MAX_BATCH_REPEATS`.
+
+    ⚠ Floors at 1, never 0: "not this one" is the include tick, and having two
+    different controls that both mean "sit out" is how one of them ends up
+    silently overriding the other.
+    """
+    state["times"][key] = max(1, min(MAX_BATCH_REPEATS, int(times or 1)))
+
+
+def batch_rows(state: dict, rows: Sequence[tuple[str, str]]) -> list[BatchRow]:
+    """In: the state and the roster as (key, display name) pairs. Out: one
+    `BatchRow` per row, carrying whatever the Storyteller has typed so far —
+    0 dice, one roll and unticked for a row they have not touched.
+
+    A row sits out of the batch by being unticked OR by having 0 dice; `BatchRow.rolls`
+    is the single answer to which — see `roll_batch`.
+    """
+    return [BatchRow(key=key, name=name,
+                     count=int(state["counts"].get(key) or 0),
+                     label=state["labels"].get(key, ""),
+                     included=key in state.get("included", ()),
+                     times=max(1, int(state.get("times", {}).get(key) or 1)))
+            for key, name in rows]
 
 
 def roll_batch(state: dict, rows: Sequence[tuple[str, str]], *,
@@ -3845,21 +3931,27 @@ def roll_batch(state: dict, rows: Sequence[tuple[str, str]], *,
     to the row's display NAME so a line is never anonymous. ⚠ That fallback is a
     character's name, never a roll's — see the module note above.
 
-    Rows set to 0 dice are skipped rather than rolled empty: in a party of six
-    the usual case is three of them rolling.
+    A row rolls `times` times, each line suffixed "(2 of 3)" so the repeats can be
+    told apart. ⚠ That suffix is an ORDINAL, not a roll's name: it says which of
+    the Storyteller's own repeats this is and asserts nothing about the pool.
+
+    Rows sit out by being unticked or by having 0 dice — `BatchRow.rolls` decides,
+    so the controls and this function cannot disagree. In a party of six the usual
+    case is three of them rolling.
     """
     from ..engine import dice as dicemod
     entries: list[RollEntry] = []
     target = int(state.get("target_number") or dicemod.DEFAULT_TARGET_NUMBER)
     doubles = bool(state.get("doubles_tens", True))
     botching = bool(state.get("can_botch", True))
-    for key, name, count, label in batch_rows(state, rows):
-        if count <= 0:
-            continue
-        row_state = {"count": count, "label": label or name,
-                     "target_number": target, "doubles_tens": doubles,
-                     "can_botch": botching, "log": []}
-        entries.append(roll_dice(row_state, rng=rng))
+    for row in batch_rows(state, rows):
+        base = row.label or row.name
+        for n in range(1, row.rolls + 1):
+            row_state = {"count": row.count,
+                         "label": base if row.rolls == 1 else f"{base} ({n} of {row.rolls})",
+                         "target_number": target, "doubles_tens": doubles,
+                         "can_botch": botching, "log": []}
+            entries.append(roll_dice(row_state, rng=rng))
     if not entries:
         return None
 

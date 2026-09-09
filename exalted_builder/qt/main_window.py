@@ -28,7 +28,7 @@ from PySide6.QtWidgets import (
 import exalted_builder
 from exalted_builder import custom_content, persistence, rules_db
 from exalted_builder.engine import advancement, elder, lifecycle, validate
-from exalted_builder.models.character import Character
+from exalted_builder.models.character import Character, new_character_id
 from exalted_builder.models.party import Party
 from exalted_builder.models.rules import RuleSet
 from exalted_builder.ui import pdf, theme
@@ -603,7 +603,7 @@ class MainWindow(QMainWindow):
                                       "will be lost.")
         if answer != QMessageBox.StandardButton.Yes:
             return
-        self._ctx["char"] = Character(id="char.new")
+        self._ctx["char"] = Character(id=new_character_id())
         self._ctx["member"] = None            # no longer editing a party member
         self._ctx["dir"] = persistence.default_save_dir()
         self._ctx["path"] = self._ctx["dir"] / persistence.suggested_filename(self._ctx["char"])

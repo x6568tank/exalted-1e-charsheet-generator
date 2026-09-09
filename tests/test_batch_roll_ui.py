@@ -73,7 +73,7 @@ async def test_a_row_left_at_zero_sits_the_batch_out(user: User) -> None:
 async def test_rolling_with_no_dice_typed_warns_instead_of_rolling(user: User) -> None:
     await user.open('/gm-batch')
     user.find(marker="batch-roll").click()
-    await user.should_see("No dice typed")
+    await user.should_see("No rows to roll")
 
 
 @pytest.mark.asyncio
@@ -89,3 +89,41 @@ async def test_no_row_offers_a_named_roll_to_fill_its_count(user: User) -> None:
     labels = {(s._props.get("label") or "") for s in selects}
     assert not [l for l in labels if "roll" in l.lower() or "pool" in l.lower()]
     await user.should_see("Stunts, difficulty and Charms are yours")
+
+
+# --- choosing who rolls, and how many times (human's ask, 2026-09-09) -------
+
+def _checkboxes(user: User):
+    from nicegui.elements.checkbox import Checkbox
+    return [e for e in user.client.elements.values() if isinstance(e, Checkbox)]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_every_row_offers_a_tick_and_a_repeat_count(user: User) -> None:
+    await user.open('/gm-batch')
+    await user.should_see("Rolls")
+    assert len(_numbers(user, "Rolls")) == len(_numbers(user, "Dice"))
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_typing_dice_ticks_the_row_on_screen(user: User) -> None:
+    """⚠ The build-time half of the silent no-op: the box must show ticked, not
+    merely be ticked in state, or the Storyteller sees dice in an unticked row."""
+    await user.open('/gm-batch')
+    boxes = _numbers(user, "Dice")
+    ticked_before = [c for c in _checkboxes(user) if c.value]
+    boxes[0].set_value(4)
+    assert len([c for c in _checkboxes(user) if c.value]) > len(ticked_before)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_one_row_rolling_three_times_makes_three_lines(user: User) -> None:
+    await user.open('/gm-batch')
+    _numbers(user, "Dice")[0].set_value(5)
+    _numbers(user, "Rolls")[0].set_value(3)
+    user.find(marker="batch-roll").click()
+    await user.should_see("3 rolls · TN 7")
+    await user.should_see("Yarak (1 of 3)")

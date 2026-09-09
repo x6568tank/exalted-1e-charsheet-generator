@@ -31,7 +31,7 @@ from nicegui import ui
 
 from .. import persistence, rules_db
 from ..engine import derive, dice
-from ..models.character import Character, Damage, PlayState
+from ..models.character import Character, Damage, PlayState, new_character_id
 from ..models.party import Party, PartyMember
 from ..models.rules import RuleSet
 from . import adversaries as adversaries_mod
@@ -130,19 +130,35 @@ def batch_roller_panel(pal: theme.Palette, state: dict, rows, on_roll) -> None:
         if not rows:
             ui.label("No one on the roster to roll for yet.").classes(
                 "text-xs text-gray-600")
-        for key, name, count, label in viewmod.batch_rows(state, rows):
+        for row in viewmod.batch_rows(state, rows):
             with ui.row().classes("w-full items-end gap-2 no-wrap"):
-                ui.label(name).classes("text-sm w-40 shrink-0 truncate")
-                ui.number("Dice", value=count, min=0, max=dice.MAX_DICE, format="%d",
-                          on_change=lambda e, k=key: state["counts"].__setitem__(
-                              k, e.value)).classes("w-24").props("dense outlined")
-                ui.input("Label (yours)", value=label,
-                         on_change=lambda e, k=key: state["labels"].__setitem__(
+                # The tick is rebuilt from state on every repaint rather than
+                # left to hold its own value, because typing dice ticks it on —
+                # see view.set_batch_count.
+                tick = ui.checkbox(value=row.included).props("dense")
+                tick.on_value_change(
+                    lambda e, k=row.key: viewmod.set_batch_included(
+                        state, k, bool(e.value)))
+                ui.label(row.name).classes("text-sm w-40 shrink-0 truncate")
+                ui.number("Dice", value=row.count, min=0, max=dice.MAX_DICE,
+                          format="%d",
+                          on_change=lambda e, k=row.key, t=tick: (
+                              viewmod.set_batch_count(state, k, e.value),
+                              t.set_value(k in state["included"]))
+                          ).classes("w-24").props("dense outlined")
+                ui.number("Rolls", value=row.times, min=1,
+                          max=viewmod.MAX_BATCH_REPEATS, format="%d",
+                          on_change=lambda e, k=row.key: viewmod.set_batch_times(
+                              state, k, e.value)).classes("w-20").props(
+                    "dense outlined")
+                ui.input("Label (yours)", value=row.label,
+                         on_change=lambda e, k=row.key: state["labels"].__setitem__(
                              k, e.value)).classes("flex-1 min-w-32").props(
                     "dense outlined")
-        ui.label("Type the dice each of them is picking up. 0 sits a row out. "
-                 "Stunts, difficulty and Charms are yours — this does not know."
-                 ).classes("text-xs text-gray-500")
+        ui.label("Tick who is rolling and type the dice each picks up; 'Rolls' "
+                 "takes that many for one character. An unticked row, or one at "
+                 "0 dice, sits out. Stunts, difficulty and Charms are yours — "
+                 "this does not know.").classes("text-xs text-gray-500")
 
         if state["log"]:
             ui.separator()
@@ -195,7 +211,7 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
 
     def roll_batch() -> None:
         if viewmod.roll_batch(batch_state, viewmod.batch_roster(party())) is None:
-            ui.notify("No dice typed — give at least one row a count.", type="warning")
+            ui.notify("No rows to roll — tick someone and give them dice.", type="warning")
         batch_roller.refresh()
 
     @ui.refreshable
@@ -480,7 +496,7 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
                     "flat").tooltip("The character currently open on the builder tabs")
             ui.button("Add a blank character", icon="note_add",
                       on_click=lambda: (dialog.close(),
-                                        add_character(Character(id="char.new")))).props("flat")
+                                        add_character(Character(id=new_character_id())))).props("flat")
             with ui.row().classes("justify-end w-full"):
                 ui.button("Cancel", on_click=dialog.close).props("flat")
         dialog.open()
@@ -709,7 +725,7 @@ def main() -> None:
     args = parser.parse_args()
 
     ruleset = rules_db.load_app_ruleset(_DATA_DIR)
-    character = Character(id="char.new")
+    character = Character(id=new_character_id())
     path = persistence.default_save_dir() / persistence.suggested_filename(character)
     ctx = builder_mod.make_context(character, path)
     if args.party:

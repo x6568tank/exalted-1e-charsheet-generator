@@ -59,7 +59,7 @@ from PySide6.QtWidgets import (
 from exalted_builder import persistence
 from exalted_builder.engine import (adversaries as adv, derive, dice,
                                     play as engineplay)
-from exalted_builder.models.character import Character, Damage, PlayState
+from exalted_builder.models.character import Character, Damage, PlayState, new_character_id
 from exalted_builder.models.party import Party, PartyMember
 from exalted_builder.ui import pdf, theme
 from exalted_builder.ui import view as viewmod
@@ -520,7 +520,9 @@ class PartyPage(QWidget):
         self._batch_rows_lay = QVBoxLayout()
         self._batch_rows_lay.setSpacing(2)
         body.addLayout(self._batch_rows_lay)
-        note = QLabel("Type the dice each of them is picking up. 0 sits a row out. "
+        note = QLabel("Tick who is rolling and type the dice each picks up; x2 "
+                      "takes that many rolls for one character. An unticked row, "
+                      "or one at 0 dice, sits out. "
                       "Stunts, difficulty and Charms are yours — this does not know.")
         note.setWordWrap(True)
         note.setStyleSheet(f"color:{MUTED}; font-size:11px;")
@@ -548,8 +550,19 @@ class PartyPage(QWidget):
             self._batch_rows_lay.addWidget(
                 self._muted("No one on the roster to roll for yet."))
             return
-        for key, name, count, label in viewmod.batch_rows(self._batch_state, rows):
+        for brow in viewmod.batch_rows(self._batch_state, rows):
+            key, name, count, label = brow.key, brow.name, brow.count, brow.label
             row = QHBoxLayout()
+            # Rebuilt from state on every repaint: typing dice ticks the row on
+            # (view.set_batch_count), so the box cannot own its own value.
+            tick = QCheckBox()
+            tick.setObjectName(f"party.batch.include.{key}")
+            tick.setChecked(brow.included)
+            tick.setToolTip("Roll for this one")
+            tick.toggled.connect(
+                lambda on, k=key: viewmod.set_batch_included(
+                    self._batch_state, k, on))
+            row.addWidget(tick)
             # ⚠ A FIXED width, and elided HERE rather than by `_StatLine`. A
             # minimum width lets "Gearheart-of-the-Ninefold-Cog" — a real
             # character name — push that row's dice box out of line with every
@@ -567,8 +580,19 @@ class PartyPage(QWidget):
             dice_box.setRange(0, dice.MAX_DICE)
             dice_box.setValue(count)
             dice_box.valueChanged.connect(
-                lambda v, k=key: self._batch_state["counts"].__setitem__(k, v))
+                lambda v, k=key, t=tick: (
+                    viewmod.set_batch_count(self._batch_state, k, v),
+                    t.setChecked(k in self._batch_state["included"])))
             row.addWidget(dice_box)
+            times_box = QSpinBox()
+            times_box.setObjectName(f"party.batch.times.{key}")
+            times_box.setRange(1, viewmod.MAX_BATCH_REPEATS)
+            times_box.setValue(brow.times)
+            times_box.setPrefix("x")
+            times_box.setToolTip("How many rolls for this one")
+            times_box.valueChanged.connect(
+                lambda v, k=key: viewmod.set_batch_times(self._batch_state, k, v))
+            row.addWidget(times_box)
             text = QLineEdit(label)
             text.setObjectName(f"party.batch.label.{key}")
             text.setPlaceholderText("Label (yours)")
@@ -586,7 +610,7 @@ class PartyPage(QWidget):
     def _do_batch_roll(self) -> None:
         rows = viewmod.batch_roster(self._party())
         if viewmod.roll_batch(self._batch_state, rows) is None:
-            self._notify("No dice typed — give at least one row a count.")
+            self._notify("No rows to roll — tick someone and give them dice.")
             return
         self._fill_batch_log()
 
@@ -1207,7 +1231,7 @@ class PartyWindow(QMainWindow):
 
         blank = QPushButton("Add a blank character")
         blank.setObjectName("party.addBlank")
-        blank.clicked.connect(lambda: finish(Character(id="char.new"), "a blank character"))
+        blank.clicked.connect(lambda: finish(Character(id=new_character_id()), "a blank character"))
         lay.addWidget(blank)
 
         cancel = QPushButton("Cancel")
