@@ -31,15 +31,38 @@ executable has changed since the last green run, reuse that number and say so.**
   count as tests having been deleted**, and do not "reconcile" two machines' numbers.
   Record the number you measured, where and when.
 
-## The two tests that are not what they look like
+## The one test that is not what it looks like
 
 - ⚠ **The SKIP is conditional and healthy, not a disabled test:**
   `test_buy_merit_prices_the_tier_against_the_characters_own_menu` skips when no Merit
   tier exists that is generic-but-not-Solar.
-- ⚠ **One test is machine-dependent in OUTCOME, and that is the point:**
-  `test_every_description_matches_the_source_text` **defers** entries whose source
-  chapter is absent, and fails them where the chapter is present. **Neither outcome is a
-  regression**, and do not "fix" it by editing a path. `docs/status/godblooded.md`.
+
+### ✅ No test is machine-dependent in OUTCOME any more (2026-09-09)
+
+`test_every_description_matches_the_source_text` used to be — it compared each M&F
+description against its pasted chapter by normalised LENGTH, failing below 92%, and
+**deferred** entries whose chapter was absent. So it passed on one machine and failed on
+another off the same commit, and the older prose in this repo describing "the known
+machine-dependent failure" means this test.
+
+**Deleted 2026-09-09** (human: *"you can just get rid of it entirely at this point"*).
+Two reasons, and the second is the sharper one:
+
+1. It read `images/`, which is gitignored, so the suite's OUTCOME depended on which
+   machine ran it — the thing this file spends most of its length teaching people to
+   read around.
+2. ⚠ **It went green by checking LESS.** On its final run it deferred **71** entries
+   where it had deferred 46 and failed — the missing chapters route to nothing, so those
+   entries were skipped rather than verified, and the only trace was a warnings summary.
+   A test whose pass can mean "I stopped looking" is worse than no test.
+
+**If that check is wanted again, it is a script, not a suite invariant** — one that diffs
+authored content against the source and REPORTS the differences, which is both more useful
+(it names what changed) and more broadly applicable (Charms and spells have the same
+transcription risk, and neither ever had such a test). It is not written; nothing is
+waiting on it.
+
+⚠ **The suite no longer has a known failure.** A red run is now a real one.
 
 ## The trap that looks like a machine crash
 

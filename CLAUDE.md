@@ -223,18 +223,19 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite → `docs/testing.md`
-**3,369 passing, 1 skipped, 1 failing** (2026-09-08, main PC, post-merge — the roller's
-3,356 plus the attunement line's tests). ⚠ The FAILURE is the machine-dependent M&F
-description test, which fails here because the source chapters it checks against are
-present; it defers, and goes green, where they are not. ⚠ **The count is machine-dependent by
+**3,390 passing, 1 skipped, 0 failing** (2026-09-09, main PC; 3,391 collected). ⚠ **There is no longer a
+known failure** — the machine-dependent M&F description test was DELETED on 2026-09-09
+(it compared descriptions to gitignored source by length, and its last act was to go green
+by deferring 71 entries instead of checking them). A red run is now a real one. Older prose
+across `docs/` still refers to it as "the known machine-specific failure"; that is a dated
+record, not a live item. ⚠ **The count is machine-dependent by
 DOZENS of tests, by 45 where `pypdf` is missing, and by 522 more where the optional `qt`
 extra is missing** — a lower number is that working, not tests going missing. **Do not
 "reconcile" two machines' numbers, and never infer WHICH machine you are on from the
 count**: an absent optional dependency moves it further than the gap between two machines
-(2026-09-07). ⚠ **The SKIP is conditional and healthy, and one M&F test is machine-dependent
-in OUTCOME** — pass-with-deferrals on some machines, a real failure on others, neither a
-regression. `docs/testing.md` has both by name, how to read a run's numbers honestly, and
-the Qt-font trap that looks like a machine crash.
+(2026-09-07). ⚠ **The SKIP is conditional and healthy** — it skips when no Merit tier is
+generic-but-not-Solar. `docs/testing.md` has it by name, how to read a run's numbers
+honestly, and the Qt-font trap that looks like a machine crash.
 
 ## The record → `docs/status/`
 One file per topic. **Read the relevant file before touching that area.** The rows below

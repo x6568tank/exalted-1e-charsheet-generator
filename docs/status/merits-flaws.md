@@ -491,8 +491,10 @@ Two defects spotted by eye turned into **eight** entries once grepped for struct
   PHYSICAL` is two, so the regex needed a repeated group.
 * 2 names were mangled by naive title-casing of a SHOUTED source header: `Brigid'S Heir`.
 
-**`test_every_description_matches_the_source_text` provably could not catch any of it.**
-It fails a description below 92% of its source length; all of these make a description
+**`test_every_description_matches_the_source_text` provably could not catch any of it**
+(that test was deleted 2026-09-09 — see `docs/testing.md`; the argument below is why its
+survivors are the useful half). It failed a description below 92% of its source length;
+all of these make a description
 LONGER, and by so little that every ratio stayed within 1.5% of 1.0. Structure, not
 length, separates debris from prose — hence
 `test_no_description_carries_extraction_debris` and
@@ -965,9 +967,10 @@ hide the entry AND the validator rejects it — one data edit, both halves.
 
 ⚠ **`mf.magical-attunement` now requires Awakened Essence on the human's authority, NOT
 on a page citation.** The transcribed p.66 text does not carry the requirement — and
-that entry is one `test_every_description_matches_the_source_text` measures at **87% of
-source**, so the clause may simply have been lost in transcription. Do not "correct" it
-back by reading the current description.
+that entry measured **87% of source** when the length check still existed (deleted
+2026-09-09), so the clause may simply have been lost in transcription. Do not "correct" it
+back by reading the current description. ⚠ **Losing that check does not reopen this** — the
+requirement is on the human's authority, not on the measurement.
 
 ### Transcription markup in the rules text
 

@@ -152,8 +152,13 @@ See also the standing port rules in `docs/plans/qt-port.md`.
   committed" — was the one false thing in it; the commit landed afterwards. **Check
   `git status` and `git log` against the handoff's claims before acting on them**, and
   never re-report a handoff's tree state as current fact.
-- **A test can go green by checking LESS.** The M&F description test passed on 2026-09-09b
+- **A test can go green by checking LESS.** The M&F description test passed on 2026-09-09
   by deferring 71 entries where it had deferred 46 and failed — the missing chapters route
-  to nothing, so the entries are skipped, not verified. The deferral count lives only in the
-  warnings summary. **When a known failure turns green, find out whether it was fixed or
-  merely stopped looking.**
+  to nothing, so the entries were skipped, not verified. The deferral count lived only in
+  the warnings summary. **When a known failure turns green, find out whether it was fixed
+  or merely stopped looking.** ⚠ That test was **deleted the same day** (human) and the
+  lesson is why: a check whose source is gitignored makes the suite's OUTCOME
+  machine-dependent, and its pass could mean "I stopped looking." **Content fidelity
+  against an out-of-tree source is a SCRIPT that reports differences, not a suite
+  invariant.** Its structural siblings survive — they assert shape, need no source, and
+  caught what it could not.

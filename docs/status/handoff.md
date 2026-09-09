@@ -2,17 +2,33 @@
 
 # 👉 YOU ARE HERE
 
-Last FULL suite: **3390 passed · 1 skipped · 0 failed** (main PC, `main`, 9m58s).
-Collection is now **3392** — that run predates the one test added after it, which was
-run on its own and passes.
+Last FULL suite: **3390 passed · 1 skipped · 0 failed** (main PC, `main`, 10m41s),
+**3391 collected**, run AFTER the deletion below. The arithmetic checks out: 3390 before,
+plus the new attunement test, minus the deleted description test.
 
-⚠ **The "known failing" M&F test PASSED this time, and that is not good news.**
-`test_every_description_matches_the_source_text` went green by **deferring 71 entries**
-where last session it deferred 46 and failed. Only `images/Merits & Flaws/CH 1` is on
-disk; the Godblooded (PG pp.65-80) and ghost (p.234) chapters cover nothing, so those
-entries are not checked at all. **The suite got greener by checking less** — the deferral
-list is in the warnings summary and nowhere else. Do not record this as the failure being
-fixed. ⚠ And do not reconcile the count against another machine's.
+⚠ **THE SUITE NO LONGER HAS A KNOWN FAILURE. A red run is a real one.**
+
+The long-running "known machine-dependent failure" was
+`test_every_description_matches_the_source_text`, and it is **DELETED** (human,
+2026-09-09: *"you can just get rid of it entirely at this point"*). What prompted it: on
+its final run it **passed by deferring 71 entries** where last session it deferred 46 and
+failed — only `images/Merits & Flaws/CH 1` is on disk, so the Godblooded (PG pp.65-80) and
+ghost (p.234) entries routed to nothing and were skipped rather than checked. **It got
+greener by checking less**, and the only trace was a warnings summary.
+
+It compared descriptions to gitignored source by normalised LENGTH (fail below 92%), which
+is what made the suite's outcome depend on the machine. **If the check is wanted again it
+is a SCRIPT that diffs content against source and reports the differences** — more useful
+(it names what changed) and broader (Charms and spells carry the same transcription risk
+and never had such a test). Not written, nothing waiting on it. ⚠ Its structural siblings
+SURVIVE and are the useful half — `test_no_description_carries_extraction_debris` and
+`test_no_name_was_mangled_by_title_casing` assert shape, need no source, and caught eight
+defects the length test provably could not see. `docs/testing.md` has the full record.
+
+⚠ Older prose across `docs/` still calls it "the known machine-specific failure" — those
+are **dated batch notes and delegation briefs, deliberately left as the record they are.**
+The files that assert CURRENT state were updated: `CLAUDE.md`, `docs/testing.md`,
+`docs/lessons.md`, `status/merits-flaws.md`.
 
 **Working tree: docs + one test changed, uncommitted at the time of writing.**
 
@@ -76,8 +92,10 @@ sessions. They are no longer open items.
   (human, 2026-09-09). `status/dice-roller.md`: the party roster must link to the players'
   characters instead of owning its own entries. Stays a one-off — initiative's +1d10 is a
   printed fixed count. Do not generalise it to other rolls.
-- **The M&F deferral above** is not a gap to fix in code — it needs the two chapters
-  pasted into `images/`. Until then 71 entries have no fidelity check.
+- **A content-fidelity SCRIPT** (`tools/`), if the human ever wants the check back — diff
+  authored descriptions against pasted source and REPORT differences, across Charms and
+  spells too, not just M&F. ⚠ **This is an option, not a debt.** Nothing is blocked on it
+  and it must never go back into the suite.
 
 ## ⚠ Traps still live
 
