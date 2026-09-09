@@ -92,6 +92,13 @@ sessions. They are no longer open items.
   (human, 2026-09-09). `status/dice-roller.md`: the party roster must link to the players'
   characters instead of owning its own entries. Stays a one-off — initiative's +1d10 is a
   printed fixed count. Do not generalise it to other rolls.
+- ⚠ **Two long-deferred items that lived ONLY in `CLAUDE.md`'s "Deferred" section**, moved
+  here 2026-09-09 when that section was dropped in the rewrite. Neither is urgent; both
+  would have vanished silently otherwise:
+  - `chargen_budgets.json` / `costs_bonus.json` / `costs_xp.json` overrides beyond what is
+    authored. Optional — the loader falls back to the model defaults.
+  - A per-session XP-grant ledger, and state-reconciliation of hand-edited
+    current-vs-snapshot drift. The read-only lock guards normal use.
 - **A content-fidelity SCRIPT** (`tools/`), if the human ever wants the check back — diff
   authored descriptions against pasted source and REPORT differences, across Charms and
   spells too, not just M&F. ⚠ **This is an option, not a debt.** Nothing is blocked on it
@@ -117,7 +124,12 @@ grep test whenever a defect is a repeated literal.**
 
 **The app still reports no version anywhere** — `pyproject.toml` says 1.0.0, no titlebar
 string, no About item. "Am I running current code?" is unanswerable from inside the app.
-⚠ Check the DATES before blaming the build; the stale-binary theory has been wrong twice.
+⚠ Pair it with the launcher trap: `branding.install_desktop_entry()` writes `Exec=` from
+`sys.executable`, so the desktop entry PINS to the first frozen binary that ever ran and
+only re-points when a different one runs — downloading a new release to a new path changes
+nothing until you execute it directly. ⚠ Check the DATES before blaming the build; the
+stale-binary theory has been wrong twice. (Both details also in `status/merits-flaws.md`,
+which is where the 2026-09-02 hunt is written up.)
 
 ## Still deferred, still NOT gaps
 

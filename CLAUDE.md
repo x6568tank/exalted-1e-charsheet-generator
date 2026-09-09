@@ -1,392 +1,337 @@
-# Exalted 1E Character Builder — Project Guide
+# Exalted 1E Character Builder — Rules
 
-This file is the **durable operating guide**: the rules, constraints and pointers that
-stay true across sessions. It is an INDEX, not a build log. The record of what was built
-and what it taught us lives in `docs/`; do not re-accumulate it here.
+This file contains the permanent rules and the pointers to the documentation. It is an
+index.
 
-### 👉 START HERE → `docs/status/handoff.md`
-Current state, open threads and flagged items. **Rewritten each session.**
+Do not write status, history, counts, dates, or session notes in this file. Write them in
+`docs/`. If a statement in this file can become out of date, it is in the wrong file.
 
-## What this is
-A character creator / validator for **Exalted First Edition (1e)** — chargen, point
-validation, XP advancement, a character-sheet view and a generated PDF sheet. Scope is
-deliberately smaller than EdExalted (2e/2.5e only); **1e is unserved, which is the
-entire point.** Eleven splats ship, each browser-verified; the catalogue is complete.
-It is a **character builder and validator, not a chronicle simulator.**
+Read `docs/status/handoff.md` first. It gives the current state.
 
-## ⚠️ EDITION: 1e ONLY — never substitute 2e/2.5e rules
-This is the single most important constraint. 2e is far better represented than
-1e in training data, so the default failure mode is silently "correcting" a 1e
-value to its 2e equivalent. **Do not.** Treat the `data/` files and this document
-as ground truth. If a rule isn't covered here or in the data, ASK — do not fill
-the gap with a 2e value.
+## 1 Scope
 
-### Solar baseline (the numbers below are Solar-only)
-Other splats have their own numbers in `data/exalts.json`, `data/chargen_budgets.json`,
-and `data/costs_bonus.json` (each keyed by exalt_type) — check those tables before
-assuming a Solar number generalizes. Dragon-Blooded and Abyssal already have their
-own rows; do not reuse the Solar figures below for them. Broadly speaking, anything
-that is not specified by a splat (bonus points, XP costs, etc) *will* default to
-Solar values. If unsure, ask human.
+The program creates and validates characters for Exalted First Edition (1E). It does
+character creation, point validation, XP advancement, a character sheet view, and a
+generated PDF sheet.
 
-- Attribute chargen pools: **8/6/4** across prioritized categories (all start at 1).
-- Abilities at chargen: 25 dots, ≥10 on caste/favored, ≥1 in each favored ability,
-  max 3 in any ability without spending bonus points.
-- Charms at chargen: 10, with ≥5 from caste/favored. Bonus points: 15.
-- Willpower = sum of the **two highest Virtues** (may not start >8 unless ≥2
-  Virtues are ≥4). Raising a Virtue *after creation does NOT raise Willpower.*
-- Personal Essence (Solar) = Essence×3 + Willpower.
-  Peripheral = Essence×7 + Willpower + ΣVirtues.
-- XP increases are `current rating × N`: attribute ×4, ability ×2,
-  favored/caste ability `(×2)−1`, virtue ×3, willpower ×2, essence ×8.
-  New charm 10 (8 if favored/caste). New spell 10 (8 if Occult is caste/favored).
-  Health: 7 base levels + Charm bonuses.
-- The ability roster is the 25 caste-grouped abilities. **Martial Arts is a
-  separate ability from Brawl, and there is no "War" ability in 1e core.**
+The program is not a chronicle simulator.
 
-## Workflow expectations
-- **Test-first on the engine.** That's where bugs hide.
-- **The human is the rules authority.** 1e has ambiguous and errata'd corners
-  (Combo legality, the specialty cap, Charm interactions). Flag them and ask; do
-  not silently choose an interpretation.
-- **Game data comes from the page, never from your own knowledge.** Any concrete value — a cost, minimum, prerequisite, rating, or rules detail — that you write into `data/` or code must come from source material the human gave you, or from an existing `data/` file. Do not supply one from your own knowledge of Exalted even when you are confident — 2e values will feel right and be wrong for 1e. If you need a value and have no source for it, stop and ask. Never choose an interpretation, invent a number, or read the PDFs in `sources/` yourself.
-- **Source material lives in `images/<Splat>/` and is human-vetted.** Two forms, both authoritative: **PNG page images** (diagrams — especially Charm-tree boxes-and-arrows — and any page not cleanly copyable), and **pasted `.md` text** the human copies out of a text-selectable book (prose + cost/prereq tables, page-marked with `<!--PAGE n-->`). Pasted text is preferred where it's clean: cheaper (no image rasterization) and exact for numbers, and the copy step is the human's vetting checkpoint. Reading the `sources/` PDFs yourself is still forbidden — the point is the human curates what you see. When pasted text looks column-scrambled or garbled (multi-column PDFs interleave), flag it rather than guess; screenshot the diagram instead.
-- **The never-author-from-memory rule covers `data/` only.** The USER's custom
-  library (`custom/`, see `docs/status/custom-content.md`) is theirs to fill with
-  whatever they like — that is the point of it. You still never write a *printed*
-  value you have no page for, and homebrew never goes into `data/`.
-- Don't leak game logic into the UI. Don't re-derive what the engine already
-  computes. Don't hardcode the cost tables — they live in `data/`.
-- **Run the `preflight` skill before booking browser time.** Project skills:
-  `preflight`, `close-out`, `add-splat`, `run-server`.
+## 2 Edition rule
 
-### 📝 The comment standard → `docs/comment-standard.md`
-A docstring carries **input, output, and how it gets from one to the other. Nothing
-else** (human, 2026-08-17) — reasoning and war stories go in the commit message and
-`docs/status/`. Three things STAY: **page citations**, **⚠ records of behavioural traps**,
-and the contract itself. Which packages have had the pass, and how to run one safely, are
-in the file.
+Use 1E rules only. Do not use 2E or 2.5E values.
 
-### The house bug, and the lessons → `docs/lessons.md`
-**The house bug: a rule that IS implemented, sitting where it does not run when it
-matters.** Three species, all recurring — (1) wired to the wrong phase; (2) zero read
-sites and still looks healthy, because something else does its job by accident; (3) the
-switch is player-editable to a value that switches it off. **Test the buy path, not the
-effect. Correct behaviour in the case you tested is not evidence the mechanism exists. A
-discriminator must be a field nothing on the screen can edit.**
+The training data contains more 2E than 1E. Thus the usual failure is to change a 1E value
+to the 2E equivalent. Do not do this. The files in `data/` and this file are correct.
 
-The mechanical sweep for all three is `docs/delegated-authoring.md` — **read it before
-delegating a splat to a cheap model, and run its four checks before booking browser
-time.**
+If a rule is not in `data/` and not in this file, ask the human. Do not fill the gap.
 
-`docs/lessons.md` also carries the ~25 one-liners that generalise past where they
-happened — sweeps and gap lists, engine code, tests, cross-shell parity, Qt widgets.
-**Read it before a sweep, a parity audit, or any change you expect tests to cover.**
+## 3 Solar baseline
 
-## Architecture, layout and data conventions → `docs/ARCHITECTURE.md`
-**Read that file before touching the engine, the loader, the models or the data
-shapes.** It is the SINGLE copy of: the `ui → engine → models` dependency rule, the two
-data domains (rules vs character) and why they stay apart, what each module is
-responsible for, the chargen → lock → XP lifecycle, the load-time link checking, the
-invariants that must survive a refactor (play-state isolation, id-vs-inline references,
-AND-of-OR prerequisites, the one Charm-pick enumeration, graceful unresolvable ids,
-cost tables as data), and the data conventions (schemas live in the pydantic models
-and nowhere else; namespaced ids; `martial_arts:<slug>` categories; soft-reference
-Backgrounds).
+The values in this section apply to Solars only.
 
-**Do not restate any of it here.** One copy, or the two drift and the next session
-believes the wrong one.
+- Attribute pools at creation: 8/6/4 across the prioritized categories. All start at 1.
+- Abilities at creation: 25 dots. Minimum 10 dots in caste or favored abilities. Minimum
+  1 dot in each favored ability. Maximum 3 dots in an ability, unless you spend bonus
+  points.
+- Charms at creation: 10. Minimum 5 from caste or favored. Bonus points: 15.
+- Willpower is the sum of the two highest Virtues. Willpower cannot start higher than 8,
+  unless 2 or more Virtues are 4 or higher. An increase to a Virtue after creation does
+  not increase Willpower.
+- Personal Essence is (Essence x 3) + Willpower.
+- Peripheral Essence is (Essence x 7) + Willpower + the sum of the Virtues.
+- XP costs are (current rating x N). Attribute: x4. Ability: x2. Caste or favored ability:
+  (x2) - 1. Virtue: x3. Willpower: x2. Essence: x8.
+- New Charm: 10 XP. New Charm, caste or favored: 8 XP. New spell: 10 XP. New spell, Occult
+  caste or favored: 8 XP.
+- Health: 7 base levels, plus the bonuses from Charms.
+- The ability list contains the 25 abilities in their caste groups. Martial Arts is a
+  different ability from Brawl. There is no War ability in 1E core.
 
-Three directives that are description-in-disguise, so they live here:
-- UI assets go in `assets/`.
-- `sources/` (rulebook PDFs) and `images/` (rulebook page images) are gitignored and
-  are never committed — so they do NOT travel with a clone, and authoring new rules data
-  on a second machine needs those files synced out-of-band.
-- **⚠ Every `images/…` path written in this file or in `docs/` is a HINT, not a fact.**
-  The human's machines organise `images/` differently — the Dragon-Kings pages are
-  `images/Mortals/Dragon Kings/` on the laptop and `images/Non-Exalts/Dragon Kings/` on
-  the main PC, both correct. A recorded path being absent does NOT mean the source is
-  missing, and two docs disagreeing about one is not a defect to reconcile. **Look for
-  the pages before concluding they are unavailable, and never "fix" a path to match the
-  machine you happen to be on.**
+Other splats have their own values in `data/exalts.json`, `data/chargen_budgets.json`, and
+`data/costs_bonus.json`. Each table has the key `exalt_type`. Read these tables before you
+use a Solar value for a different splat. Dragon-Blooded and Abyssal have their own rows.
 
-## Decisions already made → `docs/decisions/`
-**Do not relitigate any of these without the human reopening it.** One numbered record
-per closed decision, each with the alternatives that were rejected and what the choice
-costs — read the record before proposing anything that contradicts it.
-`docs/decisions/README.md` is the index.
+If a splat does not specify a value, the Solar value applies. If you are not sure, ask the
+human.
+
+## 4 Data rules
+
+- Write game values from the page only. A cost, a minimum, a prerequisite, a rating, or a
+  rules detail that you write into `data/` or into code must come from source material
+  that the human supplied, or from a file that is already in `data/`.
+- Do not write a value from your own knowledge of Exalted. Do not select between two
+  possible interpretations. If you have no source for a value, stop and ask the human.
+- Source material is in `images/<Splat>/`. The human examined all of it. There are two
+  types, and both are correct:
+  - PNG page images. Use these for diagrams, for Charm trees, and for pages that do not
+    copy correctly.
+  - Pasted `.md` text, with page marks in the form `<!--PAGE n-->`. This type is less
+    expensive and is exact for numbers. Use it when it is clean.
+- If pasted text has mixed columns or damaged characters, tell the human. Do not guess.
+  Ask for an image of the page.
+- Do not read the PDF files in `sources/`. The human selects what you see.
+- The rule against memory applies to `data/` only. The human can put any content in the
+  `custom/` library. Do not write homebrew content into `data/`. Do not write a printed
+  value for which you have no page.
+- Every `images/…` path in this file and in `docs/` is a hint, not a fact. The machines of
+  the human use different directory names for the same pages. An absent path does not show
+  that the source is missing. Two documents that disagree about a path are not a defect.
+  Look for the pages before you report them as unavailable. Do not change a path to agree
+  with the machine that you are on.
+
+## 5 Work rules
+
+- Write the tests first for the engine. The engine contains the defects.
+- The human is the authority on the rules. 1E has unclear and corrected areas, for example
+  Combo legality, the specialty limit, and Charm interactions. Tell the human and ask. Do
+  not select an interpretation.
+- Do not put game logic in the UI.
+- Do not calculate again what the engine calculates.
+- Do not put cost tables in code. They are in `data/`.
+- Run the `preflight` skill before you use browser time. The project skills are
+  `preflight`, `close-out`, `add-splat`, and `run-server`.
+
+## 6 Comment and documentation rule
+
+Write all code comments and docstrings in Simplified Technical English (ASD-STE100).
+
+- Use short sentences. Maximum 20 words for an instruction, 25 for a description.
+- Use the active voice. Use the present tense.
+- Give one instruction in one sentence.
+- Do not use metaphors, jokes, or narrative.
+- Do not use two different words for the same thing.
+
+This rule applies to code. It does not apply to `docs/` or to commit messages.
+
+⚠ Do not rewrite `docs/` into this style. The value of `docs/lessons.md` is that the
+lessons have names and shapes that a reader remembers, for example "the house bug" and
+"a compensation is a hypothesis". Section 7 of this file gives the same content in
+Simplified Technical English, and it is less memorable. That is the cost, and it is
+accepted here because this file must be exact. A commit message records reasons and
+history, thus it needs narrative.
+
+A docstring gives the input, the output, and the method that connects them. It gives
+nothing else. Put the reasons and the history in the commit message and in `docs/status/`.
+
+Keep three items in the code:
+
+1. Page citations.
+2. Warning marks that record a trap in the behavior.
+3. The contract of the function.
+
+The full standard is in `docs/comment-standard.md`.
+
+## 7 Defect pattern
+
+The usual defect is a rule that is implemented, but that is in a location where it does not
+operate. `docs/lessons.md` calls it "the house bug". Use that name — it is the handle that
+the documentation and the commit history use. There are three types:
+
+1. The rule is connected to the incorrect phase.
+2. The rule has no read sites, but the result looks correct, because a different mechanism
+   does the same operation by accident.
+3. The switch for the rule is player-editable to a value that disables it.
+
+Test the purchase path, not the effect. Correct behavior in one test case does not show
+that the mechanism exists. A discriminator must be a field that the screen cannot edit.
+
+The procedure to find all three types is in `docs/delegated-authoring.md`. Read that file
+before you delegate a splat to a less capable model. Run its four checks before you use
+browser time.
+
+Read `docs/lessons.md` before a sweep, a parity audit, or a change that the tests must
+cover.
+
+## 8 Architecture
+
+Read `docs/ARCHITECTURE.md` before you change the engine, the loader, the models, or the
+data shapes. That file is the only copy of the module boundaries, the lifecycle, the
+invariants, and the data conventions. Do not copy any part of it into this file.
+
+Two rules are here because they are not architecture:
+
+- UI assets are in `assets/`.
+- `sources/` and `images/` are in `.gitignore`. They are never committed. A clone does not
+  contain them. To author rules data on a second machine, copy these files by a different
+  method.
+
+A third rule of this type, on `images/…` paths, is the last item in section 4.
+
+## 9 Closed decisions
+
+Do not open these decisions again. Only the human can open one. Each record in
+`docs/decisions/` gives the rejected alternatives and the cost of the decision. The index
+is `docs/decisions/README.md`.
 
 | # | Decision |
 |---|---|
-| 0001 | **1e only, never 2e** — also the source of the never-author-from-memory rule above |
-| 0002 | **Data-driven rules, pure engine, disposable UI** — the rulebook is JSON; the engine is pure functions |
-| 0003 | Current state is canonical; the engine computes the point accounting |
-| 0004 | Chargen and advancement are different shapes (snapshot + append-only XP log) |
-| 0005 | Willpower's Virtue component is pinned at lock |
-| 0006 | Play-state is validation-isolated — never in chargen, the XP audit or a permanent derivation |
-| 0007 | **Ids for invariant content, inline copies for variable** — Charms/spells by id; weapons/armor inline copies |
-| 0008 | No combat/attack derivation |
-| 0009 | No dice rolling, ever — broader than 0008; do not propose it |
-| 0010 | The Fair Folk are permanently out of scope |
-| 0011 | Merits & Flaws return as ONE centralized calc, never the old per-file hooks |
-| 0012 | Homebrew: the `custom/` library is the store, saves carry copies, homebrew errors are non-fatal |
-| 0013 | **Edit and XP are ONE surface** — the dot track is the buy control; there is no XP tab |
-| 0014 | Essence is XP-purchasable to the splat cap; the age chart is gone |
-| 0015 | **Exalt tiers are RANKED** — Terrestrial < Celestial < Solar; a splat reaches its own tier and every tier below, never up |
-| 0016 | **Base dice pools are in scope; resolution is not** — narrows 0008, leaves 0009 untouched |
-| 0017 | **Artifacts have acquisition CHANNELS** — the Artifact Background is pre-game (core p.342, budgeted); cash is in-play (M&C pp.122-125). ⚠ A **third** joined 2026-08-13/14 and is not yet its own record: a plot device printing "(ARTIFACT N/A)" is bought with the **Legendary Artifact** 10-pt Merit and charged to no budget — the standing answer for the shape, still confirm each. `docs/status/book-of-three-circles.md` |
-| 0018 | **The Qt port is committed** — a PySide6 native app alongside the NiceGUI webapp; the plan doc becomes the build record |
-| 0019 | **A dumb dice roller, UNWIRED from the pools** — rolls a dice COUNT, never a named roll. Reverses 0009 narrowly (the human reopened it, 2026-09-08); amends 0016's initiative clause. **BUILT 2026-09-08** in both shells, with the initiative RATING and the GM's batch roll: `status/dice-roller.md` |
+| 0001 | 1E only. Never 2E. |
+| 0002 | Data-driven rules, pure engine, disposable UI. |
+| 0003 | The current state is canonical. The engine calculates the point accounting. |
+| 0004 | Creation and advancement have different shapes: a snapshot, and an append-only XP log. |
+| 0005 | The Virtue component of Willpower is fixed at the lock. |
+| 0006 | Play state is isolated from validation. |
+| 0007 | Ids for invariant content. Inline copies for variable content. |
+| 0008 | No combat or attack derivation. |
+| 0009 | No dice rolling. Narrowed by 0019. |
+| 0010 | The Fair Folk are out of scope permanently. |
+| 0011 | Merits and Flaws are one central calculation. No per-file hooks. |
+| 0012 | Homebrew: `custom/` is the store, saves contain copies, homebrew errors are not fatal. |
+| 0013 | Edit and XP are one surface. The dot track is the purchase control. There is no XP tab. |
+| 0014 | Essence is XP-purchasable to the splat limit. There is no age chart. |
+| 0015 | Exalt tiers are ranked: Terrestrial, Celestial, Solar. A splat reaches its own tier and all lower tiers. It never reaches a higher tier. |
+| 0016 | Base dice pools are in scope. Resolution is not. Narrows 0008. |
+| 0017 | Artifacts have acquisition channels: the Artifact Background before play, cash during play, and the Legendary Artifact Merit for plot devices. |
+| 0018 | The Qt port is committed: a PySide6 application with the NiceGUI web application. |
+| 0019 | A dice roller that is not connected to the pools. It rolls a dice count only. It never knows which roll it makes. Narrows 0009. |
 
-**Permanently out of scope** — 0008 and 0010 (no combat/attack derivation, no Fair Folk);
-both closed. ⚠ **0009 is NO LONGER a blanket bar** — the human reopened it 2026-09-08 and
-0019 reversed it in a narrow shape: a roller taking a dice COUNT is in scope; a roller
-that knows *which roll* it is rolling is not, and that gap is the whole safety mechanism.
-⚠ 0008's boundary was NARROWED by 0016: computing a BASE dice pool is in scope — read
-0016 before citing 0008 against a pool calculation. **Read 0019 before citing 0009 at
-all.**
+Read 0019 before you cite 0009. Read 0016 before you cite 0008 against a pool calculation.
 
-### Standing bars that are not numbered decisions
-- **⚠ Backwards compatibility with old saves is NOT a concern** (human, 2026-08-22:
-  *"there's no backwards compatability to really worry about"*). The build is months
-  old and the saves are the human's own. **Do not write a migration, a schema version
-  or a compat shim without asking** — and do not carry "this old save may be damaged"
-  as an open item, which is what prompted the ruling.
-- **⚠️ Training times are almost certainly NEVER being added** (human, 2026-07-30:
-  *"that goes out of the dumb-tracker scope"*). Hedged rather than closed, so treat it as
-  a no unless they reopen it — **do not propose it, plan around it, or offer it as a
-  follow-up.** `XpEntry.training_complete` is a dormant hook. Four printed rules hang off
-  it and ship deliberately incomplete (Weak Essence, Brigid's Heir, Death's Taint's
-  Harrowing, the elder-Exalt ceilings); that is accepted, not a gap. Anything needing the
-  passage of in-game time is out for the same reason `PlayState` is a manual tracker.
-- **Deferred INDEFINITELY, and none is a gap** — the **Mist numina / Mist aspect**
-  (`docs/status/mist-numina.md`: there is no numen effect LIST to author), **Cult
-  Abyssals** (`docs/status/illuminated.md`: 56 Charms needing human-approved mappings)
-  and **Haltan pets** (Scavenger Sons p.28 — a bonus-point rule with no origin axis to
-  hang it on). A sweep that lists any of them as unauthored is counting a deferral as an
-  oversight. **Do not offer them as follow-ups.**
-- **The Qt port** — **COMMITTED as decision 0018 (2026-08-20)**, and ⚠ **FEATURE-COMPLETE
-  (2026-08-27)**: a PySide6 native app offered alongside the NiceGUI webapp, every tab
-  plus the **Party / ST window** shipped and human-clicked. Run it with
-  `python -m exalted_builder.qt [path]`; the code is `exalted_builder/qt/`.
-  **⚠ `docs/plans/qt-port.md` opens with STANDING RULES FOR THE PORT — read that section
-  before touching `qt/`, rather than re-deriving any of it here.** In one line each, what
-  is in there: the ONE tab layout and its **three written exceptions** (Play,
-  Identity+Traits, the Party tab) · **the gap list was a lower bound all SEVEN times**, so
-  audit each tab against its `ui/` counterpart, click it, and render it offscreen and
-  LOOK · **an ancestor stylesheet beats a set palette** · **a defect one widget class over
-  is still yours** · `clear_layout`, the deliberate tab-set difference, and the settled
-  dark theme. What each milestone contains and every trap it cost is in the same file.
+## 10 Standing prohibitions
 
-## Stack
-- Python + pydantic v2 + pytest. Frontend: **NiceGUI** (chosen over Reflex), the optional
-  `[ui]` extra. A JS graph library (Cytoscape/d3) is still planned ONLY for the
-  charm-tree picker.
-- Venv is `.venv/`; tests: `.venv/bin/python -m pytest`.
-- **Git remote:** `origin` → `github.com/x6568tank/exalted-1e-charsheet-generator`, tracking `main`.
-- **A `v*` tag builds FOUR assets** — 2 OSes x 2 products (webapp + native), one release,
-  extras per matrix row. ⚠ **A build that is not in the matrix does not exist to a tag:**
-  the native spec shipped and CI kept building only the webapp, so a tag would have
-  published a release that looked complete with no native app on it. `pack/BUILD.md`.
-- Shipped **1.0.0** on 2026-08-17.
+- Old saves do not need backward compatibility. Do not write a migration, a schema
+  version, or a compatibility layer without permission. Do not record a damaged old save as
+  an open item.
+- Training times are out of scope. Do not propose them, plan for them, or offer them as
+  subsequent work. ⚠ The human hedged this on 2026-07-30. He did not close it. Treat it as
+  a refusal until he opens it again. `XpEntry.training_complete` is an inactive hook. Four printed rules that
+  need it are incomplete, and this is accepted. Anything that needs in-game time to pass is
+  out of scope.
+- These items are deferred permanently and are not gaps: the Mist numina, the Cult
+  Abyssals, and the Haltan pets. Do not offer them as subsequent work. A sweep that lists
+  them as unauthored is incorrect.
+- Do not start work on a new splat before its rulebook pages are in `images/`.
+- Read `docs/plans/qt-port.md` before you change `qt/`. The standing rules for the port are
+  at the start of that file.
 
-## Splats — all eleven shipped and browser-verified
+## 11 Stack
 
-| Splat | Colour | Detail |
+- Python, pydantic v2, pytest.
+- Frontend: NiceGUI, in the optional `[ui]` extra. Qt frontend: PySide6, in
+  `exalted_builder/qt/`. Start it with `python -m exalted_builder.qt [path]`.
+- The virtual environment is `.venv/`. Run the tests with `.venv/bin/python -m pytest`.
+- Git remote `origin` is `github.com/x6568tank/exalted-1e-charsheet-generator`. It tracks
+  `main`.
+- A `v*` tag builds four assets: two operating systems x two products. A build that is not
+  in the matrix does not exist to the tag. See `pack/BUILD.md`.
+- The test count changes by machine, and by dozens of tests. An optional dependency that is
+  absent changes it more than the difference between two machines. Do not make the numbers
+  of two machines agree. Do not use the count to identify the machine. See
+  `docs/testing.md`.
+
+## 12 Splats
+
+| Splat | Colour | File |
 |---|---|---|
-| Solar (+ castebooks) | Amber/gold (default) | `docs/status/solar-castebooks.md` |
-| Solar alt-origin: Cult of the Illuminated | — | `docs/status/illuminated.md` |
-| Dragon-Blooded (+ Outcaste origins, Aspect Books) | Vermillion | `dragonblooded-origins.md`, `dragonblooded-aspect-books.md` |
-| Abyssal | Black on ash | `docs/status/engine-and-ui.md` |
-| Lunar | Moonsilver `slate` | `docs/status/lunar.md` |
-| Sidereal | Purple | `docs/status/sidereal.md` |
-| Alchemical | Brass | `docs/status/alchemical.md` |
-| Mortals + Heroic Mortals | Muddy `stone` | `docs/status/mortals.md` |
-| Ghosts | Grave-mould `zinc` | `docs/status/ghosts.md` |
-| Godblooded | Celestial `teal` | `docs/status/godblooded.md` |
-| Dragon-Kings | Jade `emerald` | `docs/status/dragon-kings.md` |
-| Mountain Folk | Geothermal `cyan` | `docs/status/mountain-folk.md` |
-| ~~Fair Folk / Fae~~ | — | **NEVER — permanently out of scope** (decision 0010) |
+| Solar (with castebooks) | Amber/gold (default) | `status/solar-castebooks.md` |
+| Solar, Cult of the Illuminated origin | — | `status/illuminated.md` |
+| Dragon-Blooded (with Outcaste origins, Aspect Books) | Vermillion | `status/dragonblooded-origins.md`, `status/dragonblooded-aspect-books.md` |
+| Abyssal | Black on ash | `status/engine-and-ui.md` |
+| Lunar | Moonsilver `slate` | `status/lunar.md` |
+| Sidereal | Purple | `status/sidereal.md` |
+| Alchemical | Brass | `status/alchemical.md` |
+| Mortals and Heroic Mortals | `stone` | `status/mortals.md` |
+| Ghosts | `zinc` | `status/ghosts.md` |
+| Godblooded | `teal` | `status/godblooded.md` |
+| Dragon-Kings | `emerald` | `status/dragon-kings.md` |
+| Mountain Folk | `cyan` | `status/mountain-folk.md` |
+| Fair Folk | — | Never. Out of scope (decision 0010). |
 
-The non-Exalt palettes past Mortal are placeholders — whether the rest share the Mortal
-`stone` or each get their own is UNDECIDED.
+The palettes for the non-Exalts after Mortal are temporary.
 
-**"Mortals" is shorthand, not one splat** (human, 2026-07-29): the non-Exalts are
-separate splats in separate books, each with its own budgets, Charm economy and shape.
-Mortals + Heroic Mortals turned out to be ONE splat with two origins (core p.103 runs a
-single procedure through both) — that revision says nothing about the others.
+"Mortals" is a short name for a group, not one splat. The non-Exalts are separate splats in
+separate books. Each has its own budgets, Charm economy, and shape. Mortals and Heroic
+Mortals are one splat with two origins. This does not apply to the other non-Exalts.
 
-Work on a new splat starts only once its rulebook pages land in `images/` — never author
-from memory. **Read `docs/adding-a-splat.md` before estimating one**: it records what
-each finished splat needed BEYOND data (Charm Slots, Colleges, Attribute-keyed Charms,
-the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief among
-them.
+Read `docs/adding-a-splat.md` before you estimate the work for a new splat. It records what
+each completed splat needed in addition to data, and the traps. `highest_magic_circle_id` is
+the primary trap.
 
-## The test suite → `docs/testing.md`
-**3,390 passing, 1 skipped, 0 failing** (2026-09-09, main PC; 3,391 collected). ⚠ **There is no longer a
-known failure** — the machine-dependent M&F description test was DELETED on 2026-09-09
-(it compared descriptions to gitignored source by length, and its last act was to go green
-by deferring 71 entries instead of checking them). A red run is now a real one. Older prose
-across `docs/` still refers to it as "the known machine-specific failure"; that is a dated
-record, not a live item. ⚠ **The count is machine-dependent by
-DOZENS of tests, by 45 where `pypdf` is missing, and by 522 more where the optional `qt`
-extra is missing** — a lower number is that working, not tests going missing. **Do not
-"reconcile" two machines' numbers, and never infer WHICH machine you are on from the
-count**: an absent optional dependency moves it further than the gap between two machines
-(2026-09-07). ⚠ **The SKIP is conditional and healthy** — it skips when no Merit tier is
-generic-but-not-Solar. `docs/testing.md` has it by name, how to read a run's numbers
-honestly, and the Qt-font trap that looks like a machine crash.
+## 13 Rules that cause defects
 
-## The record → `docs/status/`
-One file per topic. **Read the relevant file before touching that area.** The rows below
-are pointers only; the traps and history live in the files.
+- A specialty is an instance, not a rated trait. Take the same specialty again. Do not
+  increase it. The limit is 3 for each ability. Crafts and Colleges can be decreased.
+  Nature does not change after the lock.
+- Eight choices are frozen at the lock: favored picks, caste, Exalt type, origin,
+  upbringing, camp, Calling, and flawed Virtue. They stay readable.
+- No module outside `engine/merits.py` can name a Merit id. A test finds violations. Add a
+  field to `MeritEffects`. Do not add a list of permitted ids.
+- `derive.soak`, `derive.willpower`, `derive.health_track`, and `lifecycle.lock_chargen`
+  take an optional `ruleset` parameter, which lets them read the Merits. If you do not
+  supply it, the result is incorrect. There is no error.
+- `catalogue_backgrounds` is the list that the dropdown shows. `allowed_backgrounds` is
+  hard validation. If you write a list into the incorrect field, all free-text Backgrounds
+  become illegal for that splat.
+- Thaumaturgy is not a splat. It is a cross-splat layer. All splats except the Fair Folk
+  can have it. Ghosts can have it but can never use it. Thus it is on all sheets.
+- ⚠ The Science costs are the one exception to section 4. Bonus points 5/7, XP 7 and
+  (current x 6). The human supplied these values on 2026-07-29. No page contains them.
+  This is a known exception, not a defect. Do not "correct" it and do not report it as an
+  unsourced value.
+- `HouseRules` contains all Storyteller switches. Comments mark each field TABLE-WIDE or
+  PER-CHARACTER. A control that applies a value to all characters can change TABLE-WIDE
+  fields only.
+- An `Adversary` is not a `Character`. Do not make it one. A test asserts this.
+- Passions are a live derivation of the Virtues, before and after the lock. You cannot
+  purchase them with bonus points or XP.
+- A character cannot leave creation with Essence higher than 5.
+- The motes of an attuned artifact are subtracted from the play pools only.
+  `build_play_view` subtracts them. The sheet prints the full pools. No module in
+  `engine/validate/` can read `attuned`. A test finds violations.
+- An artifact row and its weapon stat line are one object. The gear row owns the
+  commitment.
+- If a commitment goes to a pool that the character does not have, it moves to a pool that
+  the character has. A mortal has a Personal pool only, but `attuned_pool` has the default
+  value Peripheral.
+- A Merit that contradicts a splat default must be examined first. `essence_pool_is_merged`
+  read `ExaltDefinition.single_essence_pool` first, thus a Merit had no effect. A test for
+  this behavior must use the real ruleset.
+- `source.book` has no read sites. Thus it becomes incorrect and nothing finds the error.
+  The test is to compare the citation with the page.
+- A complete catalogue is not a correct catalogue. A count shows that the entries exist. It
+  does not show that they are correct.
 
-| Area | File |
+## 14 Documentation index
+
+| Subject | File |
 |---|---|
-| **Session handoff — rewritten each session** | `status/handoff.md` |
-| How it works: module boundaries, lifecycle, invariants | `ARCHITECTURE.md` |
-| Why: closed decisions, one record each | `decisions/` |
-| The house bug's three species + every lesson that generalises | `lessons.md` |
-| The comment standard, and which packages have had the pass | `comment-standard.md` |
-| The suite — the count, why it moves per machine, the two healthy oddities | `testing.md` |
-| The rules data — conventions, what the loader checks | `content.md` |
-| Implementing a splat — honest cost, from the eleven done | `adding-a-splat.md` |
-| Delegating a splat to a cheap model — the four-check audit | `delegated-authoring.md` |
-| How `source.book` is written, and why it rots | `source-attribution.md` |
-| Models, loader, persistence, `engine/`, NiceGUI UI | `status/engine-and-ui.md` |
+| Current state. Rewritten each session. | `status/handoff.md` |
+| Module boundaries, lifecycle, invariants | `ARCHITECTURE.md` |
+| Closed decisions, one record each | `decisions/` |
+| The defect pattern and the general lessons | `lessons.md` |
+| The comment standard | `comment-standard.md` |
+| The test suite | `testing.md` |
+| The rules data and the loader checks | `content.md` |
+| How to implement a splat | `adding-a-splat.md` |
+| How to delegate a splat, and the four checks | `delegated-authoring.md` |
+| How `source.book` is written | `source-attribution.md` |
+| Models, loader, persistence, engine, NiceGUI UI | `status/engine-and-ui.md` |
 | Core data files, Charm counts, `tools/` | `status/data-and-tooling.md` |
-| The 1.0 catalogue sweep — six delegated batches, the `sources/` extraction pipeline and its glyph ciphers | `status/catalogue-sweep.md` |
-| The content gap — CLOSED 2026-08-14, all 647 discovery rows resolved | `status/content-gap-retriage.md` |
-| Phase-1 scan — the five never-opened books, DONE 2026-08-15; 22 gear rows | `status/phase-1-scan.md` |
-| Phase-2 scan — the two scan-only books, DONE 2026-08-15; **every book in `sources/` has now been opened** | `status/phase-2-scan.md` |
-| Book of Three Circles — spells, artifacts, the Merit-gated plot devices | `status/book-of-three-circles.md` |
-| Corebook Wonders — Hearthstones, Greater Wonders, the Hearthstone allowance | `status/corebook-wonders.md` |
-| Rated artifacts — the Artifact budget, dual-nature devices, the corebook default, and **attunement** (the commitment, DONE — phases 1-2 2026-09-03, the 89-row backfill and the sheet marker 2026-09-07) | `status/rated-artifacts.md` |
-| 1E artifact backlog — the discovery layer (parse method + per-book page lists) | `status/artifact-backlog.md` |
-| Martial-arts STYLE entity — 21 of 22 authored, tiers, `Charm.ma_tier` access | `status/martial-arts-styles.md` |
-| Merits & Flaws — the centralized calc (decision 0011), all 100 authored | `status/merits-flaws.md` |
-| M&F mechanical-effect triage — what was modelled, what was skipped and why | `status/merits-flaws-triage.md` |
-| Backgrounds — per-splat catalogues, the dot ladder, the numeric rules | `status/backgrounds.md` |
-| Trait reference text — the ⓘ beside every dot row; ⚠ the three families print DIFFERENT shapes, and Abilities have no per-Ability ladder | `status/trait-descriptions.md` |
-| Thaumaturgy — cross-splat Arts/Sciences/Rituals/Formulas | `status/thaumaturgy.md` |
-| Custom content — user-authored Charms/styles/spells/**rituals**/gear, the `/custom` page | `status/custom-content.md` |
-| Dice pools — decision 0016, the Play-tab sidebar | `status/dice-pools.md` |
-| The dumb dice roller — decision 0019: the roller, the initiative RATING, the GM's batch roll, and the tests that guard the no-wire rule | `status/dice-roller.md` |
-| Elder Exalts — Essence to the splat cap, the p.259 downtime calculator | `status/elder-exalts.md` |
-| Edit⇄XP merge — one trait surface both sides of the lock | `status/edit-xp-merge.md` |
-| Advantages tab — Backgrounds + M&F on one both-sides tab | `status/advantages-tab.md` |
-| Gear tab, inventory & shop — everything owned on one surface | `status/gear-and-inventory.md` |
-| Catalogue picker dialogs — the shared `ui/catalogue.py` dialog | `status/catalogue-dialogs.md` |
-| Printable / PDF sheet — a real generated PDF, not a print stylesheet | `status/printable-sheet.md` |
-| Adversary roster — GM-mode extras/beasts/NPCs | `status/adversary-roster.md` |
-| The `engine/validate/` split — 15 modules, `validate.X` is the ONE public path | `plans/validate-refactor.md` |
-| The Qt port — decision 0018; the build record. **FEATURE-COMPLETE 2026-08-27**: milestones 1–6, the **ST Options**, **Custom** and **Combos** tabs and the **Party / ST window**, all human-clicked (the Party window 2026-08-28, after its roster gained adversary cards). Milestone 5 SETTLES the one layout; milestone 6, Identity+Traits and the Party tab are its three written exceptions | `plans/qt-port.md` |
-| Artifact attunement — the design, the four resolved rules questions, the double-count guard extended from dots to MOTES; DONE apart from a click-through | `plans/artifact-attunement.md` |
-| Variant-menu Charms — the generic `variant_purchases` list, `Charm.variants_unique`, and why Ox-Body and the Gifts were deliberately NOT migrated onto it | `plans/variant-menu-charms.md` |
-| Core Charm re-transcription — the 220 descriptions, the 32 corrected values, the offset trap | `status/core-charm-retranscription.md` |
-| The 265 delegated spells re-transcribed — restored variant-spell mentions, a truncated entry, two resistance-direction bugs | `status/spell-retranscription.md` |
-
-**State of the world:** foundation, splats, engine and UI are done and browser-verified;
-a character can be put on paper. **The catalogue is COMPLETE (2026-08-14):** Charms
-1,921 · spells 306 · artifacts 330 · weapons 112 · armour 28 · thaumaturgy 4 Arts /
-4 Sciences / 30 formulas / 11 rituals. **Nothing is page-blocked**, and as of 2026-08-15
-**every book in `sources/` has been opened** (the phase-1 and phase-2 scans). Everything
-else unauthored is deliberately deferred (see **Standing bars**).
-
-⚠ **COMPLETE means every entry EXISTS, not that every entry is RIGHT.** The Core Charms
-were all present and all counted, and their descriptions were still an order of magnitude
-too thin — four of them describing a rule the page does not contain — because the
-delegation brief capped description length. Re-transcribed 2026-09-01, along with 32 wrong
-minimums/costs/types: `status/core-charm-retranscription.md`. The **265 non-Core spells**
-authored under the same cap were re-transcribed 2026-09-03 (116 of 265 changed):
-`status/spell-retranscription.md`. ⚠ The **artifacts were ruled
-FINE and their cap stays** (human, 2026-09-01) — do not re-propose that audit. Do not read
-a catalogue count as a quality signal.
-
-⚠ **`source.book` is a zero-read-site field and it ROTS.** Two Charms were still
-attributed to `Core` carrying **Abyssals** page numbers — the same fingerprint as the 233
-mis-attributed Abyssal Charms the 1.0 sweep caught. The tell is cheap (a citation whose
-page does not contain the Charm) and **nothing runs it**. `status/catalogue-sweep.md`,
-`status/core-charm-retranscription.md`.
-
-⚠ **One known content gap remains: Backgrounds in the scan-only splat books.** Human's
-ruling 2026-08-15: Backgrounds are scattered across mainly the SPLAT BOOKS, and M&F are
-"pretty much all Player's Guide", so M&F are not a reason to open another book. Roughly
-**1,800 pages** of pure scan (Lunars, Dragon-Blooded, Sidereals, five Caste Books, five
-Aspect Books); method is phase 2's. ⚠ Backgrounds are the record type with **no discovery
-index to diff against**, and `source` is missing on **63/63** of them — backfilling that
-provenance first is what makes the sweep finite.
-
-⚠ Still unswept by any method: Merits, Backgrounds and prose-described artifacts in the
-eight transcribed books, and everything in the scan-only books (Sidereals,
-Dragon-Blooded, castebooks, Lunars, Abyssals).
-
-## Rulings that bite when touched
-Each is written up where it landed; these are the ones that catch people mid-task.
-
-- **A specialty is an INSTANCE, not a rated trait** — you take the same one again rather
-  than raising it, capped at **3 per Ability**. Legacy rated specialties split on load.
-  Also: **Crafts and Colleges can be reduced** (a usability escape hatch, not a printed
-  rule), and **Nature freezes at the lock**. (`status/edit-xp-merge.md`)
-- **Eight chargen choices are frozen once locked** — Favoured picks, caste, Exalt type,
-  origin, upbringing, camp, Calling, flawed Virtue. Greyed but readable.
-- **No module outside `engine/merits.py` may name a Merit id** — a test greps for it; add
-  a `MeritEffects` FIELD, never an allowlist. And **`derive.soak`/`willpower`/
-  `health_track` and `lifecycle.lock_chargen` take an OPTIONAL `ruleset`** so they can
-  see Merits — every omission is a silent wrong answer, not a TypeError.
-- **`catalogue_backgrounds` is what the dropdown OFFERS; `allowed_backgrounds` is HARD
-  validation.** Writing a list into the wrong one makes every free-text Background
-  illegal for that splat.
-- **Thaumaturgy is NOT a splat** — a cross-splat capability layer everyone but the Fair
-  Folk can hold (Ghosts hold it and may never use it), so it sits on every sheet.
-  **`HouseRules` is the home for EVERY Storyteller toggle**; fields are marked TABLE-WIDE
-  or PER-CHARACTER **in comments only**, and a party-wide "apply to all" control may only
-  touch the former. ⚠ Science costs (5/7 BP, 7/current×6 XP) are the **only value in the
-  build with no page behind it** — supplied by the human 2026-07-29.
-- **An `Adversary` is NOT a `Character` and must never become one** — a test asserts it.
-- **Passions are a LIVE DERIVATION of the Virtues** on both sides of the lock, never
-  bought with BP or XP — `derive.passion_pool` carries the rule and its page.
-- **No character may leave creation with Essence above 5** (`essence-above-elder-chargen-cap`).
-- **An attuned artifact's motes come off the PLAY pools only** — `build_play_view`
-  subtracts, the sheet still prints the full pools, and no `engine/validate/` module may
-  read `attuned` (a test greps). ⚠ A daiklave entered as an artifact row AND its weapon
-  stat line is ONE object: the **gear row owns the commitment**, the same one-object rule
-  `artifact_items` already applies to dots. ⚠ And a commitment allocated to a pool the
-  character does not HAVE is re-routed to the one they do — a mortal's pool is all
-  Personal while `attuned_pool` defaults to Peripheral, so the default silently made
-  attunement free. `status/rated-artifacts.md`.
-- **A splat's own shape can silently outvote a Merit.** `essence_pool_is_merged` asked
-  `ExaltDefinition.single_essence_pool` first, so Aura of Power was stored and never got
-  a vote for months. When a Merit CONTRADICTS a splat default, the Merit must be checked
-  first — and the test for it needs the real ruleset, not a synthetic one.
-  `status/godblooded.md`.
-
-## Deferred (open, just not now)
-- **The app reports no version anywhere** — no titlebar string, no About item, and
-  `pyproject.toml` still says `1.0.0`. "Am I running current code?" is therefore
-  unanswerable from inside the app, which is what turned a fixed bug into a long hunt
-  on 2026-09-02 (`status/merits-flaws.md`). ⚠ Pair it with the launcher trap:
-  `branding.install_desktop_entry()` writes `Exec=` from `sys.executable`, so the
-  desktop entry PINS to the first frozen binary that ever ran and only re-points when a
-  different one runs — downloading a new release to a new path changes nothing until you
-  execute it directly. ⚠ **But check the DATES before blaming the build**: on 2026-09-03
-  the stale-binary theory was wrong twice over — the suspected fix predated the binary by
-  a month, and the real bug was in the code all along. ⚠ The same question bit again on
-  2026-09-08 in its **server** form: `reload=False` plus a `fuser -k` that silently
-  failed left port 8080 answering **200** with the previous build. Kill by PID and
-  confirm the port is dead before relaunching.
-- `chargen_budgets.json`/`costs_bonus.json`/`costs_xp.json` overrides beyond what's
-  authored — optional, loader falls back to model defaults.
-- A per-session XP-grant ledger; state-reconciliation of hand-edited
-  current-vs-snapshot drift (the read-only lock guards normal use).
-- The comment pass on **`qt/`** — the ONE package that has never had it.
-  ⚠ `ui/`, `models/` and `engine/` outside validate were swept on 2026-08-20
-  (`ea0df0e`, `2833f682`) and this line claimed them as outstanding for two weeks
-  afterwards. `docs/comment-standard.md`.
-
-## Background
-- **Merits & Flaws were ripped out 2026-06-15** (the old system bundled balance-wrecking
-  Charm rewrites) and **restored 2026-07-30** as decision 0011's single centralized calc.
-  The reason they were removed is the reason no caller may name a Merit id.
-- Full multi-splat plan: `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
-- DB chargen numbers as verified from source pages: [[db-chargen-findings]].
+| The catalogue sweep and the extraction pipeline | `status/catalogue-sweep.md` |
+| The content gap retriage | `status/content-gap-retriage.md` |
+| Phase-1 and phase-2 book scans | `status/phase-1-scan.md`, `status/phase-2-scan.md` |
+| Core Charm re-transcription | `status/core-charm-retranscription.md` |
+| Spell re-transcription | `status/spell-retranscription.md` |
+| Book of Three Circles | `status/book-of-three-circles.md` |
+| Corebook Wonders | `status/corebook-wonders.md` |
+| Rated artifacts and attunement | `status/rated-artifacts.md`, `plans/artifact-attunement.md` |
+| Artifact discovery backlog | `status/artifact-backlog.md` |
+| Martial-arts styles | `status/martial-arts-styles.md` |
+| Merits and Flaws | `status/merits-flaws.md`, `status/merits-flaws-triage.md` |
+| Backgrounds | `status/backgrounds.md` |
+| Trait reference text | `status/trait-descriptions.md` |
+| Thaumaturgy | `status/thaumaturgy.md` |
+| Custom content | `status/custom-content.md` |
+| Dice pools and the dice roller | `status/dice-pools.md`, `status/dice-roller.md` |
+| Elder Exalts | `status/elder-exalts.md` |
+| Edit and XP merge | `status/edit-xp-merge.md` |
+| Advantages tab | `status/advantages-tab.md` |
+| Gear tab, inventory, shop | `status/gear-and-inventory.md` |
+| Catalogue picker dialogs | `status/catalogue-dialogs.md` |
+| Printable PDF sheet | `status/printable-sheet.md` |
+| Adversary roster | `status/adversary-roster.md` |
+| The `engine/validate/` split | `plans/validate-refactor.md` |
+| The Qt port. Read the standing rules first. | `plans/qt-port.md` |
+| Variant-menu Charms | `plans/variant-menu-charms.md` |
+| Why the Mist numina are deferred: there is no effect list to author | `status/mist-numina.md` |
+| The full multi-splat plan | `~/.claude/plans/should-we-plan-out-encapsulated-crab.md` |
