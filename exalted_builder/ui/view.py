@@ -3585,6 +3585,299 @@ def build_custom_pool(ruleset: RuleSet, character: Character,
     return rows
 
 
+@dataclass(frozen=True)
+class InitiativeView:
+    """The initiative rating as a surface shows it: the number, its arithmetic,
+    and the standing riders.
+
+    ⚠ NOT a `PoolRow`, and the separate type is the point — a rating rendered in
+    the pool list is a number in DICE beside a roller, which is how a player ends
+    up rolling nine dice for a rating that takes ONE d10. `engine/initiative.py`
+    carries the rule and decision 0019's condition.
+    """
+    total: int
+    compact: str                             # "+4 dex +2 wits +3 spd"
+    summary: str                             # "Dexterity 4 + Wits 2 + ... = 9"
+    weapon: str                              # "" when unarmed
+    excludes: tuple[str, ...] = ()
+    turn_note: str = ""
+    tie_break: str = ""
+
+
+def build_initiative(ruleset: RuleSet, character: Character, *,
+                     weapon_index: Optional[int] = None) -> InitiativeView:
+    """The initiative rating for the weapon at `weapon_index` (None = unarmed).
+
+    Takes the SAME index the pool sidebar's "Attack with" control uses, so the
+    two surfaces cannot disagree about what is in the character's hand.
+    """
+    from ..engine import initiative as initmod
+    weapon = (character.weapons[weapon_index]
+              if weapon_index is not None and 0 <= weapon_index < len(character.weapons)
+              else None)
+    rating = initmod.initiative(ruleset, character, weapon=weapon)
+    return InitiativeView(
+        total=rating.total, compact=rating.compact, summary=rating.summary,
+        weapon=(weapon.name or "Weapon") if weapon is not None else "",
+        excludes=rating.excludes, turn_note=rating.turn_note,
+        tie_break=rating.tie_break)
+
+
+# --------------------------------------------------------------------------- #
+# The dumb dice roller (decision 0019)
+#
+# ⚠ Read 0019 before touching anything below, especially its no-wire rule. The
+# roller takes a COUNT the player typed and a LABEL the player wrote; it must
+# never learn which roll it is rolling. Nothing here may take a `RollDefinition`,
+# a `PoolRow` or a `PoolBreakdown` — the moment a roll's name reaches a result,
+# the app is asserting the pool was right, which is what decision 0008 rejected
+# and what 0009 was written to prevent. No test can catch that regression.
+# --------------------------------------------------------------------------- #
+
+# How many past rolls the transcript keeps. A transcript, not play-state:
+# results are never written to the Character (0019) and die with the session.
+ROLL_LOG_LENGTH = 12
+
+# What the surface says instead of offering a difficulty or stunt field. 0019
+# keeps Storyteller modifiers out: a field for them implies the app could know.
+ROLLER_CAVEAT = ("Type the dice you are picking up. Stunt dice, difficulty and "
+                 "any Charm effect are the Storyteller's — ask them, this does "
+                 "not know.")
+
+
+@dataclass(frozen=True)
+class RollFace:
+    """One die as the transcript shows it. `kind` is a rendering class, not a
+    rule: 'double' is a 10 under the Rule of Ten, 'one' a 1 that could botch,
+    'hit' any other success, 'miss' the rest."""
+    value: int
+    kind: str
+
+
+@dataclass(frozen=True)
+class RollEntry:
+    """One roll in the session transcript.
+
+    ⚠ `label` is the PLAYER's free text and may be empty. It is never filled in
+    from a pool row, a Charm or a `RollDefinition` — see the note above.
+    """
+    label: str
+    faces: tuple[RollFace, ...]
+    successes: int
+    botch: bool
+    outcome: str                             # "3 successes" / "Failure" / "Botch"
+    detail: str                              # "5 dice · TN 7 · 10s double · can botch"
+
+    @property
+    def faces_text(self) -> str:
+        """The dice as one line, for a surface with no room to style each face."""
+        return " ".join(str(f.value) for f in self.faces)
+
+
+def new_roller_state() -> dict:
+    """The roller's controls, owned by the CALLER for the same reason
+    `play.new_pool_state` is: the Play tab is rebuilt on every health-box click,
+    and state owned by the roller would wipe the player's typed count and their
+    transcript on exactly the click that precedes a roll.
+
+    Both switches default ON because both printed rules are general — the
+    exceptions (damage rolls, the Rune) are per-effect and the player turns them
+    off because the Storyteller said so.
+    """
+    from ..engine import dice as dicemod
+    return {"count": 1, "label": "",
+            "target_number": dicemod.DEFAULT_TARGET_NUMBER,
+            "doubles_tens": True, "can_botch": True,
+            "log": [],
+            # The transcript folds after the newest line. Collapsed by default: a
+            # long session's log is the thing being got out of the way, and the
+            # roll you just made is the only one you need at a glance.
+            "log_open": False}
+
+
+def roll_detail(count: int, target_number: int, doubles_tens: bool,
+                can_botch: bool) -> str:
+    """'5 dice · TN 7 · 10s double · can botch' — what was rolled under which
+    switches, so a transcript line can still be read an hour later."""
+    parts = [f"{count} {'die' if count == 1 else 'dice'}", f"TN {target_number}"]
+    parts.append("10s double" if doubles_tens else "10s count once")
+    parts.append("can botch" if can_botch else "cannot botch")
+    return " · ".join(parts)
+
+
+def roll_log_split(state: dict) -> tuple[Optional[RollEntry], list[RollEntry]]:
+    """In: the roller's state. Out: `(newest, older)` — the roll to keep on
+    screen and the ones behind the fold. `newest` is None on an empty log.
+
+    One function so the two shells cannot disagree about which line stays
+    visible, which is the whole point of the split.
+    """
+    log = state.get("log") or []
+    return (log[0] if log else None), list(log[1:])
+
+
+def previous_rolls_label(count: int) -> str:
+    """'Previous rolls (3)' — the fold's caption, stating what is hidden. A
+    collapsed section with no count reads as an empty one."""
+    return f"Previous rolls ({count})"
+
+
+def roll_dice(state: dict, *, rng=None) -> RollEntry:
+    """In: the roller's own `state` (a typed count, a typed label and the two
+    switches). Out: a `RollEntry`, also PREPENDED to `state["log"]`, which is
+    trimmed to `ROLL_LOG_LENGTH`.
+
+    ⚠ The signature takes no character, ruleset or roll, and must not gain one.
+    """
+    from ..engine import dice as dicemod
+    count = max(0, int(state.get("count") or 0))
+    target = int(state.get("target_number") or dicemod.DEFAULT_TARGET_NUMBER)
+    doubles = bool(state.get("doubles_tens", True))
+    botching = bool(state.get("can_botch", True))
+    result = dicemod.roll(count, target, doubles_tens=doubles,
+                          can_botch=botching, rng=rng)
+
+    def _kind(face: int) -> str:
+        if face == dicemod.TEN and doubles:
+            return "double"
+        if face >= target:
+            return "hit"
+        return "one" if face == 1 else "miss"
+
+    entry = RollEntry(
+        label=(state.get("label") or "").strip(),
+        faces=tuple(RollFace(f, _kind(f)) for f in result.faces),
+        successes=result.successes, botch=result.botch,
+        outcome=result.summary,
+        detail=roll_detail(count, target, doubles, botching))
+    log = state.setdefault("log", [])
+    log.insert(0, entry)
+    del log[ROLL_LOG_LENGTH:]
+    return entry
+
+
+# --------------------------------------------------------------------------- #
+# The GM's batch roll (decision 0019, the same no-wire rule)
+#
+# ⚠ Every count in a batch is TYPED BY THE STORYTELLER, one per row. Nothing here
+# reads a character's pool, and nothing may: a batch that filled its counts from
+# a named roll would have the app claiming to know what five sheets are rolling
+# at once, which is the wire 0019 rejects by name ("a roller wired to the named
+# rolls… the version that generates the Charm-dice ask"). A ROW'S name is the
+# character's, which is not a roll's name and asserts nothing about the pool.
+#
+# The batch NAME is the Storyteller's free text too, for the same reason the
+# single roller's label is. It is what the fold shows when collapsed.
+# --------------------------------------------------------------------------- #
+
+@dataclass(frozen=True)
+class BatchRoll:
+    """One batch: the Storyteller's name for it, and a `RollEntry` per row.
+
+    `key` is a monotonic id so a surface can remember which batches the user
+    opened. It identifies the batch in the log and nothing else — it is not
+    persisted and means nothing between sessions.
+    """
+    key: int
+    name: str
+    rolls: tuple[RollEntry, ...]
+    detail: str                              # "4 rolls · TN 7 · 10s double · can botch"
+
+    @property
+    def caption(self) -> str:
+        """What the collapsed fold shows: the batch's name, or a neutral
+        stand-in when the Storyteller did not name it."""
+        return self.name or f"{len(self.rolls)} rolls"
+
+
+def new_batch_state() -> dict:
+    """The GM roller's controls. Owned by the CALLER, like `new_roller_state` —
+    the party page rebuilds on every roster change and a batch mid-setup (typed
+    counts, a half-written name) must survive that.
+
+    `counts` and `labels` are keyed by a caller-supplied row key rather than a
+    list position, because the roster renumbers when a member is removed and a
+    positional key would silently move one character's dice onto another's row.
+    """
+    from ..engine import dice as dicemod
+    return {"name": "",
+            "counts": {}, "labels": {},
+            "target_number": dicemod.DEFAULT_TARGET_NUMBER,
+            "doubles_tens": True, "can_botch": True,
+            "log": [], "open": set(), "next_key": 1}
+
+
+def batch_roster(party) -> list[tuple[str, str]]:
+    """The party page's rows as (key, display name): every member, then every
+    adversary. ONE builder so the two shells cannot disagree about who is in a
+    batch.
+
+    ⚠ Keyed by the record's own id, never by position — the roster renumbers when
+    a member is removed, and a positional key moves one character's typed dice
+    onto another's row. Adversaries are in because a batch rolls a NUMBER: an
+    `Adversary` is not a `Character` and never may be, but a dice count does not
+    care which it came from.
+    """
+    rows = [(f"m:{m.character.id}", m.character.name or "(unnamed)")
+            for m in party.members]
+    rows += [(f"a:{a.id}", a.name or "(unnamed)") for a in party.adversaries]
+    return rows
+
+
+def batch_rows(state: dict, rows: Sequence[tuple[str, str]]) -> list[tuple[str, str, int, str]]:
+    """In: the state and the roster as (key, display name) pairs. Out: one
+    `(key, name, count, label)` tuple per row, with whatever the Storyteller has
+    typed so far and 0 dice for a row they have not touched.
+
+    A row left at 0 is how the Storyteller says "not this one" — see `roll_batch`.
+    """
+    return [(key, name, int(state["counts"].get(key) or 0),
+             state["labels"].get(key, "")) for key, name in rows]
+
+
+def roll_batch(state: dict, rows: Sequence[tuple[str, str]], *,
+               rng=None) -> Optional[BatchRoll]:
+    """In: the state and the roster as (key, display name) pairs. Out: a
+    `BatchRoll` of every row with at least one die, also prepended to
+    `state["log"]`; None when no row has any dice.
+
+    Each row's `RollEntry.label` is the Storyteller's typed label, falling back
+    to the row's display NAME so a line is never anonymous. ⚠ That fallback is a
+    character's name, never a roll's — see the module note above.
+
+    Rows set to 0 dice are skipped rather than rolled empty: in a party of six
+    the usual case is three of them rolling.
+    """
+    from ..engine import dice as dicemod
+    entries: list[RollEntry] = []
+    target = int(state.get("target_number") or dicemod.DEFAULT_TARGET_NUMBER)
+    doubles = bool(state.get("doubles_tens", True))
+    botching = bool(state.get("can_botch", True))
+    for key, name, count, label in batch_rows(state, rows):
+        if count <= 0:
+            continue
+        row_state = {"count": count, "label": label or name,
+                     "target_number": target, "doubles_tens": doubles,
+                     "can_botch": botching, "log": []}
+        entries.append(roll_dice(row_state, rng=rng))
+    if not entries:
+        return None
+
+    batch = BatchRoll(
+        key=state["next_key"], name=(state.get("name") or "").strip(),
+        rolls=tuple(entries),
+        detail=(f"{len(entries)} {'roll' if len(entries) == 1 else 'rolls'} · "
+                + roll_detail(0, target, doubles, botching).split(" · ", 1)[1]))
+    state["next_key"] += 1
+    log = state.setdefault("log", [])
+    log.insert(0, batch)
+    del log[ROLL_LOG_LENGTH:]
+    # Newest open, so the roll just made is readable without a click; older ones
+    # stay as the Storyteller left them.
+    state["open"] = {batch.key} | {b.key for b in log if b.key in state["open"]}
+    return batch
+
+
 @dataclass
 class PartyCardView:
     """One character as the GM's party page shows them: the same play capacities

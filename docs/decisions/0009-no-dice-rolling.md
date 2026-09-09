@@ -1,6 +1,14 @@
 # 0009 — No dice rolling, ever
 
-**Status:** Accepted, 2026-07-29. Stated publicly as a design goal in the README.
+**Status:** ⚠ **REVERSED in a narrow shape by
+[0019](0019-a-dumb-dice-roller.md)** (2026-09-08) — the human reopened it themselves.
+Accepted 2026-07-29 and stated publicly as a design goal in the README, which needs
+updating with the amendment.
+
+⚠ **Read 0019 before citing this record.** A roller taking a dice COUNT — never a named
+roll — now exists in scope. What survives here unamended: no success-odds or probability
+display, no automatic rolling, and no roll that knows which roll it is. The reasoning
+below is intact and is *why* 0019 forbids the wire between a pool and a roll.
 
 ## Problem
 

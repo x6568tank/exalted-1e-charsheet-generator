@@ -25,12 +25,13 @@ import pytest
 # turn into a COLLECTION ERROR — that kills the whole run, not just these tests.
 pytest.importorskip("PySide6", reason="the optional [qt] extra is not installed")
 
-from PySide6.QtWidgets import QCheckBox, QComboBox, QLabel, QPushButton, QSpinBox
+from PySide6.QtWidgets import (QCheckBox, QComboBox, QLabel, QLineEdit, QPushButton,
+                               QSpinBox)
 
-from exalted_builder.engine import derive, lifecycle
-from exalted_builder.models.character import (Armor, Character, Damage, PlayState,
-                                              Weapon)
-from exalted_builder.models.rules import VirtueName
+from exalted_builder.engine import derive, dice, lifecycle
+from exalted_builder.models.character import (Armor, Character, Damage, OxBodyPurchase,
+                                              PlayState, Weapon)
+from exalted_builder.models.rules import AttributeName, VirtueName
 from exalted_builder.qt.play import PlayPage
 from exalted_builder.ui import view as viewmod
 
@@ -258,7 +259,7 @@ def test_the_exclusions_block_is_always_present(make_page):
     """NOT collapsible and NOT dismissible — it is the mitigation 0016 accepted."""
     labels = _texts(make_page(_solar()))
     assert "These are BASE pools. They do not include:" in labels
-    assert "No dice are rolled here, and nothing is resolved." in labels
+    assert "Nothing is resolved here, and no row rolls itself — the roller takes a number you type." in labels
 
 
 def test_the_wound_switch_appears_only_once_there_is_damage(make_page):
@@ -433,3 +434,184 @@ def test_the_compact_form_is_shorter_and_still_names_the_pool(ruleset):
     bare = viewmod.build_play_view(ruleset, _solar())
     assert viewmod.committed_note(bare) == ""
     assert viewmod.committed_note(bare, compact=True) == ""
+
+
+# ---------------------------------------------------------------- roller ---- #
+# The dumb roller (decision 0019). The tests that matter here assert ABSENCES —
+# no roll bound to a result, and no button that survives a rebuild only by luck.
+
+def test_the_roller_renders_with_its_controls(make_page):
+    page = make_page(_solar())
+    assert _one(page, "play.roller.roll").text() == "Roll"
+    assert _one(page, "play.roller.count", QSpinBox).maximum() == dice.MAX_DICE
+    assert _one(page, "play.roller.doubles", QCheckBox).isChecked()
+    assert _one(page, "play.roller.botch", QCheckBox).isChecked()
+
+
+def test_pressing_roll_writes_a_transcript_line(make_page):
+    page = make_page(_solar())
+    _one(page, "play.roller.count", QSpinBox).setValue(5)
+    _one(page, "play.roller.roll").click()
+    assert any("5 dice · TN 7 · 10s double · can botch" in t for t in _texts(page))
+
+
+def test_the_transcript_carries_the_players_label_and_no_roll_name(make_page):
+    """⚠ 0019's no-wire rule. The only name a result may carry is the one the
+    player typed — a pool row's name reaching a transcript line is the wire the
+    record exists to prevent, and nothing else in the suite would notice."""
+    page = make_page(_solar())
+    _one(page, "play.roller.label", QLineEdit).setText("Attack on the bandit")
+    _one(page, "play.roller.roll").click()
+    assert any("Attack on the bandit" in t for t in _texts(page))
+    pool_names = {row.name for _, rows in viewmod.build_pool_sidebar(
+        page._ruleset, page._char()).groups for row in rows}
+    log_text = " ".join(_texts(page)[-12:])
+    assert not [n for n in pool_names if n in log_text]
+
+
+def test_a_roll_repaints_the_transcript_and_never_rebuilds_the_button(make_page):
+    """⚠ The tracker-repaint trap: a rebuild deletes the widget under the cursor
+    and Qt drags the scroll area after the focus. The Roll button must be the
+    SAME object after rolling, which only holds while the panel is built once."""
+    page = make_page(_solar())
+    button = _one(page, "play.roller.roll")
+    button.click()
+    button.click()
+    assert _one(page, "play.roller.roll") is button
+
+
+def test_a_health_click_leaves_the_roller_and_its_transcript_alone(make_page):
+    """The columns are rebuilt on every mark; the roller is not part of that."""
+    page = make_page(_solar())
+    _one(page, "play.roller.label", QLineEdit).setText("Resist the poison")
+    _one(page, "play.roller.roll").click()
+    _one(page, "play.health.1").click()
+    assert any("Resist the poison" in t for t in _texts(page))
+
+
+def test_no_pool_row_grows_a_roll_button(make_page):
+    """⚠ The regression 0019 names: a Roll button beside a NAMED pool binds the
+    definition to the result, and 'now add the Charm dice' is the next ask."""
+    page = make_page(_solar())
+    rolls = [b for b in page.findChildren(QPushButton) if b.text() == "Roll"]
+    assert len(rolls) == 1
+
+
+def test_the_roller_offers_no_difficulty_or_stunt_field(make_page):
+    """Storyteller modifiers stay off the surface (0019): a field for them
+    implies the app could know. What replaces them is the sentence saying to ask."""
+    page = make_page(_solar())
+    names = {w.objectName() for w in page.findChildren(QSpinBox)}
+    assert not [n for n in names if any(
+        w in n.lower() for w in ("stunt", "difficulty", "modifier"))]
+    assert any("ask them" in t for t in _texts(page))
+
+
+def test_older_rolls_fold_away_behind_a_counted_button(make_page):
+    """A table session's transcript would otherwise push the controls off the
+    panel. ⚠ `isHidden`, not `isVisible`: nothing on a headless page is shown,
+    so an `isVisible` assertion passes vacuously in both directions."""
+    page = make_page(_solar())
+    assert _one(page, "play.roller.older").isHidden()      # nothing rolled yet
+    _one(page, "play.roller.roll").click()
+    assert _one(page, "play.roller.older").isHidden()      # one roll, no fold
+    _one(page, "play.roller.roll").click()
+    _one(page, "play.roller.roll").click()
+    older = _one(page, "play.roller.older")
+    assert not older.isHidden()
+    assert "Previous rolls (2)" in older.text()
+
+
+def test_the_fold_opens_and_closes_without_rebuilding_its_button(make_page):
+    """⚠ Toggling must be a visibility change. A rebuild deletes the button being
+    clicked and Qt drags the scroll area after the focus."""
+    page = make_page(_solar())
+    for _ in range(3):
+        _one(page, "play.roller.roll").click()
+    button = _one(page, "play.roller.older")
+    box = page._older_box
+    assert box.isHidden()
+    button.click()
+    assert not box.isHidden()
+    assert _one(page, "play.roller.older") is button and page._older_box is box
+    button.click()
+    assert box.isHidden()
+
+
+def test_a_further_roll_keeps_the_fold_open_once_the_player_opened_it(make_page):
+    page = make_page(_solar())
+    _one(page, "play.roller.roll").click()
+    _one(page, "play.roller.roll").click()
+    _one(page, "play.roller.older").click()
+    _one(page, "play.roller.roll").click()
+    assert not page._older_box.isHidden()
+    assert "Previous rolls (2)" in _one(page, "play.roller.older").text()
+
+
+# ----------------------------------------------------------- initiative ---- #
+
+def test_the_initiative_rating_renders_with_its_arithmetic(ruleset, make_page):
+    """Dexterity 4 + Wits 3 on this fixture, unarmed."""
+    char = _solar()
+    char.attributes[AttributeName.DEXTERITY] = 4
+    char.attributes[AttributeName.WITS] = 3
+    page = make_page(char)
+    head = _one(page, "play.initiative", QLabel)
+    assert ">7<" in head.text() and "Unarmed" in head.text()
+    assert any("+4 dex +3 wits" in t for t in _texts(page))
+
+
+def test_a_wielded_weapon_moves_the_rating(ruleset, make_page):
+    """A Daiklave is Speed +3, a flat modifier and not dice (p.326)."""
+    char = _solar()
+    char.attributes[AttributeName.DEXTERITY] = 4
+    char.attributes[AttributeName.WITS] = 3
+    char.weapons.append(Weapon(name="Daiklave", speed=3, accuracy=2))
+    page = make_page(char)
+    page._set_pool("weapon", 0)
+    head = _one(page, "play.initiative", QLabel)
+    assert ">10<" in head.text() and "Daiklave" in head.text()
+
+
+def test_the_rating_states_the_d10_the_tie_break_and_its_exclusions(make_page):
+    """⚠ Without the d10 line a rating sitting one panel from the roller reads as
+    a dice count. That sentence is the guard, not decoration (decision 0019)."""
+    labels = _texts(make_page(_solar()))
+    assert any("Add 1d10 each turn" in t for t in labels)
+    assert any("Ties break on the higher Dexterity + Wits" in t for t in labels)
+    assert any("Speardancer Concentration" in t for t in labels)
+    assert any("Power Combat" in t for t in labels)
+
+
+# --------------------------------------------------------- the health track -- #
+
+def _health_rows(page):
+    """Health buttons grouped by the y they were laid out at, left to right."""
+    rows = {}
+    for w in _named(page, "play.health."):
+        rows.setdefault(w.y(), []).append(w)
+    return [sorted(bs, key=lambda b: b.x()) for _, bs in sorted(rows.items())]
+
+
+def test_a_wrapped_health_track_keeps_one_pitch_across_its_rows(make_page, qtbot):
+    """⚠ A QHBoxLayout of fixed-size cells with NO trailing stretch spreads its
+    slack BETWEEN them. Only the last row got one, so a track that wrapped drew
+    its full rows justified across the panel and the short final row packed left
+    — the boxes visibly changed pitch mid-track.
+
+    Reproduces only above `_BOXES_PER_ROW` levels, which is why every fixture in
+    this file missed it and a real Ox-Body character found it on sight. This is a
+    GEOMETRY test for that reason: the defect is invisible to a widget-count or
+    text assertion, and passes against the bug it guards.
+    """
+    char = _solar()
+    char.ox_body = [OxBodyPurchase(variant="v", health_levels=[2, 2, 2])] * 4
+    page = make_page(char)
+    page.resize(1000, 900)
+    page.show()
+    qtbot.waitExposed(page)
+    qtbot.wait(50)          # let the layout settle before measuring — see test_qt_party
+    rows = _health_rows(page)
+    assert len(rows) > 1, "fixture no longer wraps — the defect cannot reproduce"
+    pitches = [row[1].x() - row[0].x() for row in rows if len(row) > 1]
+    assert len(set(pitches)) == 1, f"rows drew at different pitches: {pitches}"

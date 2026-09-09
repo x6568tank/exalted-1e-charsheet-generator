@@ -160,8 +160,9 @@ purpose.
 
 Down the side is every dice pool the character has, each with its arithmetic laid out,
 plus a builder for any Attribute + Ability pair you want. It gives you the base pool
-and tells you what it hasn't counted. Then you add your modifiers and go roll actual
-dice, on a table, with your hands.
+and tells you what it hasn't counted. Then you add your modifiers and roll — on a table
+with your hands, or in the dumb roller, which takes a number of dice and a label you
+type yourself. It does not know what you're rolling for, and that's deliberate.
 
 ## Running a game
 
@@ -264,9 +265,9 @@ Three things worth knowing:
 * **Faithful to the page, not to what feels right.** Values come off the 1E books.
   Where the books are ambiguous or errata'd, the ambiguity gets recorded instead of
   quietly resolved.
-* **NO FUCKING DICE.** I will not be modeling any sort of dice-rolling into this. If I
-  do, kill me. This is not, and will not be, a CRPG. It is a character builder and
-  tracker and *nothing else*.
+* **There is a dumb dice roller.** It has a label, and you input how many dice. I will
+  not do charm effects for you, fuck off. This is not, and will not be, a CRPG. It is a
+  character builder and tracker and *nothing else*.
 
 ## Project structure
 

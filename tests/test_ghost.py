@@ -717,7 +717,7 @@ def test_every_prerequisite_resolves_within_the_catalogue(rs) -> None:
 
 
 def test_the_one_health_level_cost_uses_the_damage_shorthand(rs) -> None:
-    """p.238's Stolen Wax Discipline is the only Arcanos that spends a health level.
+    """p.237's Stolen Wax Discipline is the only Arcanos that spends a health level.
     `health_type` is the 1e mark ('x' lethal), not the English word — authoring the
     word made the row fail to load and silently dangled its two dependants."""
     from exalted_builder.models.rules import Damage

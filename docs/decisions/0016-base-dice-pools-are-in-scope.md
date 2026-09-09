@@ -1,7 +1,13 @@
 # 0016 — Base dice pools are in scope; resolution is not
 
 **Status:** Accepted, 2026-08-12. Amends the boundary of
-[0008](0008-no-combat-derivation.md); does not touch [0009](0009-no-dice-rolling.md).
+[0008](0008-no-combat-derivation.md); did not touch [0009](0009-no-dice-rolling.md).
+
+⚠ **Two clauses below were amended by [0019](0019-a-dumb-dice-roller.md)** (2026-09-08):
+0009 *has* since been reopened and a dumb roller is in scope, and **initiative** is no
+longer excluded — though it is unauthored, because no page for it is in hand. Everything
+else here stands, and 0019 leans on this record's "itemised breakdown, never one big
+number" requirement to keep 0008 intact.
 
 ## Problem
 

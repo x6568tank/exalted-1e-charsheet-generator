@@ -30,7 +30,7 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import persistence, rules_db
-from ..engine import derive
+from ..engine import derive, dice
 from ..models.character import Character, Damage, PlayState
 from ..models.party import Party, PartyMember
 from ..models.rules import RuleSet
@@ -85,6 +85,93 @@ def _reference_panel(ruleset: RuleSet, pal: theme.Palette) -> None:
                 _render_ref_table(table, pal)
 
 
+def batch_roller_panel(pal: theme.Palette, state: dict, rows, on_roll) -> None:
+    """The Storyteller's batch roll (decision 0019).
+
+    One editable dice count per roster row, one name for the batch, one press.
+    The log collapses to the batch's name; opening it shows each row's own line.
+
+    ⚠ Read 0019 before changing this. Every count here is TYPED — nothing reads a
+    character's pool, and nothing may. With six rows on screen, filling them from
+    a named roll is the obvious convenience and is precisely what the decision
+    rejects: the app would be claiming to know what six sheets are rolling, and
+    "add their Charm dice" is the next ask. A row's name is the CHARACTER's,
+    which asserts nothing about a pool; a roll's name would.
+
+    `on_roll` refreshes this panel alone — a roll must not rebuild the roster
+    above it, whose cards carry the GM's damage trackers.
+    """
+    def _set(key, value) -> None:
+        state[key] = value
+
+    with ui.card().classes(f"w-full p-3 {pal.card_soft} gap-2"):
+        with ui.row().classes("w-full items-end gap-2 flex-wrap"):
+            ui.label("BATCH ROLL").classes(
+                "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
+            # The batch's name: free text, and what the collapsed fold shows.
+            ui.input("Name this roll", value=state["name"],
+                     placeholder="Join Battle",
+                     on_change=lambda e: _set("name", e.value)
+                     ).classes("flex-1 min-w-40").props("dense outlined")
+            ui.number("Target", value=state["target_number"], min=2, max=10,
+                      format="%d",
+                      on_change=lambda e: _set("target_number", e.value)
+                      ).classes("w-24").props("dense outlined")
+            ui.button("Roll all", icon="casino", on_click=on_roll).props(
+                f"color={pal.button}").mark("batch-roll")
+        with ui.row().classes("gap-4 items-center"):
+            ui.switch("10s count double", value=state["doubles_tens"],
+                      on_change=lambda e: _set("doubles_tens", e.value)
+                      ).props("dense").classes("text-xs")
+            ui.switch("Can botch", value=state["can_botch"],
+                      on_change=lambda e: _set("can_botch", e.value)
+                      ).props("dense").classes("text-xs")
+
+        if not rows:
+            ui.label("No one on the roster to roll for yet.").classes(
+                "text-xs text-gray-600")
+        for key, name, count, label in viewmod.batch_rows(state, rows):
+            with ui.row().classes("w-full items-end gap-2 no-wrap"):
+                ui.label(name).classes("text-sm w-40 shrink-0 truncate")
+                ui.number("Dice", value=count, min=0, max=dice.MAX_DICE, format="%d",
+                          on_change=lambda e, k=key: state["counts"].__setitem__(
+                              k, e.value)).classes("w-24").props("dense outlined")
+                ui.input("Label (yours)", value=label,
+                         on_change=lambda e, k=key: state["labels"].__setitem__(
+                             k, e.value)).classes("flex-1 min-w-32").props(
+                    "dense outlined")
+        ui.label("Type the dice each of them is picking up. 0 sits a row out. "
+                 "Stunts, difficulty and Charms are yours — this does not know."
+                 ).classes("text-xs text-gray-500")
+
+        if state["log"]:
+            ui.separator()
+            for batch in state["log"]:
+                with ui.expansion(batch.caption,
+                                  value=batch.key in state["open"],
+                                  on_value_change=lambda e, k=batch.key: (
+                                      state["open"].add(k) if e.value
+                                      else state["open"].discard(k))
+                                  ).classes("w-full").props("dense"):
+                    for entry in batch.rolls:
+                        _batch_line(entry, pal)
+                    ui.label(batch.detail).classes("text-xs text-gray-500")
+            ui.label("This session only — nothing is saved to any character."
+                     ).classes("text-xs text-gray-500")
+
+
+def _batch_line(entry, pal: theme.Palette) -> None:
+    """One row's result inside an opened batch: whose it was, what it came to,
+    and the faces."""
+    with ui.row().classes("w-full items-baseline gap-2 no-wrap"):
+        ui.label(entry.outcome).classes("text-sm font-bold w-24 shrink-0").style(
+            f"color:{'#b45309' if entry.botch else pal.accent}")
+        with ui.column().classes("gap-0 min-w-0"):
+            ui.label(entry.label).classes("text-sm leading-tight")
+            ui.label(entry.faces_text).classes(
+                "text-xs text-gray-600 leading-tight")
+
+
 def party_palette(party: Party) -> theme.Palette:
     """The page chrome for a party: the shared splat when every member is the same
     Exalt type, else the default. A mixed party carries its splat identity on the
@@ -99,6 +186,22 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
 
     def party() -> Party:
         return ctx["party"]
+
+    # ⚠ Outside `body`, like the Play tab's roller state: the page is rebuilt on
+    # every roster change and a batch mid-setup — typed counts, a half-written
+    # name, the session's log — must survive that. Decision 0019: a roll is a
+    # transcript, not state, and is never written to a character.
+    batch_state = viewmod.new_batch_state()
+
+    def roll_batch() -> None:
+        if viewmod.roll_batch(batch_state, viewmod.batch_roster(party())) is None:
+            ui.notify("No dice typed — give at least one row a count.", type="warning")
+        batch_roller.refresh()
+
+    @ui.refreshable
+    def batch_roller() -> None:
+        batch_roller_panel(party_palette(party()), batch_state,
+                           viewmod.batch_roster(party()), roll_batch)
 
     # ---- roster mutations ------------------------------------------------- #
     def add_character(character: Character) -> None:
@@ -575,6 +678,10 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
             # purpose: a GM tracking a fight is tracking both sides of it.
             adversaries_mod.build_roster(ruleset, ctx.get("adversary_catalog", {}),
                                          party, pal, body.refresh)
+
+            # BELOW both rosters, because it rolls for both: a batch lists party
+            # members and adversaries alike (a dice count does not care which).
+            batch_roller()
 
             ui.label("SESSION NOTES").classes("text-xs font-bold tracking-widest mt-2")
             # Same no-refresh rule as the per-character notes above.

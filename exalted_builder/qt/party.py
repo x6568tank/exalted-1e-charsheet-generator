@@ -50,13 +50,15 @@ from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QResizeEvent
 from PySide6.QtWidgets import (
-    QComboBox, QDialog, QFileDialog, QFrame, QGridLayout, QHBoxLayout, QLabel,
+    QCheckBox, QComboBox, QDialog, QFileDialog, QFrame, QGridLayout, QHBoxLayout,
+    QLabel,
     QLineEdit, QMainWindow, QMessageBox, QPlainTextEdit, QPushButton, QScrollArea,
     QSizePolicy, QSpinBox, QTabWidget, QTextBrowser, QToolBar, QVBoxLayout, QWidget,
 )
 
 from exalted_builder import persistence
-from exalted_builder.engine import adversaries as adv, derive, play as engineplay
+from exalted_builder.engine import (adversaries as adv, derive, dice,
+                                    play as engineplay)
 from exalted_builder.models.character import Character, Damage, PlayState
 from exalted_builder.models.party import Party, PartyMember
 from exalted_builder.ui import pdf, theme
@@ -74,6 +76,12 @@ from .theme import CARD, INPUT, MUTED, accent as accent_light
 from .trackers import MARK_FILL, box as tracker_box, restyle as restyle_box
 
 _BOXES_PER_ROW = 10
+
+# The batch roll's name column. Fixed so every row's dice box lines up.
+_BATCH_NAME_WIDTH = 160
+
+# A botched row in a batch log, the same amber the Play tab uses for "your call".
+_BATCH_BOTCH = "#d9a441"
 
 # One card is unreadable much under this; the grid takes as many columns as fit.
 _CARD_WIDTH = 430
@@ -187,6 +195,17 @@ class PartyPage(QWidget):
         self._roster_lay.setContentsMargins(0, 0, 0, 0)
         self._roster_lay.setSpacing(6)
         outer_body.addLayout(self._roster_lay)
+        # The batch roll, BELOW both rosters because it rolls for both: its rows
+        # are party members and adversaries alike (a dice count does not care
+        # which). Decision 0019 — read `_build_batch` before changing it.
+        self._batch_lay = QVBoxLayout()
+        self._batch_lay.setContentsMargins(0, 0, 0, 0)
+        self._batch_lay.setSpacing(4)
+        outer_body.addLayout(self._batch_lay)
+        self._batch_state = viewmod.new_batch_state()
+        self._batch_keys: list[str] = []
+        self._batch_folds: dict[int, tuple] = {}
+        self._build_batch()
         outer_body.addStretch(1)
         self._scroll = QScrollArea()
         self._scroll.setWidgetResizable(True)
@@ -282,6 +301,7 @@ class PartyPage(QWidget):
                                  Qt.AlignmentFlag.AlignTop)
         self._even_columns(self._grid, self._columns)
         self._reload_roster()
+        self._sync_batch_rows()
 
     # ---- the opposition -------------------------------------------------- #
 
@@ -443,6 +463,192 @@ class PartyPage(QWidget):
 
     # ---- one card -------------------------------------------------------- #
 
+    # ---- the batch roll (decision 0019) ---------------------------------- #
+
+    def _build_batch(self) -> None:
+        """The Storyteller's batch roll, built ONCE: a name for the batch, the two
+        switches, a Roll button, then a rebuilt row list and a rebuilt log.
+
+        ⚠ Read 0019 first. Every count is TYPED — nothing here reads a character's
+        pool, and nothing may. With six rows on screen, filling them from a named
+        roll is the obvious convenience and is exactly what the decision rejects:
+        the app would claim to know what six sheets are rolling, and "add their
+        Charm dice" is the next ask. A row's name is the CHARACTER's, which
+        asserts nothing about a pool; a roll's name would.
+
+        ⚠ The controls are built once and only `_batch_rows_lay` / `_batch_log_lay`
+        are cleared, so a roll or a roster change cannot delete the button under
+        the Storyteller's cursor.
+        """
+        body = self._panel(self._batch_lay, "BATCH ROLL", self._accent())
+        controls = QHBoxLayout()
+        self._batch_name = QLineEdit()
+        self._batch_name.setObjectName("party.batch.name")
+        self._batch_name.setPlaceholderText("Name this roll — e.g. Join Battle")
+        self._batch_name.textChanged.connect(
+            lambda t: self._batch_state.update(name=t))
+        self._batch_name.returnPressed.connect(self._do_batch_roll)
+        controls.addWidget(self._batch_name, 1)
+        target = QSpinBox()
+        target.setObjectName("party.batch.target")
+        target.setRange(2, 10)
+        target.setValue(self._batch_state["target_number"])
+        target.valueChanged.connect(
+            lambda v: self._batch_state.update(target_number=v))
+        controls.addWidget(QLabel("Target"))
+        controls.addWidget(target)
+        roll = QPushButton("Roll all")
+        roll.setObjectName("party.batch.roll")
+        roll.clicked.connect(self._do_batch_roll)
+        controls.addWidget(roll)
+        body.addLayout(controls)
+
+        switches = QHBoxLayout()
+        doubles = QCheckBox("10s count double")
+        doubles.setObjectName("party.batch.doubles")
+        doubles.setChecked(self._batch_state["doubles_tens"])
+        doubles.toggled.connect(lambda on: self._batch_state.update(doubles_tens=on))
+        switches.addWidget(doubles)
+        botch = QCheckBox("Can botch")
+        botch.setObjectName("party.batch.botch")
+        botch.setChecked(self._batch_state["can_botch"])
+        botch.toggled.connect(lambda on: self._batch_state.update(can_botch=on))
+        switches.addWidget(botch)
+        switches.addStretch(1)
+        body.addLayout(switches)
+
+        self._batch_rows_lay = QVBoxLayout()
+        self._batch_rows_lay.setSpacing(2)
+        body.addLayout(self._batch_rows_lay)
+        note = QLabel("Type the dice each of them is picking up. 0 sits a row out. "
+                      "Stunts, difficulty and Charms are yours — this does not know.")
+        note.setWordWrap(True)
+        note.setStyleSheet(f"color:{MUTED}; font-size:11px;")
+        body.addWidget(note)
+        self._batch_log_lay = QVBoxLayout()
+        self._batch_log_lay.setSpacing(2)
+        body.addLayout(self._batch_log_lay)
+
+    def _sync_batch_rows(self) -> None:
+        """Rebuild the row list, but ONLY when the roster actually changed.
+
+        ⚠ An unconditional rebuild deletes a spin box mid-keystroke: `reload()`
+        runs on every roster change, and the Storyteller may be typing counts
+        while adding the last adversary. The typed values themselves survive
+        regardless — they live in `_batch_state`, keyed by row id, never by
+        position (a positional key moves one character's dice onto another's row).
+        """
+        rows = viewmod.batch_roster(self._party())
+        keys = [key for key, _ in rows]
+        if keys == self._batch_keys:
+            return
+        self._batch_keys = keys
+        clear_layout(self._batch_rows_lay)
+        if not rows:
+            self._batch_rows_lay.addWidget(
+                self._muted("No one on the roster to roll for yet."))
+            return
+        for key, name, count, label in viewmod.batch_rows(self._batch_state, rows):
+            row = QHBoxLayout()
+            # ⚠ A FIXED width, and elided HERE rather than by `_StatLine`. A
+            # minimum width lets "Gearheart-of-the-Ninefold-Cog" — a real
+            # character name — push that row's dice box out of line with every
+            # other row's; `_StatLine` cannot be used because its `Ignored`
+            # horizontal policy beats a fixed width and collapses the column to
+            # nothing. The width is known here, so the elision can be too.
+            who = QLabel()
+            who.setFixedWidth(_BATCH_NAME_WIDTH)
+            who.setToolTip(name)
+            who.setText(who.fontMetrics().elidedText(
+                name, Qt.TextElideMode.ElideRight, _BATCH_NAME_WIDTH - 6))
+            row.addWidget(who)
+            dice_box = QSpinBox()
+            dice_box.setObjectName(f"party.batch.count.{key}")
+            dice_box.setRange(0, dice.MAX_DICE)
+            dice_box.setValue(count)
+            dice_box.valueChanged.connect(
+                lambda v, k=key: self._batch_state["counts"].__setitem__(k, v))
+            row.addWidget(dice_box)
+            text = QLineEdit(label)
+            text.setObjectName(f"party.batch.label.{key}")
+            text.setPlaceholderText("Label (yours)")
+            text.textChanged.connect(
+                lambda t, k=key: self._batch_state["labels"].__setitem__(k, t))
+            row.addWidget(text, 1)
+            self._batch_rows_lay.addLayout(row)
+
+    def _muted(self, text: str) -> QLabel:
+        label = QLabel(text)
+        label.setWordWrap(True)
+        label.setStyleSheet(f"color:{MUTED}; font-size:11px;")
+        return label
+
+    def _do_batch_roll(self) -> None:
+        rows = viewmod.batch_roster(self._party())
+        if viewmod.roll_batch(self._batch_state, rows) is None:
+            self._notify("No dice typed — give at least one row a count.")
+            return
+        self._fill_batch_log()
+
+    def _notify(self, text: str) -> None:
+        """The page stands alone in tests, so the status hook is optional."""
+        hook = self._ctx.get("notify")
+        if callable(hook):
+            hook(text)
+
+    def _fill_batch_log(self) -> None:
+        """Repaint the log alone. Each batch is a fold captioned with the
+        Storyteller's name for it; opening one shows a line per row."""
+        clear_layout(self._batch_log_lay)
+        self._batch_folds = {}
+        for batch in self._batch_state["log"]:
+            open_ = batch.key in self._batch_state["open"]
+            head = QPushButton()
+            head.setObjectName(f"party.batch.fold.{batch.key}")
+            head.setFlat(True)
+            head.setStyleSheet(f"text-align:left; color:{MUTED};")
+            box = QWidget()
+            box_lay = QVBoxLayout(box)
+            box_lay.setContentsMargins(16, 0, 0, 4)
+            box_lay.setSpacing(1)
+            for entry in batch.rolls:
+                colour = _BATCH_BOTCH if entry.botch else self._accent()
+                line = QLabel(
+                    f'<b><span style="color:{colour}">{_html.escape(entry.outcome)}'
+                    f'</span></b>&nbsp;&nbsp;{_html.escape(entry.label)}'
+                    f'&nbsp;&nbsp;<span style="color:{MUTED}">'
+                    f'{_html.escape(entry.faces_text)}</span>')
+                line.setWordWrap(True)
+                box_lay.addWidget(line)
+            box_lay.addWidget(self._muted(batch.detail))
+            box.setVisible(open_)
+            head.clicked.connect(lambda _c=False, k=batch.key: self._toggle_batch(k))
+            self._batch_folds[batch.key] = (head, box)
+            self._batch_log_lay.addWidget(head)
+            self._batch_log_lay.addWidget(box)
+            self._sync_batch_caption(batch)
+        if self._batch_state["log"]:
+            self._batch_log_lay.addWidget(self._muted(
+                "This session only — nothing is saved to any character."))
+
+    def _sync_batch_caption(self, batch) -> None:
+        head, _ = self._batch_folds[batch.key]
+        open_ = batch.key in self._batch_state["open"]
+        head.setText(("▾  " if open_ else "▸  ") + batch.caption)
+
+    def _toggle_batch(self, key: int) -> None:
+        """Open or close one fold. A visibility change ONLY — rebuilding the log
+        here would delete the button being clicked."""
+        open_set = self._batch_state["open"]
+        if key in open_set:
+            open_set.discard(key)
+        else:
+            open_set.add(key)
+        head, box = self._batch_folds[key]
+        box.setVisible(key in open_set)
+        batch = next(b for b in self._batch_state["log"] if b.key == key)
+        self._sync_batch_caption(batch)
+
     def _panel(self, lay, title: str, accent: str) -> QVBoxLayout:
         """A heading over a body. `self._last_head` is the heading just added — every
         one of these carries a live count that is re-texted rather than rebuilt."""
@@ -541,11 +747,13 @@ class PartyPage(QWidget):
         body = self._panel(lay, self._health_title(cv, marks), accent)
         self._card_boxes[index]["health_head"] = self._last_head
         row = None
+        rows: list[QHBoxLayout] = []
         for i, box in enumerate(cv.play.health_boxes):
             if i % _BOXES_PER_ROW == 0:
                 row = QHBoxLayout()
                 row.setSpacing(3)
                 body.addLayout(row)
+                rows.append(row)
             mark = marks[i]
             # The wound penalty is CAPTIONED, not just a tooltip: which box to mark next
             # is the thing a Storyteller reads off a card mid-fight, and a hover is no
@@ -566,8 +774,13 @@ class PartyPage(QWidget):
             self._card_boxes[index]["health"].append(button)
             cell.addWidget(button)
             row.addLayout(cell)
-        if row is not None:
-            row.addStretch(1)
+        # ⚠ EVERY row, not just the last — the same defect the Play tab carried. A
+        # QHBoxLayout of fixed-size cells with no trailing stretch spreads its slack
+        # BETWEEN them, so a track that wraps draws its full rows justified and the
+        # short final row packed left, changing pitch mid-track. Only an Ox-Body
+        # character wraps at all, which is why every fixture missed it.
+        for lay_ in rows:
+            lay_.addStretch(1)
 
     def _motes(self, lay, index, character, cv, cur, accent) -> None:
         """The Essence pools.

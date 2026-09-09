@@ -32,8 +32,16 @@ the table is doing, and there is no printed roster of those to author — so it 
 builder (`pools.custom_roll`), not data, and its `source` is deliberately left empty
 so it never implies a page it does not have.
 
-**No dice are rolled and nothing is resolved.** 0016 narrowed 0008's boundary to let
-this exist; 0009 is untouched and was not reopened.
+**No pool row rolls itself, and nothing is resolved.** 0016 narrowed 0008's boundary
+to let this exist.
+
+⚠ **The "0009 is untouched" clause that stood here is no longer true.** The human
+reopened 0009 on 2026-09-08 and `0019` reversed it narrowly: a **dumb roller taking a
+dice COUNT** now sits on the same Play tab, and an initiative RATING card sits above
+the pool list. Neither is wired to these rows and neither may be —
+`docs/status/dice-roller.md` and decision 0019 own that boundary. The caveat rendered
+under the list changed with it: *"Nothing is resolved here, and no row rolls itself —
+the roller takes a number you type."*
 
 ## The shape
 

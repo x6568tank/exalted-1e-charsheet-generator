@@ -136,11 +136,15 @@ costs — read the record before proposing anything that contradicts it.
 | 0016 | **Base dice pools are in scope; resolution is not** — narrows 0008, leaves 0009 untouched |
 | 0017 | **Artifacts have acquisition CHANNELS** — the Artifact Background is pre-game (core p.342, budgeted); cash is in-play (M&C pp.122-125). ⚠ A **third** joined 2026-08-13/14 and is not yet its own record: a plot device printing "(ARTIFACT N/A)" is bought with the **Legendary Artifact** 10-pt Merit and charged to no budget — the standing answer for the shape, still confirm each. `docs/status/book-of-three-circles.md` |
 | 0018 | **The Qt port is committed** — a PySide6 native app alongside the NiceGUI webapp; the plan doc becomes the build record |
+| 0019 | **A dumb dice roller, UNWIRED from the pools** — rolls a dice COUNT, never a named roll. Reverses 0009 narrowly (the human reopened it, 2026-09-08); amends 0016's initiative clause. **BUILT 2026-09-08** in both shells, with the initiative RATING and the GM's batch roll: `status/dice-roller.md` |
 
-**Permanently out of scope** — 0008, 0009 and 0010 (no combat/attack derivation, no dice
-rolling of any kind, no Fair Folk); all three are closed. ⚠ 0008's boundary was NARROWED
-by 0016: computing a BASE dice pool is in scope — read 0016 before citing 0008 against a
-pool calculation.
+**Permanently out of scope** — 0008 and 0010 (no combat/attack derivation, no Fair Folk);
+both closed. ⚠ **0009 is NO LONGER a blanket bar** — the human reopened it 2026-09-08 and
+0019 reversed it in a narrow shape: a roller taking a dice COUNT is in scope; a roller
+that knows *which roll* it is rolling is not, and that gap is the whole safety mechanism.
+⚠ 0008's boundary was NARROWED by 0016: computing a BASE dice pool is in scope — read
+0016 before citing 0008 against a pool calculation. **Read 0019 before citing 0009 at
+all.**
 
 ### Standing bars that are not numbered decisions
 - **⚠ Backwards compatibility with old saves is NOT a concern** (human, 2026-08-22:
@@ -219,10 +223,10 @@ the `origin` / `upbringing` axes) and the traps, `highest_magic_circle_id` chief
 them.
 
 ## The test suite → `docs/testing.md`
-**3,251 passing, 1 failing, 1 skipped** (2026-09-07, main PC; +14 tests this session).
-⚠ The FAILURE is the machine-dependent M&F description test, and it fails here because the
-source chapters it checks against are present — it defers, and goes green, where they are
-not. ⚠ **The count is machine-dependent by
+**3,369 passing, 1 skipped, 1 failing** (2026-09-08, main PC, post-merge — the roller's
+3,356 plus the attunement line's tests). ⚠ The FAILURE is the machine-dependent M&F
+description test, which fails here because the source chapters it checks against are
+present; it defers, and goes green, where they are not. ⚠ **The count is machine-dependent by
 DOZENS of tests, by 45 where `pypdf` is missing, and by 522 more where the optional `qt`
 extra is missing** — a lower number is that working, not tests going missing. **Do not
 "reconcile" two machines' numbers, and never infer WHICH machine you are on from the
@@ -266,6 +270,7 @@ are pointers only; the traps and history live in the files.
 | Thaumaturgy — cross-splat Arts/Sciences/Rituals/Formulas | `status/thaumaturgy.md` |
 | Custom content — user-authored Charms/styles/spells/**rituals**/gear, the `/custom` page | `status/custom-content.md` |
 | Dice pools — decision 0016, the Play-tab sidebar | `status/dice-pools.md` |
+| The dumb dice roller — decision 0019: the roller, the initiative RATING, the GM's batch roll, and the tests that guard the no-wire rule | `status/dice-roller.md` |
 | Elder Exalts — Essence to the splat cap, the p.259 downtime calculator | `status/elder-exalts.md` |
 | Edit⇄XP merge — one trait surface both sides of the lock | `status/edit-xp-merge.md` |
 | Advantages tab — Backgrounds + M&F on one both-sides tab | `status/advantages-tab.md` |
@@ -339,7 +344,7 @@ Each is written up where it landed; these are the ones that catch people mid-tas
   build with no page behind it** — supplied by the human 2026-07-29.
 - **An `Adversary` is NOT a `Character` and must never become one** — a test asserts it.
 - **Passions are a LIVE DERIVATION of the Virtues** on both sides of the lock, never
-  bought with BP or XP (E:Ab p.283).
+  bought with BP or XP — `derive.passion_pool` carries the rule and its page.
 - **No character may leave creation with Essence above 5** (`essence-above-elder-chargen-cap`).
 - **An attuned artifact's motes come off the PLAY pools only** — `build_play_view`
   subtracts, the sheet still prints the full pools, and no `engine/validate/` module may
@@ -365,7 +370,10 @@ Each is written up where it landed; these are the ones that catch people mid-tas
   different one runs — downloading a new release to a new path changes nothing until you
   execute it directly. ⚠ **But check the DATES before blaming the build**: on 2026-09-03
   the stale-binary theory was wrong twice over — the suspected fix predated the binary by
-  a month, and the real bug was in the code all along.
+  a month, and the real bug was in the code all along. ⚠ The same question bit again on
+  2026-09-08 in its **server** form: `reload=False` plus a `fuser -k` that silently
+  failed left port 8080 answering **200** with the previous build. Kill by PID and
+  confirm the port is dead before relaunching.
 - `chargen_budgets.json`/`costs_bonus.json`/`costs_xp.json` overrides beyond what's
   authored — optional, loader falls back to model defaults.
 - A per-session XP-grant ledger; state-reconciliation of hand-edited
@@ -379,8 +387,5 @@ Each is written up where it landed; these are the ones that catch people mid-tas
 - **Merits & Flaws were ripped out 2026-06-15** (the old system bundled balance-wrecking
   Charm rewrites) and **restored 2026-07-30** as decision 0011's single centralized calc.
   The reason they were removed is the reason no caller may name a Merit id.
-- `CharmCost.health_type` was homebrew-only with no printed use when created, but
-  acquired its first printed consumer on 2026-08-01 — Stolen Wax Discipline (E:Ab
-  p.238), "5 motes, one lethal health level". Don't treat it as homebrew-only.
 - Full multi-splat plan: `~/.claude/plans/should-we-plan-out-encapsulated-crab.md`.
 - DB chargen numbers as verified from source pages: [[db-chargen-findings]].

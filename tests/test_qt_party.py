@@ -540,3 +540,133 @@ def test_reset_on_a_roster_card_repaints_rather_than_rebuilding(make_window):
     assert _named(window.party_page, "adv.adv.1.reset") is button
     # and the box it repainted is empty again
     assert _named(window.party_page, "adv.adv.1.health.0").text() == ""
+
+
+# --------------------------------------------------------------------------- #
+# The batch roll (decision 0019)
+# --------------------------------------------------------------------------- #
+
+def _batch_texts(page):
+    return [w.text() for w in page.findChildren(QLabel)]
+
+
+def test_the_batch_lists_a_row_per_member(make_window):
+    window, _, _ = make_window(_party(_solar("Yarak"), _solar("Taban")))
+    page = window.party_page
+    counts = [w for w in page.findChildren(QSpinBox)
+              if w.objectName().startswith("party.batch.count.")]
+    assert len(counts) == 2
+
+
+def test_rolling_folds_the_batch_under_the_storytellers_name(make_window):
+    window, _, _ = make_window(_party(_solar("Yarak"), _solar("Taban")))
+    page = window.party_page
+    page._batch_name.setText("Join Battle")
+    for box in page.findChildren(QSpinBox):
+        if box.objectName().startswith("party.batch.count."):
+            box.setValue(4)
+    _named(page, "party.batch.roll").click()
+    folds = [w for w in page.findChildren(QPushButton)
+             if w.objectName().startswith("party.batch.fold.")]
+    assert len(folds) == 1
+    assert "Join Battle" in folds[0].text()
+
+
+def test_the_fold_opens_and_closes_without_rebuilding_its_button(make_window):
+    """⚠ Toggling must be a visibility change. Rebuilding the log deletes the
+    button being clicked — the tracker-repaint trap this window already carries a
+    warning about."""
+    window, _, _ = make_window(_party(_solar("Yarak")))
+    page = window.party_page
+    next(b for b in page.findChildren(QSpinBox)
+         if b.objectName().startswith("party.batch.count.")).setValue(3)
+    _named(page, "party.batch.roll").click()
+    fold = [w for w in page.findChildren(QPushButton)
+            if w.objectName().startswith("party.batch.fold.")][0]
+    box = page._batch_folds[list(page._batch_folds)[0]][1]
+    assert not box.isHidden()          # the newest batch opens on its own
+    fold.click()
+    assert box.isHidden()
+    assert [w for w in page.findChildren(QPushButton)
+            if w.objectName().startswith("party.batch.fold.")][0] is fold
+
+
+def test_a_typed_count_survives_a_roster_change(make_window):
+    """⚠ Counts live in the state keyed by row id, and the rows are rebuilt only
+    when the roster actually changed — otherwise a reload deletes the spin box
+    mid-keystroke. Adding a member must not wipe what is already typed."""
+    party = _party(_solar("Yarak"))
+    window, ctx, _ = make_window(party)
+    page = window.party_page
+    box = next(b for b in page.findChildren(QSpinBox)
+               if b.objectName().startswith("party.batch.count."))
+    box.setValue(7)
+    party.members.append(PartyMember(character=_solar("Taban")))
+    page.reload()
+    kept = _named(page, "party.batch.count.m:c.Yarak", QSpinBox)
+    assert kept.value() == 7
+
+
+def test_no_row_offers_a_named_roll_to_fill_its_count(make_window):
+    """⚠ THE test here. A combo of roll names beside each row is the wire 0019
+    rejects: the app would claim to know what every sheet is rolling, and Charm
+    dice is the next ask. A row holds a number and a free-text label, nothing else."""
+    from PySide6.QtWidgets import QComboBox
+    window, _, _ = make_window(_party(_solar("Yarak")))
+    page = window.party_page
+    combos = [w for w in page.findChildren(QComboBox)
+              if w.objectName().startswith("party.batch.")]
+    assert combos == []
+    assert any("Stunts, difficulty and Charms are yours" in t
+               for t in _batch_texts(page))
+
+
+def test_every_batch_row_lines_its_dice_box_up(make_window, qtbot):
+    """⚠ A long name must not push its own row's controls out of line. Real
+    character names run to "Gearheart-of-the-Ninefold-Cog", so the name column is
+    fixed-width and elided — and a GEOMETRY test is the only kind that notices,
+    because the widgets are all present either way."""
+    window, _, _ = make_window(_party(_solar("Ix"),
+                                      _solar("Gearheart-of-the-Ninefold-Cog")))
+    page = window.party_page
+    window.resize(1200, 900)
+    window.show()
+    qtbot.waitExposed(window)
+    # ⚠ `waitExposed` returns before a nested QScrollArea's contents are laid out
+    # — every box reports the same y and a geometry assertion reads one row where
+    # there are two. Spin the loop once before measuring anything.
+    qtbot.wait(50)
+    boxes = [b for b in page.findChildren(QSpinBox)
+             if b.objectName().startswith("party.batch.count.")]
+    xs = {b.mapTo(window, b.rect().topLeft()).x() for b in boxes}
+    assert len(xs) == 1, f"batch rows drew their dice boxes at {sorted(xs)}"
+
+
+def test_a_wrapped_card_health_track_keeps_one_pitch(make_window, qtbot):
+    """⚠ The same missing-stretch defect the Play tab carried, one widget class
+    over — a card's track wraps past `_BOXES_PER_ROW` and drew its full row
+    justified while the short row packed left. A defect one class over is still
+    ours (`docs/plans/qt-port.md`)."""
+    from exalted_builder.models.character import OxBodyPurchase
+    char = _solar("Tank")
+    char.ox_body = [OxBodyPurchase(variant="v", health_levels=[2, 2, 2])] * 4
+    window, _, _ = make_window(_party(char))
+    page = window.party_page
+    window.resize(1200, 900)
+    window.show()
+    qtbot.waitExposed(window)
+    # ⚠ `waitExposed` returns before a nested QScrollArea's contents are laid out
+    # — every box reports the same y and a geometry assertion reads one row where
+    # there are two. Spin the loop once before measuring anything.
+    qtbot.wait(50)
+    rows = {}
+    for w in page.findChildren(QPushButton):
+        if w.objectName().startswith("party.0.health."):
+            rows.setdefault(w.mapTo(window, w.rect().topLeft()).y(), []).append(w)
+    ordered = [sorted(bs, key=lambda b: b.mapTo(window, b.rect().topLeft()).x())
+               for _, bs in sorted(rows.items())]
+    assert len(ordered) > 1, "fixture no longer wraps — the defect cannot reproduce"
+    pitches = [row[1].mapTo(window, row[1].rect().topLeft()).x()
+               - row[0].mapTo(window, row[0].rect().topLeft()).x()
+               for row in ordered if len(row) > 1]
+    assert len(set(pitches)) == 1, f"rows drew at different pitches: {pitches}"
