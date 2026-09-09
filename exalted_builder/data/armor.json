@@ -239,7 +239,7 @@
     "fatigue": 1,
     "resources_cost": 0,
     "artifact_rating": 4,
-    "attunement": 0,
+    "attunement": 5,
     "notes": "Dragon armor. Grants a Strength bonus of +2 (to a maximum of 8) and carries the Lightning Corona as an integral weapon (see weapons). Can hover, and for 5 further motes truly fly at up to 60 mph with limited manoeuvrability. The source prints the name as 'Most Terryfying' in the stat table and 'MOST TERRIFYING' in the heading. (Aspect Book: Air, p.81)",
     "tags": [
       "artifact",

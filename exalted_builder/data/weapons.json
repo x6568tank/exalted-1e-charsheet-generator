@@ -1279,7 +1279,8 @@
     "tags": [
       "melee",
       "artifact"
-    ]
+    ],
+    "attunement": 10
   },
   {
     "id": "weapon.melee.black_widow_razors",
@@ -1290,11 +1291,12 @@
     "damage_type": "L",
     "defense": 2,
     "artifact_rating": 3,
-    "notes": "Artifact ••• for the pair. Prized by assassins. Damage is +4L PLUS poison — the poison is not modelled here. (Aspect Book: Wood, p.83) Minimums: Dexterity ••. Exalted Power Combat: Speed +0, Accuracy +1, Damage +5L (+ poison), Defense +1, Rate 6, minimums Strength •, Dexterity ••.",
+    "notes": "Artifact ••• for the pair. Prized by assassins. Damage is +4L PLUS poison — the poison is not modelled here. (Aspect Book: Wood, p.81) Minimums: Dexterity ••. Exalted Power Combat: Speed +0, Accuracy +1, Damage +5L (+ poison), Defense +1, Rate 6, minimums Strength •, Dexterity ••.",
     "tags": [
       "melee",
       "artifact"
-    ]
+    ],
+    "attunement": 6
   },
   {
     "id": "weapon.melee.grand_grimcleaver",
@@ -1304,7 +1306,7 @@
     "damage": 13,
     "damage_type": "L",
     "defense": -1,
-    "notes": "Named only in the weapon table; the chapter carries no write-up and prints no Artifact rating for it. (Aspect Book: Wood, p.83) Minimums: Strength ••••. Exalted Power Combat: Speed +8, Accuracy +1, Damage +14L, Defense -3, Rate 3.",
+    "notes": "Named only in the weapon table; the chapter carries no write-up and prints no Artifact rating for it. (Aspect Book: Wood, p.81) Minimums: Strength ••••. Exalted Power Combat: Speed +8, Accuracy +1, Damage +14L, Defense -3, Rate 3.",
     "tags": [
       "melee",
       "artifact"
@@ -1319,11 +1321,12 @@
     "damage_type": "L",
     "defense": 0,
     "artifact_rating": 4,
-    "notes": "(Aspect Book: Wood, p.83) Minimums: Strength •••. Exalted Power Combat: Speed +9, Accuracy +2, Damage +14L.",
+    "notes": "(Aspect Book: Wood, p.81) Minimums: Strength •••. Exalted Power Combat: Speed +9, Accuracy +2, Damage +14L.",
     "tags": [
       "melee",
       "artifact"
-    ]
+    ],
+    "attunement": 10
   },
   {
     "id": "weapon.melee.gauntlets_of_distant_touch",
@@ -1338,7 +1341,8 @@
     "tags": [
       "melee",
       "artifact"
-    ]
+    ],
+    "attunement": 4
   },
   {
     "id": "weapon.melee.lightning_corona",
