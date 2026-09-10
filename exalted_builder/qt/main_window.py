@@ -1,17 +1,16 @@
 """exalted_builder/qt/main_window.py — the native builder window (decision 0018).
 
-The shell is the master-detail the human approved in spikes/qt_edit: a left RAIL of
-app tabs (Identity / Traits / Gear / Advantages / Charms / Play / ST Options /
-Custom / Sheet — every one of them real as of 2026-08-27; the placeholder class is gone
-with the last of them) beside a stack of pages, a top toolbar (New / Load / Save /
-Print / Finish & Lock / Unlock / Party), a readout bar whose "≡ details" opens a
-popover with validation + bonus-points + the post-lock Experience card, and a bottom
-status strip (Willpower · pools · Soak).
+The shell is a master-detail layout (human's ruling). It has a left RAIL of app tabs
+(Identity / Traits / Gear / Advantages / Charms / Play / ST Options / Custom / Sheet)
+next to a stack of pages. It has a top toolbar (New / Load / Save / Print / Finish & Lock
+/ Unlock / Party). It has a readout bar, and its "≡ details" control opens a popover with
+the validation issues, the bonus points and the Experience card that appears after the
+lock. It has a bottom status strip (Willpower · pools · Soak).
 
-The Identity/Traits split: the old monolithic Edit tab became two pages
-(qt/editor.py). Rail visibility follows view.visible_tabs with the old "Edit" key
-mapped to showing both; a page's reload() runs whenever it is shown, so a structural
-change on Identity is fresh when Traits opens.
+Identity and Traits are two pages (`qt/editor.py`), and the webapp has one Edit tab. The
+rail follows `view.visible_tabs`, and the old "Edit" key shows both pages. The `reload()`
+of a page runs each time the shell shows that page. Thus a structural change on Identity
+is current when the user opens Traits.
 """
 
 from __future__ import annotations
@@ -46,13 +45,12 @@ from .play import PlayPage
 from .sheet import SheetPage
 from .storyteller import StorytellerPage
 
-# The rail's tabs: the app's viewmod._TABS with the "Edit" tab split into Identity +
-# Traits (the human-approved spike layout).
-# ⚠ "Combos" is NOT here. It is a SUB-TAB of Charms in the native shell (2026-08-21,
-# the human's call), because a Combo is assembled out of Charms the character already
-# owns and the two were a rail apart. The webapp keeps its top-level Combos tab, so
-# `viewmod.visible_tabs` still names one and `_visible_rail_tabs` drops it — the
-# show/hide rule itself moved inward to `CharmsPage`.
+# The tabs of the rail. They are the `viewmod._TABS` of the app, with the "Edit" tab
+# divided into Identity and Traits (human's ruling).
+# ⚠ "Combos" is NOT here. In the native shell, Combos is a SUB-TAB of Charms (human's
+# ruling), because a Combo is assembled from Charms that the character owns. The webapp
+# keeps its top-level Combos tab. Thus `viewmod.visible_tabs` names one, and
+# `_visible_rail_tabs` removes it. `CharmsPage` holds the show/hide rule.
 _RAIL_TABS = ("Identity", "Traits", "Gear", "Advantages", "Charms",
               "Play", "ST", "Custom", "Sheet")
 _RAIL_LABELS = {t: t for t in _RAIL_TABS}
@@ -67,9 +65,9 @@ _DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 
 
 def make_context(character: Character, save_path: Path) -> dict:
-    """The app's shared, mutable context: the character being edited, where it saves,
-    and the (unused-this-milestone) party slot. Mirrors ui/builder.make_context — the
-    native shell must not import the NiceGUI module to get it."""
+    """The shared context of the app. It holds the character that the user edits, the save
+    path, and the party slot. It agrees with `ui/builder.make_context`. ⚠ The native shell
+    must not import the NiceGUI module to get this context."""
     return {"char": character, "path": Path(save_path), "dir": Path(save_path).parent,
             "party": Party(id="party.new"), "party_path": None, "member": None,
             "adversary_catalog": {}}
@@ -85,9 +83,9 @@ class MainWindow(QMainWindow):
         self._ruleset = ruleset
         self._ctx = ctx if ctx is not None else make_context(character, save_path)
         self._state = {"tab": "Identity"}
-        # ⚠ A CALCULATOR field, not a character trait — `Character.age` is gone
-        # and age gates nothing (human, 2026-08-06). Kept on the window so a
-        # second downtime award is priced from where the last one ended.
+        # ⚠ This is a CALCULATOR field, not a character trait. `Character.age` does not
+        # exist, and age gates nothing (human's ruling). The window holds this value. Thus
+        # a second downtime award starts at the end of the last award.
         self._downtime = {"age": 0, "years": 0}
         self._syncing = False
         self._pages: dict[str, QWidget] = {}
@@ -104,8 +102,8 @@ class MainWindow(QMainWindow):
     # ---- chrome --------------------------------------------------------- #
 
     def _notify(self, text: str, kind: str = "info") -> None:
-        """A transient message. Warnings are modal (a failed purchase needs to be
-        seen); info rides the status bar."""
+        """Show a temporary message. A warning is modal, because the user must see a
+        failed purchase. Information goes to the status bar."""
         if kind == "warning":
             QMessageBox.warning(self, "Exalted 1e", text)
         else:
@@ -125,8 +123,8 @@ class MainWindow(QMainWindow):
         tb = QToolBar("Actions")
         tb.setMovable(False)
         self.addToolBar(tb)
-        # `&&` — a single `&` in action text is Qt's mnemonic marker and is swallowed
-        # from the display ("Finish & Lock" would render "Finish  Lock").
+        # ⚠ Write `&&`. In action text, one `&` is the mnemonic marker of Qt, and Qt
+        # removes it from the display. "Finish & Lock" then shows as "Finish  Lock".
         tb.addAction("New", self._confirm_new)
         tb.addAction("Load", self._open_load)
         tb.addAction("Save", self._save)
@@ -162,9 +160,9 @@ class MainWindow(QMainWindow):
         for name in _RAIL_TABS:
             self.rail.addItem(QListWidgetItem(_RAIL_LABELS.get(name, name)))
 
-        # status strip — created BEFORE the pages, because a page's constructor may
-        # already fire `on_change` (the Advantages page derives its issue line as it
-        # builds) and `_refresh` writes to both readouts.
+        # ⚠ Create the status strip BEFORE the pages. The constructor of a page can send
+        # `on_change`. For example, the Advantages page calculates its issue line while it
+        # builds. `_refresh` then writes to both readouts.
         self.status = QLabel("")
         self.status.setStyleSheet(f"color:{qtheme.MUTED}; padding:4px 8px;")
 
@@ -180,18 +178,18 @@ class MainWindow(QMainWindow):
             ruleset, ctx, notify=self._notify, on_change=self._refresh)
         self._pages["Charms"] = CharmsPage(
             ruleset, ctx, notify=self._notify, on_change=self._refresh)
-        # ⚠ No `on_change`: play-state moves nothing the shell's readout bar or status
-        # strip shows — those are permanent derivations, and decision 0006 keeps
-        # play-state out of every one of them. A hook wired here would be a dormant
-        # invitation to change that.
+        # ⚠ Supply no `on_change` here. Play state changes nothing that the readout bar or
+        # the status strip shows. Those are permanent derivations, and decision 0006 keeps
+        # play state out of all of them. A hook here invites a later change to that rule.
         self._pages["Play"] = PlayPage(ruleset, ctx, notify=self._notify)
-        # ⚠ `on_change` is load-bearing: "Magic for Everyone" grants free purchases and
-        # the God-Blooded Inheritance rating moves the bonus-point pool, so flipping a
-        # rule changes the readout bar's budget line.
+        # ⚠ `on_change` is necessary here. "Magic for Everyone" gives free purchases, and
+        # the God-Blooded Inheritance rating changes the bonus-point pool. Thus a change to
+        # a rule changes the budget line of the readout bar.
         self._pages["ST"] = StorytellerPage(
             ruleset, ctx, notify=self._notify, on_change=self._refresh)
-        # ⚠ `on_change` is load-bearing: deleting a custom Charm a character owns leaves
-        # the id on the sheet as an `unknown-charm` error, which the readout bar reports.
+        # ⚠ `on_change` is necessary here. A delete of a custom Charm that the character
+        # owns leaves the id on the sheet as an `unknown-charm` error. The readout bar
+        # reports that error.
         self._pages["Custom"] = CustomPage(
             ruleset, ctx, notify=self._notify, on_change=self._refresh)
         self._pages["Sheet"] = SheetPage(ruleset, ctx)
@@ -216,8 +214,9 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central)
 
     def _on_rail_changed(self, row: int) -> None:
-        # A freshly-shown page re-derives from the shared character, so a change made
-        # on one tab is fresh on the next. Skip while _sync_tabs is driving the rail.
+        # A page that the shell shows calculates again from the shared character. Thus a
+        # change on one tab is current on the next tab. Skip this while `_sync_tabs`
+        # controls the rail.
         if self._syncing:
             return
         self.stack.setCurrentIndex(row)
@@ -231,13 +230,13 @@ class MainWindow(QMainWindow):
                 break
 
     def _visible_rail_tabs(self) -> set[str]:
-        """The rail tabs to show: view.visible_tabs with the old "Edit" key mapped to
-        showing both Identity and Traits, and "Combos" dropped.
+        """The rail tabs to show. Input: `view.visible_tabs`. Output: the same list, with
+        the "Edit" key changed to Identity and Traits, and with "Combos" removed.
 
-        ⚠ Combos is a Charms SUB-TAB here, so the shared presenter's answer about it is
-        deliberately discarded rather than the presenter changed — `visible_tabs` is
-        still exactly right for the webapp, where Combos is top-level. `CharmsPage`
-        asks `has_combos_tab` itself and adds or drops its own page.
+        ⚠ Combos is a SUB-TAB of Charms here. Thus this method discards the answer of the
+        shared presenter. Do not change the presenter. `visible_tabs` is correct for the
+        webapp, where Combos is a top-level tab. `CharmsPage` reads `has_combos_tab` and
+        adds or removes its own page.
         """
         char = self._ctx["char"]
         locked = char.chargen_locked
@@ -250,17 +249,17 @@ class MainWindow(QMainWindow):
         return vis
 
     def _sync_tabs(self) -> None:
-        """Show the rail tabs this character's stage has; Play appears at the lock. If
-        the tab we are on just disappeared, land on its counterpart."""
+        """Show the rail tabs for the stage of this character. Play appears at the lock. If
+        the current tab is no longer visible, move to its replacement."""
         combos = viewmod.has_combos_tab(self._ruleset, self._ctx["char"])
         visible = self._visible_rail_tabs()
         self._syncing = True
         for name in _RAIL_TABS:
             self.rail.item(_RAIL_TABS.index(name)).setHidden(name not in visible)
-        # resolve_tab speaks the old keys; map the current rail tab to old, resolve,
-        # map back (an "Edit" answer lands on Identity). ⚠ It can still answer "Combos",
-        # which is no longer a rail tab — the `target not in _RAIL_TABS` fallback below
-        # is what catches that, and it is load-bearing now rather than defensive.
+        # `resolve_tab` uses the old keys. Change the current rail tab to an old key,
+        # resolve it, then change the result back. An "Edit" result becomes Identity.
+        # ⚠ `resolve_tab` can return "Combos", which is not a rail tab. The
+        # `target not in _RAIL_TABS` fallback below catches that. It is necessary.
         old = _RAIL_TO_OLD.get(self._state["tab"], self._state["tab"])
         resolved = viewmod.resolve_tab(old, self._ctx["char"].chargen_locked,
                                        combos=combos)
@@ -289,25 +288,24 @@ class MainWindow(QMainWindow):
         bp = next((i.message for i in view.issues if i.code == "bonus-points"), "")
         errors = [i for i in view.issues if i.severity == "error"]
         status = "✓ Legal" if not errors else f"✗ {len(errors)} error(s)"
-        # Post-lock there are no bonus points, so the line must not open on " · ".
+        # After the lock there are no bonus points. Thus the line must not start with " · ".
         self.readout.setText(" · ".join(part for part in (bp, status) if part))
         self.status.setText(
             f"Willpower {view.willpower} · {view.essence_pool_label()} · "
             f"Soak B{view.soak.bashing} / L{view.soak.lethal} / A{view.soak.aggravated}")
-        # ⚠ A party member's card shows DERIVED capacities — the health track, the mote
-        # maxima — so spending XP here changes what the card must draw. The two windows
-        # hold the same Character object, which keeps the DATA in step but not the
-        # pixels.
+        # ⚠ The card of a party member shows DERIVED capacities, for example the health
+        # track and the mote maxima. Thus an XP purchase here changes what the card draws.
+        # The two windows hold the same Character object. That keeps the DATA in
+        # agreement, but it does not repaint the card.
         self._refresh_party()
 
     def _open_popover(self) -> None:
-        """The click-to-open details: validation issues, the bonus-point breakdown,
-        and (post-lock) the Experience card + ledger.
+        """The details popover. It shows the validation issues, the bonus-point breakdown,
+        and, after the lock, the Experience card and the ledger.
 
-        The body SCROLLS and the dialog has a floor width, because the content is
-        unbounded — a character can carry a dozen word-wrapped validation issues plus a
-        full XP ledger. Sized to its hint it came up too narrow, and word-wrapped labels
-        in a too-narrow dialog wrap into each other (human, 2026-08-22).
+        ⚠ The body SCROLLS, and the dialog has a minimum width. The content has no limit.
+        A character can have twelve validation issues that wrap, and a full XP ledger. At
+        its size hint, the dialog is too narrow, and labels that wrap then overlap.
         """
         dialog = QDialog(self)
         dialog.setWindowTitle("Validation & experience")
@@ -322,10 +320,10 @@ class MainWindow(QMainWindow):
         outer.addWidget(scroll, 1)
 
         def rebuild() -> None:
-            # ⚠ `clear_layout`, never a hand-written loop: `item.widget()` is None for a
-            # nested QLayout, so a widget-only sweep leaves the bonus-point ROWS' labels
-            # parented and painting over the new build. That is what made the issues
-            # look like they clipped into each other.
+            # ⚠ Use `clear_layout`. Never write a teardown loop. `item.widget()` is None
+            # for a nested QLayout. Thus a widget-only sweep keeps the labels of the
+            # bonus-point ROWS attached, and they paint over the new build. The issues
+            # then look like they overlap.
             clear_layout(root)
             ruleset, char = self._ruleset, self._ctx["char"]
             view = viewmod.build_sheet_view(ruleset, char)
@@ -346,11 +344,10 @@ class MainWindow(QMainWindow):
             sep = QLabel("─" * 36)
             sep.setStyleSheet("color:#a8a5a0;")
             root.addWidget(sep)
-            # ⚠ Bonus points are a CHARGEN surface only (human, 2026-08-22). There are
-            # none to spend after the lock, which is why the readout bar already drops
-            # the line there — a popover still reporting "12 / 15 spent" for a locked
-            # character disagreed with the bar above it. Post-lock this slot is the
-            # Experience card and its ledger instead.
+            # ⚠ Bonus points are a CHARGEN surface only (human's ruling). After the lock
+            # there are none to spend, and the readout bar removes the line. A popover
+            # that reports "12 / 15 spent" for a locked character disagrees with the bar
+            # above it. After the lock, this slot holds the Experience card and its ledger.
             if char.chargen_locked:
                 self._xp_section(root, rebuild)
             else:
@@ -378,15 +375,16 @@ class MainWindow(QMainWindow):
         dialog.exec()
 
     def _downtime_dialog(self) -> None:
-        """The p.259 downtime calculator: years of skipped time to maturation XP.
+        """The downtime calculator (p.259). Input: a number of years. Output: the
+        maturation XP for those years.
 
-        A CALCULATOR that grants, never an enforcement — the 4:3:2:1 split prints as
-        advice and nothing downstream polices it (see engine.elder).
+        This is a CALCULATOR that grants XP. It enforces nothing. The 4:3:2:1 split is
+        advice, and no code downstream applies it (see `engine.elder`).
 
-        ⚠ The AGE is a calculator field, NOT a character trait (human's ruling
-        2026-08-06: `Character.age` is gone and age gates nothing). It lives on the
-        window so a second award is priced from where the last one ended; the character
-        itself only ever receives the XP.
+        ⚠ The AGE is a calculator field, NOT a character trait (human's ruling).
+        `Character.age` does not exist, and age gates nothing. The window holds the age.
+        Thus a second award starts at the end of the last award. The character receives
+        the XP only.
         """
         state = self._downtime
         dialog = QDialog(self)
@@ -436,8 +434,8 @@ class MainWindow(QMainWindow):
                                 % qtheme.accent(theme.palette(self._ctx["char"].exalt_type)))
             preview_box.addWidget(total)
             if not award.total and years.value():
-                # The chart starts at 100 years and the build never invents the rows
-                # below it. Say so, or a zero reads as a bug.
+                # The chart starts at 100 years, and the program does not add rows below
+                # that age. Show this message. Without it, a zero reads as a defect.
                 note = QLabel("The p.259 chart begins at 100 years of Exaltation — a "
                               "younger character earns no maturation experience from "
                               "it. Ordinary play awards are the Storyteller's.")
@@ -556,8 +554,9 @@ class MainWindow(QMainWindow):
             rules_db.reload_custom_layer(self._ruleset)
             self._notify(f"Imported {len(imported)} homebrew definition(s) from this save", "info")
         self._ctx["char"] = loaded
-        # ⚠ Whatever was loaded, it is not the party member this window was pointed at —
-        # leaving the pointer would attribute a later save to a member it never edited.
+        # ⚠ The loaded character is not the party member that this window pointed at. Clear
+        # the pointer. If it stays, a later save goes to a member that the user never
+        # edited.
         self._ctx["member"] = None
         if path is not None:
             self._ctx["path"] = path
@@ -604,7 +603,7 @@ class MainWindow(QMainWindow):
         if answer != QMessageBox.StandardButton.Yes:
             return
         self._ctx["char"] = Character(id=new_character_id())
-        self._ctx["member"] = None            # no longer editing a party member
+        self._ctx["member"] = None            # this window no longer edits a party member
         self._ctx["dir"] = persistence.default_save_dir()
         self._ctx["path"] = self._ctx["dir"] / persistence.suggested_filename(self._ctx["char"])
         self._notify("Started a new character", "info")
@@ -640,12 +639,12 @@ class MainWindow(QMainWindow):
     # ---- print / party --------------------------------------------------- #
 
     def _export_pdf(self) -> None:
-        """Print via reportlab ui/pdf.py — the shipped PDF path, shared with the
-        webapp's Print button (the plan: printing was resolved without Qt)."""
+        """Print with the reportlab path in `ui/pdf.py`. The Print button of the webapp
+        uses the same path."""
         view = viewmod.build_sheet_view(self._ruleset, self._ctx["char"])
         default = pdf.suggested_filename(view)
-        # Paper size is a per-export choice (the human's call), asked here like the
-        # webapp's export dialog.
+        # The paper size is a choice for each export (human's ruling). Ask for it here, as
+        # the export dialog of the webapp does.
         dialog = QDialog(self)
         dialog.setWindowTitle("Export character sheet")
         lay = QVBoxLayout(dialog)
@@ -684,17 +683,18 @@ class MainWindow(QMainWindow):
         dialog.exec()
 
     def party_window(self) -> PartyWindow:
-        """The Storyteller window, created on first use and kept thereafter.
+        """The Storyteller window. This method creates it on the first call and keeps it.
 
-        ⚠ ONE window, held on the builder. A fresh one per click would give each its own
-        `party_page` over the same roster, so a card clicked in the old one would tick a
-        health box nobody is looking at. It shares the CONTEXT, not a copy: the roster,
-        the member Characters and the adversary catalogue are the same objects.
+        ⚠ There is ONE window, and the builder holds it. A new window for each click gives
+        each window its own `party_page` over the same roster. A click on a card in the old
+        window then marks a health box that nobody sees. The window shares the CONTEXT. It
+        does not take a copy. The roster, the member Characters and the adversary catalogue
+        are the same objects.
         """
         if self._party_window is None:
-            # The template catalogue is not rules (it takes no part in prerequisite
-            # resolution or link-checking), so it rides the context and is loaded on
-            # demand — exactly as `ui/builder.py` loads it for the webapp.
+            # The template catalogue is not rules data. It takes no part in prerequisite
+            # resolution or in link checking. Thus it goes in the context, and this code
+            # loads it on the first use. `ui/builder.py` loads it in the same way.
             if not self._ctx.get("adversary_catalog"):
                 self._ctx["adversary_catalog"] = rules_db.load_adversary_catalog(_DATA_DIR)
             self._party_window = PartyWindow(
@@ -712,12 +712,12 @@ class MainWindow(QMainWindow):
         window.activateWindow()
 
     def _open_member(self, index: int) -> None:
-        """Re-point THIS window at party member `index` (the human's call, 2026-08-27:
-        one builder, retargeted, rather than a window per member).
+        """Point THIS window at party member `index`. There is one builder, and it changes
+        its target. There is no window for each member (human's ruling).
 
-        ⚠ By REFERENCE, never a copy — `ctx["char"]` becomes the party's own object, so
-        every edit made here lands on the card with no syncing code. `ctx["member"]`
-        records which one, so a later save is attributable.
+        ⚠ Take the member by REFERENCE. Never take a copy. `ctx["char"]` becomes the object
+        of the party. Thus each edit here appears on the card, and no code synchronises
+        them. `ctx["member"]` records the member. Thus a later save goes to that member.
         """
         member = self._ctx["party"].members[index]
         self._ctx["char"] = member.character
@@ -732,17 +732,18 @@ class MainWindow(QMainWindow):
         self._notify(f"The builder is now editing {member.character.name or 'this member'}")
 
     def _refresh_party(self) -> None:
-        """Redraw the party window when the builder has moved a character it holds.
+        """Draw the party window again after the builder changes a character that the
+        window holds.
 
-        ⚠ Only when it is VISIBLE. The window is kept after a close, and redrawing a
-        hidden one is work nobody sees — it reloads on every open anyway."""
+        ⚠ Draw it only when it is VISIBLE. The builder keeps the window after a close, and
+        a hidden window shows nothing. The window reloads on each open."""
         if self._party_window is not None and self._party_window.isVisible():
             self._party_window.reload()
 
     def closeEvent(self, event):              # noqa: N802 - Qt override
-        """⚠ Take the party window down with the builder. A QMainWindow with no parent
-        is its own top-level window, so closing the builder would otherwise leave the
-        Storyteller window open with no way back to a builder."""
+        """⚠ Close the party window with the builder. A QMainWindow with no parent is a
+        top-level window. Without this code, a close of the builder leaves the Storyteller
+        window open, and the user has no route back to a builder."""
         if self._party_window is not None:
             self._party_window.close()
         super().closeEvent(event)

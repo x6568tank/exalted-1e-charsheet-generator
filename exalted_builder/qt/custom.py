@@ -11,25 +11,24 @@ form; Save writes through `custom_content` and re-merges.
 style…" in the category dropdown writes `martial_arts:<slug>` and the picker derives its
 style groups from that string, so there is no Styles sub-tab and never should be.
 
-⚠ **This is the ONE collection whose detail pane is not a projection of a selected row.**
-Every other tab's pane shows what you clicked; here it also has to hold an UNSAVED new
-row, because the form is where authoring happens. `_editing == ""` is that state, and
-`New` is what enters it. A rebuild must not silently re-select a table row and throw the
-half-written form away.
+⚠ **This is the ONE collection whose detail pane does not show the selected row only.**
+The pane of each other tab shows the row that the user clicked. This pane must also hold
+an UNSAVED new row, because the user authors content in the form. `_editing == ""` is that
+state, and the `New` action enters it. ⚠ A rebuild must not select a table row and delete
+a form that the user has partly written.
 
-⚠ **`on_change` is REQUIRED.** Deleting a custom Charm a character owns does not remove
-it from that character — the id stays and becomes an `unknown-charm` validation error, so
-the shell's readout bar is stale without the ping. (`CharmsPage` shipped without this
-hook for want of the same check.)
+⚠ **`on_change` is REQUIRED.** A delete of a custom Charm does not remove that Charm from
+a character that owns it. The id stays, and it becomes an `unknown-charm` validation
+error. Without the call, the readout bar of the shell is stale.
 
-⚠ **The webapp's third column became a TOOLBAR ACTION, not a nested tab.** `ui/custom.py`
-puts library / form / JSON side by side; the collection layout has one detail pane, and
-JSON in-and-out is an *action* on the row rather than a property of it. Nesting a second
-level of tabs inside the pane was the alternative and is worse.
+⚠ **The third column of the webapp is a TOOLBAR ACTION here, not a nested tab.**
+`ui/custom.py` puts the library, the form and the JSON side by side. The collection layout
+has one detail pane, and JSON import and export is an *action* on the row, not a property
+of it. Do not put a second level of tabs in the pane.
 
-Zero game logic. Form ⇄ payload shuffling is `view.custom_*`, validity is the pydantic
-models, the filesystem is `custom_content`, and the merge back into the live rule set is
-`rules_db.reload_custom_layer`.
+This module has no game logic. `view.custom_*` moves data between the form and the
+payload. The pydantic models decide validity. `custom_content` reads and writes the
+filesystem. `rules_db.reload_custom_layer` merges the library into the live rule set.
 """
 
 from __future__ import annotations
@@ -60,24 +59,24 @@ _KINDS = ("charm", "spell", "ritual", "gear")
 _KIND_LABELS = {"charm": "Charms", "spell": "Spells", "ritual": "Rituals",
                 "gear": "Gear"}
 
-# ⚠ The three non-gear kinds share ONE code path, and the table that drives it is
-# `view.CUSTOM_KINDS` — read by BOTH shells, so the two Custom pages cannot drift.
-# GEAR is not in it: its four catalogues need a subkind, and every
-# `if self._kind == "gear"` branch below is that difference.
+# The three kinds that are not gear share ONE code path. `view.CUSTOM_KINDS` drives it.
+# BOTH shells read that table, thus the two Custom pages always agree. ⚠ GEAR is not in
+# the table. Its four catalogues need a subkind. Each `if self._kind == "gear"` branch
+# below handles that difference.
 _KIND = viewmod.CUSTOM_KINDS
 _NAME_HINT = {"charm": "the Charm's printed name", "spell": "the spell's name",
               "ritual": "the ritual's name", "gear": "what it is called"}
-# Gear carries a Kind column: the four catalogues are ONE concept on screen (things you
-# own), so they share a list rather than splitting it into four more sub-tabs.
+# Gear has a Kind column. On the screen, the four catalogues are ONE concept: the items
+# that a character owns. Thus they share one list. Do not divide them into four sub-tabs.
 _COLUMNS = {"charm": ("", "Name", "Detail"),
             "spell": ("", "Name", "Detail"),
             "ritual": ("", "Name", "Detail"),
             "gear": ("", "Name", "Kind", "Detail")}
 
-# What an EMPTY library says. ⚠ A header over a blank rectangle reads as "nothing
-# loaded" rather than "nothing yet" — see `qt/layout.py::empty_note`. This tab is the
-# one where empty is the NORMAL state for most players, so it says what the library is
-# FOR rather than only how to fill it.
+# The text for an EMPTY library. ⚠ A heading over a blank area reads as "nothing loaded",
+# not as "nothing yet". See `qt/layout.py::empty_note`. On this tab, empty is the NORMAL
+# state for most users. Thus this text says what the library is FOR. It does not say how
+# to fill it only.
 _EMPTY_NOTES = {
     "charm": "Your Charm library is empty.\n\nAnything you write here is yours and "
              "yours alone — it never goes in the rulebook data, and a character who "
@@ -92,36 +91,34 @@ _EMPTY_NOTES = {
             "here, or save one off a character's Gear tab — both write the same row.",
 }
 
-# ⚠ Gear IS authorable here as of 2026-08-27, which REVERSES the 2026-08-13 ruling that
-# "no authoring form was needed: you tweak an item on a character and click once"
-# (`docs/status/custom-content.md`). The human reopened it. The old flow made you give a
-# character an item in order to invent one — Buy → "Custom weapon" → a blank row on
-# somebody's sheet → edit → save → delete the row you never wanted.
+# ⚠ The user CAN author gear here (human's ruling; `docs/status/custom-content.md`).
+# Without this form, the user must give an item to a character to invent one: Buy, then
+# "Custom weapon", then a blank row on a sheet, then edit, then save, then delete the row.
 #
-# ⚠ BOTH entry points stay (the human's call): the Gear tab's button is retroactive
-# ("I tweaked this and want to keep it"), this form is deliberate ("I want to design
-# one"). They cannot drift because both write through `custom_content.save_gear_row`.
+# ⚠ Keep BOTH entry points (human's ruling). The button on the Gear tab keeps an item that
+# the user has already changed. This form designs a new item. They cannot become
+# different, because both write through `custom_content.save_gear_row`.
 _GEAR_BLURB = (
     "Pick a kind and fill in the stats, or press “Save to my library” on any Gear-tab "
     "row to keep something you tweaked there. Both land in the same library.")
 
-# ⚠ None, NOT a large number. The three multi-picks here (prerequisites,
-# extra-requirement traits, open-to tiers) are unbounded in the models, and
-# `_FavoredPicker` PRINTS its cap in the placeholder — 999 put "(pick 999)" on screen.
+# ⚠ Use None. Do NOT use a large number. The models put no limit on the three multiple
+# selections here: prerequisites, extra-requirement traits and open-to tiers.
+# `_FavoredPicker` PRINTS its limit in the placeholder, thus 999 shows "(pick 999)".
 _NO_CAP = None
 
-# How many characters a delete could affect is unknowable from here (saves live wherever
-# the user put them), so this says what actually happens rather than guessing a number.
+# This code cannot count the characters that a delete affects, because the user keeps the
+# saves in any directory. Thus this text states what happens. It gives no number.
 _DELETE_WARNING = (
     "Any character that already owns it keeps the id: the Charm shows on the sheet as a "
     "missing row (⚠) with an error, and comes back if you re-create it with the same "
     "name. Nothing else is changed.")
 
-# ⚠ A DIFFERENT warning from the Charm one, because the consequence is different.
-# Saves carry inline COPIES of gear (decision 0007 — ids for invariant content, inline
-# copies for variable), so deleting a library weapon does not orphan anything a
-# character owns; only the shop's offer goes away. Telling the user the Charm story
-# here would be a lie in the frightening direction.
+# ⚠ This warning is DIFFERENT from the Charm warning, because the result is different. A
+# save holds an inline COPY of each gear row (decision 0007: ids for invariant content,
+# inline copies for variable content). Thus a delete of a library weapon breaks nothing
+# that a character owns. Only the offer in the shop goes away. Do not show the Charm text
+# here. It states a larger consequence than the real one.
 _GEAR_DELETE_WARNING = (
     "Characters that already own one keep it: a save carries its own copy of every "
     "weapon, armour and item, so nothing on a sheet changes. It only disappears from "
@@ -133,9 +130,9 @@ _JSON_BLURB = ("The same row as text — copy it out to share, or paste one in a
 
 
 class _Collapsible(QWidget):
-    """A titled section that folds away. ⚠ Built from a QPushButton and a plain
-    container rather than a QGroupBox: `qt/theme.py::qss` names no QGroupBox, and an
-    unstyled one draws its own border and title on the dark page."""
+    """A section with a title that the user can fold. ⚠ Build it from a QPushButton and a
+    plain container. Do not use a QGroupBox. `qt/theme.py::qss` names no QGroupBox, and an
+    unstyled QGroupBox draws its own border and title on the dark page."""
 
     def __init__(self, title: str, accent: str, parent=None):
         super().__init__(parent)
@@ -164,9 +161,9 @@ class _Collapsible(QWidget):
 
 
 class CustomPage(QWidget):
-    """The tab widget. `reload()` re-merges the library and rebuilds the tables;
-    `notify` surfaces transient messages; `on_change` pings the shell so its readout bar
-    re-derives after a delete orphans a Charm a character owns."""
+    """The tab widget. `reload()` merges the library again and rebuilds the tables.
+    `notify` shows a temporary message. `on_change` calls the shell, thus the readout bar
+    is correct after a delete leaves a character with an unknown Charm id."""
 
     def __init__(self, ruleset, ctx, *, notify=None, on_change=None,
                  custom_dir: Path | None = None, parent=None):
@@ -179,7 +176,7 @@ class CustomPage(QWidget):
                       else custom_content.custom_data_dir())
         self._kind = "charm"
         self._form = viewmod.custom_charm_form()
-        self._editing = ""          # the id being replaced; "" is a new, unsaved row
+        self._editing = ""          # the id that this form replaces. "" is a new row.
         self._gear_kind = ""        # which gear catalogue `_editing` belongs to
 
         self.readout = QLabel("")
@@ -229,11 +226,11 @@ class CustomPage(QWidget):
             table.header().setSortIndicatorShown(False)
             table.setSelectionMode(QAbstractItemView.SingleSelection)
             table.header().setStretchLastSection(False)
-            # ⚠ NAME takes the slack and DETAIL is capped. With Detail on
-            # ResizeToContents it sized to its own content first and left Name ~75px,
-            # so every row read "Singing E…" / "Wound Dr…" — the one column you
-            # identify a row by, truncated, while dead space sat to the right.
-            # Detail is secondary here (the pane repeats it) and stays draggable.
+            # ⚠ Give the free width to NAME, and set a maximum on DETAIL. With Detail on
+            # ResizeToContents, Detail takes its content width first and leaves Name
+            # approximately 75px. Each row then reads "Singing E…" or "Wound Dr…", and the
+            # user identifies a row by that column. Detail is secondary, because the pane
+            # repeats it. Keep Detail draggable.
             for column in range(len(columns)):
                 table.header().setSectionResizeMode(
                     column,
@@ -267,8 +264,8 @@ class CustomPage(QWidget):
         split.addWidget(detail_panel)
         split.setSizes([460, 720])
 
-        # Library problems sit UNDER the splitter, spanning both: they are about the
-        # library as a whole, not about whichever row is selected.
+        # The library problems go BELOW the splitter, across both panes. They describe the
+        # full library. They do not describe the selected row.
         self.problems = QLabel("")
         self.problems.setWordWrap(True)
         self.problems.setContentsMargins(8, 2, 8, 4)
@@ -279,12 +276,12 @@ class CustomPage(QWidget):
         outer.addLayout(bar)
         outer.addWidget(split, 1)
         outer.addWidget(self.problems)
-        # ⚠ The FORM only — `reload()` is deliberately NOT called here, unlike every
-        # sibling page. This is the one tab whose refresh reads the FILESYSTEM, and the
-        # shell builds all nine pages up front: calling it here would make constructing
-        # a MainWindow re-scan the user's homebrew library, in all 300-odd Qt tests and
-        # on every window. The shell calls `reload()` when the tab is shown, which is
-        # the right moment and the only moment the library can have changed.
+        # ⚠ Build the FORM only. Do NOT call `reload()` here. The other pages call it in
+        # their constructors. The refresh of this tab reads the FILESYSTEM, and the shell
+        # builds all nine pages at start. Thus a call here makes each new MainWindow scan
+        # the homebrew library of the user, in every Qt test and for every window. The
+        # shell calls `reload()` when it shows the tab. The library can change before that
+        # moment only.
         self._sync_detail()
 
     # ------------------------------------------------------------------ #
@@ -295,11 +292,11 @@ class CustomPage(QWidget):
         return accent_light(theme.palette(None))
 
     def _reserved(self) -> set[str]:
-        """The BOOK's ids, so homebrew can never shadow printed content. Recomputed per
-        call — the custom half of `ruleset.charms` changes underneath us."""
+        """The ids from the BOOKS. Thus homebrew can never hide printed content.
+        ⚠ Calculate this set on each call. The custom part of `ruleset.charms` changes."""
         if self._kind == "gear":
-            # ⚠ Gear carries no `custom` FIELD — the loader TAGS it, because the models
-            # are frozen and shared with the book data. Reading `.custom` here raises.
+            # ⚠ A gear row has no `custom` FIELD. The loader TAGS it, because the models
+            # are frozen and the book data uses them too. A read of `.custom` here raises.
             catalog = getattr(self._ruleset,
                               viewmod.CUSTOM_GEAR_KINDS[self._gear_kind][0])
             return {i for i, row in catalog.items() if "custom" not in row.tags}
@@ -319,9 +316,9 @@ class CustomPage(QWidget):
             custom_content.library_rituals(self._root)) if r.kind == self._kind]
 
     def reload(self) -> None:
-        """Re-merge the library into the live rule set, then rebuild everything that
-        reads it. Problems are SHOWN rather than raised — the loader's non-fatal
-        contract for custom data (a typo in homebrew must not stop the app)."""
+        """Merge the library into the live rule set again, then rebuild everything that
+        reads it. ⚠ SHOW a problem. Do not raise it. The loader has a non-fatal contract
+        for custom data: an error in homebrew must not stop the app."""
         rules_db.reload_custom_layer(self._ruleset, self._root)
         self._fill_tables()
         self._sync_readout()
@@ -360,9 +357,9 @@ class CustomPage(QWidget):
     def _fill_tables(self) -> None:
         """Rebuild the table for the active kind, restoring the selection.
 
-        ⚠ Only the ACTIVE kind's table is filled. Both were, once — and filling the
-        inactive one moved `self._editing` through `_selection_changed`, which reads
-        whichever table is on top, throwing away a half-written form on the other tab.
+        ⚠ Fill the table of the ACTIVE kind only. A fill of the inactive table changes
+        `self._editing` through `_selection_changed`, which reads the table that is on top.
+        That deletes a form that the user has partly written on the other tab.
         """
         kind = self._kind
         table = self._tables[kind]
@@ -378,8 +375,8 @@ class CustomPage(QWidget):
                      else [mark, row.name, row.detail])
             item = QTreeWidgetItem(cells)
             item.setData(0, Qt.UserRole, row.id)
-            # ⚠ The gear KIND rides on the item: `delete_gear` needs it, and it cannot
-            # be re-derived from the id (the four files share one id namespace).
+            # ⚠ Store the gear KIND on the item. `delete_gear` needs it, and you cannot
+            # calculate it from the id. The four files share one id namespace.
             item.setData(1, Qt.UserRole, row.subkind)
             item.setToolTip(0, row.problem or "Custom content")
             item.setForeground(0, QBrush(QColor("#b91c1c" if not row.valid else CUSTOM)))
@@ -392,9 +389,9 @@ class CustomPage(QWidget):
         table.setSortingEnabled(True)
         table.sortByColumn(-1, Qt.AscendingOrder)
         table.header().setSortIndicatorShown(False)
-        # ⚠ Restore ONLY an explicit match, and never fall back to row 0. Every other
-        # collection selects its first row when the old selection is gone; here that
-        # would overwrite an unsaved new row the moment the table rebuilt.
+        # ⚠ Select a row ONLY when it matches the old selection. Never select row 0 as a
+        # fallback. Each other collection selects its first row when the old selection is
+        # absent. Here that writes over an unsaved new row at each rebuild of the table.
         table.setCurrentItem(restore)
         table.blockSignals(False)
 
@@ -409,10 +406,10 @@ class CustomPage(QWidget):
 
     def _kind_changed(self, index: int) -> None:
         self._kind = _KINDS[index]
-        # ⚠ Before `_new()`, and here rather than only in `reload()`: the action set
-        # depends on the KIND, and switching sub-tabs is the one thing that changes it.
-        # Wired only to `reload()` at first, which left New and Import dead after a trip
-        # to the Gear tab and back — the tab that disabled them.
+        # ⚠ Call this before `_new()`, and call it here, not in `reload()` only. The set of
+        # actions depends on the KIND, and a change of sub-tab changes the kind. Without
+        # this call, New and Import stay disabled after the user opens the Gear sub-tab and
+        # returns.
         self._sync_actions()
         self._new()
 
@@ -430,11 +427,11 @@ class CustomPage(QWidget):
     def _edit(self, row_id: str) -> None:
         """Load one library row into the form, straight off the DISK.
 
-        Gear has no form — it loads the raw row so the pane and the JSON dialog can show
-        it, and `_save` refuses.
+        Gear has no form. This method loads the raw row, thus the pane and the JSON dialog
+        can show it, and `_save` refuses it.
 
-        ⚠ Not from `ruleset.charms`: a row the loader REJECTED is not in the rule set at
-        all, and that is exactly the row a user needs to open in order to fix it.
+        ⚠ Do not read `ruleset.charms`. The rule set does not hold a row that the loader
+        REJECTED, and the user must open that row to correct it.
         """
         if self._kind == "gear":
             raw = next((r for r in custom_content.library_gear(self._gear_kind,
@@ -455,9 +452,9 @@ class CustomPage(QWidget):
     def _new(self) -> None:
         """A blank row of the current kind.
 
-        ⚠ Gear needs a KIND before it can have a form — the four catalogues are four
-        models with four field sets, and there is no neutral blank row. `_gear_kind`
-        carries the answer and the pane asks for it when it is empty."""
+        ⚠ Gear needs a KIND before it can have a form. The four catalogues are four models
+        with four sets of fields, and there is no common blank row. `_gear_kind` holds the
+        kind, and the pane asks the user for it when that value is empty."""
         if self._kind == "gear":
             self._gear_kind = self._gear_kind or "weapons"
             self._set_form(viewmod.custom_gear_form(self._gear_kind))
@@ -468,9 +465,9 @@ class CustomPage(QWidget):
     def _sync_actions(self) -> None:
         """Which toolbar actions this kind has.
 
-        ⚠ Import stays off for gear: `parse_rows` yields bare rows, and a gear row does
-        not say WHICH of the four catalogues it belongs to. `New` does — its Kind picker
-        is what supplies the answer. Everything else is live on every kind.
+        ⚠ Keep Import disabled for gear. `parse_rows` returns plain rows, and a gear row
+        does not name WHICH of the four catalogues holds it. `New` stays enabled, because
+        its Kind picker supplies that name. Every other action is enabled for every kind.
         """
         importable = self._kind != "gear"
         self.new_btn.setEnabled(True)
@@ -495,9 +492,9 @@ class CustomPage(QWidget):
             self._save_gear()
             return
         form = self._form
-        # The id follows the NAME for a new row, so a rename before the first save does
-        # not leave a stale id behind. Once saved it is frozen: characters reference it,
-        # so an edit must never change it.
+        # For a new row, the id follows the NAME. Thus a rename before the first save
+        # leaves no old id. ⚠ After the save, the id is frozen. Characters refer to it,
+        # thus an edit must never change it.
         if not self._editing:
             form["id"] = custom_content.make_id(form.get("name", ""))
         try:
@@ -507,8 +504,8 @@ class CustomPage(QWidget):
             self._notify(str(exc), "warning")
             return
         rules_db.reload_custom_layer(self._ruleset, self._root)
-        # Saving does not clear the form: the row is on disk and in the rule set now, and
-        # staying on it is what makes "save, look at the tree, adjust" work.
+        # A save does not clear the form. The row is on the disk and in the rule set. The
+        # form stays on that row, thus the user can save it, examine the tree and edit it.
         self._set_form(self._form, editing=saved.id)
         self._sync_readout()
         if saved.id not in getattr(self._ruleset, _KIND[self._kind].pool):
@@ -519,9 +516,9 @@ class CustomPage(QWidget):
         self._ping()
 
     def _save_gear(self) -> None:
-        """Write one library gear row. Mirrors `_save`, but through `save_gear_row` —
-        which takes a plain dict and a KIND, because the four catalogues are four
-        models and `custom_content` deliberately holds no game logic."""
+        """Write one library gear row. This method agrees with `_save`, but it calls
+        `save_gear_row`. That function takes a plain dict and a KIND, because the four
+        catalogues are four models, and `custom_content` holds no game logic."""
         if not self._editing:
             self._form["id"] = custom_content.make_id(self._form.get("name", ""))
         payload = self._payload()
@@ -568,8 +565,8 @@ class CustomPage(QWidget):
         self._new()
         self.reload()
         self._notify(f"Deleted {name}" if gone else f"{name} was not there", "info")
-        # ⚠ The character is NOT edited by a delete — the id stays on the sheet and turns
-        # into an `unknown-charm` error, which the shell's readout bar reports.
+        # ⚠ A delete does NOT change the character. The id stays on the sheet and becomes
+        # an `unknown-charm` error. The readout bar of the shell reports that error.
         self._ping()
 
     # ------------------------------------------------------------------ #
@@ -577,8 +574,9 @@ class CustomPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def _build_json_dialog(self) -> QDialog:
-        """The JSON pane as a dialog, BUILT but not run — `exec()` blocks a headless
-        run, so this is the seam the tests drive (the shape `GearPage` uses)."""
+        """The JSON pane, as a dialog. This function BUILDS it and does not run it.
+        `exec()` stops a headless run, thus the tests drive this seam. `GearPage` uses the
+        same shape."""
         dialog = QDialog(self)
         dialog.setWindowTitle("JSON")
         dialog.setMinimumSize(560, 520)
@@ -605,11 +603,10 @@ class CustomPage(QWidget):
         load = QPushButton("Load")
         load.setObjectName("custom.json.load")
         load.clicked.connect(lambda: (self._paste(paste.toPlainText()), dialog.accept()))
-        # ⚠ Read-only for gear: Load writes through the CHARM/spell savers, and a gear
-        # row needs a target catalogue that a pasted row does not name.
-        # ⚠ Copy-out works for gear; Load does not. `_paste` routes through the
-        # Charm/spell savers, and a pasted gear row does not name which of the four
-        # catalogues it belongs to — the form's Kind picker is what supplies that.
+        # ⚠ Make this pane read-only for gear. Copy-out operates for gear. Load does not.
+        # `_paste` writes through the Charm and spell savers, and a pasted gear row does
+        # not name which of the four catalogues holds it. The Kind picker of the form
+        # supplies that name.
         if self._kind == "gear":
             paste.setEnabled(False)
             paste.setPlaceholderText("Gear rows are copy-out only — use New to author "
@@ -629,8 +626,8 @@ class CustomPage(QWidget):
             self._notify(str(exc), "warning")
             return
         if len(rows) == 1:
-            # A single pasted row fills the form WITHOUT saving: the user gets to see and
-            # adjust it first, which is the whole reason the pane is two-way.
+            # One pasted row fills the form and does NOT save it. Thus the user can examine
+            # the row and change it first.
             self._load_row(rows[0])
             self._notify("Loaded into the form — press Save to keep it", "info")
         else:
@@ -641,9 +638,9 @@ class CustomPage(QWidget):
         self._set_form(_KIND[self._kind].form(row), editing=rid)
 
     def _apply_rows(self, rows: list[dict], *, label: str) -> None:
-        """Save every row. One row also loads into the form, so a paste of a single
-        Charm is an edit rather than a blind write; several are a bulk import and are
-        reported as a count."""
+        """Save every row. One row also loads into the form. Thus a paste of one Charm is
+        an edit, and the user sees it. More than one row is a bulk import, and this method
+        reports a count."""
         saved, failed = 0, []
         saver = _KIND[self._kind].save
         for row in rows:
@@ -684,15 +681,15 @@ class CustomPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def _bind(self, key: str):
-        """A plain field write. ⚠ Does NOT rebuild — a rebuild under a keystroke
-        destroys the widget being typed into and drops the caret."""
+        """Write one plain field. ⚠ Do NOT rebuild here. A rebuild during a keystroke
+        deletes the widget that the user types into, and the cursor is lost."""
         def _set(value) -> None:
             self._form[key] = value
         return _set
 
     def _rebuild(self) -> None:
-        """A STRUCTURAL change: which controls exist has changed (a new style name box,
-        an extra-requirement row added or its axis switched)."""
+        """Apply a STRUCTURAL change. The set of controls has changed, for example a new
+        style-name box, a new extra-requirement row, or a change to the axis of a row."""
         self._sync_detail()
 
     def _labelled(self, lay, caption: str, widget, *, width: int = 96) -> None:
@@ -700,9 +697,10 @@ class CustomPage(QWidget):
         label = QLabel(caption)
         label.setStyleSheet(f"color:{MUTED};")
         label.setMinimumWidth(width)
-        # ⚠ TOP, not Qt's default vertical centre. The Description box is 90px+ tall and
-        # a centred caption floats to the middle of it — far from the field it names, and
-        # scrolled clean out of view when the row straddles the viewport edge.
+        # ⚠ Align to the TOP. Do not use the vertical centre, which is the default of Qt.
+        # The Description box is more than 90px high, and a centred caption moves to the
+        # middle of it. The caption is then far from its field, and it can be outside the
+        # viewport when the row crosses the edge.
         label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         row.addWidget(label)
         row.addWidget(widget, 1)
@@ -736,9 +734,9 @@ class CustomPage(QWidget):
                editable: bool = False) -> QComboBox:
         """A dropdown over `options` (stored value -> label).
 
-        ⚠ The value written is indexed out of `options`, NEVER read back off the widget.
-        Qt hands item data back as a QVariant and a str-valued Enum returns as a plain
-        `str`, which succeeds on write and fails later somewhere else.
+        ⚠ Index the value out of `options`. NEVER read it back from the widget. Qt returns
+        item data as a QVariant, and an Enum with a str value returns as a plain `str`. The
+        write then succeeds, and a later operation fails.
         """
         widget = _FilterCombo() if editable else QComboBox()
         widget.setObjectName(f"custom.{key}")
@@ -768,8 +766,8 @@ class CustomPage(QWidget):
 
     def _sync_detail(self) -> None:
         """Rebuild the authoring form for the current row."""
-        # ⚠ `clear_layout`, never a hand-written loop — `item.widget()` is None for a
-        # nested QLayout, and this form is nothing but nested rows.
+        # ⚠ Use `clear_layout`. Never write a teardown loop. `item.widget()` is None for a
+        # nested QLayout, and this form holds nested rows only.
         clear_layout(self._detail_lay)
         kind_label = _KIND_LABELS[self._kind][:-1]
         self.detail_title.setText(f"New {kind_label.lower()}" if not self._editing
@@ -788,12 +786,12 @@ class CustomPage(QWidget):
         description = QTextEdit(str(self._form.get("description") or ""))
         description.setObjectName("custom.description")
         description.setMinimumHeight(90)
-        # ⚠ An inline stylesheet, because an ancestor stylesheet beats a set palette and
-        # a QTextEdit inside a themed page otherwise paints the card shade.
+        # ⚠ Set an inline stylesheet. An ancestor stylesheet beats a palette that you set
+        # on the widget. Without this, a QTextEdit in a themed page paints the card shade.
         description.setStyleSheet("background:#52525c; color:#e6e4e0; border:none;"
                                   " border-radius:4px;")
-        # ⚠ `textChanged` on a QTextEdit carries NO argument (QLineEdit's does), so the
-        # text comes off the widget.
+        # ⚠ The `textChanged` signal of a QTextEdit sends NO argument. The signal of a
+        # QLineEdit sends one. Thus read the text from the widget.
         description.textChanged.connect(
             lambda: self._form.__setitem__("description", description.toPlainText()))
         self._labelled(lay, "Description", description)
@@ -821,10 +819,10 @@ class CustomPage(QWidget):
     def _gear_detail(self, lay) -> None:
         """The gear authoring form, built from `view.CUSTOM_GEAR_FIELDS`.
 
-        ⚠ A flat DICT validated on save, not `setattr` down a model like the Gear tab's
-        editors. `WeaponType` and friends are FROZEN and shared with the book data, so
-        there is no instance to mutate — this follows the Custom tab's own Charm-form
-        pattern instead.
+        ⚠ Use a flat DICT, and validate it on save. Do not use `setattr` on a model, as the
+        editors of the Gear tab do. `WeaponType` and the other gear models are FROZEN, and
+        the book data uses them. Thus there is no instance to change. This form follows the
+        Charm form of this tab.
         """
         kind_row = QHBoxLayout()
         caption = QLabel("Kind")
@@ -838,8 +836,9 @@ class CustomPage(QWidget):
             picker.addItem(label, key)
         picker.setCurrentIndex(max(0, keys.index(self._gear_kind)
                                    if self._gear_kind in keys else 0))
-        # ⚠ Frozen once saved, like a Charm's category is not: changing the kind changes
-        # the MODEL, and the row already sits in one of four files under one id.
+        # ⚠ Freeze the kind after the save. The category of a Charm is not frozen, but a
+        # change to the kind changes the MODEL, and the row is already in one of the four
+        # files under one id.
         picker.setEnabled(not self._editing)
         picker.setToolTip("Which catalogue it goes in. Fixed once saved — delete and "
                           "re-make it to change kind."
@@ -892,9 +891,9 @@ class CustomPage(QWidget):
         lay.addStretch(1)
 
     def _switch_gear_kind(self, kind: str) -> None:
-        """Change which catalogue a NEW row is for. Starts a fresh form: the four models
-        have four field sets, so carrying values across would keep keys the new model
-        rejects."""
+        """Change the catalogue of a NEW row. This method starts an empty form. The four
+        models have four sets of fields. Thus values that move across keep keys that the
+        new model refuses."""
         self._gear_kind = kind
         self._set_form(viewmod.custom_gear_form(kind))
 
@@ -906,8 +905,8 @@ class CustomPage(QWidget):
             box = QTextEdit(str(self._form.get(spec.key) or ""))
             box.setObjectName(f"custom.{spec.key}")
             box.setMinimumHeight(70)
-            # ⚠ Inline: an ancestor stylesheet beats a set palette, and a QTextEdit
-            # otherwise paints the card shade.
+            # ⚠ Set the stylesheet inline. An ancestor stylesheet beats a palette that you
+            # set on the widget, and a QTextEdit then paints the card shade.
             box.setStyleSheet("background:#52525c; color:#e6e4e0; border:none;"
                               " border-radius:4px;")
             box.textChanged.connect(
@@ -915,13 +914,13 @@ class CustomPage(QWidget):
             return box
         if spec.kind == "text":
             return self._line(spec.key)
-        # ⚠ `signed` exists for `mobility_penalty`, which is stored NEGATIVE
-        # (`docs/status/gear-and-inventory.md`). A 0-floored box would make a penalty
-        # impossible to enter, and a consumer reading it as a magnitude ADDS dice.
+        # ⚠ `signed` exists for `mobility_penalty`. That field is stored NEGATIVE
+        # (`docs/status/gear-and-inventory.md`). A box with a floor of 0 prevents the entry
+        # of a penalty, and a consumer that reads the value as a magnitude ADDS dice.
         spin = self._spin(spec.key, -20 if spec.kind == "signed" else 0, 99)
         spin.setMaximumWidth(90)
-        # Parked left with the slack after it: `_labelled` stretches its widget, and a
-        # one-digit soak box 540px wide reads as an unfinished form.
+        # Put the box at the left, with the free space after it. `_labelled` stretches its
+        # widget, and a one-digit soak box of 540px reads as an incomplete form.
         row = QHBoxLayout()
         row.setContentsMargins(0, 0, 0, 0)
         row.addWidget(spin)
@@ -942,15 +941,15 @@ class CustomPage(QWidget):
                        self._line("cost_raw", "variable costs, e.g. '1m per die'"))
 
     def _ritual_fields(self, lay) -> None:
-        """⚠ Cost, Roll and Resources are free TEXT, not numbers. A ritual has no stat
-        block in the source — the heading is the name with its dot rating and the rest
-        is prose — so a printed cost reads "1 mote or one Willpower" (p.148-150)."""
+        """⚠ Cost, Roll and Resources are free TEXT. They are not numbers. The source gives
+        a ritual no stat block. The heading is the name with its dot rating, and the rest
+        is prose. Thus a printed cost reads "1 mote or one Willpower" (p.148-150)."""
         level = self._spin("level", 1, 5)
         level.setToolTip("A thaumaturge needs Occult equal to the ritual's level "
                          "(p.148); the level is also what it costs to buy.")
-        # ⚠ In a row with a stretch, not handed to `_labelled` bare: a full-width
-        # QSpinBox puts its arrows against the far edge of the pane, where they read
-        # as clipped. The spell form's Motes/WP row is the shape this follows.
+        # ⚠ Put this box in a row with a stretch. Do not give it to `_labelled` alone. A
+        # full-width QSpinBox puts its arrows at the far edge of the pane, where they read
+        # as cut. The Motes/WP row of the spell form uses this shape.
         row = QHBoxLayout()
         row.addWidget(level)
         row.addStretch(1)
@@ -1010,9 +1009,9 @@ class CustomPage(QWidget):
         self._extra_requirements(lay)
         self._breadth_requirements(lay)
 
-        # Every Charm in the rule set, homebrew included, so a custom tree can hang off a
-        # printed Charm or another custom one. ⚠ Virtual rows are excluded — they are
-        # never learnable, so a prerequisite on one would be unsatisfiable.
+        # Offer every Charm in the rule set, and include the homebrew Charms. Thus a custom
+        # tree can start at a printed Charm or at a custom one. ⚠ Remove the virtual rows.
+        # A character can never learn one, thus a prerequisite on one is never satisfied.
         prereqs = {c.id: (f"✎ {c.name}" if c.custom else c.name)
                    for c in sorted(ruleset.charms.values(), key=lambda c: c.name)
                    if not c.virtual}
@@ -1030,12 +1029,12 @@ class CustomPage(QWidget):
         self._advanced_fields(lay)
 
     def _extra_requirements(self, lay) -> None:
-        """The repeatable "and also needs…" editor: any number of AND rows, each an OR
-        over Abilities or over Attributes.
+        """The repeatable "and also needs…" editor. It holds any number of AND rows, and
+        each row is an OR over Abilities or over Attributes.
 
-        Separate from the primary `min_ability`, which is the gate derived from the
-        Charm's category and is what pricing and the Caste/Favoured discount key off.
-        These rows are pure requirements — adding one never makes a Charm cheaper.
+        ⚠ These rows are separate from `min_ability`. `min_ability` is the gate that comes
+        from the category of the Charm, and the price and the Caste/Favoured discount read
+        it. These rows are requirements only. A new row never makes a Charm cheaper.
         """
         rows = self._form.setdefault("extra_reqs", [])
         header = QHBoxLayout()
@@ -1060,9 +1059,9 @@ class CustomPage(QWidget):
             kind.setCurrentIndex(0 if req.get("kind") != "attribute" else 1)
 
             def set_kind(i, r=req, idx=index) -> None:
-                # ⚠ The traits go WITH the axis: an Ability value is not a legal
-                # Attribute, and leaving them renders a picker holding options its own
-                # list does not contain.
+                # ⚠ Clear the traits when the axis changes. An Ability value is not a legal
+                # Attribute. If the traits stay, the picker holds options that its own list
+                # does not contain.
                 r["kind"] = "ability" if i == 0 else "attribute"
                 r["traits"] = []
                 self._rebuild()
@@ -1091,9 +1090,9 @@ class CustomPage(QWidget):
             lay.addLayout(row)
 
     def _breadth_requirements(self, lay) -> None:
-        """"Any three Lore Charms" — a COUNT over a category, which the id-based
-        prerequisite list cannot express (three groups each listing all eleven Lore
-        Charms would be satisfied three times over by one owned Charm)."""
+        """A COUNT over a category, for example "any three Lore Charms". ⚠ The prerequisite
+        list uses ids, and it cannot state this rule. Three groups that each list all
+        eleven Lore Charms accept one owned Charm three times."""
         rows = self._form.setdefault("breadth_reqs", [])
         header = QHBoxLayout()
         header.addWidget(self._heading("Also requires N Charms of a kind"))
@@ -1136,12 +1135,13 @@ class CustomPage(QWidget):
             lay.addLayout(row)
 
     def _advanced_fields(self, lay) -> None:
-        """Splat mechanics: the fields a homebrew Charm rarely needs, and that mean
-        nothing outside the splat that invented them. Folded away by default so the
-        common case — a category, a cost and a couple of minimums — stays a short form.
+        """The splat mechanics. A homebrew Charm needs these fields rarely, and they have
+        no meaning outside their own splat. This section is folded by default. Thus the
+        usual form stays short: a category, a cost and two or three minimums.
 
-        Everything here is written only when it differs from the model default, so an
-        ordinary Charm's JSON does not grow a dozen zeroes (`view.custom_charm_payload`).
+        This form writes a field here only when its value differs from the model default.
+        Thus the JSON of an ordinary Charm holds no unnecessary zeroes
+        (`view.custom_charm_payload`).
         """
         section = _Collapsible("Advanced (splat mechanics)", self._accent())
         body = section.body()

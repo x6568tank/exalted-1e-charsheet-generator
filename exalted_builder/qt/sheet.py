@@ -1,14 +1,12 @@
 """exalted_builder/qt/sheet.py — the Sheet tab: the printable sheet as a QTextDocument.
 
-Input: a RuleSet and a Character (from the shared context). Output: a QTextBrowser
-showing the sheet as a scrollable document, re-rendered from `build_sheet_view` on
-every reload. Mechanism: `sheet_html` builds the sections in pdf.py's order (header,
-Attributes, Abilities, Advantages, Traits, Holdings) with the splat accent colour;
-`build_document` lays that into a paginated QTextDocument; `print_pdf` writes the same
-document via QPdfWriter — one source for the on-screen sheet and the printed page.
-
-This is the port of spikes/qt_sheet/ (human-approved 2026-08-20); the HTML builders
-and the print path are that spike's tested core, carried over.
+Input: a RuleSet and a Character from the shared context. Output: a QTextBrowser that
+shows the sheet as a scrollable document. Each reload renders it again from
+`build_sheet_view`. Mechanism: `sheet_html` builds the sections in the order of `pdf.py`
+(header, Attributes, Abilities, Advantages, Traits, Holdings), in the accent colour of the
+splat. `build_document` puts that HTML into a paginated QTextDocument. `print_pdf` writes
+the same document with QPdfWriter. Thus the screen sheet and the printed page have one
+source.
 """
 
 from __future__ import annotations
@@ -32,28 +30,25 @@ from . import theme as qtheme
 # --------------------------------------------------------------------------- #
 # The sheet's colours — one set for PAPER, one for the SCREEN
 #
-# ⚠ The sheet used to be light "paper" on screen as well as in print (the human's
-# 2026-08-20 direction). Reversed 2026-08-27: on a dark app a white page is a
-# flashbang, and the Reference tab had inherited the same treatment by copying it.
-# The PRINTED document keeps the paper set — ink on white is what a sheet at the
-# table should be — so this is one document with two palettes rather than two
-# documents, which is what kept `print_pdf` honest in the first place.
+# ⚠ The SCREEN set is dark. A white page in a dark app is too bright (human's ruling).
+# The PRINTED document keeps the paper set, because a sheet at the table is ink on white.
+# This is ONE document with two palettes. Do not make it two documents. One document is
+# what keeps `print_pdf` and the screen sheet the same.
 #
-# ⚠ The printed palette accents are DARK (Solar amber #8a5a1a) and vanish on the dark
-# base, so the screen set lightens the accent exactly as `qt/theme.py::accent` does
-# for every other widget. A sheet is not exempt from that rule just because it is a
-# document.
+# ⚠ The printed accents are DARK (Solar amber #8a5a1a) and are not visible on the dark
+# base. Thus the screen set makes the accent lighter, in the same way as
+# `qt/theme.py::accent` does for every other widget. This rule also applies to a document.
 # --------------------------------------------------------------------------- #
 
 @dataclass(frozen=True)
 class SheetColors:
-    """Every colour the sheet draws with. `label` is the health track's monospace
-    penalty caption and the identity line; `faint` is an UNFILLED dot or box, which
-    must read as empty without disappearing; `rule` is the vertical column divider.
+    """Every colour that the sheet uses. `label` is the monospace penalty caption of the
+    health track, and the identity line. `faint` is an UNFILLED dot or box. It must read
+    as empty, and it must stay visible. `rule` is the vertical column divider.
 
-    `ink` and `paper` are the body text and page shade. ⚠ They are the only two the
-    HTML does NOT carry — a QTextBrowser takes them from the widget's own stylesheet,
-    so a caller that renders on screen must set them there as well as build the HTML."""
+    `ink` and `paper` are the body text and the page shade. ⚠ The HTML does NOT carry
+    these two colours. A QTextBrowser takes them from the stylesheet of the widget. Thus a
+    caller that renders on the screen must set them on the widget and build the HTML."""
     accent: str
     ink: str
     label: str
@@ -64,7 +59,7 @@ class SheetColors:
 
 
 def print_colors(exalt_type: str | None) -> SheetColors:
-    """Ink on paper — the printed PDF, and the default for `sheet_html`."""
+    """Ink on paper. This set prints the PDF, and it is the default for `sheet_html`."""
     return print_colors_for(theme.palette(exalt_type))
 
 
@@ -74,8 +69,8 @@ def screen_colors(exalt_type: str | None) -> SheetColors:
 
 
 def print_colors_for(pal: theme.Palette) -> SheetColors:
-    """`print_colors` for a caller that already holds the Palette (the party window's
-    chrome is a palette, not an Exalt type)."""
+    """`print_colors` for a caller that holds the Palette. The chrome of the party window
+    is a Palette, not an Exalt type."""
     return SheetColors(accent=pal.accent, ink="#1a1a1a",
                        label="#555555", muted="#888888", faint="#aaaaaa",
                        rule="#e0e0e0", paper="#fffdf7")
@@ -158,10 +153,10 @@ def _advantages_blocks(view, c):
                        for n, cost, detail, _kind, _tip in view.merits_flaws)
         blocks.append(f"<b>Merits &amp; Flaws</b><table style='border-collapse:collapse'>{rows}</table>")
     if view.specialties:
-        # A specialty is an INSTANCE, not a rated trait: "multiple dots" means
-        # multiple copies of the same specialty (human 2026-08-20). Merge the copies
-        # and show the count as plain dots — NO 5-dot track, which implies a rating
-        # the 1e rule does not have.
+        # A specialty is an INSTANCE, not a rated trait. More than one dot means more than
+        # one copy of the same specialty (human's ruling). Merge the copies and show the
+        # count as plain dots. ⚠ Do NOT draw a 5-dot track. A track shows a rating, and
+        # the 1E rule has no rating here.
         counts: dict[tuple[str, str], int] = {}
         for ability, name, rating in view.specialties:
             counts[(ability, name)] = counts.get((ability, name), 0) + rating
@@ -194,11 +189,12 @@ def _willpower_html(rating, c):
 
 
 def _health_track_html(levels, c):
-    """The health track as one row per level: the penalty label on the left, the
-    level's boxes to its right. Boxes of one level are a single text run, so they
-    never split across lines. The ★ marker for Charm-granted levels is dropped — the
-    boxes are mechanically identical in play (human 2026-08-20) — and it is stripped
-    BEFORE grouping, so natural and Charm-granted levels merge into one row."""
+    """The health track, with one row for each level. The penalty label is on the left,
+    and the boxes of that level are on the right. The boxes of one level are one text run.
+    Thus they do not divide across two lines. This code removes the ★ marker of a
+    Charm-granted level, because the boxes operate in the same way in play (human's
+    ruling). It removes the marker BEFORE it groups the levels. Thus a natural level and a
+    Charm-granted level become one row."""
     clean = [label.split("★")[0].strip() for label in levels]
     groups = []
     for label in clean:
@@ -207,19 +203,19 @@ def _health_track_html(levels, c):
         else:
             groups.append([label, 1])
     labels = [(_html.escape(label), count) for label, count in groups]
-    # Pad every label to the widest one with non-breaking spaces, so the boxes column
-    # starts at the same x on every row. The label is MONOSPACE: in a proportional
-    # font, character-count padding does not equal pixel width, so "Incap" pushed its
-    # boxes right of the padded shorter labels; monospace makes every char (and every
-    # nbsp) the same width, so padding to the same length IS padding to the same x.
+    # Pad each label to the width of the widest label with non-breaking spaces. Thus the
+    # column of boxes starts at the same x on every row. ⚠ The label must be MONOSPACE. In
+    # a proportional font, a pad by character count is not a pad by pixel width, and
+    # "Incap" then puts its boxes to the right of the shorter labels. In a monospace font,
+    # each character and each nbsp has the same width. Thus a pad to the same length is a
+    # pad to the same x.
     width = max(len(label) for label, _ in labels)
     rows = "".join(
-        # Label and boxes on ONE line (same text line ⇒ same baseline). Separate
-        # table cells with different font sizes misalign baselines, so the small
-        # label rendered superscripted above the boxes. Boxes wrap at the column
-        # boundary — a ten-wide -2 row keeps 8 on the first line and wraps the rest
-        # onto the next line WITHIN the column; nbsp-joining the run instead made it
-        # overflow the column edge (human 2026-08-20).
+        # Put the label and the boxes on ONE text line. One text line gives one baseline.
+        # ⚠ Two table cells with different font sizes do not share a baseline, and the
+        # small label then prints above the boxes. The boxes wrap at the column edge. A
+        # ten-box -2 row keeps 8 boxes on the first line and wraps the rest WITHIN the
+        # column. ⚠ Do not join the run with nbsp. The run then goes past the column edge.
         f"<tr><td><span style='font-family:monospace;color:{c.label};font-size:8pt'>{label}"
         f"{'&nbsp;' * (width - len(label))}</span>"
         f"<span style='color:{c.faint};font-size:10pt'>&nbsp;{'□' * count}</span></td></tr>"
@@ -235,8 +231,8 @@ def _health_cell(view, c):
 
 
 def _equipment_cell(view, c):
-    """Equipment (Weapons / Armour) as a trait-band COLUMN, alongside Willpower,
-    Virtues, Essence and Soak — not a block below the band."""
+    """Equipment (Weapons / Armour) as a COLUMN in the trait band, next to Willpower,
+    Virtues, Essence and Soak. It is not a block below the band."""
     esc = _html.escape
     rows = []
     for w in view.weapons:
@@ -266,9 +262,9 @@ def _traits_html(view, c):
     equipment = _equipment_cell(view, c)
     if equipment:
         cells.append(equipment)
-    # THREE columns (two rows of three), not one row of six: at A4 width a six-column
-    # band truncates the content ("Compa", "Daikla") — the on-screen window is wide
-    # enough to hide it, the printed page is not.
+    # ⚠ Use THREE columns, in two rows of three. Do not use one row of six. At A4 width, a
+    # six-column band cuts the content, for example "Compa" and "Daikla". The screen
+    # window is wide, thus it hides this fault. The printed page shows it.
     return _columns(cells, 3, c)
 
 
@@ -304,10 +300,11 @@ def _holdings_html(view, c):
 
 
 def sheet_html(view, colors: SheetColors | None = None):
-    """Full HTML for one SheetView, sections in pdf.py's order, splat accent headers.
+    """The full HTML for one SheetView. The sections are in the order of `pdf.py`, and the
+    headers take the accent of the splat.
 
-    `colors` defaults to the PAPER set, so a caller that just wants a printable sheet
-    is unchanged; the on-screen tabs pass `screen_colors(...)`."""
+    The default of `colors` is the PAPER set. Thus a caller that wants a printable sheet
+    supplies no colours. The screen tabs supply `screen_colors(...)`."""
     c = colors if colors is not None else print_colors(view.exalt_type)
     esc = _html.escape
     parts = [f"<h1 style='color:{c.accent};font-size:20pt;margin:0'>{esc(view.name)}</h1>"]
@@ -331,13 +328,13 @@ def sheet_html(view, colors: SheetColors | None = None):
     advantages = _advantages_blocks(view, c)
     if advantages:
         parts.append(_section("Advantages", c))
-        # TWO columns, not three: at A4 width the three-up advantages cram the names
-        # and notes into mid-word-wrapped fragments ("Reinforce d Buﬀ").
+        # ⚠ Use TWO columns, not three. At A4 width, three columns of Advantages divide
+        # the names and the notes in the middle of a word, for example "Reinforce d Buﬀ".
         parts.append(_columns(advantages, 2, c))
 
-    # Force the break before Traits: the trait band straddled the natural page break
-    # (page 1 ended mid-band). Starting Traits on a fresh page keeps the whole band —
-    # and Charms after it — on page 2, un-split.
+    # Force a page break before Traits. Without it, the natural page break divides the
+    # trait band, and page 1 ends in the middle of the band. A break here keeps the full
+    # band, and the Charms after it, together on page 2.
     parts.append(_section("Traits", c, "page-break-before:always;"))
     parts.append(_traits_html(view, c))
 
@@ -365,13 +362,13 @@ def build_document(html_text, paper="A4"):
 def print_pdf(doc, path, paper="A4"):
     """Write `doc`, paginated, to a PDF at `path` via QPdfWriter.
 
-    ⚠ `doc` must be built from `sheet_html(view)` — the PAPER colours. The on-screen
-    document is the screen set, and printing that one puts a dark page on white paper.
+    ⚠ Build `doc` from `sheet_html(view)`, which uses the PAPER colours. The screen
+    document uses the screen set, and it prints a dark page onto white paper.
 
-    ⚠ The document's page size is reset to the paper FIRST: a doc shown in a
-    QTextBrowser has had its page size rewritten to the viewport (unbounded height,
-    for scrolling), and printing such a doc makes Qt render page numbers — the
-    on-screen window's print always carried a footer the offline path never did."""
+    ⚠ Set the page size of the document to the paper FIRST. A document that a QTextBrowser
+    shows has the page size of the viewport, which has no height limit for scrolling. When
+    Qt prints such a document, it renders page numbers. Thus a print from the screen window
+    carries a footer, and a print from the offline path does not."""
     size = QPageSize(QPageSize.A4 if paper == "A4" else QPageSize.Letter).sizePoints()
     doc.setPageSize(QSizeF(size.width(), size.height()))
     writer = QPdfWriter(path)
@@ -386,12 +383,13 @@ def print_pdf(doc, path, paper="A4"):
 # --------------------------------------------------------------------------- #
 
 class SheetPage(QWidget):
-    """The read-only Sheet tab: a scrollable QTextDocument re-rendered on reload.
+    """The read-only Sheet tab. It holds a scrollable QTextDocument, and each reload
+    renders it again.
 
-    Takes the shared (ruleset, ctx); `reload()` re-reads ctx['char'], so a New/Load
-    or a lock re-themes and re-fills the sheet without rebuilding the window. The
-    on-screen view scrolls continuously and is drawn in the SCREEN colours; the
-    printed PDF is the same HTML in the paper set (`print_pdf`, or `ui/pdf.py`)."""
+    Input: the shared (ruleset, ctx). `reload()` reads ctx['char'] again. Thus a New, a
+    Load or a lock re-themes and re-fills the sheet, and the window stays. The screen view
+    scrolls continuously in the SCREEN colours. The printed PDF is the same HTML in the
+    paper set (`print_pdf`, or `ui/pdf.py`)."""
 
     def __init__(self, ruleset, ctx, parent=None):
         super().__init__(parent)
@@ -410,9 +408,10 @@ class SheetPage(QWidget):
         sheet = build_sheet_view(self._ruleset, self._ctx["char"])
         colors = screen_colors(sheet.exalt_type)
         self._doc = build_document(sheet_html(sheet, colors))
-        # ⚠ The document's own colours are not enough: the widget's background is the
-        # shell QSS's, so the page shade has to be set here for the two to agree — and
-        # a splat change re-renders, so it is set on every reload, not once.
+        # ⚠ The colours of the document are not sufficient. The shell QSS supplies the
+        # background of the widget. Thus you must set the page shade here, and the two
+        # then agree. A splat change renders the sheet again. Thus set the shade on every
+        # reload, not one time.
         self.view.setStyleSheet(
             f"QTextBrowser {{ background:{colors.paper}; color:{colors.ink}; }}")
         self.view.setDocument(self._doc)

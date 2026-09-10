@@ -9,24 +9,23 @@ re-syncs only the row it changed, so a keystroke never rebuilds the pane under t
 cursor. Every computed number comes from `engine.adversaries`; every roster mutation
 goes through it too.
 
-⚠ **This tab is where an adversary is EDITED; the Party tab is where a fight is RUN.**
-The roster is drawn twice on purpose. Here it is a collection like Gear and Advantages —
-a table, and the editor that was a modal dialog on the webapp as the detail pane. On the
-Party tab it is a grid of live tracker cards beside the characters fighting it
-(`qt/party.py::_adversary_card`), which is what the webapp had and what the port dropped:
-one detail pane shows exactly one bandit's health, and "gming combat is a challenge"
-(human, 2026-08-28). `AdversaryTrackers` below is the ONE tracker both surfaces use.
-The table's **Damage** column is not decoration either — it is the at-a-glance readout
-while you are on this tab.
+⚠ **This tab EDITS an adversary. The Party tab RUNS a fight.** The program draws the
+roster two times, and that is correct. Here the roster is a collection, as Gear and
+Advantages are: a table, with the detail pane that the webapp showed as a modal dialog. On
+the Party tab, the roster is a grid of live tracker cards next to the characters in the
+fight (`qt/party.py::_adversary_card`). One detail pane shows the health of ONE adversary,
+and a Storyteller runs a fight against many (human's ruling). `AdversaryTrackers` below is
+the ONE tracker that both surfaces use. ⚠ The **Damage** column of the table is not
+decoration. It is the readout that the user reads on this tab.
 
-⚠ **An `Adversary` is NOT a `Character`.** Nothing here validates, prices or locks, and
-no dot tracks: these values are typed off a page or invented on the spot, never bought,
-so a stepper with a rules cap would be lying about what governs them.
+⚠ **An `Adversary` is NOT a `Character`.** No code here validates, prices or locks. Use no
+dot tracks. The user types these values from a page, or invents them. The user never buys
+them. Thus a stepper with a rules limit states a rule that does not apply.
 
-⚠ **The dead-field class of bug is what this surface has already produced once** —
-`powers`, `combat_pool` and `cost_to_dematerialize` were authored, editable nowhere, and
-silently wiped on save. `tests/test_qt_adversaries.py` walks `Adversary.model_fields`
-and drives each widget, so a new field fails until it is wired to both ends.
+⚠ **This surface has produced a dead field one time.** `powers`, `combat_pool` and
+`cost_to_dematerialize` existed in the model, no widget could edit them, and the save
+removed them. `tests/test_qt_adversaries.py` reads `Adversary.model_fields` and drives
+each widget. Thus a new field fails the test until you connect both ends.
 """
 
 from __future__ import annotations
@@ -54,23 +53,23 @@ from .trackers import MARK_FILL, box as tracker_box, restyle as restyle_box
 
 _COLUMNS = ("Name", "Categories", "Damage", "Stats")
 
-# Qt has no flex-wrap; a health track runs to 22 boxes on a Deathlord, so it wraps by
-# construction — the same reason `qt/play.py` carries this number.
+# Qt has no flex-wrap. A health track has 22 boxes on a Deathlord. Thus this row wraps by
+# construction. `qt/play.py` holds this number for the same reason.
 _BOXES_PER_ROW = 11
 
 _ATTRIBUTES = ["strength", "dexterity", "stamina", "charisma", "manipulation",
                "appearance", "perception", "intelligence", "wits"]
 _VIRTUES = ["compassion", "conviction", "temperance", "valor"]
 
-# ⚠ `0` MEANS ABSENT in the trait grids, and it is honest here rather than a shortcut:
-# a beast prints three of the nine Attributes (p.316 says the rest default to
-# Intelligence 1, Perception 2, Wits 3), and no printed block carries a rating of zero.
-# The box shows "—" at its minimum so the grid never claims the book printed a 0.
+# ⚠ In the trait grids, `0` MEANS ABSENT. A beast prints three of the nine Attributes, and
+# p.316 gives the defaults for the others as Intelligence 1, Perception 2, Wits 3. No
+# printed block gives a rating of zero. Thus the box shows "—" at its minimum, and the grid
+# never reports that the book printed a 0.
 _ABSENT = "—"
 
-# The nullable combat numbers, where absent is NOT zero: the Bear prints no dodge figure
-# (p.316) and Nagezzer prints the literal "Does not dodge" (p.307). Their spin boxes run
-# from -1, shown as "—", so both states are reachable.
+# The combat numbers that can be absent. ⚠ Absent is NOT zero. The Bear prints no dodge
+# figure (p.316), and Nagezzer prints "Does not dodge" (p.307). Their spin boxes start at
+# -1, which shows as "—". Thus the user can set both states.
 _NULLABLE = (
     ("base_initiative", "Base initiative", ""),
     ("combat_pool", "Combat pool",
@@ -93,8 +92,8 @@ _POOLS = (
      "Elementals pay this instead — their natural state is the physical one (p.295)."),
 )
 
-# ⚠ `categories` is NOT in this table: it is a codec line (comma-separated), not a
-# plain string field, so it is built separately in `_identity_panel`.
+# ⚠ `categories` is NOT in this table. It is a comma-separated codec line, not a plain
+# string field. `_identity_panel` builds it.
 _IDENTITY = (
     ("name", "Name", ""),
     ("nature", "Nature", ""),
@@ -127,25 +126,25 @@ class AdversaryTrackers(QWidget):
     through `engine.adversaries` and then RESTYLES the boxes and re-texts the headings it
     changed; nothing here is ever torn down by its own click.
 
-    ⚠ **ONE trackers widget, used twice.** The Adversaries detail pane and the Party
-    tab's roster cards draw the same boxes for the same entries — a second copy is how
-    the two drift, and drift here means two answers to "how hurt is this bandit".
+    ⚠ **There is ONE trackers widget, and two surfaces use it.** The Adversaries detail
+    pane and the roster cards of the Party tab draw the same boxes for the same entries. A
+    second copy becomes different, and the user then gets two answers to "how much damage
+    does this adversary have".
 
-    ⚠ **`framed` is presentation only.** In the detail pane each panel is its own card;
-    on a roster card the surrounding card already supplies the shade, and a card inside a
-    card reads as a rendering fault.
+    ⚠ **`framed` changes the presentation only.** In the detail pane, each panel is its own
+    card. On a roster card, the card supplies the shade, and a card inside a card reads as
+    a rendering fault.
 
-    ⚠ **`dense` is presentation only too, and it is a MODE rather than a second widget.**
-    It lays the three panels SIDE BY SIDE instead of stacking them, which is what the
-    party page's roster blocks need — stacked, three headed panels are ~130px per
-    adversary and six of them are a screenful. Forking a compact copy would break the
-    one-widget rule above, and drift here means two answers to "how hurt is this bandit".
-    `dense` implies unframed: side-by-side cards inside a card is the fault `framed`
-    already warns about, doubled.
+    ⚠ **`dense` also changes the presentation only. It is a MODE, not a second widget.** It
+    puts the three panels SIDE BY SIDE, and it does not stack them. The roster blocks of
+    the party page need this. Three stacked panels with headings are approximately 130px
+    for each adversary, and six of them fill the screen. A second compact widget breaks the
+    one-widget rule above. `dense` also removes the frame, because cards side by side
+    inside a card are the fault that `framed` describes.
 
-    ⚠ **A click never rebuilds this widget** (see `trackers.restyle`). The one change
-    that legitimately re-lengthens the boxes is an edit to `health_levels`, and that goes
-    through the owner's rebuild, not through here.
+    ⚠ **A click never rebuilds this widget** (see `trackers.restyle`). One change makes the
+    boxes longer: an edit to `health_levels`. That change goes through the rebuild of the
+    owner, not through this widget.
     """
 
     def __init__(self, entry: Adversary, accent: str, *, prefix: str = "adv",
@@ -175,38 +174,36 @@ class AdversaryTrackers(QWidget):
         self._build()
         if dense:
             self._lay.addStretch(1)
-        # ⚠ A HARD floor, set after building, and it is not belt-and-braces. A card is a
-        # stack of word-wrapped labels, and a word-wrapped QLabel answers
-        # `heightForWidth` — which makes the enclosing QGridLayout's idea of how tall the
-        # card needs to be smaller than the truth. Every label then shrinks gracefully
-        # and the only things that CANNOT are these fixed-size boxes, so the health row
-        # was clipped to half height and painted through the Willpower heading below it
-        # (2026-08-28). A minimum height on the widget is a floor no parent layout may
-        # go under; a size policy alone was not enough. Invisible to all 3,065 tests —
-        # only a render showed it.
+        # ⚠ Set a HARD minimum height after you build the widget. A card is a stack of
+        # labels that wrap, and a QLabel that wraps answers `heightForWidth`. Thus the
+        # QGridLayout above it calculates a card height that is too small. Each label then
+        # becomes shorter, but these fixed-size boxes CANNOT. The health row is then cut to
+        # half height, and it paints through the Willpower heading below it. A minimum
+        # height is a limit that no parent layout can go below. A size policy is not
+        # sufficient. ⚠ No test can see this fault. Only a render shows it.
         self.setMinimumHeight(self._lay.minimumSize().height())
 
     # ---- construction ---------------------------------------------------- #
 
     def _panel(self, title: str) -> tuple[QVBoxLayout, QLabel]:
-        """A heading over a body, carded when `framed`. Returns both, because every
-        heading here carries a live count that is re-texted rather than rebuilt."""
-        # ⚠ NOT word-wrapped. A wrapped QLabel answers `heightForWidth`, which
-        # `QGridLayout` does not honour — and these headings sit on cards a grid lays
-        # out, so wrapping them makes the card too short and clips the boxes below.
+        """A heading over a body. `framed` puts them on a card. Returns both. Each heading
+        here carries a live count, and `sync` writes that text again."""
+        # ⚠ Do NOT set word wrap. A QLabel that wraps answers `heightForWidth`, and
+        # `QGridLayout` ignores that value. These headings are on cards that a grid lays
+        # out. Thus a wrap makes the card too short, and it cuts the boxes below.
         head = QLabel(title)
         head.setStyleSheet(f"font-weight:700; letter-spacing:1px; color:{self._accent};"
                            + ("" if self._framed else " font-size:11px;"))
         body = QVBoxLayout()
-        # ⚠ Margins zeroed: a nested QVBoxLayout inherits an 11px default on all four
-        # sides, and three of them down a card add 66px of nothing between each heading
-        # and the boxes it labels.
+        # ⚠ Set the margins to zero. A nested QVBoxLayout takes an 11px default on all four
+        # sides. Three of them on one card add 66px of empty space between each heading and
+        # its boxes.
         body.setContentsMargins(0, 0, 0, 0)
         body.setSpacing(3)
         if self._dense:
-            # A COLUMN per panel, side by side. The heading still sits over its own
-            # boxes — it carries a live count that `sync` re-texts, so it cannot become
-            # a shared caption.
+            # Give each panel a COLUMN, side by side. Keep each heading over its own boxes.
+            # ⚠ A heading carries a live count that `sync` writes again. Thus it cannot
+            # become one shared caption.
             column = QVBoxLayout()
             column.setContentsMargins(0, 0, 0, 0)
             column.setSpacing(2)
@@ -247,9 +244,9 @@ class AdversaryTrackers(QWidget):
                 body.addLayout(row)
             cell = QVBoxLayout()
             cell.setSpacing(1)
-            # The wound penalty is CAPTIONED, not just a tooltip: which box to mark next
-            # is what a Storyteller reads off a card mid-fight, and a hover is no use
-            # when six of them are on screen at once.
+            # Put the wound penalty in a CAPTION. Do not put it in a tooltip only. During a
+            # fight, a Storyteller reads the next box to mark from the card. A tooltip needs
+            # a hover, and six cards can be on the screen.
             caption = QLabel(adv.level_label(a.health_levels[i]))
             caption.setAlignment(Qt.AlignmentFlag.AlignHCenter)
             caption.setStyleSheet(f"color:{MUTED}; font-size:10px;")
@@ -287,17 +284,17 @@ class AdversaryTrackers(QWidget):
             spin.setObjectName(f"{self._prefix}.motes_spent")
             spin.setRange(0, cap)
             spin.setValue(min(a.motes_spent, cap))
-            # ⚠ No rebuild from a spin box either: a redraw deletes the widget
-            # mid-keystroke and takes the focus with it. The heading is re-texted.
+            # ⚠ Do not rebuild from a spin box. A redraw deletes the widget while the user
+            # types, and it takes the focus. Write the heading text again instead.
             spin.valueChanged.connect(self._write_motes)
             self._motes_spin = spin
             row = QHBoxLayout()
             label = QLabel("Motes spent")
             label.setStyleSheet(f"color:{MUTED};" + (" font-size:11px;"
                                                      if self._dense else ""))
-            # ⚠ A MINIMUM width in the detail pane, where the row is wide and the label
-            # should line up with the ones above it — but a minimum in a dense column is
-            # 90px this panel does not have to spare, so dense hands it its own size.
+            # ⚠ Set a MINIMUM width in the detail pane. The row is wide there, and the label
+            # must align with the labels above it. A dense column does not have those 90px.
+            # Thus dense mode sets its own width.
             if not self._dense:
                 label.setMinimumWidth(90)
             row.addWidget(label)
@@ -352,9 +349,9 @@ class AdversaryTrackers(QWidget):
     def sync(self) -> None:
         """Repaint every box and heading from the model, in place.
 
-        ⚠ Zips against the boxes it BUILT. A change to `health_levels` re-lengthens the
-        track, and that is the owner's rebuild — this method would silently render the
-        old length."""
+        ⚠ This method uses the boxes that it BUILT. A change to `health_levels` makes the
+        track longer, and the rebuild of the owner does that. This method draws the old
+        length and reports no error."""
         marks = adv.normalize_damage(self._a)
         for i, button in enumerate(self._health_boxes):
             mark = marks[i] if i < len(marks) else None
@@ -371,10 +368,9 @@ class AdversaryTrackers(QWidget):
         if self._essence_head is not None:
             self._essence_head.setText(self._essence_title())
         if self._motes_spin is not None:
-            # ⚠ Signals blocked: "Reset" writes 0 to the model and then here, and an
-            # un-blocked setValue would write it straight back out through
-            # `_write_motes` — harmless today, and exactly the loop a future cap change
-            # would turn into a fight between the two.
+            # ⚠ Block the signals. "Reset" writes 0 to the model, then calls this code. An
+            # unblocked `setValue` writes that value back through `_write_motes`. That has
+            # no effect now. A later change to a limit makes it a loop.
             self._motes_spin.blockSignals(True)
             self._motes_spin.setValue(min(self._a.motes_spent,
                                           self._motes_spin.maximum()))
@@ -390,17 +386,17 @@ class AdversariesPage(QWidget):
         self._ruleset = ruleset
         self._ctx = ctx
         self._notify = notify or (lambda text, kind="info": None)
-        # ⚠ Every Qt page takes an `on_change`, and this one was built without: the
-        # roster is now drawn on the Party tab too, so an edit here that never announced
-        # itself would leave two surfaces showing different damage (the hook-contract
-        # trap that hid `CharmsPage`'s missing readout — CLAUDE.md).
+        # ⚠ Every Qt page takes an `on_change`. This page needs one. The Party tab draws
+        # the same roster. An edit here that sends no signal leaves the two surfaces with
+        # different damage values.
         self._on_change = on_change or (lambda: None)
-        # The selected entry's ID, not its row. ⚠ Positions shift on add, duplicate and
-        # delete — the roster is the one list here that inserts in the MIDDLE (a
-        # duplicate sits beside its original), so an index would re-select a neighbour.
+        # The ID of the selected entry, not its row. ⚠ An add, a duplicate and a delete
+        # move the positions. This roster is the one list that inserts in the MIDDLE,
+        # because a duplicate goes next to its original. Thus an index selects a
+        # different entry.
         self._selected: str | None = None
-        # The live trackers of whatever is selected, so a click repaints instead of
-        # rebuilding the pane it is standing in.
+        # The live trackers of the selected entry. Thus a click repaints the boxes. It does
+        # not rebuild the pane that holds them.
         self._trackers: AdversaryTrackers | None = None
 
         bar = QHBoxLayout()
@@ -428,18 +424,18 @@ class AdversariesPage(QWidget):
         self.table.setRootIsDecorated(False)
         self.table.setAlternatingRowColors(True)
         self.table.setSortingEnabled(True)
-        # ⚠ Sortable, but NOT sorted to begin with. Roster order is meaningful here in a
-        # way it is not on the other collection tabs: a duplicate is deliberately
-        # inserted beside its original so a squad reads as a squad, and an alphabetical
-        # default would scatter it on the very click that made it. `sortByColumn(-1)`
-        # clears the indicator and leaves the header clickable.
+        # ⚠ The table is sortable, but it starts unsorted. The roster order carries
+        # meaning here, and the order on the other collection tabs does not. A duplicate
+        # goes next to its original, thus a squad stays together. An alphabetical default
+        # separates the squad on the click that creates it. `sortByColumn(-1)` removes the
+        # indicator and keeps the header clickable.
         self.table.sortByColumn(-1, Qt.AscendingOrder)
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)
         self.table.header().setStretchLastSection(False)
         self.table.header().setSectionResizeMode(3, QHeaderView.Stretch)
-        # ⚠ Widths set, not left to Qt. A list of categories needs room the single
-        # word never did — "Undead · Sold…" in a 90px column is the one cell you file a
-        # squad by, truncated. Interactive, so they stay draggable.
+        # ⚠ Set the widths. Do not leave them to Qt. A list of categories needs more space
+        # than one word. In a 90px column, "Undead · Sold…" cuts the cell that the user
+        # files a squad by. Keep the mode Interactive, thus the user can drag the columns.
         for column, width in ((0, 175), (1, 175), (2, 115)):
             self.table.header().resizeSection(column, width)
         self.table.itemSelectionChanged.connect(self._selection_changed)
@@ -480,9 +476,8 @@ class AdversariesPage(QWidget):
         return self._ctx["party"]
 
     def _accent(self) -> str:
-        """The window's splat accent. The roster belongs to the PARTY, not to any one
-        member, so it takes the party's shared palette rather than an entry's — an
-        adversary has no splat of its own."""
+        """The splat accent of the window. The roster belongs to the PARTY, not to one
+        member. Thus it takes the shared palette of the party. An adversary has no splat."""
         splats = {m.character.exalt_type for m in self._party().members}
         return accent_light(theme.palette(splats.pop() if len(splats) == 1 else None))
 
@@ -503,24 +498,24 @@ class AdversariesPage(QWidget):
         self._sync_detail()
 
     def _rebuild(self) -> None:
-        """A change that moved the LIST — refill, re-derive the pane, and tell the
-        window, which redraws the same roster on the Party tab."""
+        """Apply a change that moved the LIST. Refill the table, build the pane again, and
+        call the window. The window draws the same roster on the Party tab again."""
         self.reload()
         self._on_change()
 
     def select(self, entry_id: str) -> None:
-        """Select an entry by id — the seam "Edit" on a Party-tab roster card uses.
+        """Select an entry by id. The "Edit" control on a Party-tab roster card calls this.
 
-        ⚠ By ID, never by row. This table is sortable and a duplicate lands in the
-        MIDDLE of the list, so a row number names a different adversary the moment
-        either happens."""
+        ⚠ Select by ID. Never select by row. This table is sortable, and a duplicate goes
+        into the MIDDLE of the list. After either action, a row number names a different
+        adversary."""
         self._selected = entry_id
         self._fill_table()
         self._sync_detail()
 
     def _tracked(self) -> None:
-        """A tracker click: re-render this row, and let the Party tab's copy of the same
-        entry catch up."""
+        """Apply a tracker click. Draw this row again, and call the window. The Party tab
+        then draws the same entry again."""
         self._refresh_row()
         self._on_change()
 
@@ -529,8 +524,8 @@ class AdversariesPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def _damage_cell(self, a: Adversary) -> str:
-        """The at-a-glance damage readout — the column that replaces the webapp's card
-        stack. Marks counted by type, then the deepest wound penalty."""
+        """The damage readout of one row. Output: the count of marks for each damage type,
+        then the largest wound penalty."""
         marks = adv.normalize_damage(a)
         counts = {d: sum(1 for m in marks if m == d) for d in Damage}
         total = sum(counts.values())
@@ -543,8 +538,8 @@ class AdversariesPage(QWidget):
                 f"{counts[Damage.AGGRAVATED]}*  ({shown})")
 
     def _fill_table(self) -> None:
-        # ⚠ Sorting OFF across the fill: with it on Qt re-sorts after every insert,
-        # which scrambles the order a squad was added in.
+        # ⚠ Turn sorting OFF across the fill. If sorting is on, Qt sorts again after each
+        # insert, and the order of a squad is lost.
         self.table.setSortingEnabled(False)
         self.table.blockSignals(True)
         self.table.clear()
@@ -571,8 +566,8 @@ class AdversariesPage(QWidget):
             button.setEnabled(self._selected is not None)
 
     def _refresh_row(self) -> None:
-        """Re-render the selected row only, so an edit tracks the table without a full
-        rebuild (which would steal focus mid-keystroke)."""
+        """Draw the selected row again. Thus the table agrees with the edit. ⚠ Do not do a
+        full rebuild. A rebuild takes the focus away while the user types."""
         item = self.table.currentItem()
         entry = self._current()
         if item is None or entry is None:
@@ -594,8 +589,9 @@ class AdversariesPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def build_add_dialog(self) -> CatalogueDialog:
-        """The template picker, BUILT but not run — `exec()` blocks a headless run, so
-        this is the seam the tests drive (the shape `GearPage` uses)."""
+        """The template picker. This function BUILDS the dialog and does not run it.
+        `exec()` stops a headless run, thus the tests drive this seam. `GearPage` uses the
+        same shape."""
         templates = sorted(self._ctx.get("adversary_catalog", {}).values(),
                            key=lambda t: (adv.category_label(t), t.name))
         rows = [(t.id, t.name, viewmod.summary_line(self._ruleset, t),
@@ -608,8 +604,8 @@ class AdversariesPage(QWidget):
         return CatalogueDialog(
             pal, "Add an adversary", rows, self._add,
             subtitle=_ADD_SUBTITLE if rows else "",
-            # ⚠ EVERY category, not the first — a template filed under two headings
-            # must be findable under both, which is the point of the list.
+            # ⚠ Supply EVERY category, not the first one. The user must find a template
+            # under each of its headings.
             group_of=adv.catalogue_groups(templates),
             custom_label="Blank adversary", parent=self)
 
@@ -682,9 +678,9 @@ class AdversariesPage(QWidget):
         return body
 
     def _labelled(self, lay, caption: str, widget, tooltip: str = "") -> None:
-        """One captioned row. ⚠ A QSpinBox is NOT stretched: a two-digit number in a
-        550px-wide box reads as a text field someone forgot to size, and the printed
-        numbers here are all small."""
+        """One row with a caption. ⚠ Do NOT stretch a QSpinBox. A two-digit number in a box
+        of 550px reads as a text field with the wrong size. The printed numbers here are
+        all small."""
         row = QHBoxLayout()
         label = QLabel(caption)
         label.setStyleSheet(f"color:{MUTED};")
@@ -727,10 +723,10 @@ class AdversariesPage(QWidget):
     def _tracker_panel(self, a: Adversary) -> None:
         """The shared trackers widget, held so a click can repaint it in place.
 
-        ⚠ It is NOT re-created per click. The detail pane sits in a QScrollArea, and
-        rebuilding it under the button that was just pressed threw the focus to the end
-        of the tab chain and dragged the scroll to the bottom of the pane on every
-        damage mark (human, 2026-08-28)."""
+        ⚠ Do NOT create this widget again on each click. The detail pane is in a
+        QScrollArea. A rebuild below the button that the user pressed moves the focus to
+        the end of the tab chain, and the pane then scrolls to its bottom on each damage
+        mark."""
         self._trackers = AdversaryTrackers(a, self._accent(), prefix="adv",
                                            on_change=self._tracked)
         self._detail_lay.addWidget(self._trackers)
@@ -753,8 +749,9 @@ class AdversariesPage(QWidget):
         return edit
 
     def _int_spin(self, a: Adversary, field: str, *, nullable: bool = False) -> QSpinBox:
-        """One printed number. A nullable one runs from -1, shown as "—": absent is not
-        zero (a bear has no printed dodge; Nagezzer "does not dodge")."""
+        """One printed number. A number that can be absent starts at -1, which shows as
+        "—". ⚠ Absent is not zero. A bear prints no dodge, and Nagezzer "does not
+        dodge"."""
         spin = QSpinBox()
         spin.setObjectName(f"adv.{field}")
         spin.setRange(-1 if nullable else 0, 999)
@@ -770,9 +767,10 @@ class AdversariesPage(QWidget):
     def _identity_panel(self, a: Adversary) -> None:
         body = self._panel("IDENTITY")
         self._labelled(body, "Name", self._text_line(a, "name"))
-        # Several labels, all equal — a skeletal legionnaire is Undead AND a Soldier,
-        # and the roster files it under both. ⚠ Committed on `editingFinished`, not per
-        # keystroke: splitting on every comma mid-type would fight the typist.
+        # An entry can have more than one label, and the labels have equal rank. A skeletal
+        # legionnaire is Undead AND a Soldier, and the roster files it under both. ⚠ Commit
+        # on `editingFinished`, not on each keystroke. A split at each comma during typing
+        # changes the text below the cursor.
         categories = QLineEdit(adv.category_line(a.categories))
         categories.setObjectName("adv.categories")
         categories.setPlaceholderText("Extra, Guild")
@@ -790,8 +788,9 @@ class AdversariesPage(QWidget):
                 f"moment it was made.", italic=True))
 
     def _trait_grid(self, body, a: Adversary, field: str, keys: list[str]) -> None:
-        """The Attributes or Virtues grid. ⚠ Wrapped at four pairs a row: Qt has no
-        flex-wrap and a no-wrap row crushes its later children to slivers."""
+        """The Attributes grid or the Virtues grid. ⚠ Wrap it at four pairs for each row.
+        Qt has no flex-wrap, and a row that does not wrap makes its last children very
+        narrow."""
         values = getattr(a, field)
         row = None
         for position, key in enumerate(keys):
@@ -814,8 +813,8 @@ class AdversariesPage(QWidget):
             row.addStretch(1)
 
     def _write_trait(self, a: Adversary, field: str, key: str, value: int) -> None:
-        """Write one Attribute/Virtue, DELETING the key at 0 — storing a zero would
-        claim the book printed one (models/adversary.py)."""
+        """Write one Attribute or Virtue. ⚠ DELETE the key at 0. A stored zero reports that
+        the book printed a zero (`models/adversary.py`)."""
         values = dict(getattr(a, field))
         if value:
             values[key] = value
@@ -825,10 +824,11 @@ class AdversariesPage(QWidget):
         self._refresh_row()
 
     def _codec_line(self, a: Adversary, field: str) -> QLineEdit:
-        """An Abilities/Backgrounds line as the book prints it. ⚠ `trait_line` fills the
-        box and `parse_traits` reads it back — a CODEC PAIR, not a formatter plus a
-        parser. Committed on `editingFinished`, never per keystroke: parsing "Melee 3 (Sw"
-        mid-word and writing it back would fight the typist."""
+        """An Abilities line or a Backgrounds line, in the format that the book prints.
+        ⚠ `trait_line` fills the box, and `parse_traits` reads it back. They are a CODEC
+        PAIR. They are not a formatter and a separate parser. ⚠ Commit on
+        `editingFinished`, never on each keystroke. To parse "Melee 3 (Sw" and write it
+        back changes the text below the cursor."""
         edit = QLineEdit(adv.trait_line(getattr(a, field)))
         edit.setObjectName(f"adv.{field}")
         edit.editingFinished.connect(
@@ -847,11 +847,12 @@ class AdversariesPage(QWidget):
 
     def build_pick_dialog(self, kind: str, title: str,
                           apply: Callable[[str], None]) -> CatalogueDialog:
-        """One "add from catalogue" dialog, BUILT but not run — `exec()` blocks a
-        headless run, so this is the seam the tests drive (`build_add_dialog`'s shape).
+        """One "add from catalogue" dialog. This function BUILDS it and does not run it.
+        `exec()` stops a headless run, thus the tests drive this seam. `build_add_dialog`
+        uses the same shape.
 
-        `apply` receives the printed NAME, never the row key. Nothing here is filtered
-        by splat or checked against a prerequisite: see `view.adversary_picker_rows`.
+        `apply` receives the printed NAME, never the row key. ⚠ No code here filters by
+        splat, and no code checks a prerequisite. See `view.adversary_picker_rows`.
         """
         rows, group_of = viewmod.adversary_picker_rows(self._ruleset, kind)
         names = viewmod.picker_names(rows)
@@ -872,17 +873,17 @@ class AdversariesPage(QWidget):
                      apply: Callable[[str], None]) -> QPushButton:
         button = QPushButton("Add from catalogue")
         button.setObjectName(f"adv.pick.{kind}")
-        # Sized to its text, not to the panel. A full-width button under a field
-        # reads as a section separator rather than as that field's own affordance.
+        # Size the button to its text, not to the panel. A full-width button below a field
+        # reads as a section divider, not as a control for that field.
         button.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
         button.setToolTip("Browse the catalogue and append names here. "
                           "No prerequisites, no minimums, no splat filter.")
         button.clicked.connect(
             lambda *_: self.build_pick_dialog(kind, title, apply).exec())
-        # ⚠ The handler hung on the button, so a test can DRIVE the real one. Clicking
-        # opens a modal `exec()`, which blocks a headless run, and a test that
-        # re-implements the append is testing its own copy of the code — the exact
-        # shape `docs/lessons.md` calls testing the effect instead of the buy path.
+        # ⚠ Attach the handler to the button. Thus a test can DRIVE the real handler. A
+        # click opens a modal `exec()`, which stops a headless run. A test that writes its
+        # own append tests a copy of the code. `docs/lessons.md` calls that testing the
+        # effect in place of the buy path.
         button._apply = apply
         return button
 
@@ -900,9 +901,9 @@ class AdversariesPage(QWidget):
                 ("backgrounds", "Backgrounds", "")):
             edit = self._codec_line(a, field)
             self._labelled(body, label, edit, tooltip)
-            # ⚠ `setText` does NOT fire `editingFinished`, which is what normally
-            # commits this box — so the pick writes the model itself. Through the
-            # codec, never by string-appending, so the round trip still holds.
+            # ⚠ `setText` does NOT send `editingFinished`, and that signal commits this
+            # box. Thus the pick writes the model here. Write through the codec. Never
+            # append to the string. Thus the codec pair stays correct.
             def _apply(name: str, a=a, f=field, w=edit) -> None:
                 w.setText(adv.append_trait(w.text(), name))
                 setattr(a, f, adv.parse_traits(w.text()))
@@ -915,10 +916,10 @@ class AdversariesPage(QWidget):
         combo.addItem("(none)", "")
         for entry in options:
             combo.addItem(entry.name, entry.id)
-        # ⚠ Index the list this was built from, never read the key back out of the
-        # widget — Qt stores item data as a QVariant and hands a str-valued Enum back
-        # as a plain str (CLAUDE.md's Qt trap). These ids are already plain strings, so
-        # the rule costs nothing here and keeps the shape right.
+        # ⚠ Index the list that built this widget. Never read the key back from the widget.
+        # Qt stores item data as a QVariant, and it returns an Enum with a str value as a
+        # plain str. These ids are plain strings. Thus this rule has no cost here, and it
+        # keeps the shape correct.
         combo.setCurrentIndex(max(0, combo.findData(getattr(a, field) or "")))
         combo.currentIndexChanged.connect(
             lambda i, f=field: (setattr(a, f, combo.itemData(i) or ""),
@@ -953,8 +954,8 @@ class AdversariesPage(QWidget):
 
         health = QLineEdit(adv.format_health(a.health_levels))
         health.setObjectName("adv.health_levels")
-        # Re-lengthening the track re-lengths the MARKS with it, so the tracker above is
-        # rebuilt — the one edit in this pane that legitimately redraws it.
+        # A change to the track length also changes the length of the MARKS. Thus this code
+        # rebuilds the tracker above. This is the one edit in this pane that rebuilds it.
         health.editingFinished.connect(
             lambda: self._set_health(a, health.text()))
         self._labelled(body, "Health levels", health,
@@ -965,7 +966,7 @@ class AdversariesPage(QWidget):
         if levels == a.health_levels:
             return
         a.health_levels = levels
-        adv.normalize_damage(a)          # marks are positional; re-length them
+        adv.normalize_damage(a)          # the marks are positional. Set their length again.
         self._sync_detail()
         self._refresh_row()
 
@@ -975,9 +976,9 @@ class AdversariesPage(QWidget):
             self._labelled(body, label, self._int_spin(a, field), tooltip)
 
     def _prose_panel(self, a: Adversary) -> None:
-        """Charms, Spells and Powers are FREE TEXT and must stay that way: the book
-        prints "All Solar Charms the Storyteller cares to give him" (p.303), which is
-        not a list of ids and would fail the loader's link-checking."""
+        """Charms, Spells and Powers are FREE TEXT. ⚠ Keep them free text. The book prints
+        "All Solar Charms the Storyteller cares to give him" (p.303). That is not a list of
+        ids, and the link check of the loader refuses it."""
         body = self._panel("PROSE")
         for field, label, tooltip in _PROSE:
             edit = QPlainTextEdit(getattr(a, field))

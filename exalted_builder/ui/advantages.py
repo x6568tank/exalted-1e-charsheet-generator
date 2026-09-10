@@ -973,7 +973,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
                             f"w-[26rem] p-4 gap-2 {pal.card_solid}"):
                         ui.label("Custom Merit / Flaw").classes("text-base font-bold")
                         ui.label("Display-only — recorded on the sheet, no mechanical "
-                                 "effect (2026-08-10).").classes("text-xs text-gray-600")
+                                 "effect.").classes("text-xs text-gray-600")
                         name = ui.input(
                             placeholder="name (e.g. a bloodline trait)").props(
                             "dense").classes("w-full")

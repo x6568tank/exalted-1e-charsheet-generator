@@ -1,32 +1,33 @@
 """exalted_builder/qt/combos.py — the Combos sub-tab, under Charms.
 
-Input: a RuleSet and the shared context's Character. Output: the settled collection
-surface — a readout, an action toolbar, a sortable table of the character's Combos, and
-a splitter with the selected one's members in a detail pane. Mechanism: `reload()`
-rebuilds the table from `view.build_combo_view` (or `build_array_view`); selecting a row
-builds its member editor; every mutation goes through `engine.combo_actions`, and a
-post-lock purchase through `engine.advancement`.
+Input: a RuleSet and the Character in the shared context. Output: the collection surface.
+It has a readout, an action toolbar, a sortable table of the Combos of the character, and
+a splitter that puts the members of the selected row in a detail pane. Mechanism:
+`reload()` rebuilds the table from `view.build_combo_view` or `build_array_view`. A
+selected row builds its member editor. Every mutation goes through `engine.combo_actions`.
+A purchase after the lock goes through `engine.advancement`.
 
-⚠ **This is ONE tab rendering one of TWO systems, never both.** A Charm-Slot splat
-(Alchemical, p.89-90) builds **Arrays** instead of Combos, and `view.uses_arrays` is the
-one place that decides which — the noun, the presenter, the engine calls and the cost
-sentence all key off it. A splat that builds neither has no sub-tab at all
-(`view.has_combos_tab`; the dead may never learn Combos, E:Ab p.234), which `CharmsPage`
-checks before constructing this.
+⚠ **This is ONE tab, and it renders one of TWO systems. It never renders both.** A
+Charm-Slot splat (Alchemical, p.89-90) builds **Arrays** in place of Combos.
+`view.uses_arrays` is the one place that decides which system. The noun, the presenter,
+the engine calls and the cost sentence all read it. A splat that builds neither system has
+no sub-tab (`view.has_combos_tab`; the dead can never learn Combos, E:Ab p.234).
+`CharmsPage` checks that flag before it constructs this page.
 
-⚠ **The two sides of the lock are different SHAPES, not the same shape disabled.**
-At chargen a Combo is assembled in place — created empty, members added and removed,
-priced in bonus points. In play it is **bought whole**: `advancement.add_combo` prices
-the finished set, checks its legality and logs it in one go, so the toolbar's action
-becomes a compose-and-buy dialog and the table goes read-only. A bought Combo is fixed;
-taking one back is an XP undo in the shell's Experience card, not a list edit.
+⚠ **The two sides of the lock have different SHAPES. One side is not the other side with
+the controls disabled.** At chargen, the user assembles a Combo in place: create it empty,
+add and remove members, and pay in bonus points. In play, the user **buys it whole**:
+`advancement.add_combo` prices the finished set, checks its legality and logs it in one
+call. Thus the toolbar action becomes a compose-and-buy dialog, and the table becomes
+read-only. A Combo that the user bought is fixed. To remove one is an XP undo in the
+Experience card of the shell. It is not an edit to the list.
 
-⚠ **It lives here and not on the rail.** Combos are a Charms SUB-TAB in the native shell
-(2026-08-21, the human's call) because a Combo is assembled out of Charms the character
-already owns. The webapp keeps its top-level tab, so `view.visible_tabs` still names one
-and the shell discards that answer — do not "fix" the presenter to match.
+⚠ **This page is a SUB-TAB of Charms. It is not on the rail** (human's ruling). A Combo is
+assembled from Charms that the character owns. The webapp keeps its top-level tab, thus
+`view.visible_tabs` names one, and the shell discards that answer. Do not change the
+presenter to agree with the shell.
 
-Zero game logic. Every row, cost and issue comes from `ui/view.py`.
+This module has no game logic. `ui/view.py` supplies every row, every cost and every issue.
 """
 
 from __future__ import annotations
@@ -55,9 +56,9 @@ _ARRAY_BLURB = ("An Array links two or more installed Attribute-based Charms int
 
 
 class CombosPage(QWidget):
-    """The sub-tab widget. `reload()` rebuilds for the character in ctx; `notify`
-    surfaces transient messages; `on_change` pings the owning page so its readout and
-    the shell's re-derive."""
+    """The sub-tab widget. `reload()` rebuilds for the character in ctx. `notify` shows a
+    temporary message. `on_change` calls the owning page, thus that page and the shell
+    calculate their readouts again."""
 
     def __init__(self, ruleset, ctx, *, notify=None, on_change=None, parent=None):
         super().__init__(parent)
@@ -65,9 +66,9 @@ class CombosPage(QWidget):
         self._ctx = ctx
         self._notify = notify or (lambda text, kind="info": None)
         self._on_change = on_change
-        # The selected row's INDEX into character.combos / .arrays. ⚠ Dropped on a
-        # rebuild that added or removed a row: an index is a position, and deleting one
-        # renumbers everything after it.
+        # The INDEX of the selected row into character.combos or .arrays. ⚠ Drop this
+        # index on a rebuild that adds or removes a row. An index is a position, and a
+        # delete gives a new number to every row after it.
         self._selected: int | None = None
 
         self.readout = QLabel("")
@@ -151,9 +152,9 @@ class CombosPage(QWidget):
         return accent_light(theme.palette(self._char().exalt_type))
 
     def _arrays(self) -> bool:
-        """⚠ Read per call, never cached in `__init__`. The splat can change on the
-        Identity tab while this page exists, and a cached answer would leave an
-        Alchemical building Combos."""
+        """⚠ Read this value on each call. Never cache it in `__init__`. The user can
+        change the splat on the Identity tab while this page exists. With a cached value,
+        an Alchemical builds Combos."""
         return viewmod.uses_arrays(self._ruleset, self._char())
 
     def _noun(self) -> str:
@@ -186,8 +187,8 @@ class CombosPage(QWidget):
         self._sync_detail()
 
     def _rebuild(self) -> None:
-        """A change that moved the LIST. ⚠ Drops the selection first — it is a POSITION,
-        and adding or deleting renumbers every row after it."""
+        """Apply a change that moved the LIST. ⚠ Drop the selection first. The selection is
+        a POSITION, and an add or a delete gives a new number to every row after it."""
         self._selected = None
         self.reload()
         if self._on_change is not None:
@@ -221,8 +222,9 @@ class CombosPage(QWidget):
                 "first.")
 
     def _sync_actions(self) -> None:
-        """⚠ The two sides of the lock offer DIFFERENT actions, not the same ones
-        greyed. At chargen you build a Combo up; in play you buy a finished one."""
+        """⚠ The two sides of the lock give DIFFERENT actions. They are not the same
+        actions disabled. At chargen, the user builds a Combo. In play, the user buys a
+        finished Combo."""
         locked = self._locked()
         self.add_btn.setVisible(not locked)
         self.add_btn.setText(f"+ {self._noun()}")
@@ -240,9 +242,9 @@ class CombosPage(QWidget):
     def _fill_table(self) -> None:
         rows, _addable, _total = self._rows()
         locked = self._locked()
-        # ⚠ The empty-table message is re-texted per fill, not set once: this tab names
-        # its own subject (a Combo, or an Alchemical's Array) and the way in changes at
-        # the lock — assembled in place at chargen, bought whole in play.
+        # ⚠ Write the empty-table message on each fill. Do not set it one time. This tab
+        # names its own subject, a Combo or the Array of an Alchemical. The method also
+        # changes at the lock: assembled in place at chargen, bought whole in play.
         self._empty_note.setText(
             f"No {self._noun()}s yet.\n\n"
             + (f"Use “Buy {self._noun()}…” — in play one is bought whole, and priced "
@@ -259,9 +261,9 @@ class CombosPage(QWidget):
                 "⚠" if errors else "",
                 row.name,
                 str(len(row.members)),
-                # ⚠ The bonus-point price is a CHARGEN fact. In play the thing has
-                # already been paid for and its XP price is on the ledger, so quoting
-                # BP beside a bought Combo invents a cost that is not owed.
+                # ⚠ The bonus-point price applies to CHARGEN only. In play, the user has
+                # paid for the Combo, and its XP price is on the ledger. A BP price next to
+                # a bought Combo shows a cost that the user does not owe.
                 "—" if locked else f"{row.cost} BP"])
             item.setData(0, Qt.UserRole, row.index)
             if errors:
@@ -294,7 +296,7 @@ class CombosPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def _sync_detail(self) -> None:
-        # ⚠ `clear_layout`, never a hand-written loop — this pane is nothing but rows.
+        # ⚠ Use `clear_layout`. Never write a teardown loop. This pane holds rows only.
         clear_layout(self._detail_lay)
         rows, addable, _total = self._rows()
         row = next((r for r in rows if r.index == self._selected), None)
@@ -313,8 +315,8 @@ class CombosPage(QWidget):
         if not self._locked():
             name = QLineEdit(row.name)
             name.setObjectName("combos.name")
-            # ⚠ No rebuild per keystroke: it would tear down the box being typed into.
-            # The table cell is re-synced on its own.
+            # ⚠ Do not rebuild on each keystroke. A rebuild deletes the box that the user
+            # types into. This code updates the table cell alone.
             name.textChanged.connect(lambda text, i=row.index: self._rename(i, text))
             self._labelled(self._detail_lay, "Name", name)
 
@@ -339,8 +341,8 @@ class CombosPage(QWidget):
             self._detail_lay.addLayout(line)
 
         if self._arrays() and row.install_loose:
-            # The installation discount is the mechanical POINT of an Array, so say what
-            # this one actually saves in committed Personal Essence.
+            # The installation discount is the mechanical purpose of an Array. Thus show
+            # the Personal Essence that this Array saves.
             self._detail_lay.addWidget(self._muted(
                 f"Installs for {row.install_arrayed}m instead of {row.install_loose}m — "
                 f"saves {row.install_loose - row.install_arrayed}m committed Essence."))
@@ -375,11 +377,11 @@ class CombosPage(QWidget):
         self._detail_lay.addStretch(1)
 
     def _addable_for(self, row, addable):
-        """What may still go in this one.
+        """The Charms that the user can still add to this Combo or Array.
 
-        ⚠ For an ARRAY the pool excludes every Charm linked into ANY Array, not merely
-        this one's own members — a Charm may join only one (p.90), and the engine
-        refuses a reuse, so offering it would produce nothing but a rejection.
+        ⚠ For an ARRAY, remove every Charm that is in ANY Array, not the members of this
+        Array only. A Charm can join one Array only (p.90), and the engine refuses a
+        second use. Thus an offer of such a Charm gives a refusal and nothing else.
         """
         taken = {m.id for m in row.members}
         if self._arrays():
@@ -409,8 +411,8 @@ class CombosPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def _act(self, call) -> bool:
-        """Run one engine call, turning a refusal into a notification. ⚠ Catches
-        `advancement.AdvancementError` — the type every action module raises."""
+        """Run one engine call. Change a refusal into a notification. ⚠ Catch
+        `advancement.AdvancementError`. Every action module raises that type."""
         try:
             message = call()
         except advancement.AdvancementError as exc:
@@ -424,8 +426,8 @@ class CombosPage(QWidget):
         add = combo_actions.add_array if self._arrays() else combo_actions.add_combo
         if self._act(lambda: add(self._char())):
             self._rebuild()
-            # Land on the row just made: it is empty, and the member picker is the next
-            # thing the player wants.
+            # Select the new row. The row is empty, and the user opens the member picker
+            # next.
             if self.table.topLevelItemCount():
                 self.table.setCurrentItem(
                     self.table.topLevelItem(self.table.topLevelItemCount() - 1))
@@ -458,8 +460,8 @@ class CombosPage(QWidget):
             self._members_changed(index)
 
     def _members_changed(self, index: int) -> None:
-        """A membership change moves the cost and the issues but NOT the row set, so the
-        selection survives — unlike `_rebuild`, which drops it."""
+        """A change to the members moves the cost and the issues. It does NOT change the
+        set of rows. Thus the selection stays. `_rebuild` drops the selection."""
         self._selected = index
         self.reload()
         if self._on_change is not None:
@@ -479,11 +481,12 @@ class CombosPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def _build_buy_dialog(self) -> QDialog:
-        """Compose a whole one, then buy it — BUILT but not run, because `exec()` blocks
-        a headless run and this is the seam the tests drive (the shape `GearPage` uses).
+        """Compose a whole Combo, then buy it. This function BUILDS the dialog and does
+        not run it. `exec()` stops a headless run, and the tests drive this seam.
+        `GearPage` uses the same shape.
 
-        ⚠ Unlike the chargen builder there is no empty state to save: the engine prices
-        and validates the finished set, all or nothing.
+        ⚠ The chargen builder can save an empty state. This path cannot. The engine prices
+        and validates the finished set, and it accepts all of it or none of it.
         """
         arrays = self._arrays()
         noun = self._noun()
@@ -514,9 +517,9 @@ class CombosPage(QWidget):
             entry = QListWidgetItem(charm.name)
             entry.setData(Qt.UserRole, charm_id)
             picker.addItem(entry)
-        # ⚠ No current item: a multi-select list highlights row 0 by default, which reads
-        # as "already picked" while `selectedItems()` is empty and Buy is disabled — the
-        # user sees a selection and a dead button and cannot tell why.
+        # ⚠ Set no current item. A multi-select list marks row 0 by default. That row reads
+        # as selected, but `selectedItems()` is empty and Buy stays disabled. The user then
+        # sees a selection and a disabled button, and cannot find the reason.
         picker.setCurrentRow(-1)
         lay.addWidget(picker, 1)
 
@@ -527,8 +530,8 @@ class CombosPage(QWidget):
 
         price = QLabel("")
         price.setObjectName("combos.buy.price")
-        # ⚠ Wrapped: the sentence carries the page citation, and unwrapped it clipped to
-        # "…minimum Ability ratings (p.21" against the dialog edge.
+        # ⚠ Set word wrap on. The sentence carries the page citation. Without wrap, the
+        # dialog edge cuts it to "…minimum Ability ratings (p.21".
         price.setWordWrap(True)
         lay.addWidget(price)
 
@@ -556,8 +559,8 @@ class CombosPage(QWidget):
                    "(p.89)." if arrays else
                    "A Combo costs the sum of its Charms' minimum Ability ratings "
                    "(p.213)."))
-            # ⚠ Disabled on an EMPTY pick too, not only on an unaffordable one: a zero
-            # -cost purchase of nothing would log an XP entry for an illegal Combo.
+            # ⚠ Disable Buy on an EMPTY selection, and not on an unaffordable one only. A
+            # purchase of nothing costs zero, and it logs an XP entry for an illegal Combo.
             buy.setEnabled(bool(ids) and cost <= available)
 
         picker.itemSelectionChanged.connect(resync)

@@ -8,26 +8,24 @@ dice-pool list on the right. Mechanism: every capacity comes from
 `engine.play`; a click on a box rebuilds both columns, because a health mark moves the
 wound penalty and the wound penalty is a term in every pool.
 
-⚠ **This tab is the ONE stated exception to the collection layout** (human,
-2026-08-22). Everywhere else a Qt tab is a table with a detail pane; Play is a live
-TRACKER with nothing to select — you click a health box, you glance at a mote count
-mid-roll — so a detail pane would hide the numbers the surface exists to show. It gets
-a **toolbar over panels** instead. An exception that is written down is not drift; a
-second unwritten one is.
+⚠ **This tab is a written exception to the collection layout** (human's ruling). Each
+other Qt tab is a table with a detail pane. Play is a live TRACKER, and it has nothing to
+select. The user clicks a health box, and reads a mote count during a roll. Thus a detail
+pane hides the numbers that this surface must show. Play uses a **toolbar over panels**.
 
-⚠ **A DUMB tracker, and it must stay one.** No auto mote-accounting, no
-damage-wrapping, no auto-healing — see `engine/play.py`, which owns that rule and
-decision 0006's isolation with it. Nothing here feeds back into chargen, the XP audit
-or a permanent derivation.
+⚠ **This is a DUMB tracker. Keep it one.** Do not add automatic mote accounting, damage
+wrapping or automatic healing. `engine/play.py` holds that rule, and it holds the
+isolation of decision 0006. No code here writes back to chargen, to the XP audit or to a
+permanent derivation.
 
-⚠ The pool rows must keep showing their `compact` breakdown and the exclusions block
-must stay put — that presentation is what decision 0016 accepted in narrowing 0008, not
-decoration. Read 0016 before changing the right-hand column.
+⚠ Keep the `compact` breakdown on the pool rows, and keep the exclusions block. Decision
+0016 accepted that presentation when it narrowed 0008. It is not decoration. Read 0016
+before you change the right column.
 
-⚠ The **dice roller** above that column is decision 0019's, and its no-wire rule is
-load-bearing: it rolls a COUNT the player types under a LABEL the player writes, and
-must never learn which roll it is rolling. A Roll button on a pool row, or a label
-filled in from one, re-creates what 0009 was written to prevent and NO TEST WILL FAIL.
+⚠ The **dice roller** above that column comes from decision 0019. Its no-wire rule is
+necessary. It rolls a COUNT that the user types, under a LABEL that the user writes. It
+must never know which roll it makes. A Roll button on a pool row, or a label that a pool
+row fills in, restores what 0009 prevents. ⚠ NO TEST FAILS ON THAT CHANGE.
 """
 
 from __future__ import annotations
@@ -50,14 +48,14 @@ from .layout import clear_layout
 from .theme import CARD, INPUT, MUTED, accent as accent_light
 from .trackers import MARK_FILL as _MARK_FILL, box as _tracker_box
 
-# Health tracks run to a dozen boxes and more with Ox-Body. Qt has no flex-wrap, so
-# the row wraps by construction.
+# A health track has twelve boxes or more with Ox-Body. Qt has no flex-wrap. Thus this
+# row wraps by construction.
 _BOXES_PER_ROW = 10
 
 _AMBER = "#d9a441"                   # the "your call, Storyteller" note colour
 
-# A 10 and a 1 are the two faces a player looks for in a transcript; the rest is
-# context. Same four kinds the NiceGUI shell tints, so the two products read alike.
+# A user looks for a 10 and a 1 in a transcript. The other faces are context. These are
+# the same four kinds that the NiceGUI shell colours. Thus the two products agree.
 _FACE_COLOR = {"double": _AMBER, "hit": "#d8d3c8", "one": "#c05a5a", "miss": MUTED}
 
 _FATIGUE_NOTE = ("Each failed Stamina + Endurance roll against the armour's fatigue "
@@ -67,18 +65,18 @@ _FATIGUE_NOTE = ("Each failed Stamina + Endurance roll against the armour's fati
 
 
 class PlayPage(QWidget):
-    """The tab widget. `reload()` re-derives every capacity for the character in ctx
-    and redraws both columns; `notify` surfaces transient messages."""
+    """The tab widget. `reload()` calculates every capacity for the character in ctx again,
+    and it draws both columns again. `notify` shows a temporary message."""
 
     def __init__(self, ruleset, ctx, *, notify=None, parent=None):
         super().__init__(parent)
         self._ruleset = ruleset
         self._ctx = ctx
         self._notify = notify or (lambda text, kind="info": None)
-        # ⚠ Created ONCE, here, and never inside a rebuild. The columns are redrawn on
-        # every health click, and selections owned by the redrawn widgets would reset
-        # the player's chosen weapon on exactly the click that makes them want the
-        # pools. Same reasoning as `ui/play.new_pool_state`, which owns the shape.
+        # ⚠ Create this state ONCE, here. Never create it in a rebuild. The code draws the
+        # columns again on each health click. If the redrawn widgets held the selections,
+        # that click would clear the weapon that the user selected.
+        # `ui/play.new_pool_state` holds the same shape.
         self._pool_state = self._new_pool_state()
 
         bar = QHBoxLayout()
@@ -95,11 +93,10 @@ class PlayPage(QWidget):
         bar.addStretch(1)
 
         self._tracker_lay, tracker = self._column()
-        # ⚠ The roller gets its OWN layout inside the pools column, and `_fill_pools`
-        # clears only `_pools_lay`. Its controls must survive a rebuild: a health
-        # click redraws both columns, and a rebuild that deletes the Roll button
-        # under the cursor is the tracker-repaint trap the port already paid for
-        # once (`docs/plans/qt-port.md`). Built ONCE, below.
+        # ⚠ Give the roller its OWN layout in the pools column. `_fill_pools` clears
+        # `_pools_lay` only. The controls of the roller must stay through a rebuild. A
+        # health click draws both columns again, and a rebuild deletes the Roll button
+        # below the pointer (`docs/plans/qt-port.md`). Build the roller ONCE, below.
         column_lay, pools = self._column()
         self._roller_lay = QVBoxLayout()
         self._pools_lay = QVBoxLayout()
@@ -141,8 +138,8 @@ class PlayPage(QWidget):
         return lay, scroll
 
     def _new_pool_state(self) -> dict:
-        """The dice-pool column's selections, or {} when no roll catalogue shipped.
-        Defaults chosen so the custom block shows a real number the moment it renders."""
+        """The selections of the dice-pool column. Returns {} when the app has no roll
+        catalogue. The defaults make the custom block show a number at the first draw."""
         if not self._ruleset.roll_catalog:
             return {}
         return {"weapon": None, "arrow": None,
@@ -155,9 +152,9 @@ class PlayPage(QWidget):
         """Redraw both columns for the character in ctx."""
         self._fill_tracker()
         self._fill_pools()
-        # A transcript belongs to the character it was rolled for, so a SWITCH
-        # empties it — but a health click must not, which is why this compares
-        # ids instead of clearing on every redraw (`reload` is also the refresh).
+        # A transcript belongs to the character that the user rolled for. Thus a SWITCH to
+        # a different character empties it. ⚠ A health click must not empty it. Thus this
+        # code compares the ids. `reload` is also the refresh.
         if self._char().id != self._roller_char:
             self._roller_char = self._char().id
             self._roller_state.update(viewmod.new_roller_state())
@@ -167,9 +164,9 @@ class PlayPage(QWidget):
             f"font-weight:700; letter-spacing:1px; color:{self._accent()};")
 
     def _refresh(self) -> None:
-        """A play-state change. BOTH columns, always: a health mark or a fatigue point
-        is a term in every pool row on the right, and the custom-pool block on the left
-        reads the same toggles as the sidebar."""
+        """Apply a play-state change. Always draw BOTH columns. A health mark and a fatigue
+        point are terms in every pool row on the right. The custom-pool block on the left
+        reads the same controls as the sidebar."""
         self.reload()
 
     # ---- the small parts ------------------------------------------------- #
@@ -197,9 +194,9 @@ class PlayPage(QWidget):
         return label
 
     def _box(self, name: str, size: int, fill: str, text: str = "") -> QPushButton:
-        """One clickable tracker box — `qt/trackers.py` owns the drawing, because the
-        party cards and the adversary roster draw the same box and a Storyteller must
-        not have to learn two damage trackers."""
+        """One clickable tracker box. `qt/trackers.py` draws it. The party cards and the
+        adversary roster draw the same box. Thus a Storyteller learns one damage
+        tracker."""
         return _tracker_box(name, size, fill, self._accent(), text)
 
     def _labelled(self, lay, caption: str, widget) -> None:
@@ -220,9 +217,9 @@ class PlayPage(QWidget):
         clear_layout(self._tracker_lay)
         ruleset, char = self._ruleset, self._char()
         play = viewmod.build_play_view(ruleset, char)
-        # ⚠ Read through `char.play or PlayState()`, never `engineplay.play_state`:
-        # merely LOOKING at the tab must not write a PlayState onto a character who has
-        # never been played, or a freshly-made sheet saves dirty.
+        # ⚠ Read through `char.play or PlayState()`. Never use `engineplay.play_state`
+        # here. To OPEN the tab must not write a PlayState onto a character that nobody has
+        # played. If it does, a new sheet saves with play data.
         cur = char.play or PlayState()
         marks = list(cur.health)[:len(play.health_boxes)]
         marks += [None] * (len(play.health_boxes) - len(marks))
@@ -267,12 +264,11 @@ class PlayPage(QWidget):
                 (engineplay.cycle_mark(self._char(), index, n), self._refresh()))
             cell.addWidget(button)
             row.addLayout(cell)
-        # ⚠ EVERY row, not just the last. A QHBoxLayout of fixed-size cells with no
-        # trailing stretch spreads its slack BETWEEN them, so a wrapped track drew
-        # its full rows justified across the panel and the short final row packed
-        # left — the boxes visibly changed pitch mid-track. Only a character with
-        # more than `_BOXES_PER_ROW` levels wraps at all, which is why an Ox-Body
-        # Lunar found it and every fixture missed it.
+        # ⚠ Add a stretch to EVERY row, not to the last row only. A QHBoxLayout of
+        # fixed-size cells with no stretch at the end puts its free space BETWEEN the
+        # cells. Thus the full rows spread across the panel, and the short last row stays
+        # at the left. The box pitch then changes between the rows. ⚠ Only a character with
+        # more than `_BOXES_PER_ROW` levels wraps. A short fixture cannot show this fault.
         for lay in rows:
             lay.addStretch(1)
 
@@ -291,10 +287,10 @@ class PlayPage(QWidget):
     def _fatigue_panel(self, play, cur) -> None:
         """Accumulated armour fatigue (p.332).
 
-        Shown only where it can matter: armour is worn, or points are already on the
-        clock — they outlive taking the armour off, since they dissipate with rest and
-        not with undressing. A character who never wears armour should not carry a
-        permanently-zero control.
+        Show this panel when the character wears armour, or when the character already has
+        fatigue points. The points stay after the character removes the armour, because
+        rest removes them. A character that never wears armour must not see a control that
+        always shows zero.
         """
         if not (self._char().armor or cur.fatigue):
             return
@@ -305,9 +301,9 @@ class PlayPage(QWidget):
         points.setObjectName("play.fatigue")
         points.setRange(0, 99)
         points.setValue(cur.fatigue)
-        # ⚠ The whole tab is NOT rebuilt from a spin box: a redraw deletes the widget
-        # mid-keystroke and takes the focus with it. Only the pools re-derive, and the
-        # panel's own title is left until the next `reload()`.
+        # ⚠ Do NOT rebuild the full tab from a spin box. A redraw deletes the widget while
+        # the user types, and it takes the focus. Calculate the pools only. The title of
+        # the panel stays until the next `reload()`.
         points.valueChanged.connect(
             lambda v: (engineplay.set_fatigue(self._char(), v), self._fill_pools()))
         self._labelled(body, "Points", points)
@@ -319,16 +315,16 @@ class PlayPage(QWidget):
     def _motes_panel(self, play, cur) -> None:
         """The Essence pools.
 
-        A merged pool is ONE track — "all of which is considered Peripheral" (p.41) —
-        so the Personal box would sit at a permanent 0/0 and read as broken. The rule
-        goes in the heading instead of rendering a dead input.
+        A merged pool is ONE track: "all of which is considered Peripheral" (p.41). Thus a
+        Personal box stays at 0/0 and reads as broken. Put the rule in the heading. Do not
+        draw an input that the user cannot use.
         """
         body = self._panel(
             self._tracker_lay,
             "ESSENCE — SINGLE POOL (motes spent — manual)" if play.single_pool
             else "ESSENCE (motes spent — manual)")
-        # ⚠ `view.spent_motes`, not `cur.*` — attuning shrinks the maxima under an
-        # already-legal spend, and the stored value must not be written back.
+        # ⚠ Use `view.spent_motes`. Do not use `cur.*`. An attunement makes the maxima
+        # smaller below a spend that was legal. Do not write the stored value back.
         spent_p, spent_pp = viewmod.spent_motes(play, cur)
         if not play.single_pool:
             self._mote_input(body, "Personal", "motes_personal_spent",
@@ -338,17 +334,17 @@ class PlayPage(QWidget):
                          play.peripheral_max)
         self._committed_note(body, play)
         if play.free_max is not None:
-            # Essence Awareness unlocks only a third of the pool freely; the rest needs
-            # a Willpower roll the table makes, not this app. The inputs still run to
-            # the full maximum — those motes are spendable — so this is a note under
-            # them, never a second cap.
+            # Essence Awareness opens one third of the pool without a roll. The rest needs
+            # a Willpower roll, and the table makes that roll. This app does not. ⚠ The
+            # inputs go to the full maximum, because the user can spend those motes. Thus
+            # this text is a note below the inputs. It is never a second limit.
             body.addWidget(self._note(
                 f"{play.free_max} of these may be spent freely; the rest need a "
                 f"Willpower roll (Essence Awareness)."))
 
     def _committed_note(self, lay, play) -> None:
-        """Why the pool is short — `view.committed_note` owns the wording, shared with
-        the other three mote surfaces."""
+        """The reason that the pool is small. `view.committed_note` supplies the text. The
+        other three mote surfaces use the same text."""
         text = viewmod.committed_note(play)
         if not text:
             return
@@ -370,8 +366,8 @@ class PlayPage(QWidget):
         def sync(v: int) -> None:
             available.setText(f"{max(0, cap - v)} / {cap} available")
 
-        # Only its own readout moves — a full redraw would delete the spin box the
-        # player is still typing in. See `_fatigue_panel`.
+        # Change this readout only. ⚠ A full redraw deletes the spin box while the user
+        # types. See `_fatigue_panel`.
         spin.valueChanged.connect(
             lambda v: (engineplay.set_motes(self._char(), field, v, cap), sync(v)))
         sync(spin.value())
@@ -457,10 +453,10 @@ class PlayPage(QWidget):
                            f"{lim.upper()}  ({cur.limit} / {lim_max}){broken}")
         self._dot_track(body, "limit", cur.limit, lim_max)
         if lim_max < merits.LIMIT_MAX:
-            # Two different causes, and the ST needs to know which: a Flaw shortened the
-            # track outright, or permanent Resonance is occupying part of it (ruled
-            # 2026-07-31 — permanent is headroom off the maximum, not a rating riding
-            # alongside).
+            # There are two causes, and the Storyteller must know which one applies. A Flaw
+            # made the track shorter, or permanent Resonance uses part of it. Permanent
+            # Resonance subtracts from the maximum. It is not a second rating (human's
+            # ruling).
             why = []
             if char.limit_permanent:
                 why.append(f"{char.limit_permanent} permanent")
@@ -474,11 +470,10 @@ class PlayPage(QWidget):
         # with temporary Resonance". Shown only where held.
         perm_cap = derive.permanent_limit_cap(ruleset, char)
         if perm_cap:
-            # READ-ONLY here. Permanent Resonance is a permanent trait, not play-state:
-            # it is gained and shed through the XP ledger so the change has an audit
-            # trail, exactly as decision 0006 requires of a curse. The tracker shows it
-            # because it is cumulative with the temporary half and the ST needs the
-            # total at the table.
+            # Make this control READ-ONLY. Permanent Resonance is a permanent trait, not
+            # play state. The XP ledger adds and removes it. Thus the change has an audit
+            # record, as decision 0006 requires. The tracker shows the value because it
+            # adds to the temporary half, and the Storyteller needs the total.
             body.addWidget(self._note(
                 f"Permanent {lim}: {char.limit_permanent} / {perm_cap} (capped at "
                 f"Essence). It occupies {char.limit_permanent} of the "
@@ -486,8 +481,9 @@ class PlayPage(QWidget):
                 f"shed it on the Traits tab, not here."))
 
     def _luck_panel(self) -> None:
-        """Luck pools exist only because the Lucky / Unlucky Merits do. Spending them
-        is rerolling (decision 0009) and stays out — these are counters."""
+        """The luck pools. They exist because the Lucky and Unlucky Merits exist. ⚠ To
+        spend one is a reroll (decision 0009), and this app does not reroll. These controls
+        are counters."""
         luck, bad_luck = derive.luck_pools(self._ruleset, self._char())
         if not (luck or bad_luck):
             return
@@ -506,21 +502,19 @@ class PlayPage(QWidget):
     def _pool_row(self, lay, row) -> None:
         """One roll line: the total heading the name, and the arithmetic underneath.
 
-        ⚠ The `compact` breakdown is NOT optional decoration. A column of bare totals is
-        precisely the "looks authoritative" surface decision 0008 rejected, and 0016
-        narrowed 0008 only on the promise that every pool shown is itemised. One
-        function so the preset list and the custom block cannot drift apart on it.
+        ⚠ The `compact` breakdown is NOT decoration. A column of totals with no terms is
+        the authoritative-looking surface that decision 0008 refused. Decision 0016
+        narrowed 0008 on the condition that every pool lists its terms. Use this one
+        function, thus the preset list and the custom block always agree.
 
-        ⚠ **Both labels go STRAIGHT into the caller's QVBoxLayout, never into a nested
-        QHBoxLayout.** A word-wrapped QLabel sizes itself through `heightForWidth`, and
-        QHBoxLayout does not propagate that from its children — the first build put the
-        total in a column beside a nested QVBoxLayout and every row in the list drew on
-        top of the one below it. The aligned total column was worth less than a legible
-        list.
+        ⚠ **Put both labels DIRECTLY into the QVBoxLayout of the caller. Never put them in
+        a nested QHBoxLayout.** A QLabel that wraps calculates its height with
+        `heightForWidth`, and QHBoxLayout does not use that value from its children. Thus
+        each row in the list draws on top of the row below it.
 
-        `row.note` is a printed rider, sometimes a whole paragraph. It rides as a
-        TOOLTIP: sixty rows each carrying one is a wall of text, and the thing this list
-        exists for is scanning.
+        `row.note` is printed text, and it can be a full paragraph. Show it as a TOOLTIP.
+        Sixty rows with a paragraph each are difficult to read, and the user reads this
+        list quickly.
         """
         head = QLabel(f'<b><span style="color:'
                       f'{_AMBER if row.below_one else self._accent()}">{row.total}'
@@ -539,18 +533,17 @@ class PlayPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def _build_roller(self) -> None:
-        """The roller, built ONCE: a dice count, a label the player writes, two
-        switches, a button, and the session transcript underneath.
+        """The roller. Build it ONCE. It has a dice count, a label that the user writes,
+        two switches, a button, and the session transcript below them.
 
-        ⚠ Read 0019 before changing this, its no-wire rule first. What keeps the
-        roller inside decision 0008's boundary is what is NOT here: no roll to
-        pick, no difficulty or stunt field, no odds, and no app-written label. A
-        Roll button on a pool row, or a label filled in from one, re-creates
-        exactly what 0009 was written to prevent — and NO TEST WILL FAIL. It is
-        on the click-through list for that reason.
+        ⚠ Read decision 0019 before you change this, and read its no-wire rule first. What
+        is ABSENT keeps the roller inside the boundary of decision 0008: no roll to select,
+        no difficulty field, no stunt field, no odds, and no label that the app writes. A
+        Roll button on a pool row, or a label that a pool row fills in, restores what 0009
+        prevents. ⚠ NO TEST FAILS ON THAT CHANGE. Thus it is on the click-through list.
 
-        ⚠ Only `self._log_lay` is ever cleared afterwards. The controls persist
-        so a roll cannot delete the button under the player's cursor.
+        ⚠ Clear `self._log_lay` only. The controls stay. Thus a roll cannot delete the
+        button below the pointer of the user.
         """
         body = self._panel(self._roller_lay, "DICE ROLLER")
         self._roller_head = body.itemAt(0).widget()
@@ -587,9 +580,9 @@ class PlayPage(QWidget):
         body.addLayout(controls)
 
         switches = QHBoxLayout()
-        # Both default ON: the printed rules are general and their exceptions are
-        # per-effect, so the player flips these because the Storyteller said so,
-        # never because the app worked out which roll this is.
+        # Both switches start ON. The printed rules are general, and each exception belongs
+        # to one effect. Thus the user changes these switches on the instruction of the
+        # Storyteller. ⚠ The app never determines which roll this is.
         self._roll_doubles = QCheckBox("10s count double")
         self._roll_doubles.setObjectName("play.roller.doubles")
         self._roll_doubles.setChecked(self._roller_state["doubles_tens"])
@@ -608,10 +601,10 @@ class PlayPage(QWidget):
         body.addWidget(self._note(viewmod.ROLLER_CAVEAT))
 
         # ---- the transcript, newest line above the fold ------------------ #
-        # ⚠ The fold's button and its container are built ONCE and only their
-        # CONTENTS are refilled, so toggling the fold is a `setVisible` and never
-        # a rebuild. A rebuild here would delete the button under the cursor —
-        # the same trap `_build_roller` avoids for Roll.
+        # ⚠ Build the button of the fold and its container ONCE. Refill their CONTENTS
+        # only. Thus a change to the fold is a `setVisible` call, and never a rebuild. A
+        # rebuild here deletes the button below the pointer. `_build_roller` avoids the
+        # same fault for the Roll button.
         self._log_lay = QVBoxLayout()
         self._log_lay.setSpacing(2)
         body.addLayout(self._log_lay)
@@ -634,8 +627,8 @@ class PlayPage(QWidget):
         body.addWidget(self._log_note)
 
     def _sync_roller_controls(self) -> None:
-        """Push `_roller_state` back onto the controls, for the one case that
-        changes it behind their backs: a character switch resetting the roller."""
+        """Write `_roller_state` back onto the controls. One case changes that state
+        without the controls: a switch to a different character resets the roller."""
         self._roll_count.setValue(self._roller_state["count"])
         self._roll_target.setValue(self._roller_state["target_number"])
         self._roll_label.clear()
@@ -647,8 +640,8 @@ class PlayPage(QWidget):
         self._fill_roll_log()
 
     def _toggle_older(self) -> None:
-        """Open or close the fold. A visibility change ONLY — see `_build_roller`:
-        rebuilding here would delete the button being clicked."""
+        """Open or close the fold. Change the visibility ONLY. ⚠ A rebuild here deletes the
+        button that the user clicks. See `_build_roller`."""
         self._roller_state["log_open"] = not self._roller_state["log_open"]
         self._sync_older()
 
@@ -662,9 +655,9 @@ class PlayPage(QWidget):
         self._older_box.setVisible(open_ and older > 0)
 
     def _fill_roll_log(self) -> None:
-        """Repaint the transcript alone — never the panel, whose Roll button the
-        player's cursor is on. The newest line sits above the fold and the rest
-        inside it, so a long session cannot push the controls off the panel."""
+        """Paint the transcript again. ⚠ Never paint the panel again. The pointer of the
+        user is on its Roll button. The newest line goes above the fold, and the other
+        lines go in it. Thus a long session cannot push the controls off the panel."""
         clear_layout(self._log_lay)
         clear_layout(self._older_lay)
         newest, older = viewmod.roll_log_split(self._roller_state)
@@ -676,11 +669,11 @@ class PlayPage(QWidget):
         self._sync_older()
 
     def _roll_entry(self, lay, entry) -> None:
-        """One transcript line: the outcome, the player's own label if they wrote
-        one, the faces, and the switches it was rolled under.
+        """One transcript line. It shows the outcome, the label of the user, the faces, and
+        the switches of that roll.
 
-        ⚠ Like `_pool_row`, every label goes STRAIGHT into the QVBoxLayout — a
-        word-wrapped QLabel in a nested QHBoxLayout draws over the line below it.
+        ⚠ Put every label DIRECTLY into the QVBoxLayout, as `_pool_row` does. A QLabel that
+        wraps inside a nested QHBoxLayout draws over the line below it.
         """
         colour = _AMBER if entry.botch else self._accent()
         faces = " ".join(
@@ -710,8 +703,8 @@ class PlayPage(QWidget):
         """The right-hand column: the shared controls, every roll the catalogue knows
         with its own arithmetic, and the standing exclusions.
 
-        A LIST, not a picker — a player scans for the row they need instead of driving a
-        dropdown mid-turn.
+        Use a LIST, not a picker. The user reads the list for the row that they need. The
+        user does not operate a dropdown during a turn.
         """
         clear_layout(self._pools_lay)
         if not self._pool_state:
@@ -722,8 +715,9 @@ class PlayPage(QWidget):
             ruleset, char, weapon_index=state["weapon"], arrow_index=state["arrow"],
             include_mobility=state["mobility"], include_wound=state["wound"],
             include_fatigue=state["fatigue"])
-        # ⚠ `state` outlives the weapon list it indexes — a weapon deleted on the Gear
-        # tab renumbers it. `view.clamp_pool_selection` owns that rule.
+        # ⚠ `state` stays after the weapon list that it indexes changes. A delete on the
+        # Gear tab gives a new number to each weapon. `view.clamp_pool_selection` holds
+        # that rule.
         viewmod.clamp_pool_selection(state, sidebar)
 
         self._initiative_panel(state)
@@ -740,35 +734,36 @@ class PlayPage(QWidget):
             for row in rows:
                 self._pool_row(body, row)
         if sidebar.any_below_one:
-            # Not clamped: the book floors range penalties and nothing else (p.229), so
-            # a general floor would be invented. Say what happened instead.
+            # Do not limit this value. The book gives a floor to the range penalties only
+            # (p.229). A general floor is not a printed rule. Show a note instead.
             body.addWidget(self._note(
                 "Rows in amber have been taken below one die by the penalties. The core "
                 "floors range penalties at 1 die and prints no general rule, so that is "
                 "the Storyteller's call.", color=_AMBER))
         # ---- the standing caveat ---------------------------------------- #
-        # NOT collapsible and NOT dismissible: this is the whole reason decision 0016
-        # could narrow 0008. See the module docstring.
+        # ⚠ Do NOT make this block collapsible, and do NOT let the user dismiss it. This
+        # block is the condition on which decision 0016 narrowed 0008. See the module
+        # docstring.
         caveat = QLabel("These are BASE pools. They do not include:")
         caveat.setStyleSheet("font-weight:600; font-size:11px; margin-top:6px;")
         body.addWidget(caveat)
         for line in sidebar.excludes:
             body.addWidget(self._note(f"·  {line}"))
-        # ⚠ The second clause is decision 0019's no-wire rule stated on the surface:
-        # no row here rolls itself, and the roller cannot know which roll a number
-        # came from. A "Roll" button on a pool row is the regression 0019 prevents.
+        # ⚠ The second clause states the no-wire rule of decision 0019 to the user. No row
+        # here rolls itself, and the roller cannot know the source of a number. A "Roll"
+        # button on a pool row is the defect that 0019 prevents.
         body.addWidget(self._note("Nothing is resolved here, and no row rolls "
                                   "itself — the roller takes a number you type."))
         self._pools_lay.addStretch(1)
 
     def _initiative_panel(self, state) -> None:
-        """The initiative rating (core p.227), reading the same weapon the pool
-        column's "Attack with" control names.
+        """The initiative rating (core p.227). It reads the weapon that the "Attack with"
+        control of the pool column names.
 
-        ⚠ Its OWN panel, above DICE POOLS and outside it. A rating shown among
-        pool rows reads as dice, and the roller is on the same tab — which is how
-        a player picks up nine dice for a number that takes ONE d10. Rebuilt with
-        the pools because it depends on the same weapon selection.
+        ⚠ Give this rating its OWN panel, above DICE POOLS and outside it. A rating among
+        the pool rows reads as a dice count, and the roller is on the same tab. The user
+        then rolls nine dice for a number that needs ONE d10. Rebuild this panel with the
+        pools, because it depends on the same weapon selection.
         """
         iv = viewmod.build_initiative(self._ruleset, self._char(),
                                       weapon_index=state["weapon"])
@@ -784,8 +779,8 @@ class PlayPage(QWidget):
         body.addWidget(breakdown)
         body.addWidget(self._note(iv.turn_note))
         body.addWidget(self._note(iv.tie_break))
-        # The 0016/0008 mitigation, same as the pool list's: a surface showing the
-        # total shows what the total leaves out.
+        # This is the same condition that decisions 0016 and 0008 put on the pool list. A
+        # surface that shows a total must also show what the total omits.
         excluded = QLabel("Not included:")
         excluded.setStyleSheet("font-weight:600; font-size:11px; margin-top:4px;")
         body.addWidget(excluded)
@@ -794,9 +789,9 @@ class PlayPage(QWidget):
 
     def _pool_controls(self, body, sidebar, state) -> None:
         if sidebar.weapons:
-            # Labelled "Attack with" rather than "Weapon": the Gear tab already owns a
-            # control called Weapon, and two identically labelled controls are
-            # indistinguishable to a test harness as well as to a player.
+            # Label this control "Attack with", not "Weapon". The Gear tab has a control
+            # named Weapon. ⚠ A test harness and a user cannot tell two controls with the
+            # same label apart.
             combo = QComboBox()
             combo.setObjectName("play.weapon")
             combo.addItem("— unarmed —", None)
@@ -807,14 +802,13 @@ class PlayPage(QWidget):
                 lambda _i: self._set_pool("weapon", combo.currentData()))
             self._labelled(body, "Attack with", combo)
         else:
-            # ⚠ This `else` belongs to `sidebar.weapons` and must stay attached to it.
-            # Moved below the arrow controls it re-parents onto `arrow_note`, and an
-            # armed character with nothing nocked — the ordinary case — is then told
-            # they own no weapon.
+            # ⚠ This `else` belongs to `sidebar.weapons`. Keep it there. Below the arrow
+            # controls, it attaches to `arrow_note`. An armed character with no arrow
+            # ready, which is the usual case, then reads that they own no weapon.
             body.addWidget(self._note("No weapon owned — the attack rows are unarmed."))
         if sidebar.arrows:
-            # Only for a weapon that fires them, and deliberately a SEPARATE control
-            # from "Attack with": the bow is what you roll, the arrow is what lands.
+            # Show this control for a weapon that fires arrows only. Keep it SEPARATE from
+            # "Attack with". The bow supplies the roll, and the arrow supplies the hit.
             arrows = QComboBox()
             arrows.setObjectName("play.arrow")
             arrows.addItem("— none nocked —", None)
@@ -825,10 +819,10 @@ class PlayPage(QWidget):
                 lambda _i: self._set_pool("arrow", arrows.currentData()))
             self._labelled(body, "Nocked arrow", arrows)
         if sidebar.arrow_note:
-            # Reference text, sitting with the controls rather than inside a pool row so
-            # it cannot read as a term in the arithmetic. An arrow contributes no dice —
-            # core p.330 gives arrows a base damage and a soak clause and no accuracy —
-            # and this build derives no damage at all (decision 0008).
+            # This is reference text. Put it with the controls, not in a pool row. Thus it
+            # cannot read as a term in the total. ⚠ An arrow adds no dice. Core p.330 gives
+            # an arrow a base damage and a soak clause, and no accuracy. This program
+            # derives no damage (decision 0008).
             note = self._note(sidebar.arrow_note)
             note.setObjectName("play.arrowNote")
             body.addWidget(note)
@@ -857,16 +851,16 @@ class PlayPage(QWidget):
                 color=_AMBER))
 
     def _custom_pool_panel(self) -> None:
-        """The player's own Attribute + Ability pool — a builder, not data.
+        """The Attribute + Ability pool of the user. This is a builder, not data.
 
-        The catalogue covers the rolls the corebook spells out by name; the rest of 1e
-        is "roll Attribute + Ability" for whatever the table is doing, and there is no
-        printed roster of those to author (see `pools.custom_roll`).
+        The catalogue holds the rolls that the corebook names. The other 1E rolls are
+        "roll Attribute + Ability" for the current action, and no book prints a list of
+        them (see `pools.custom_roll`).
 
-        It sits in the TRACKER column, not with the roll list: the list is long and the
-        tracker beside it is short, so this fills the space under the tracker rather
-        than adding to the taller side. It shares `_pool_state` with the roll list,
-        which is why the sidebar's penalty switches govern these rows too.
+        Put this panel in the TRACKER column, not with the roll list. The list is long and
+        the tracker is short. Thus this panel fills the space below the tracker. It shares
+        `_pool_state` with the roll list. Thus the penalty switches of the sidebar also
+        control these rows.
         """
         ruleset, char = self._ruleset, self._char()
         state = self._pool_state
@@ -887,8 +881,8 @@ class PlayPage(QWidget):
         row.addStretch(1)
         body.addLayout(row)
         if viewmod.pool_mobility_lines(ruleset, char):
-            # p.332's discretionary clause is the Storyteller's call, so it is a control
-            # rather than a guess — see `view.build_custom_pool`.
+            # The optional clause on p.332 is a decision of the Storyteller. Thus this is a
+            # control. The app does not select a value. See `view.build_custom_pool`.
             agility = QCheckBox("Agility or balance (armour mobility applies)")
             agility.setObjectName("play.custom.agility")
             agility.setChecked(state["custom_agility"])
@@ -916,9 +910,9 @@ class PlayPage(QWidget):
     def _clear_motes(self) -> None:
         """Reset the spent-mote fields to full.
 
-        ⚠ MOTES ONLY — `engine.play.clear_motes` owns the reason. Willpower, health and
-        Limit recover on their own terms, so a "clear everything" button would be the
-        tracker deciding a recovery rule.
+        ⚠ Reset the MOTES ONLY. `engine.play.clear_motes` holds this rule. Willpower,
+        health and Limit each have their own recovery rule. A "clear everything" button
+        makes the tracker decide a recovery rule.
         """
         engineplay.clear_motes(self._char())
         self._refresh()

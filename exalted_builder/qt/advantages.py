@@ -1,23 +1,24 @@
 """exalted_builder/qt/advantages.py — the Advantages tab: Backgrounds, Merits & Flaws,
 and (for the splats that have them) Fetters and Passions.
 
-Input: a RuleSet and the shared context's Character. Output: one scrollable surface
-carrying every list this tab owns, in whichever regime the character's lock state calls
-for — chargen editors against the dot/bonus-point budgets, or the in-play cards that
-spend experience. Mechanism: the panels are rebuilt by `reload()`; anything a keystroke
-touches (a name, a note) writes straight to the model and re-syncs only its own labels,
-so the widget the player is typing into is never replaced under them.
+Input: a RuleSet and the Character in the shared context. Output: one scrollable surface
+with every list that this tab owns. The lock state of the character selects the mode.
+Mechanism: `reload()` rebuilds the panels. A keystroke on a name or a note writes to the
+model and updates its own labels only. ⚠ Thus no code replaces the widget that the user
+types into.
 
-Mode comes from the character, never from the caller (`_locked`), exactly as
-ui/advantages.py does:
+⚠ Read the mode from the character (`_locked`). Never take it from the caller.
+`ui/advantages.py` does the same.
 
-* **pre-lock** — Backgrounds against the chargen dot budget with the pre-bonus cap;
-  M&F against bonus points, a Merit charging and a Flaw granting.
-* **post-lock** — Backgrounds free and story-driven with no log row; M&F through
-  `advancement.gain_merit_or_flaw` / `drop_merit`, XP-priced and debt-aware.
+* **Before the lock** — the Backgrounds use the chargen dot budget, with the limit that
+  applies before bonus points. Merits and Flaws use bonus points: a Merit costs points, and
+  a Flaw gives points.
+* **After the lock** — the Backgrounds are free and the story drives them, and they add no
+  log row. Merits and Flaws go through `advancement.gain_merit_or_flaw` and `drop_merit`.
+  The engine prices them in XP and applies the debt rules.
 
-Zero game logic: budgets, caps, prices, legality and the merit-vs-flaw side resolution
-all come from the engine, and no Merit id is named here (decision 0011).
+This module has no game logic. The engine supplies the budgets, the limits, the prices, the
+legality and the Merit-or-Flaw side. ⚠ No code here names a Merit id (decision 0011).
 """
 
 from __future__ import annotations
@@ -44,11 +45,11 @@ from .layout import clear_layout, empty_note
 from .editor import DotTrack, _FilterCombo
 from .theme import MUTED, accent as accent_light
 
-# The issue codes this tab can do something about. The shell's readout bar reports the
-# whole list; repeating all of it here would make both readouts noise. Artifact codes
-# are in because the Artifact BACKGROUND rating is edited here and the budget findings
-# key off it (the Gear tab renders the same findings beside the items — one issue list,
-# so the two cannot disagree).
+# The issue codes that this tab can correct. The readout bar of the shell reports the full
+# list. A second copy of that list here makes both readouts difficult to read. The artifact
+# codes are here, because the user edits the Artifact BACKGROUND rating on this tab and the
+# budget findings read that rating. The Gear tab shows the same findings next to the items.
+# There is ONE issue list, thus the two surfaces always agree.
 _MY_ISSUES = ("background", "merit", "flaw", "artifact")
 
 _MF_SIDES = {"": "All", "merit": "Merits", "flaw": "Flaws"}
@@ -59,25 +60,25 @@ _TABLE_COLUMNS = {
     "Fetters & Passions": ["Name", "Kind", "Rating", "Note"],
 }
 
-# What an EMPTY table says. ⚠ A header over a blank rectangle reads as "nothing
-# loaded" rather than "nothing yet" — see `qt/layout.py::empty_note`. Each names its
-# own way in, because the toolbar button differs per sub-tab.
+# The text for an EMPTY table. ⚠ A heading over a blank area reads as "nothing loaded", not
+# as "nothing yet". See `qt/layout.py::empty_note`. Each message names its own action,
+# because the toolbar button is different on each sub-tab.
 _EMPTY_NOTES = {
     "Backgrounds": "No Backgrounds yet.\n\nUse “+ Background” — contacts, artifacts, "
                    "a manse, the people who owe you.",
     "Merits & Flaws": "No Merits or Flaws yet.\n\nUse “+ Merit / Flaw”. A Flaw refunds "
                       "bonus points rather than costing them.",
-    # ⚠ The toolbar button here is "+ Fetter" or "+ Passion" depending on the splat
-    # (`_has_fetters`), so the note names the pair rather than a button that may not
-    # be the one on screen.
+    # ⚠ The toolbar button here is "+ Fetter" or "+ Passion", and the splat decides which
+    # one (`_has_fetters`). Thus this note names both. It must not name a button that is
+    # not on the screen.
     "Fetters & Passions": "Nothing here yet.\n\nFetters and Passions are what hold the "
                           "dead to Creation (E:Ab p.126-127) — add one from the toolbar.",
 }
 
 
 def _DOTS_FILLED(rating: int) -> str:
-    """A rating as filled/empty pips for a table cell. ⚠ Sorts as text, which is why the
-    filled pips come first — "●●○○○" orders correctly against "●○○○○"."""
+    """A rating as filled pips and empty pips, for a table cell. ⚠ Qt sorts this cell as
+    text. Thus the filled pips must come first. "●●○○○" then sorts after "●○○○○"."""
     rating = max(0, min(5, int(rating or 0)))
     return "●" * rating + "○" * (5 - rating)
 
@@ -86,10 +87,10 @@ def _DOTS_FILLED(rating: int) -> str:
 def _resync(holder) -> None:
     """Re-label a catalogue dialog's confirm button, if it exists yet.
 
-    ⚠ No-op on the first pass, and that is not a guard against a bug: the dialog's
-    constructor selects row 0, so `extras` runs — and syncs — before
-    `CatalogueDialog.__init__` has returned and the caller could stash the reference.
-    `_show_detail` labels the button itself straight afterwards, so nothing is missed.
+    ⚠ This function does nothing on the first call, and that is correct. The constructor of
+    the dialog selects row 0. Thus `extras` runs, and it calls this function, before
+    `CatalogueDialog.__init__` returns and the caller stores the reference. `_show_detail`
+    labels the button after that. Thus no label is lost.
     """
     dialog = holder.get("dialog")
     if dialog is not None:
@@ -97,9 +98,9 @@ def _resync(holder) -> None:
 
 
 class AdvantagesPage(QWidget):
-    """The tab widget. `reload()` rebuilds the body for the character in ctx; `notify`
-    surfaces transient messages; `on_change` pings the shell so its readout bar and
-    status strip re-derive."""
+    """The tab widget. `reload()` rebuilds the body for the character in ctx. `notify` shows
+    a temporary message. `on_change` calls the shell, thus the shell calculates its readout
+    bar and its status strip again."""
 
     def __init__(self, ruleset, ctx, *, notify=None, on_change=None, parent=None):
         super().__init__(parent)
@@ -107,11 +108,11 @@ class AdvantagesPage(QWidget):
         self._ctx = ctx
         self._notify = notify or (lambda text, kind="info": None)
         self._on_change = on_change
-        # The pending in-play purchase — nothing is bought until Gain is pressed.
+        # The in-play purchase that waits. ⚠ Nothing is bought until the user clicks Gain.
         self._gain: dict = {"id": "", "tier": "", "points": 0, "taken_as": "",
                             "detail": ""}
-        # The add-dialogs' pending picks — the controls now live in the dialog, so the
-        # chosen rating/tier has to survive until the confirm button commits it.
+        # The selections that the add dialogs hold. The controls are in the dialog. Thus the
+        # selected rating or tier must stay until the confirm button commits it.
         self._pending_mf: dict = {}
         self._pending_bg: dict = {}
         self._mf_filter: dict[str, str] = {"text": "", "kind": "", "category": ""}
@@ -119,8 +120,8 @@ class AdvantagesPage(QWidget):
         self._mf_count: QLabel | None = None
         self._drop_idx: str = ""
 
-        # The selected row as `(list_name, index)`. ⚠ A POSITION — `_rebuild` drops it,
-        # because adding or removing a row renumbers everything after it.
+        # The selected row, as `(list_name, index)`. ⚠ This is a POSITION. `_rebuild` drops
+        # it, because an add or a remove gives a new number to every row after it.
         self._selected: tuple[str, int] | None = None
         self._search = ""
 
@@ -129,10 +130,10 @@ class AdvantagesPage(QWidget):
         self.issues.setContentsMargins(8, 4, 8, 4)
 
         # ---- the action toolbar -------------------------------------- #
-        # ⚠ Actions live HERE, not in the content. The add button is per-SUB-TAB —
-        # "+ Background" on one, "Gain a Merit or Flaw…" on another — because what you
-        # can add depends on which collection you are looking at, and three always-on
-        # buttons would offer two you cannot use.
+        # ⚠ Put the actions HERE, not in the content. Each SUB-TAB has its own add button:
+        # "+ Background" on one, "Gain a Merit or Flaw…" on another. The collection decides
+        # what the user can add. Three buttons that are always visible offer two actions
+        # that the user cannot use.
         bar = QHBoxLayout()
         bar.setContentsMargins(8, 0, 8, 0)
         self.add_btn = QPushButton("")
@@ -200,20 +201,19 @@ class AdvantagesPage(QWidget):
         return accent_light(self._pal())
 
     def _clear_lay(self, lay) -> None:
-        """Empty `lay`, detaching every descendant NOW. One line, because the shape is
-        subtle enough that six hand-written copies produced a wrong one — see
-        `qt/layout.py`, which owns both traps and the reason they matter."""
+        """Empty `lay`, and detach every descendant immediately. ⚠ Call `qt/layout.py`.
+        That module holds the two traps in this operation."""
         clear_layout(lay)
 
     def reload(self) -> None:
-        """Rebuild the sub-tabs and their tables for the character in ctx, keeping the
-        selection and the active tab where the player left them."""
+        """Rebuild the sub-tabs and their tables for the character in ctx. Keep the
+        selection and the active tab."""
         self._mf_rows = []
         self._mf_count = None
         remembered_tab = self.tabs.tabText(self.tabs.currentIndex())
-        # ⚠ Signals blocked across the rebuild: `clear()` fires `currentChanged`, which
-        # would run `_tab_changed` against half-built tables. (The QTabWidget
-        # construction trap, same as the Charms tab's.)
+        # ⚠ Block the signals across the rebuild. `clear()` sends `currentChanged`, and
+        # `_tab_changed` then reads tables that are not complete. The Charms tab has the
+        # same trap.
         self.tabs.blockSignals(True)
         try:
             self.tabs.clear()
@@ -232,14 +232,14 @@ class AdvantagesPage(QWidget):
         self._changed()
 
     def _rebuild(self) -> None:
-        """A change that moved the LISTS. ⚠ Drops the selection first: it is a position,
-        and adding or removing a row renumbers every row after it."""
+        """Apply a change that moved the LISTS. ⚠ Drop the selection first. It is a
+        position, and an add or a remove gives a new number to every row after it."""
         self._selected = None
         self.reload()
 
     def _categories(self) -> list[str]:
-        """The sub-tabs this character gets. Fetters and Passions are ghost-only, and an
-        empty tab is worse than no tab."""
+        """The sub-tabs for this character. Only a ghost has Fetters and Passions. ⚠ Do not
+        show an empty tab."""
         cats = ["Backgrounds", "Merits & Flaws"]
         if self._has_fetters() or self._has_passions():
             cats.append("Fetters & Passions")
@@ -258,9 +258,9 @@ class AdvantagesPage(QWidget):
         table.setRootIsDecorated(False)
         table.setAlternatingRowColors(True)
         table.setSortingEnabled(True)
-        # ⚠ An explicit initial sort. Without one Qt picks its own indicator and the
-        # first fill came out reverse-alphabetical, which reads as a bug rather than a
-        # sort. The player can still click any header.
+        # ⚠ Set the initial sort. Without it, Qt selects its own indicator, and the first
+        # fill comes out in reverse alphabetical order. That reads as a defect. The user can
+        # still click any header.
         table.sortByColumn(0, Qt.AscendingOrder)
         table.setSelectionMode(QAbstractItemView.SingleSelection)
         table.header().setSectionResizeMode(0, QHeaderView.Stretch)
@@ -292,8 +292,9 @@ class AdvantagesPage(QWidget):
         self._sync_detail()
 
     def _changed(self) -> None:
-        """A change that only moves the readouts. Re-derives this tab's issue line and
-        pings the shell (whose readout bar owns the bonus-point total)."""
+        """Apply a change that moves the readouts only. Calculate the issue line of this tab
+        again, and call the shell. The readout bar of the shell holds the bonus-point
+        total."""
         ruleset, char = self._ruleset, self._char()
         if char.chargen_locked:
             available = advancement.xp_available(char)
@@ -307,8 +308,8 @@ class AdvantagesPage(QWidget):
                 "font-weight:600; color:%s;"
                 % ("#15803d" if available >= 0 else "#b91c1c"))
         else:
-            # The bonus-point total is the SHELL's readout bar; printing it here too
-            # put the same sentence on screen twice.
+            # The readout bar of the SHELL shows the bonus-point total. ⚠ Do not print it
+            # here. The screen then shows the same sentence two times.
             view = viewmod.build_sheet_view(ruleset, char)
             mine = [i for i in view.issues
                     if i.code != "bonus-points"
@@ -322,7 +323,7 @@ class AdvantagesPage(QWidget):
             self._on_change()
 
     def _do(self, action) -> bool:
-        """Run an engine advancement call and surface its refusal. True when the
+        """Run one engine advancement call, and show a refusal. Returns True when the
         character changed."""
         try:
             action()
@@ -352,13 +353,13 @@ class AdvantagesPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def _fill_tables(self) -> None:
-        """Rebuild every visible table and its contextual notes, restoring the selection
-        where its row is still shown."""
+        """Rebuild every visible table and its notes. Select the same row again, when the
+        table still shows it."""
         b = validate.effective_budgets(self._ruleset, self._char())
         for label, table in self._tables.items():
             self._clear_lay(self._notes[label])
-            # ⚠ Sorting OFF across the fill: with it on Qt re-sorts after every insert,
-            # which is quadratic and scrambles insertion order.
+            # ⚠ Turn sorting OFF across the fill. If sorting is on, Qt sorts again after
+            # each insert. That is slow, and it loses the insertion order.
             table.setSortingEnabled(False)
             table.blockSignals(True)
             table.clear()
@@ -388,8 +389,9 @@ class AdvantagesPage(QWidget):
     def _fill_backgrounds(self, table, notes, b) -> None:
         ruleset, char = self._ruleset, self._char()
         if self._locked():
-            # Backgrounds change in play through the story (a Manse falls, an Ally is
-            # made), not by spending XP: editable current value, no cost, no log row.
+            # In play, the story changes a Background: a Manse falls, or a character makes
+            # an Ally. The user does not spend XP. Thus the current value is editable, it
+            # costs nothing, and it adds no log row.
             notes.addWidget(self._muted("Free in play — the story gives and takes "
                                         "these; no XP, no log row."))
         else:
@@ -399,8 +401,9 @@ class AdvantagesPage(QWidget):
         catalog = self._bg_catalog()
         for idx, bg in enumerate(char.backgrounds):
             effective = validate.effective_background_rating(ruleset, char, bg.name)
-            # Where a splat's book separates what you BUY from what it is WORTH
-            # (Mountain Folk Resources: dots + 2, max 3 dots), the table says both.
+            # A book of a splat can separate what the user BUYS from what the Background is
+            # WORTH. Mountain Folk Resources is dots + 2, with a maximum of 3 dots. The
+            # table shows both numbers.
             rating = _DOTS_FILLED(bg.rating)
             if effective != bg.rating:
                 rating += f"  (effective {effective})"
@@ -423,8 +426,8 @@ class AdvantagesPage(QWidget):
             self._play_merit_notes(notes, eff)
         for idx, mp in enumerate(char.merits_flaws):
             definition = ruleset.merits_flaws.get(mp.merit_id)
-            # ⚠ The custom-row discriminator is the EMPTY `merit_id`, never
-            # `custom_name`'s truthiness — the name input writes that on every keystroke.
+            # ⚠ An EMPTY `merit_id` identifies a custom row. Never test `custom_name` for a
+            # value. The name input writes `custom_name` on each keystroke.
             if not mp.merit_id:
                 self._add_row(table, ("merits_flaws", idx),
                               (mp.custom_name or "Custom", "custom", "", mp.detail))
@@ -449,8 +452,8 @@ class AdvantagesPage(QWidget):
         """The in-play pricing rules, above the table they govern."""
         method = advancement.mf_change_method(self._char())
         if method != "experience":
-            # Under the other two methods, changes "do not cost or reward" and belong to
-            # chargen, so say so rather than offering buttons that all read 0 XP.
+            # Under the other two methods, a change "does not cost or reward", and it
+            # belongs to chargen. Show that text. Do not offer buttons that all show 0 XP.
             notes.addWidget(self._muted(
                 f"This table uses the '{method}' method (Player's Guide p.17), under "
                 f"which gaining or losing a Merit costs and rewards nothing. Unlock "
@@ -460,10 +463,10 @@ class AdvantagesPage(QWidget):
             "Gaining a Merit or losing a Flaw costs twice its point value; losing a "
             "Merit or gaining a Flaw pays the same. An unaffordable change runs a debt "
             "against future XP."))
-        # The p.17 cap applies in play too, and here it truncates the XP AWARD rather
-        # than a bonus-point grant — a Flaw past the ceiling pays for its legal part
-        # only. Silently paying less than the table expects is the worse failure, so the
-        # remaining room is stated before anything is bought.
+        # The limit on p.17 also applies in play. Here it reduces the XP AWARD, not a
+        # bonus-point grant. A Flaw above the limit pays for its legal part only. ⚠ Show the
+        # remaining room before the purchase. An award that is smaller than the table gives,
+        # with no message, is the worse failure.
         room = max(0, meritsmod.FLAW_POINT_CAP - eff.flaw_points_raw)
         if room:
             notes.addWidget(self._muted(
@@ -495,8 +498,7 @@ class AdvantagesPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def _sync_toolbar(self) -> None:
-        """Point the add button at the active sub-tab, and show Drop only where it can
-        actually run."""
+        """Point the add button at the active sub-tab. Show Drop only where it can run."""
         label = self.tabs.tabText(self.tabs.currentIndex())
         locked, char = self._locked(), self._char()
         if label == "Backgrounds":
@@ -509,8 +511,9 @@ class AdvantagesPage(QWidget):
         else:
             self.add_btn.setText("+ Fetter" if self._has_fetters() else "+ Passion")
             self.add_btn.setEnabled(True)
-        # "Lose / buy off" is an XP transaction and only exists post-lock, on a held
-        # M&F row. Pre-lock the row is simply deleted, from its own editor.
+        # "Lose / buy off" is an XP transaction. It exists after the lock only, on a row
+        # that the character holds. Before the lock, the user deletes the row in its own
+        # editor.
         selected_mf = (self._selected is not None
                        and self._selected[0] == "merits_flaws")
         self.drop_btn.setVisible(
@@ -538,10 +541,9 @@ class AdvantagesPage(QWidget):
     def _drop_selected(self) -> None:
         """Lose / buy off the SELECTED Merit or Flaw.
 
-        ⚠ Reads the table selection, not a separate "Held" combo. The old card carried
-        its own dropdown of held entries beside the table listing the same ones — two
-        controls naming one thing, and the one you were looking at was not the one the
-        button acted on."""
+        ⚠ Read the table selection. Do not add a separate "Held" combo box. Two controls
+        that name the same entry are ambiguous, and the button then acts on the control
+        that the user does not read."""
         if self._selected is None or self._selected[0] != "merits_flaws":
             return
         self._drop_idx = str(self._selected[1])
@@ -607,27 +609,28 @@ class AdvantagesPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def _bg_catalog(self):
-        """The splat-filtered catalogue. The origin matters for `excluded_origins` (the
-        ancient-only Savant): a modern Dragon King must not see it, an ancient one
-        must."""
+        """The catalogue, filtered by splat. ⚠ The origin controls `excluded_origins`. For
+        example, only an ancient Dragon King can see the Savant Background. A modern Dragon
+        King must not see it."""
         return validate.background_catalogue_for(self._ruleset, self._char())
 
     def _bg_type(self, bg, catalog):
-        """The catalogue entry a row names, or None for free text. Resolved through the
-        SPLAT-FILTERED catalogue, which is what makes a Dragon-Blooded Manse row find
-        the Dragon-Blooded allowance rather than the corebook's — the six Manse variants
-        share two names between them, so a global lookup by name would answer for
-        whichever copy it met first."""
+        """The catalogue entry that a row names. Returns None for free text. ⚠ Resolve the
+        name through the SPLAT-FILTERED catalogue. Thus a Dragon-Blooded Manse row finds
+        the Dragon-Blooded allowance, not the corebook allowance. The six Manse variants
+        share two names, thus a global lookup by name returns the first copy that it
+        finds."""
         return {t.name.strip().lower(): t
                 for t in catalog}.get(bg.name.strip().lower())
 
     def _background_editor(self, lay, bg, idx, b) -> None:
-        """One Background in the detail pane: name, rating, note, hearthstones, and the
-        printed text — the blurb plus the whole dot LADDER with the rung held marked.
+        """One Background in the detail pane. It shows the name, the rating, the note, the
+        hearthstones and the printed text. The printed text is the description and the full
+        dot LADDER, with the rung of the character marked.
 
-        ⚠ A Background's printed text differs per rating, so one paragraph is not the
-        answer; `view.background_ladder` is the one copy of that rendering (the
-        catalogue dialog shows it too) and must not be re-implemented here.
+        ⚠ The printed text of a Background is different for each rating. Thus one paragraph
+        is not sufficient. `view.background_ladder` is the one copy of that rendering, and
+        the catalogue dialog uses it too. Do not write a second copy here.
         """
         ruleset, char = self._ruleset, self._char()
         locked = self._locked()
@@ -645,18 +648,18 @@ class AdvantagesPage(QWidget):
         stones_sync = [None]
 
         def sync() -> None:
-            """Repaint everything keyed to this row's NAME and RATING. ⚠ Anything
-            reading a Background rating must be driven from here — two consumers have
-            gone stale in the web panel by not being."""
+            """Repaint every widget that reads the NAME and the RATING of this row. ⚠ Call
+            each consumer of a Background rating from here. A consumer that this function
+            does not call shows an old value."""
             rung_text = viewmod.background_rung(catalog, bg.name, bg.rating)
-            # Where a splat's book separates what you BUY from what it is WORTH
-            # (Mountain Folk Resources: dots + 2, max 3 dots), say so.
+            # A book of a splat can separate what the user BUYS from what the Background is
+            # WORTH. Mountain Folk Resources is dots + 2, with a maximum of 3 dots.
             effective = validate.effective_background_rating(ruleset, char, bg.name)
             if effective != bg.rating:
                 note_text = f"effective {bg.name} {effective}"
                 rung_text = f"{rung_text}  ·  {note_text}" if rung_text else note_text
-            # The link to the Gear tab, where the artifacts themselves live: the
-            # Background is what PAYS for them, so this says what it bought.
+            # The link to the Gear tab, which holds the artifacts. This Background PAYS for
+            # them. Thus this line names what the Background bought.
             if bg.name.strip().lower() == artifactsmod.ARTIFACT_BACKGROUND:
                 owned = len(artifactsmod.budgeted_items(char))
                 buys = f"buys {bg.rating} dot(s) of artifacts · {owned} owned"
@@ -669,10 +672,11 @@ class AdvantagesPage(QWidget):
             self._changed()
 
         if locked:
-            # The ceiling comes from the engine, not a hardcoded 5: only the
-            # `bind_post_lock` rules bind post-lock (Sidereal Celestial Manse ≤3, MF
-            # Artifact ≤10), so a locked Unenlightened Mountain Folk can be given
-            # Backing 4 by the story and a mortal granted an artifact.
+            # ⚠ Read the maximum from the engine. Do not write 5 in the code. After the
+            # lock, the `bind_post_lock` rules apply and no others: a Sidereal Celestial
+            # Manse is 3 or less, and a Mountain Folk Artifact is 10 or less. Thus the story
+            # can give Backing 4 to a locked Unenlightened Mountain Folk, and it can give an
+            # artifact to a mortal.
             spin = QSpinBox()
             spin.setRange(0, validate.background_rating_cap(b, char, bg.name,
                                                             post_lock=True))
@@ -681,8 +685,8 @@ class AdvantagesPage(QWidget):
                 lambda v, bg=bg: (setattr(bg, "rating", v), sync()))
             self._labelled(lay, "Rating", spin)
         else:
-            # ⚠ ONE copy of the cap rule: the add-dialog's spinner asks `_bg_cap_for`
-            # too. A second implementation here would let the two ceilings drift apart.
+            # ⚠ There is ONE copy of the limit rule. The spin box of the add dialog also
+            # calls `_bg_cap_for`. A second implementation here gives two different limits.
             self._labelled(lay, "Rating",
                            DotTrack(lambda bg=bg: bg.rating,
                                     lambda v, bg=bg: setattr(bg, "rating", v),
@@ -695,9 +699,10 @@ class AdvantagesPage(QWidget):
             lambda t, bg=bg: (setattr(bg, "note", t), self._refresh_selected_row()))
         self._labelled(lay, "Note", note)
 
-        # The Demesne toggle sits on every Background that COULD grow stones, including
-        # one already flipped — otherwise flipping it would hide the control that flips
-        # it back. The picker sits only on rows that actually grow them.
+        # ⚠ Put the Demesne toggle on every Background that CAN have hearthstones, and also
+        # on a Background that the user has already set to Demesne. If you remove it, the
+        # user cannot set the Background back. Put the picker only on a row that has
+        # hearthstones.
         bg_type = self._bg_type(bg, catalog)
         if artifactsmod.grows_hearthstones(bg_type):
             demesne = QCheckBox("Demesne rather than Manse — grows no Hearthstones")
@@ -710,9 +715,10 @@ class AdvantagesPage(QWidget):
             stones.clicked.connect(lambda _=False, bg=bg: self._open_hearthstones(bg))
             lay.addWidget(stones)
 
-        # The stones held, shown whenever any are held — even on a row flipped to
-        # Demesne or renamed off a Manse, so a stranded stone stays visible and
-        # deletable rather than becoming an Issue with no control behind it.
+        # ⚠ Show the hearthstones on every row that holds one. Also show them on a row that
+        # the user set to Demesne, and on a row that the user renamed from a Manse. Thus a
+        # stone that has no Manse stays visible, and the user can delete it. If you hide it,
+        # it becomes an Issue with no control.
         if bg.hearthstones:
             stones_sync[0] = self._hearthstone_rows(lay, bg, catalog)
 
@@ -733,16 +739,17 @@ class AdvantagesPage(QWidget):
                                     else f"color:{MUTED};")
                 lay.addWidget(entry)
 
-        # A dropdown pick changes which controls the entry needs (a Manse grows stones),
-        # so it rebuilds; typing must NOT, or the combo being typed into is replaced.
+        # A dropdown selection changes the controls that the entry needs, because a Manse
+        # has hearthstones. Thus a selection rebuilds the pane. ⚠ Typing must NOT rebuild
+        # it. A rebuild replaces the combo box that the user types into.
         combo.editTextChanged.connect(
             lambda t, bg=bg: (setattr(bg, "name", t), sync()))
         combo.activated.connect(lambda _i: self.reload())
         sync()
 
     def _refresh_selected_row(self) -> None:
-        """Re-render just the selected table row after an edit. ⚠ Never a full refill —
-        that would replace the widget being typed into."""
+        """Draw the selected table row again after an edit. ⚠ Never refill the full table. A
+        refill replaces the widget that the user types into."""
         table = self._current_table()
         item = None if table is None else table.currentItem()
         if item is None or self._selected is None:
@@ -764,11 +771,11 @@ class AdvantagesPage(QWidget):
             item.setText(2, _DOTS_FILLED(row.rating))
 
     def _hearthstone_rows(self, lay, bg, catalog):
-        """The stones on one Manse row plus a running total against the allowance.
-        Returns the total's sync function — the caller chains it onto the row's rating
-        change, because BOTH halves of "4 / 3" move: the numerator when a stone is
-        added or re-rated, the DENOMINATOR when the Manse rating does (a bigger Manse
-        legalises the stone that was over budget a moment ago)."""
+        """The hearthstones on one Manse row, and a total against the allowance. Returns the
+        sync function of that total. ⚠ The caller must also call this function when the
+        rating of the row changes. BOTH parts of "4 / 3" move: the first number changes when
+        the user adds a stone or changes its rating, and the second number changes with the
+        Manse rating. A larger Manse makes a stone legal that was above the allowance."""
         char = self._char()
         total = QLabel("")
         total.setContentsMargins(24, 0, 0, 0)
@@ -811,9 +818,9 @@ class AdvantagesPage(QWidget):
         return sync_total
 
     def _open_hearthstones(self, bg) -> None:
-        """The Hearthstone picker for one Manse row. Each stone shows what it would COST
-        against the row's remaining allowance — the same `hearthstone_allowance` the
-        validator reads, so the picker and the Issue cannot disagree."""
+        """The Hearthstone picker for one Manse row. Each stone shows its COST against the
+        remaining allowance of the row. ⚠ Read the same `hearthstone_allowance` that the
+        validator reads. Thus the picker and the Issue always agree."""
         ruleset = self._ruleset
         catalog = self._bg_catalog()
         stones = artifactsmod.hearthstones(ruleset.artifact_catalog)
@@ -825,9 +832,9 @@ class AdvantagesPage(QWidget):
         for s in stones:
             over = s.rating > remaining or (allowance and allowance.individual_max
                                             and s.rating > allowance.individual_max)
-            # ⚠ The over-budget warning goes FIRST. The dialog clamps a row's summary to
-            # a few words, so anything tacked on the end of the description is exactly
-            # what gets cut — and this is the one part of the line that must survive.
+            # ⚠ Put the over-allowance warning FIRST. The dialog cuts the summary of a row
+            # to a few words. Thus it removes text at the end of the description, and this
+            # warning is the part that must stay.
             note = "⚠ exceeds this Manse's remaining levels — " if over else ""
             rows.append((s.name, s.name,
                          f"{note}{s.rating_notes or ('•' * s.rating)} — {s.description}",
@@ -835,10 +842,10 @@ class AdvantagesPage(QWidget):
         ratings = {s.name: s.rating for s in stones}
 
         def pick(name) -> None:
-            # Custom (name is None) adds a blank stone rather than doing nothing: a
-            # Hearthstone is unique per Manse (S&S p.67) and the printed ten are
-            # examples, so "my own stone" is the common case. It gets a rating control
-            # like any other, because the rating is what the rule measures.
+            # Custom, where the name is None, adds a blank stone. It must not do nothing. A
+            # Hearthstone is unique to its Manse (S&S p.67), and the ten printed stones are
+            # examples. Thus a stone of the user's own design is the usual case. It gets a
+            # rating control, because the rule measures the rating.
             bg.hearthstones.append(HearthstoneEntry(
                 name="" if name is None else name,
                 rating=1 if name is None else ratings.get(name, 1)))
@@ -846,17 +853,17 @@ class AdvantagesPage(QWidget):
 
         open_catalogue(self, self._pal(), "Hearthstones", rows, pick)
 
-    # ⚠ Each `_build_*_dialog` returns the dialog WITHOUT running it, and the `_open_*`
-    # wrapper execs it. `exec()` blocks, so a test can only reach the in-dialog rating
-    # and tier controls through the builder.
+    # ⚠ Each `_build_*_dialog` returns the dialog and does NOT run it. The `_open_*` wrapper
+    # runs it. `exec()` stops a headless run. Thus a test reaches the rating control and the
+    # tier control in the dialog through the builder only.
     def _open_bg_catalogue(self) -> None:
         self._build_bg_dialog().exec()
 
     def _build_bg_dialog(self) -> CatalogueDialog:
-        """Browse the splat-filtered catalogue, set the rating, and add it — or choose
-        Custom for a blank row. The dialog is where a rating gets CHOSEN, so its full
-        text carries the whole printed ladder and the spinner sits directly under it;
-        the row itself shows only the rung the character holds."""
+        """Show the catalogue that the splat filter gives, set the rating, and add the
+        entry. The Custom button adds a blank row. The user SELECTS a rating in this dialog.
+        Thus its full text holds the printed ladder, and the spin box is below that text.
+        The row shows the rung of the character only."""
         catalog = self._bg_catalog()
         rows = []
         for t in sorted(catalog, key=lambda t: t.name):
@@ -870,9 +877,9 @@ class AdvantagesPage(QWidget):
         holder: dict = {}
 
         def extras(key, lay) -> None:
-            # ⚠ The cap is per-NAME and can be 0 (a Flaw may bar a Background outright).
-            # A spinner whose maximum is 0 is the correct, clickable-nowhere answer —
-            # the confirm hook is what refuses it, so the reason can be stated.
+            # ⚠ The limit belongs to the NAME, and it can be 0. A Flaw can refuse a
+            # Background. A spin box with a maximum of 0 is the correct control. The confirm
+            # hook refuses the entry, thus the dialog can state the reason.
             cap = self._bg_cap_for(b, key)
             self._pending_bg.clear()
             self._pending_bg.update(name=key, rating=min(1, cap))
@@ -904,9 +911,9 @@ class AdvantagesPage(QWidget):
         return dialog
 
     def _bg_cap_for(self, b, name: str) -> int:
-        """The highest rating `name` may be taken at — the same two-sided answer
-        `_backgrounds_panel.cap_for` gives: engine.merits' bar or lowered cap, and
-        engine.validate's data ceiling, whichever is tighter."""
+        """The highest rating for `name`. It is the same answer that
+        `_backgrounds_panel.cap_for` gives. It is the smaller of two values: the refusal or
+        the lowered limit of `engine.merits`, and the data limit of `engine.validate`."""
         mf = meritsmod.merits_and_flaws_calc(self._ruleset, self._char())
         key = (name or "").strip().lower()
         if key in mf.barred_backgrounds:
@@ -916,8 +923,8 @@ class AdvantagesPage(QWidget):
         return data_cap if merit_cap is None else min(data_cap, merit_cap)
 
     def _pick_bg(self, name) -> None:
-        # Custom rows start at 1: there is no printed ladder to read a rating off, and
-        # the row's own dot track is where it gets set.
+        # A custom row starts at 1. It has no printed ladder that gives a rating. The user
+        # sets the rating on the dot track of the row.
         pending = self._pending_bg if self._pending_bg.get("name") == name else {}
         self._char().backgrounds.append(BackgroundEntry(
             name="" if name is None else name,
@@ -934,8 +941,9 @@ class AdvantagesPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def _available_merits(self, essence_start=None) -> list:
-        """Every entry this character may take, Merits before Flaws then by name. The
-        splat/caste/Essence filter is the engine's, never restated here."""
+        """Every entry that this character can take. The Merits come first, then the Flaws,
+        and each group is in name order. ⚠ The engine supplies the splat, caste and Essence
+        filter. Do not write that filter here."""
         char = self._char()
         return [m for m in sorted(self._ruleset.merits_flaws.values(),
                                   key=lambda m: (m.kind != "merit", m.name))
@@ -944,9 +952,10 @@ class AdvantagesPage(QWidget):
                                                starting_essence=essence_start)]
 
     def _mf_matches(self, m) -> bool:
-        """Does this entry survive the filter bar? A two-sided entry answers to BOTH
-        side filters — it is genuinely either, and hiding it from both is how a player
-        loses Prodigy. Text matches name, category and rules text."""
+        """True when this entry passes the filter bar. ⚠ An entry with two sides passes BOTH
+        side filters, because it is a Merit or a Flaw. If it fails both filters, the user
+        cannot find it. The text filter matches the name, the category and the rules
+        text."""
         want = self._mf_filter["kind"]
         if want and m.kind not in (want, "either"):
             return False
@@ -959,42 +968,41 @@ class AdvantagesPage(QWidget):
                 return False
         return True
 
-    # ⚠ The on-page filter bar (search + Merit/Flaw side + category) is GONE, not
-    # lost: filtering belongs where the choosing happens, so the two catalogue dialogs
-    # now carry category CHIPS (`group_of`) and their own search box. `_mf_matches`
-    # survives and still gates what a dialog offers; with no bar to set `_mf_filter` it
-    # simply passes everything, which is what a dialog that filters itself wants.
+    # ⚠ This page has no filter bar, and that is intended. The filter belongs where the user
+    # selects an entry. Thus the two catalogue dialogs hold the category CHIPS (`group_of`)
+    # and their own search box. `_mf_matches` stays, and it still controls what a dialog
+    # offers. No control sets `_mf_filter`, thus `_mf_matches` accepts every entry. A dialog
+    # that filters itself needs that behaviour.
 
     def _merit_rules_text(self, lay, definition, *, with_description: bool = True) -> None:
-        """The printed cost line, restrictions, gates and rules text under a row. The
-        cost line always shows: a few qualifiers cannot be priced by the engine (a
-        per-caste rate, a relative one), so the ST must see what the book says.
+        """The printed cost line, the restrictions, the requirements and the rules text
+        below a row. ⚠ Always show the cost line. The engine cannot price some qualifiers,
+        for example a rate for each caste or a relative rate. Thus the Storyteller must read
+        what the book states.
 
-        `with_description=False` omits the trailing rules text, for the catalogue
-        dialog — its detail pane is already showing that same string in full, and
-        printing it twice (once scrollable, once truncated) reads as a bug, because it
-        is one (human, 2026-08-21). The cost/restriction/requires lines are NOT in the
-        detail pane, so they stay."""
+        `with_description=False` removes the rules text at the end. The catalogue dialog
+        uses that form, because its detail pane already shows the same text in full. ⚠ The
+        same text two times, one copy scrollable and one copy cut, is a defect. The cost
+        line, the restriction line and the requires line are NOT in the detail pane, thus
+        they stay."""
         if definition.cost_note:
             lay.addWidget(self._muted(definition.cost_note))
         if definition.exalt_types:
             lay.addWidget(self._muted("Restricted to: " + ", ".join(definition.exalt_types),
                                       italic=True))
-        # What the entry requires, so a player sees the gate BEFORE the issues panel
-        # tells them they failed it. Built in view.py so the two shells cannot say
-        # different things — they already had, by both omitting `prerequisites`.
+        # The requirements of the entry. Thus the user reads them BEFORE the issues panel
+        # reports a failure. ⚠ `view.py` builds this text. Thus the two shells state the
+        # same requirements. Both shells omitted `prerequisites` when each built its own.
         wants = viewmod.merit_requirement_line(
             self._ruleset, definition,
             meritsmod.merits_and_flaws_calc(self._ruleset, self._char()))
         if wants:
             lay.addWidget(self._muted("Requires: " + wants, italic=True))
         if with_description and definition.description:
-            # ⚠ WHOLE text, not a clamp. The 320-character clamp was written when this
-            # pane was a card in a stack and a paragraph pushed the controls off the
-            # panel; the detail pane it lives in now is a scrolling half of a splitter,
-            # and the Backgrounds pane beside it has always printed its blurb in full.
-            # A truncated rules text with the rest in a TOOLTIP reads as a bug (human,
-            # 2026-08-30, watching a player use it).
+            # ⚠ Show the WHOLE text. Do not cut it. This detail pane is a scrolling half of
+            # a splitter, and the Backgrounds pane next to it prints its description in
+            # full. A cut rules text with the rest in a TOOLTIP reads as a defect (human's
+            # ruling).
             lay.addWidget(self._muted(" ".join(definition.description.split())))
 
     # ------------------------------------------------------------------ #
@@ -1004,8 +1012,8 @@ class AdvantagesPage(QWidget):
     def _chargen_merit_notes(self, notes, eff, b) -> None:
         """The bonus-point arithmetic, above the table it describes.
 
-        A MERIT costs bonus points; a FLAW grants them, which is why the grant is
-        reported separately rather than as a negative.
+        A MERIT costs bonus points. A FLAW gives bonus points. Thus this panel reports the
+        grant as its own number. It does not report it as a negative cost.
         """
         ruleset, char = self._ruleset, self._char()
         spent = validate.merit_bonus_point_cost(ruleset, char)
@@ -1014,17 +1022,17 @@ class AdvantagesPage(QWidget):
             line += f", +{eff.bonus_point_grant} granted by Flaws"
         notes.addWidget(self._muted(line))
         # "Characters with more than 10 points of Flaws receive no bonus points for the
-        # excess" (PG p.17). Say so when it bites — the grant above is the CAPPED
-        # number, and a player who took 13 points and sees "+10" cannot tell the cap
-        # from a bug in our arithmetic.
+        # excess" (PG p.17). ⚠ Show this line when the limit applies. The grant above is the
+        # LIMITED number. A user who took 13 points and reads "+10" cannot identify the
+        # limit without this line.
         if eff.flaw_points_raw > eff.bonus_point_grant:
             notes.addWidget(self._warn(
                 f"⚠ {eff.flaw_points_raw} points of Flaws taken, "
                 f"{eff.bonus_point_grant} granted — the excess "
                 f"{eff.flaw_points_raw - eff.bonus_point_grant} is lost to the "
                 f"{meritsmod.FLAW_POINT_CAP}-point cap (p.17). The Flaws still apply."))
-        # Say which held Merits this build treats as narrative, rather than letting a
-        # player wonder why nothing changed.
+        # Name the Merits that this build treats as narrative. Without this line, the user
+        # cannot find the reason that nothing changed.
         if eff.narrative_only:
             names = ", ".join(sorted(ruleset.merits_flaws[m].name
                                      for m in eff.narrative_only
@@ -1036,24 +1044,23 @@ class AdvantagesPage(QWidget):
     def _merit_editor(self, lay, mp, idx, b) -> None:
         """One held Merit or Flaw in the detail pane.
 
-        ⚠ Every control is on its own labelled line. The shipped card packed them into
-        two horizontal rows because Qt has no wrapping row and the panel was
-        width-starved; a detail pane is not, so the workaround goes.
+        ⚠ Put every control on its own line, with a label. Qt has no wrapping row, and a
+        narrow panel needs two horizontal rows. A detail pane is wide, thus it does not need
+        that arrangement.
 
-        Post-lock the entry itself is READ-ONLY: a held Merit is not swapped for another,
-        it is dropped (toolbar) and a new one gained. What the pane adds post-lock, which
-        the shipped card could not show at all, is the printed rules text of what you
-        actually hold.
+        After the lock, the entry is READ-ONLY. The user does not exchange a held Merit for
+        another one. The user drops it from the toolbar and gains a new one. After the lock,
+        this pane adds the printed rules text of the entry that the character holds.
         """
         ruleset, char = self._ruleset, self._char()
         locked = self._locked()
         definition = ruleset.merits_flaws.get(mp.merit_id)
 
-        # A player-authored "Custom" row (2026-08-10): no catalogue entry, no mechanical
-        # effect — just a name the sheet renders. It gets a plain text input and NONE of
-        # the definition-driven controls, every one of which reads `definition`.
-        # ⚠ The discriminator is the EMPTY `merit_id`, never `custom_name`'s truthiness:
-        # the name input below writes that field on every keystroke.
+        # A "Custom" row that the user writes. It has no catalogue entry and no mechanical
+        # effect. It is a name that the sheet prints. It gets a plain text input, and NONE
+        # of the controls that read `definition`.
+        # ⚠ An EMPTY `merit_id` identifies this row. Never test `custom_name` for a value.
+        # The name input below writes that field on each keystroke.
         if not mp.merit_id:
             lay.addWidget(self._muted("Custom Merit / Flaw — narrative only."))
             name = QLineEdit(mp.custom_name)
@@ -1071,8 +1078,9 @@ class AdvantagesPage(QWidget):
         else:
             available = self._available_merits(b.essence_start)
             labels = {m.id: viewmod.merit_option_label(m) for m in available}
-            # ⚠ Whatever the row already holds stays selectable: an off-catalogue id (a
-            # save opened without its data) must not vanish from its own dropdown.
+            # ⚠ Keep the value that the row holds in the list. An id that the catalogue does
+            # not hold, for example from a save that opened without its data, must stay in
+            # its own dropdown.
             opts = dict(labels)
             if mp.merit_id:
                 opts.setdefault(mp.merit_id, labels.get(mp.merit_id, mp.merit_id))
@@ -1094,8 +1102,8 @@ class AdvantagesPage(QWidget):
             return
 
         if locked:
-            # Read-only summary of the recorded choices; the toolbar's Drop is the only
-            # post-lock mutation.
+            # A read-only summary of the recorded choices. After the lock, the Drop action
+            # in the toolbar is the only mutation.
             side = mp.taken_as or definition.kind
             self._labelled(lay, "Taken as", QLabel(side))
             if mp.tier:
@@ -1110,9 +1118,10 @@ class AdvantagesPage(QWidget):
             self._merit_rules_text(lay, definition)
             return
 
-        # Which side a two-sided entry was taken on. No blank option is defaulted: the
-        # value decides whether this charges bonus points or grants them, so it must be
-        # a deliberate pick — an unrecorded choice shows empty and validate flags it.
+        # The side that the user selected for an entry with two sides. ⚠ Do not select a
+        # default. This value decides if the entry costs bonus points or gives them. Thus
+        # the user must select it. An unrecorded choice shows an empty control, and
+        # `validate` reports it.
         if definition.kind == "either":
             side = QComboBox()
             side.addItem("", "")
@@ -1124,9 +1133,9 @@ class AdvantagesPage(QWidget):
                                            self.reload()))
             self._labelled(lay, "Taken", side)
         if definition.cost_options:
-            # Only the options this splat may actually choose, priced from the same
-            # table the pricer reads — Lucky is 1-5 but 1-3 for a Sidereal. A tier
-            # already recorded stays selectable.
+            # Offer the options that this splat can select, and price them from the table
+            # that the pricer reads. Lucky is 1-5, and it is 1-3 for a Sidereal. ⚠ Keep a
+            # tier that the row already holds in the list.
             opts = validate.merit_cost_options(definition, char.exalt_type, char.caste)
             tiers = validate.merit_tiers_available(definition, char.exalt_type, char.caste)
             tier_opts = {t: f"{viewmod.merit_tier_label(t)} ({v})"
@@ -1144,8 +1153,9 @@ class AdvantagesPage(QWidget):
                                            self._refresh_selected_row(), self._changed()))
             self._labelled(lay, "Oath" if meritsmod.uses_arena(definition) else "Buying",
                            tier)
-            # Arena drives the same-arena stacking reduction (p.122); free text, because
-            # the page's list is examples, not a set. Only for the entry with that rule.
+            # The arena drives the stacking reduction for the same arena (p.122). It is free
+            # text, because the list on the page gives examples, not a closed set. Show this
+            # control for the entry with that rule only.
             if meritsmod.uses_arena(definition):
                 arena = QLineEdit(mp.arena)
                 arena.setPlaceholderText("arena (combat, food…)")
@@ -1154,16 +1164,16 @@ class AdvantagesPage(QWidget):
                                       self._refresh_selected_row(), self._changed()))
                 self._labelled(lay, "Arena", arena)
         elif definition.variable_cost:
-            # A variable-cost entry's value lives on the PURCHASE — the page leaves it
-            # to the table. Without this control it stayed 0, which made all 11 of them
-            # inert at chargen: no bonus points, no effect.
+            # The value of a variable-cost entry belongs to the PURCHASE, because the page
+            # leaves it to the table. ⚠ Without this control, the value stays 0. All eleven
+            # of these entries then do nothing at chargen: no bonus points, and no effect.
             rate = meritsmod.forfeit_rate(definition)
             spin = QSpinBox()
             spin.setRange(0, 20)
             if rate:
-                # Collect DOTS and multiply rather than collecting points and flooring
-                # back: the dots are what the player chooses ("three points for every
-                # Physical Attribute dot"), and entering points can lose a remainder.
+                # ⚠ Collect the DOTS and multiply them. Do not collect points and divide
+                # them. The user selects the dots: "three points for every Physical
+                # Attribute dot". An entry in points can lose a remainder.
                 spin.setValue(mp.points // rate)
                 spin.valueChanged.connect(
                     lambda v, mp=mp, r=rate: (setattr(mp, "points", v * r),
@@ -1177,16 +1187,17 @@ class AdvantagesPage(QWidget):
                     lambda v, mp=mp: (setattr(mp, "points", v),
                                       self._refresh_selected_row(), self._changed()))
                 self._labelled(lay, "Points", spin)
-        # WHICH artifact a per-entry limit measures (Damaged Artifact). The condition is
-        # the catalogue's `per_entry` flag, never the entry's id — decision 0011 again.
+        # The artifact that a per-entry limit measures, for example Damaged Artifact. ⚠ Read
+        # the `per_entry` flag of the catalogue. Never read the id of the entry
+        # (decision 0011).
         if any(limit.per_entry for limit in definition.points_limits):
             items = artifactsmod.artifact_items(char)
             art = QComboBox()
             art.addItem("", "")
             for item in items:
                 art.addItem(f"{item.name} ({item.rating})", item.key)
-            # A key that no longer resolves — the artifact was renamed or deleted —
-            # stays selectable and is labelled broken rather than vanishing silently.
+            # ⚠ Keep a key that does not resolve, because the user renamed or deleted the
+            # artifact. Mark it as broken. It must not go away without a message.
             if mp.artifact_key and art.findData(mp.artifact_key) < 0:
                 art.addItem(f"{mp.artifact_key}  (missing)", mp.artifact_key)
             art.setCurrentIndex(max(0, art.findData(mp.artifact_key or "")))
@@ -1196,9 +1207,9 @@ class AdvantagesPage(QWidget):
             self._labelled(lay, "Artifact", art)
             if not items:
                 lay.addWidget(self._warn("no artifacts owned"))
-        # Stipulations are dots, so they need a number rather than a note — "an extra
-        # dot … for every major stipulation applied to the Inheritance, up a maximum of
-        # three" (p.24).
+        # A stipulation is a number of dots, thus this control is a number, not a note: "an
+        # extra dot … for every major stipulation applied to the Inheritance, up a maximum
+        # of three" (p.24).
         if definition.takes_stipulations:
             stip = QSpinBox()
             stip.setRange(0, 3)
@@ -1206,19 +1217,19 @@ class AdvantagesPage(QWidget):
             stip.valueChanged.connect(
                 lambda v, mp=mp: (setattr(mp, "stipulations", v), self._changed()))
             self._labelled(lay, "Stipulations", stip)
-        # A structured detail is a CLOSED set, not free text: which Attribute category a
-        # forfeit comes from, which Attribute gets Legendary Attribute's raised ceiling.
-        # Both were free-text once and both failed silently.
+        # ⚠ A structured detail is a CLOSED set. It is not free text. Examples: the Attribute
+        # category that a forfeit comes from, and the Attribute that Legendary Attribute
+        # raises. As free text, both of these fail and report no error.
         choices = meritsmod.detail_choices(definition)
         if choices:
             detail = QComboBox()
             detail.addItem("", "")
             for c in choices:
                 detail.addItem(c, c)
-            # A stored detail can legitimately be off-list: validate compares
-            # `detail.strip().title()`, so "strength" passes validation while never
-            # matching the title-cased option. Normalise the same way, then keep
-            # anything still unmatched as its own option.
+            # ⚠ A stored detail can be outside the list, and that is legal. `validate`
+            # compares `detail.strip().title()`. Thus "strength" passes validation, and it
+            # never matches the option in title case. Normalise the value in the same way.
+            # Then keep each value that does not match as its own option.
             current = mp.detail.strip().title() if mp.detail else ""
             if mp.detail and detail.findData(current) < 0:
                 current = mp.detail
@@ -1240,11 +1251,11 @@ class AdvantagesPage(QWidget):
         self._merit_rules_text(lay, definition)
 
     def _set_merit(self, mp, merit_id: str) -> None:
-        # Changing the entry clears every value that belonged to the old one — side,
-        # tier, points, arena and detail all mean something entry-specific, and a
-        # carried-over value silently mis-prices. The tier resets to the new entry's
-        # first AVAILABLE option rather than to blank, so a row is never left on a dead
-        # tier or on one this splat is barred from.
+        # ⚠ A change to the entry clears every value of the old entry. The side, the tier,
+        # the points, the arena and the detail each belong to one entry. A value that stays
+        # gives the wrong price, and it reports no error. The tier takes the first AVAILABLE
+        # option of the new entry, not a blank value. Thus a row never holds a tier that
+        # does not exist, or a tier that this splat cannot take.
         char = self._char()
         mp.merit_id = merit_id or ""
         mp.tier = viewmod.default_merit_tier(self._ruleset.merits_flaws.get(mp.merit_id),
@@ -1261,18 +1272,18 @@ class AdvantagesPage(QWidget):
         self._build_mf_dialog(available).exec()
 
     def _build_mf_dialog(self, available) -> CatalogueDialog:
-        """Browse the filtered set, configure it, and take it — or choose Custom for a
-        display-only player-authored row. Never a blind "add" that appends the cheapest
-        entry. The tier / points / side controls are the same block the in-play card
-        uses, so the row lands fully specified instead of on a default tier the player
-        never saw."""
+        """Show the filtered set, configure an entry, and take it. The Custom button adds a
+        row that the user writes, and that row has no mechanical effect. ⚠ Never add the
+        cheapest entry without a selection. The tier, points and side controls are the same
+        block that the in-play card uses. Thus the row is fully specified, and it does not
+        take a default tier that the user did not see."""
         rows = [(m.id, viewmod.merit_option_label(m), m.description, m.description)
                 for m in available]
         holder: dict = {}
-        # ⚠ The category chips are where the page's old filter bar went. Filtering
-        # belongs where the choosing happens, not beside the list of what you already
-        # hold — five printed categories make five chips, and the dialog's own search
-        # box replaces the bar's text field.
+        # ⚠ The category chips are the filter for this page. The filter belongs where the
+        # user selects an entry. It does not belong next to the list of entries that the
+        # character holds. The five printed categories give five chips, and the search box
+        # of the dialog supplies the text filter.
         groups = {m.id: m.category for m in available if m.category}
 
         def extras(key, lay) -> None:
@@ -1308,9 +1319,9 @@ class AdvantagesPage(QWidget):
     def _pick_mf(self, key) -> None:
         char = self._char()
         if key is None:
-            # `merit_id` is required but deliberately empty: it resolves to nothing in
-            # the catalogue, so the engine skips the row entirely — the "no mechanical
-            # effect" the Custom option promises.
+            # `merit_id` is a required field, and this code leaves it empty. It resolves to
+            # nothing in the catalogue, thus the engine skips the row. That gives the "no
+            # mechanical effect" that the Custom option states.
             char.merits_flaws.append(
                 MeritFlawPurchase(merit_id="", custom_name="New custom Merit / Flaw"))
             self.reload()
@@ -1318,8 +1329,9 @@ class AdvantagesPage(QWidget):
         definition = self._ruleset.merits_flaws.get(key)
         if definition is None:
             return
-        # The dialog's controls have already chosen these. Fall back to the splat-aware
-        # default tier for a caller that picked without them (the tests do).
+        # The controls of the dialog have already set these values. Use the default tier of
+        # the splat for a caller that selects an entry without those controls. The tests do
+        # that.
         pending = self._pending_mf if self._pending_mf.get("id") == key else {}
         char.merits_flaws.append(MeritFlawPurchase(
             merit_id=key,
@@ -1346,11 +1358,10 @@ class AdvantagesPage(QWidget):
         self._build_gain_dialog(available).exec()
 
     def _build_gain_dialog(self, available) -> CatalogueDialog:
-        """Browse, configure and BUY in one dialog. The tier, the point value and the
-        Merit-or-Flaw side are set beside the entry's printed text, and the confirm
-        button carries the resulting XP — so no purchase is committed from a menu label
-        alone (human, 2026-08-21: picking an entry appeared to do nothing, because the
-        controls were on a card below the fold)."""
+        """Show, configure and BUY an entry in one dialog. The tier, the point value and the
+        Merit-or-Flaw side are next to the printed text of the entry, and the confirm button
+        shows the XP cost. ⚠ Thus a purchase never comes from a menu label alone. With the
+        controls on a card below the visible area, a selection appears to do nothing."""
         rows = [(m.id, f"{m.name} {m.cost_note or ''}".strip(), m.description,
                  m.description)
                 for m in available if self._mf_matches(m)]
@@ -1363,9 +1374,9 @@ class AdvantagesPage(QWidget):
             definition = self._ruleset.merits_flaws.get(key)
             if definition is None:
                 return
-            # A fresh selection starts a fresh purchase. Every value is entry-specific,
-            # and a tier carried over from the previous row silently mis-prices — the
-            # same reason `_set_merit` clears on change.
+            # A new selection starts a new purchase. Each value belongs to one entry. ⚠ A
+            # tier that stays from the previous row gives the wrong price, and it reports no
+            # error. `_set_merit` clears its values for the same reason.
             self._gain.clear()
             self._gain.update(id=key, taken_as="", tier="", points=0, detail="")
             self._mf_purchase_block(
@@ -1392,8 +1403,8 @@ class AdvantagesPage(QWidget):
         return dialog
 
     def _pick_gain(self, key) -> None:
-        """Confirmed out of the dialog: `self._gain` is already fully specified by the
-        extras controls, so this commits it."""
+        """Commit the purchase that the dialog confirmed. The extras controls have already
+        specified every value in `self._gain`."""
         if key is None:
             self._custom_gain()
             return
@@ -1404,7 +1415,7 @@ class AdvantagesPage(QWidget):
         dialog.setWindowTitle("Custom Merit / Flaw")
         lay = QVBoxLayout(dialog)
         lay.addWidget(self._muted("Display-only — recorded on the sheet, no mechanical "
-                                  "effect (2026-08-10)."))
+                                  "effect."))
         name = QLineEdit()
         name.setPlaceholderText("name (e.g. a bloodline trait)")
         lay.addWidget(name)
@@ -1414,8 +1425,8 @@ class AdvantagesPage(QWidget):
             if not text:
                 self._notify("Give the custom Merit / Flaw a name.", "warning")
                 return
-            # Empty `merit_id` — resolves to nothing, so the engine treats the row as
-            # no-effect (the Custom option's contract).
+            # An empty `merit_id` resolves to nothing. Thus the engine gives the row no
+            # effect. That is the contract of the Custom option.
             self._char().merits_flaws.append(
                 MeritFlawPurchase(merit_id="", custom_name=text))
             dialog.accept()
@@ -1448,9 +1459,9 @@ class AdvantagesPage(QWidget):
         return price, xp
 
     def _mf_side_needed(self, definition, state) -> bool:
-        """True when the entry can be taken either way and no side has been chosen.
-        The side is what makes the transaction positive or negative, so a purchase in
-        this condition is half-specified and must not be allowed to land."""
+        """True when the entry has two sides and the user has selected no side. ⚠ The side
+        makes the transaction a cost or a grant. Thus a purchase in this state is not fully
+        specified, and the program must refuse it."""
         return definition.kind == "either" and not state.get("taken_as")
 
     def _mf_purchase_block(self, definition, lay, state, on_sync=None):
@@ -1459,12 +1470,12 @@ class AdvantagesPage(QWidget):
         layout, the state, and an optional callback fired after each change. Output:
         a `sync()` callable that refreshes the banner and the price line from `state`.
 
-        ⚠ `sync()` refreshes text IN PLACE and never rebuilds a widget. The controls
-        call it from their own change signals, and deleting a widget from inside its
-        own handler is the Qt crash this shape exists to avoid.
+        ⚠ `sync()` writes the text IN PLACE. It never rebuilds a widget. The controls call
+        it from their own change signals. A delete of a widget inside its own handler causes
+        a Qt crash.
 
-        Shared by the in-play card and the catalogue dialog, so the two surfaces cannot
-        drift into pricing the same purchase differently.
+        The in-play card and the catalogue dialog both use this function. Thus the two
+        surfaces always give the same price for the same purchase.
         """
         char = self._char()
         head = QHBoxLayout()
@@ -1482,9 +1493,9 @@ class AdvantagesPage(QWidget):
         controls = QHBoxLayout()
 
         def sync() -> None:
-            # For a two-sided entry the chosen side decides the direction of the
-            # transaction, so it drives this banner too — an unchosen one says so
-            # rather than implying the Merit branch.
+            # For an entry with two sides, the selected side decides if the transaction is a
+            # cost or a grant. Thus it also sets this text. ⚠ With no side selected, the text
+            # says so. It must not show the Merit side.
             effective = (state.get("taken_as", "") if definition.kind == "either"
                          else definition.kind)
             banner.setText(
@@ -1509,10 +1520,10 @@ class AdvantagesPage(QWidget):
             side.currentIndexChanged.connect(
                 lambda _i, s=side: (state.update(taken_as=s.currentData() or ""), sync()))
             controls.addWidget(side)
-        # The value controls, entry-aware — the same set chargen offers. This was ONE
-        # free-text box doing double duty (a tier key for a menu-priced entry, a point
-        # value for a variable-cost one), which is the shape that produced the
-        # splat-filter bug.
+        # The value controls. They read the entry, and they are the set that chargen offers.
+        # ⚠ Do not use one free-text box for two purposes: a tier key for a menu-priced
+        # entry, and a point value for a variable-cost entry. That shape caused a defect in
+        # the splat filter.
         if definition.cost_options:
             opts = validate.merit_cost_options(definition, char.exalt_type, char.caste)
             tiers = validate.merit_tiers_available(definition, char.exalt_type, char.caste)
@@ -1528,11 +1539,11 @@ class AdvantagesPage(QWidget):
                 lambda _i, t=tier: (state.update(tier=t.currentData() or ""), sync()))
             controls.addWidget(tier)
         elif definition.variable_cost:
-            # ⚠ A variable-cost entry OPENS AT ONE, never at zero (human's ruling,
-            # 2026-08-21). At zero it prices to nothing, so confirming it would add a
-            # row that neither costs nor pays — a purchase that looks made and did
-            # nothing. The opening value is seeded into `state` as well as the spinner,
-            # because the confirm button prices `state`, not the widget.
+            # ⚠ A variable-cost entry STARTS AT ONE. It never starts at zero (human's
+            # ruling). At zero, its price is nothing. A confirm then adds a row that costs
+            # nothing and gives nothing, and the purchase appears to succeed. ⚠ Write the
+            # start value into `state` and into the spin box. The confirm button prices
+            # `state`, not the widget.
             rate = meritsmod.forfeit_rate(definition)
             spin = QSpinBox()
             spin.setRange(0, 20)
@@ -1568,9 +1579,9 @@ class AdvantagesPage(QWidget):
         return sync
 
     def _gain_mf(self) -> None:
-        """Gain a Merit or Flaw in play. Which side of the transaction it is depends on
-        the ENTRY, not on the button — so the branch and both refusals live in
-        `advancement.gain_merit_or_flaw`, shared with the web shell."""
+        """Gain a Merit or a Flaw in play. ⚠ The ENTRY decides the side of the transaction.
+        The button does not. Thus `advancement.gain_merit_or_flaw` holds the branch and both
+        refusals, and the web shell calls the same function."""
         if self._do(lambda: advancement.gain_merit_or_flaw(
                 self._ruleset, self._char(), self._gain.get("id") or "",
                 tier=self._gain.get("tier", ""),
@@ -1590,11 +1601,12 @@ class AdvantagesPage(QWidget):
     # ------------------------------------------------------------------ #
     # Fetters and Passions (ghosts only, E:Ab p.126-127, p.283)
     # ------------------------------------------------------------------ #
-    # The two behave very differently and the panels must not blur that:
-    #   * a FETTER is bought — pool dots, then bonus points, then experience;
-    #   * a PASSION is not bought at ANY point. Its dots come from the Virtues and the
-    #     player only distributes them (p.283). So its "pool" readout is a derivation
-    #     that keeps moving after the lock, and there is no price anywhere on it.
+    # ⚠ The two are different, and the panels must show that difference:
+    #   * The user BUYS a Fetter: with pool dots, then with bonus points, then with
+    #     experience.
+    #   * The user NEVER buys a Passion. Its dots come from the Virtues, and the user
+    #     distributes them (p.283). Thus its "pool" readout is a derivation that changes
+    #     after the lock, and no control on it shows a price.
 
     def _has_fetters(self) -> bool:
         char = self._char()
@@ -1605,8 +1617,9 @@ class AdvantagesPage(QWidget):
         return bool(self._char().passions or self._has_fetters())
 
     def _fetter_editor(self, lay, fetter, idx, b) -> None:
-        """One Fetter in the detail pane. Pre-lock a free dot track; post-lock the
-        rating is read-only pips and moves only through the priced controls (p.283)."""
+        """One Fetter in the detail pane. Before the lock, it has a dot track that costs
+        nothing. After the lock, the rating is read-only pips, and it changes through the
+        priced controls only (p.283)."""
         locked = self._locked()
         name = QLineEdit(fetter.name)
         name.setPlaceholderText("what anchors you")
@@ -1636,8 +1649,8 @@ class AdvantagesPage(QWidget):
             self._delete_button(lay, lambda idx=idx: self._remove_fetter(idx))
 
     def _fetter_budget_label(self, b) -> QLabel:
-        """⚠ The cap is Willpower + Essence and it MOVES, so it is a live number on
-        both sides of the lock rather than a chargen note."""
+        """⚠ The limit is Willpower + Essence, and it CHANGES. Thus show it as a live number
+        on both sides of the lock. Do not show it as a chargen note."""
         ruleset, char = self._ruleset, self._char()
         spent = derivemod.fetter_dots_spent(char)
         cap = derivemod.fetter_cap(char, ruleset)
@@ -1653,9 +1666,9 @@ class AdvantagesPage(QWidget):
     def _passion_editor(self, lay, passion, idx, b) -> None:
         """One Passion in the detail pane.
 
-        ⚠ A FREE dot track on both sides of the lock, deliberately: a Passion
-        distributes a DERIVED pool (its dots come from the Virtues, E:Ab p.283) and is
-        never bought, so the post-lock XP stepper the Traits tab uses would be wrong.
+        ⚠ Use a dot track that costs nothing, on both sides of the lock. A Passion
+        distributes a DERIVED pool. Its dots come from the Virtues (E:Ab p.283), and the
+        user never buys it. Thus the XP stepper of the Traits tab is incorrect here.
         """
         char = self._char()
         name = QLineEdit(passion.name)
@@ -1675,8 +1688,8 @@ class AdvantagesPage(QWidget):
             lambda t, p=passion: (setattr(p, "note", t), self._refresh_selected_row()))
         self._labelled(lay, "Note", note)
 
-        # The pool this Passion draws on, per Virtue, so the player can see what is left
-        # to distribute without leaving the entry they are editing.
+        # The pool of this Passion, for each Virtue. Thus the user reads the dots that stay
+        # to distribute, and stays on the entry that they edit.
         pool = derivemod.passion_pool(char)
         left = derivemod.passion_dots_unspent(char)
         lay.addWidget(self._heading("Dots from the Virtues"))
@@ -1706,8 +1719,8 @@ class AdvantagesPage(QWidget):
         for f in char.fetters:
             if f.name:
                 which.addItem(f.name, f.name)
-        # Open on the Fetter being looked at, so Raise/Shift act on the selection
-        # rather than on whichever happens to be first.
+        # Open on the selected Fetter. Thus Raise and Shift act on that Fetter, and not on
+        # the first Fetter in the list.
         if self._selected is not None and self._selected[0] == "fetters":
             held = char.fetters[self._selected[1]].name
             found = which.findData(held)
@@ -1755,8 +1768,8 @@ class AdvantagesPage(QWidget):
         self.reload()
 
     def _passion_shift_controls(self, lay) -> None:
-        """The one experience operation on a Passion (p.283, 20 XP): move a dot from one
-        to another. The TOTAL cannot change — the Virtues set it."""
+        """The one experience operation on a Passion (p.283, 20 XP). It moves a dot from one
+        Passion to another. ⚠ The TOTAL cannot change. The Virtues set it."""
         ruleset, char = self._ruleset, self._char()
         row = QHBoxLayout()
         row.addWidget(QLabel("Shift from"))

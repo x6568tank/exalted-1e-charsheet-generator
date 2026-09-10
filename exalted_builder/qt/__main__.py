@@ -1,9 +1,9 @@
 """Run the native app: `python -m exalted_builder.qt [path/to/foo.character.json]`.
 
-With a path it opens that character; with none it starts a blank new character whose
-save lands next to the executable (see persistence.default_save_dir), matching the
-NiceGUI builder's load(). The ruleset comes from load_app_ruleset so the custom layer
-is present, as the webapp loads it.
+A path opens that character. No argument starts a blank character. The save of a blank
+character goes next to the executable (see `persistence.default_save_dir`). This agrees
+with the `load()` of the NiceGUI builder. The ruleset comes from `load_app_ruleset`, thus
+the custom layer is present, as it is in the webapp.
 """
 
 from __future__ import annotations
@@ -25,12 +25,15 @@ _DATA_DIR = Path(exalted_builder.__file__).parent / "data"
 def open_character(argv: list[str]) -> tuple[Character, Path, str]:
     """Resolve the command line to `(character, save_path, complaint)`.
 
-    A readable path opens that character; no argument opens a blank one. ⚠ An
-    UNREADABLE path opens a blank one too, with the complaint for the caller to show —
-    it must never be fatal. The packaged build is windowed (`console=False`), so an
-    exception here means the executable dies with the traceback going nowhere and
-    nothing at all appearing on screen: a mistyped path, a moved save, or a stray
-    argument from a desktop launcher would read as "the app doesn't work".
+    Input: the command line. Output: a character, the path to save it to, and a
+    complaint for the caller to show. A readable path opens that character. No argument
+    opens a blank character.
+
+    ⚠ An UNREADABLE path also opens a blank character and returns a complaint. This
+    function must never be fatal. The packaged build is windowed (`console=False`). Thus
+    an exception here stops the executable, the traceback goes nowhere, and no window
+    appears. A mistyped path, a moved save or an unwanted argument from a desktop
+    launcher then reads as a failure of the whole app.
     """
     if len(argv) > 1:
         path = Path(argv[1])
@@ -48,22 +51,22 @@ def open_character(argv: list[str]) -> tuple[Character, Path, str]:
 
 def main() -> None:
     app = QApplication(sys.argv)
-    # ⚠ Wayland gets no icon pixels from setWindowIcon: KWin matches the surface's
-    # app_id to an installed .desktop entry, so with no identity set the title-bar
-    # falls back to a generic icon while the task-bar still shows ours. setting the
-    # desktop file name IS what supplies that app_id.
+    # ⚠ Wayland gets no icon pixels from setWindowIcon. KWin matches the app_id of the
+    # surface to an installed .desktop entry. With no identity, the title bar shows a
+    # generic icon, but the task bar shows the correct icon. `setDesktopFileName` supplies
+    # that app_id.
     app.setApplicationName(branding.APP_NAME)
     app.setOrganizationName(branding.ORG_NAME)
     app.setDesktopFileName(branding.APP_ID)
     branding.install_desktop_entry()      # returns None on failure; never fatal
-    # Set on the APPLICATION, not the window: every window inherits it, including
-    # the separate QMainWindow the party/ST screen opens. None when the file is
-    # absent, which leaves Qt's default and must stay non-fatal.
-    # ⚠ Build from the pre-rendered SQUARE sizes, not the master: the master is
-    # 500x502, and Qt keeps aspect ratio, so pixmap(16,16) off it is 15x16 and sits
-    # skewed in a square titlebar slot. addFile lets Qt pick the nearest rendering
-    # instead of crushing 500px to 16px in one step. Falls back to the master, then
-    # to Qt's default, so a missing asset costs the icon and never the app.
+    # Set the icon on the APPLICATION, not on the window. Every window then gets it,
+    # including the separate QMainWindow of the party/ST screen. An absent file leaves
+    # Qt's default icon. This must not be fatal.
+    # ⚠ Build the icon from the SQUARE sizes that are rendered in advance. Do not use the
+    # master. The master is 500x502, and Qt keeps the aspect ratio. Thus pixmap(16,16)
+    # from the master is 15x16 and is not correctly aligned in a square title-bar slot.
+    # `addFile` lets Qt select the nearest rendering. The fallback is the master, then
+    # Qt's default. Thus an absent asset costs the icon only.
     sizes = branding.app_icon_sizes() or [p for p in [branding.app_icon_path()] if p]
     if sizes:
         icon = QIcon()

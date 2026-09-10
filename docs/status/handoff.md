@@ -82,9 +82,9 @@ sessions. They are no longer open items.
 
 ## 👉 NEXT — carried, in rough order of what would bite
 
-- **`qt/` is the one real comment-pass gap** — human parked it 2026-09-09 ("yeah, it can
-  wait"). ⚠ Cheapest it will ever be *right now*: `qt/party.py` was just rewritten, so the
-  context is loaded and the file is fresh.
+- ~~**`qt/` is the one real comment-pass gap**~~ — **DONE 2026-09-10**, all 18 files. See
+  `docs/comment-standard.md` for what came out and the two traps the pass surfaced (the
+  `theme.py` guard hole, and the ⚠ count rising 363 → 561 by design).
 - **The Backgrounds in the scan-only splat books** — the one known content gap, a reading
   job, ~1,800 pages, and it needs the human feeding pages. ⚠ What makes it finite is
   backfilling `source` on the existing Backgrounds first — missing on **63/63**.
@@ -103,6 +103,21 @@ sessions. They are no longer open items.
   authored descriptions against pasted source and REPORT differences, across Charms and
   spells too, not just M&F. ⚠ **This is an option, not a debt.** Nothing is blocked on it
   and it must never go back into the suite.
+
+## 🐞 Found by the comment pass, and FIXED
+
+**Both shells printed an authoring date to the player.** The Custom Merit/Flaw dialog read
+*"Display-only — recorded on the sheet, no mechanical effect (2026-08-10)."* — a stray
+note-to-self in **user-facing UI text**, not a comment. The parenthetical is gone from both
+sites: `qt/advantages.py:1417` and `ui/advantages.py:975`. No test asserted the string;
+445 advantages/M&F tests pass.
+
+A sweep of every non-docstring string literal under `exalted_builder/` now returns **zero**
+dates, so this class is closed.
+
+⚠ **The sentence is still duplicated across the two shells**, byte-for-byte, and nothing
+stops them drifting. `ui/view.py` owns every other shared string and should own this one.
+Not done — it is a real refactor, not a one-liner.
 
 ## ⚠ Traps still live
 

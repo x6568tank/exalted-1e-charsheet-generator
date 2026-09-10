@@ -1,34 +1,27 @@
 """exalted_builder/qt/layout.py — layout teardown and the empty-table note, in ONE place.
 
-Two shapes that every surface in the port needs and that six hand-written copies got
-wrong between them:
+Two shapes that every surface in the port needs.
 
-`clear_layout` — input: a QLayout. Output: it is emptied and every descendant detached
-from rendering immediately. Mechanism: take each item; hide, unparent and
+`clear_layout` — input: a QLayout. Output: the layout is empty, and every descendant
+stops painting immediately. Mechanism: take each item; hide, unparent and
 `deleteLater()` a widget; RECURSE into a nested layout.
 
-`empty_note` — input: a collection table and a sentence. Output: that sentence shows
-over the table while it holds no rows, driven by the model's own signals.
+`empty_note` — input: a collection table and a sentence. Output: the sentence shows over
+the table while the table holds no rows. The model's own signals drive it.
 
-⚠ **This exists because the same six-line loop was written six times and the sixth was
-wrong.** Both halves of it are non-obvious and both have shipped as bugs:
+⚠ **`item.widget()` is None for a `QLayout`.** A widget-only sweep detaches nothing
+inside a row. Thus the previous build continues to paint ON TOP of the next build. Every
+surface here builds its content as rows. Thus every surface has this risk.
 
-* **`item.widget()` is None for a `QLayout`.** A widget-only sweep detaches nothing
-  inside a row, so the previous build keeps painting ON TOP of the next — the "ghosty
-  duplicate" the human reported against the Advantages spike (2026-08-21), and before
-  that `_clear_lay` in milestone 1 and `CatalogueDialog._clear_extras` in milestone 3.
-  Every surface here builds its content as rows, so every surface hits this.
-* **`deleteLater()` alone is deferred to the event loop.** A rebuild that runs several
-  times synchronously (constructors, the first tab-change signal, `_sync_tabs`) leaves
-  widgets that are merely pending-delete still painting at stale geometry, stacking each
-  build on the last. Hide and unparent NOW; `deleteLater()` still frees the C++ object.
+⚠ **`deleteLater()` alone is deferred to the event loop.** A rebuild that runs more than
+once synchronously leaves widgets that paint at stale geometry. Each build stacks on the
+last one. Hide and unparent the widget immediately. `deleteLater()` then frees the C++
+object.
 
-**Call this. Do not write a fresh loop** — that instruction was already in
-`docs/plans/qt-port.md` and was not enough, which is why the shape is now a function
-rather than a warning.
+⚠ **Call `clear_layout`. Do not write a new teardown loop.**
 
-⚠ Test a teardown by THRASHING the rebuild and counting live descendants. A single
-rebuild passes while leaking.
+⚠ Test a teardown with repeated rebuilds. Count the live descendants. One rebuild passes
+while the layout leaks.
 """
 
 from __future__ import annotations
@@ -42,21 +35,18 @@ from .theme import MUTED
 def empty_note(tree: QTreeWidget, text: str) -> QLabel:
     """Give `tree` a message that shows while it holds no rows. Returns the label.
 
-    Input: a collection table and the sentence to show when it is empty. Output: a
-    muted label laid over the table's viewport, visible only at zero rows. Mechanism:
-    a layout on the viewport positions it; the model's own row signals toggle it, so
-    nothing has to remember to.
+    Input: a collection table and the sentence to show when the table is empty. Output:
+    a muted label over the table's viewport, visible at zero rows only. Mechanism: a
+    layout on the viewport puts the label in position. The model's own row signals show
+    and hide it.
 
-    ⚠ **An empty table is indistinguishable from a broken one.** A header over a large
-    blank rectangle reads as "nothing loaded" — reported against the adversary roster
-    the first time it was opened (human, 2026-08-27), and every collection tab in the
-    port had the same hole. The detail pane's "select something, or add one" sits on the
-    far side of a splitter and does not answer it.
+    ⚠ **An empty table looks the same as a broken table.** A heading over a large blank
+    area reads as "nothing loaded". The detail pane's "select something, or add one" is
+    on the other side of a splitter. It does not correct this.
 
-    ⚠ **Driven by the MODEL's signals, not by the callers.** Six `_fill_table`s would
-    otherwise each have to toggle it, and the seventh would be written without. The
-    repeated-warning-into-a-mechanism rule: `tree.clear()` emits `modelReset`, so this
-    stays correct through every rebuild for free.
+    ⚠ **The MODEL's signals drive the label. The callers do not.** If each `_fill_table`
+    had to show and hide the label, a new one would be written without it. `tree.clear()`
+    emits `modelReset`. Thus the label stays correct through every rebuild.
     """
     label = _EmptyNote(text, tree.model())
     lay = QVBoxLayout(tree.viewport())
@@ -67,14 +57,13 @@ def empty_note(tree: QTreeWidget, text: str) -> QLabel:
 
 
 class _EmptyNote(QLabel):
-    """The label itself, and the RECEIVER of the model's signals.
+    """The label, and the RECEIVER of the model's signals.
 
-    ⚠ A plain closure here is a crash. The tables on Advantages and Custom are rebuilt
-    with their sub-tab pages, so the label is destroyed while its model outlives it —
-    and a closure keeps firing into a deleted C++ object ("libshiboken: Internal C++
-    object already deleted"). Qt drops a connection automatically when its RECEIVER is
-    destroyed, so the slot has to be a bound method of a QObject, which is what this
-    class exists to be.
+    ⚠ A closure here causes a crash. The tables on Advantages and Custom are rebuilt with
+    their sub-tab pages. Thus the label is destroyed while its model continues to exist. A
+    closure continues to send to a deleted C++ object ("libshiboken: Internal C++ object
+    already deleted"). Qt removes a connection when its RECEIVER is destroyed. Thus the
+    slot must be a bound method of a QObject. This class supplies that QObject.
     """
 
     def __init__(self, text: str, model, parent=None):

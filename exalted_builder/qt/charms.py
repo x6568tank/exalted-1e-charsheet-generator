@@ -1,18 +1,16 @@
 """exalted_builder/qt/charms.py — the Charms tab: the charm catalogue as Qt trees.
 
-Input: a RuleSet and a Character (from the shared context). Output: a tab widget of
-tree tabs (Charms / Martial Arts / Arcanoi) and list panels (Spells, Thaumaturgy)
-over a shared detail panel. Mechanism: `build_charm_graph` feeds a QGraphicsScene of
-rounded-rect node items in a tidy-tree layout (each node centred over its children,
-wide levels sub-rowed), with node/rail-aware edge routing, pan via ScrollHandDrag and
-delta-proportional wheel zoom; group membership mirrors picker._group_of; node colours
-come from ui.theme.palette. Rebuilt on reload() for the character in ctx, so loading a
-different splat swaps the whole group set.
+Input: a RuleSet and a Character from the shared context. Output: a tab widget with tree
+tabs (Charms / Martial Arts / Arcanoi) and list panels (Spells, Thaumaturgy), over one
+shared detail panel.
 
-This is the port of spikes/qt_tree/ (human-approved 2026-08-20); the layout, routing
-and view classes are that spike's tested core, carried over. Browse-and-inspect only
-in this milestone — buying and the splat extras (Form Library, Paths, Vat Refit,
-Elemental Powers) are the picker port's later half.
+Mechanism: `build_charm_graph` supplies a QGraphicsScene of node items with rounded
+corners, in a tidy-tree layout. Each node is centred over its children, and a wide level
+divides into sub-rows. The edge routing avoids the nodes and the rails. The user pans with
+ScrollHandDrag, and zooms with the wheel in proportion to the wheel delta. Group membership
+agrees with `picker._group_of`. `ui.theme.palette` supplies the node colours. `reload()`
+rebuilds the scene for the character in ctx. Thus a different splat replaces the full set
+of groups.
 """
 
 from __future__ import annotations
@@ -66,10 +64,10 @@ MAX_LEVEL_NODES = 6    # cap nodes in one tree-level row; wider levels sub-row
 def _cached(cache, key, compute):
     """Memoize `compute()` under `key` in `cache`, or just run it when `cache` is None.
 
-    ⚠ The cache is per-BUILD and must never be stored on the page or keyed on the
-    RuleSet. `rules_db.reload_custom_layer` mutates `ruleset.charms` IN PLACE so that
-    authoring a homebrew Charm shows up on every page that already holds the object —
-    so a cache outliving one build would serve a catalogue the player has just edited.
+    ⚠ The cache belongs to ONE build. Never store it on the page, and never key it on the
+    RuleSet. `rules_db.reload_custom_layer` changes `ruleset.charms` IN PLACE. Thus a new
+    homebrew Charm appears on every page that holds that object. A cache that stays after
+    one build then supplies a catalogue that the user has changed.
     """
     if cache is None:
         return compute()
@@ -79,8 +77,9 @@ def _cached(cache, key, compute):
 
 
 def _arcanoi_categories(ruleset, cache=None):
-    """Category names whose Charms are Arcanoi: Virtue-keyed and not the spirit Charms
-    (which share the min_virtue axis but are a different class, exalt_type "Spirit")."""
+    """The category names whose Charms are Arcanoi. They are keyed on a Virtue. ⚠ They are
+    not the spirit Charms. A spirit Charm uses the same `min_virtue` axis, and it is a
+    different class with the `exalt_type` "Spirit"."""
     return _cached(cache, "arcanoi_categories", lambda: {
         c.category for c in ruleset.charms.values()
         if c.min_virtue and c.exalt_type != "Spirit"})
@@ -89,9 +88,10 @@ def _arcanoi_categories(ruleset, cache=None):
 def group_of(category, ruleset, cache=None):
     """The picker group a category belongs to: 'styles' / 'arcanoi' / 'abilities'.
 
-    Mirrors picker._group_of: martial-arts categories are named by prefix; a category
-    is an arcanos when its base name (before any `:virtue` split) is one of the
-    Virtue-keyed non-spirit categories; everything else is an ability Charm."""
+    ⚠ This function must agree with `picker._group_of`. A prefix names a martial-arts
+    category. A category is an arcanos when its base name, before a `:virtue` part, is one
+    of the Virtue-keyed categories that are not spirit categories. Every other category is
+    an ability Charm."""
     if category.startswith("martial_arts:"):
         return "styles"
     return ("arcanoi" if category.split(":", 1)[0] in _arcanoi_categories(ruleset, cache)
@@ -101,10 +101,10 @@ def group_of(category, ruleset, cache=None):
 def trees_for(ruleset, character, splat, group, cache=None):
     """[(category_key, node_count)] for one splat's page in `group`, biggest first.
 
-    `cache` is an optional per-build memo shared with the other calls in the same
-    rebuild — see `_cached`. Every helper below is a pure function of the ruleset (and
-    for the augmentation category, the character's splat), but each one SCANS the whole
-    Charm catalogue, and a rebuild asks for them thousands of times.
+    `cache` is an optional memo for one build. The other calls in the same rebuild share it
+    (see `_cached`). Each helper below is a pure function of the ruleset, and the
+    augmentation category also reads the splat of the character. ⚠ Each helper SCANS the
+    full Charm catalogue, and one rebuild calls them thousands of times.
     """
     found: set[str] = set()
     for c in ruleset.charms.values():
@@ -131,9 +131,9 @@ def splats_for(ruleset, character, group, cache=None):
 
     One entry means the dropdown has nothing to choose and the caller hides it.
 
-    Scans the catalogue rather than calling `trees_for` per splat: `trees_for` builds
-    every category's graph, and asking it once per Exalt type per group would lay out
-    the whole Charm tree of every splat to fill a dropdown.
+    ⚠ Scan the catalogue. Do not call `trees_for` for each splat. `trees_for` builds the
+    graph of every category. One call for each Exalt type in each group lays out the full
+    Charm tree of every splat, and it does that to fill a dropdown.
     """
     own = character.exalt_type
     if not validate.foreign_charms_open(ruleset, character):
@@ -152,15 +152,16 @@ def splats_for(ruleset, character, group, cache=None):
 
 
 def _collapse_augment_nodes(ruleset, character, graph, cache=None):
-    """Collapse the Alchemical augmentation templates into ONE node per type
-    (Transitory / Sustained) inside the tree, rerouting prerequisite edges. The 18
-    '<Type> Augmentation of <Attribute>' ids stay distinct in the data (other Charms
-    name a specific one as a prerequisite); the tree shows two summary nodes —
-    selecting one offers 'Pick Attributes' — instead of eighteen disconnected nodes
-    cluttering every dependent tree (a close-combat Charm names 'Transitory
-    Augmentation of Dexterity')."""
-    # ⚠ This is the expensive one: it scans every Charm through `charm_matches_splat`,
-    # and a rebuild collapses ~90 trees. Uncached it was 180,000 calls per page build.
+    """Collapse the Alchemical augmentation templates into ONE node for each type,
+    Transitory and Sustained, and route the prerequisite edges to those nodes. ⚠ The 18
+    '<Type> Augmentation of <Attribute>' ids stay separate in the data, because other Charms
+    name one of them as a prerequisite. The tree shows two summary nodes, and a selection on
+    one offers 'Pick Attributes'. Without this collapse, eighteen unconnected nodes appear
+    in every tree that depends on them. For example, a close-combat Charm names 'Transitory
+    Augmentation of Dexterity'."""
+    # ⚠ This function is the slow one. It reads every Charm through `charm_matches_splat`,
+    # and one rebuild collapses approximately 90 trees. Without the cache, one page build
+    # makes 180,000 calls.
     aug_cat = _cached(cache, "augmentation_category",
                       lambda: augmentation_category(ruleset, character))
     if aug_cat is None:
@@ -219,10 +220,10 @@ def spells_in_circle(ruleset, circle_value):
 
 
 def _detail_html(obj, currency: str = ""):
-    """Rich-text detail panel for a CharmDetail, Spell, or Thaumaturgy entry: name,
-    the trait lines (requirement / prerequisites, cost, circle, …), and the
-    description. A Thaumaturgy row's `price` rides as a Cost line — most printed
-    specialties have no description, so the price is what fills the panel."""
+    """The rich-text detail panel for a CharmDetail, a Spell or a Thaumaturgy entry. It
+    shows the name, the trait lines (the requirement, the prerequisites, the cost, the
+    circle) and the description. The `price` of a Thaumaturgy row appears as a Cost line.
+    Most printed specialties have no description, thus the price fills the panel."""
     name = html.escape(getattr(obj, "name", ""))
     desc = html.escape(getattr(obj, "description", ""))
     lines = []
@@ -249,16 +250,16 @@ def _detail_html(obj, currency: str = ""):
         cost = cost.raw or _cost_str(cost)
     if cost:
         lines.append(f"Cost: {html.escape(str(cost))}")
-    # ⚠ Which regional versions are KNOWN is the one thing a ritual/formula row says
-    # that no other entry does, and it is what the "add another version" price is
-    # against (p.124). The panel showed everything else about the row and not this.
+    # ⚠ Show the regional versions that the character KNOWS. A ritual row and a formula row
+    # carry this information, and no other entry does. The "add another version" price uses
+    # it (p.124).
     known = getattr(obj, "orientations", None)
     if known:
         lines.append(f"Known in: {html.escape(', '.join(known))}")
-    # ⚠ Narrowing is recorded on the SHEET (p.127), so an owned narrowed aspect has to
-    # say so somewhere — it is bought at half price and reads as an ordinary aspect
-    # otherwise. The panel is where this port puts a row's facts; the tree label would
-    # go stale on a purchase, since nothing rebuilds it.
+    # ⚠ The SHEET records a narrowing (p.127). Thus the program must show a narrowed aspect
+    # that the character owns. The user buys it at half price, and without this line it
+    # reads as an ordinary aspect. ⚠ Put this fact in the panel. A tree label becomes stale
+    # after a purchase, because no code rebuilds it.
     if getattr(obj, "narrowed", False):
         lines.append("Narrowed — a further-limited aspect at half cost (p.127)")
     parts = [f"<b>{name}</b>"]
@@ -406,17 +407,17 @@ def _tree_positions(graph, width_of):
             acc += cw + GAP_X
         pos[nid] = (x_left + w / 2, y)
 
-    # A root is a LEAF root only when no graph edge leaves it at all — a root whose
-    # graph-children chose a different primary parent still has edges to draw, so it
-    # must stay in the forest. (Judging by `children` (the primary tree) instead
-    # exiled such roots to the bottom row with long edges back up into the forest.)
+    # ⚠ A root is a LEAF root only when no graph edge leaves it. A root whose graph-children
+    # selected a different primary parent still has edges to draw. Thus it must stay in the
+    # forest. If you read `children`, which is the primary tree, such a root moves to the
+    # bottom row, and its edges become long lines back into the forest.
     graph_children = {p for p, _ in graph.edges}
     tree_roots = [r for r in roots if r in graph_children]
     leaf_roots = [r for r in roots if r not in graph_children]
-    # Group roots by the children they feed: fan-in trees (many entry Charms
-    # converging on one form — Prismatic Arrangement) then read as clusters. The
-    # shared form hangs under its first feeder, and the feeders are adjacent, so the
-    # remaining feeder-edges are short instead of crossing the whole fan.
+    # Group the roots by the children that they feed. Thus a tree where many entry Charms
+    # go to one form, for example Prismatic Arrangement, reads as a group. The shared form
+    # goes below its first feeder, and the feeders are next to each other. Thus the other
+    # feeder edges are short, and they do not cross the full group.
     child_of: dict[str, list[str]] = defaultdict(list)
     for p, c in graph.edges:
         child_of[p].append(c)
@@ -435,8 +436,8 @@ def _tree_positions(graph, width_of):
 
 
 def _segment_hits_rect(bx, by, ex, ey, l, t, r, b):
-    """Whether the segment (bx,by)-(ex,ey) passes through the rect — sampled along
-    the segment, since the exact intersection geometry is overkill here."""
+    """True when the segment (bx,by)-(ex,ey) crosses the rect. This function tests points
+    along the segment. It does not calculate the exact intersection."""
     for i in range(21):
         f = i / 20
         px = bx + (ex - bx) * f
@@ -447,8 +448,9 @@ def _segment_hits_rect(bx, by, ex, ey, l, t, r, b):
 
 
 def _rect_entry(px, py, qx, qy, l, t, r, b):
-    """The point where segment (px,py)-(qx,qy) first enters the rect, given the start
-    is outside and the end is on/inside it — Liang-Barsky's entry parameter."""
+    """The first point where the segment (px,py)-(qx,qy) enters the rect. The start must be
+    outside the rect, and the end must be on the rect or inside it. The method is the entry
+    parameter of the Liang-Barsky algorithm."""
     dx, dy = qx - px, qy - py
     tmin, tmax = 0.0, 1.0
     for p, q in ((-dx, px - l), (dx, r - px), (-dy, py - t), (dy, b - py)):
@@ -468,11 +470,12 @@ def _rect_entry(px, py, qx, qy, l, t, r, b):
 def _shorten_to_box(pts, box, margin):
     """Pull the polyline's last point back from `box` so the arrowhead sits clear.
 
-    The tip is offset from the boundary ENTRY along the entry edge's OUTWARD NORMAL,
-    not along the edge direction — a shallow diagonal pulling back along its own
-    direction keeps the arrow at the box's height and leaves it half under the node.
-    With `margin` > the arrow's half-width, the whole triangle is guaranteed outside
-    (tip and base are margin and margin+L·|n·u| out along the normal)."""
+    ⚠ Move the tip from the ENTRY point along the OUTWARD NORMAL of the entry edge. Do not
+    move it along the direction of the edge. A shallow diagonal that moves along its own
+    direction keeps the arrow at the height of the box, and the node then covers half of the
+    arrow. With a `margin` that is larger than the half-width of the arrow, the full
+    triangle is outside the box. The tip is `margin` out along the normal, and the base is
+    `margin + L·|n·u|` out."""
     x1, y1 = pts[-2]
     x2, y2 = pts[-1]
     entry = _rect_entry(x1, y1, x2, y2, *box)
@@ -492,13 +495,16 @@ def _shorten_to_box(pts, box, margin):
 
 
 def _route_edge(start, end, boxes, rails, target):
-    """Polyline from `start` to `end` avoiding `boxes` (node rects, endpoints
-    excluded) and `rails` (the horizontal runs already-routed detours ride — a new
-    detour must not ride one, so parallel re-routes offset instead of overlapping).
-    Straight when it clears everything; otherwise a U down the side of the band of
-    boxes the straight line would cross (trying left, then right, then rail offsets
-    up/down). The last point is pulled back from the child (`target`) so the arrowhead
-    sits clear. Returns the straight line when no clean detour exists."""
+    """A polyline from `start` to `end` that avoids `boxes` and `rails`. `boxes` are the
+    node rects, and this function excludes the two endpoints. `rails` are the horizontal
+    runs that the detours already use. ⚠ A new detour must not use an existing rail. Thus a
+    parallel detour takes an offset, and the two do not overlap.
+
+    The line is straight when it avoids everything. In any other case, the route is a U
+    along the side of the band of boxes that the straight line crosses. The order of the
+    attempts is: left, then right, then rail offsets up and down. This function moves the
+    last point away from the child (`target`), thus the arrowhead is clear of the node. It
+    returns the straight line when it finds no clear detour."""
     bx, by = start.x(), start.y()
     cx, cy = end.x(), end.y()
 
@@ -551,10 +557,10 @@ def _route_edge(start, end, boxes, rails, target):
 def populate(scene, graph, pal, font):
     """Add node and edge items for `graph` to `scene`; returns {id: NodeItem}.
 
-    Nodes sit at `_tree_positions` (each centred over its children, leaves packed by
-    their own width). An edge runs from every in-graph prerequisite's bottom-centre
-    to the node's top-centre, routed around any node box its straight path would
-    cross."""
+    `_tree_positions` gives the position of each node. Each node is centred over its
+    children, and the leaves pack by their own width. An edge runs from the bottom centre of
+    each prerequisite in the graph to the top centre of the node. The route avoids each node
+    box that the straight path crosses."""
     items = {n.id: NodeItem(n, pal, font) for n in graph.nodes}
     width_of = {nid: items[nid].rect().width() for nid in items}
     height_of = {nid: items[nid].rect().height() for nid in items}
@@ -580,20 +586,21 @@ def populate(scene, graph, pal, font):
 
 
 class CharmTreeView(QGraphicsView):
-    """One category's Charm tree: repopulates its scene from build_charm_graph.
+    """The Charm tree of one category. It fills its scene again from `build_charm_graph`.
 
-    `graph` is the last rendered CharmGraph, for the detail panel and tests.
-    `category_combo` and `splat_combo` are the owning tab's dropdowns, read back by
-    `reload_tree`."""
+    `graph` is the CharmGraph that this view rendered last. The detail panel and the tests
+    read it. `category_combo` and `splat_combo` are the dropdowns of the owning tab, and
+    `reload_tree` reads them."""
 
     def __init__(self, ruleset, character, cache=None):
         super().__init__()
         self._ruleset = ruleset
         self._character = character
-        # The owning rebuild's memo (see `_cached`). Safe to hold for the view's whole
-        # life because `_tree_page` builds a NEW view on every reload, so the two
-        # lifetimes are the same one. ⚠ Only splat-derived answers go in it — nothing
-        # keyed on which Charms are OWNED, which changes under a live view on a buy.
+        # The memo of the owning rebuild (see `_cached`). The view can hold it for its full
+        # life, because `_tree_page` builds a NEW view on each reload. Thus the two have the
+        # same life. ⚠ Put only splat-derived values in this memo. Never put a value that
+        # depends on the Charms that the character OWNS. A purchase changes that set while
+        # the view exists.
         self._cache = cache
         self.graph = None
         self.category_combo = None
@@ -614,10 +621,10 @@ class CharmTreeView(QGraphicsView):
     def reload_tree(self):
         """Re-render from the two dropdowns this view owns.
 
-        ⚠ The ONE place the (category, splat) pair is read. Three call sites passed
-        `character.exalt_type` straight to `show_tree` before the Splat dropdown
-        existed, and the one on the purchase path is invisible until you buy something:
-        a foreign tree silently reverted to the native splat on the next click."""
+        ⚠ This method is the ONE place that reads the (category, splat) pair. Do not pass
+        `character.exalt_type` to `show_tree`. A call site on the purchase path that does
+        that shows no fault until the user buys something. A tree of a different splat then
+        changes back to the splat of the character on the next click."""
         category = (self.category_combo.currentData()
                     if self.category_combo is not None else "")
         splat = self.splat_combo.currentData() if self.splat_combo is not None else ""
@@ -636,11 +643,11 @@ class CharmTreeView(QGraphicsView):
         font.setPointSizeF(9.5)
         populate(self._scene, graph, theme.palette(splat or self._character.exalt_type), font)
         self._scene.setSceneRect(self._scene.itemsBoundingRect().adjusted(-40, -40, 40, 40))
-        # Fit to the minimum zoom that shows every node. A freshly built tab's
-        # viewport starts 0×0 AND grows in stages during layout, so a single eager
-        # fitInView can run against a temporarily-small size and leave the tree
-        # zoomed out (the new-splat case). Defer the fit and keep re-fitting until
-        # the viewport size converges, then leave the transform to the user.
+        # Fit the scene at the smallest zoom that shows every node. ⚠ The viewport of a new
+        # tab starts at 0x0, and it grows in stages during the layout. Thus one immediate
+        # `fitInView` runs against a small size and leaves the tree at a small zoom. Defer
+        # the fit, and fit again until the viewport size stops to change. Then leave the
+        # transform to the user.
         self._pending_fit = True
         self._fit_attempts = 0
         QTimer.singleShot(0, self._fit_attempt)
@@ -656,8 +663,8 @@ class CharmTreeView(QGraphicsView):
             return
         if sized:
             self.fitInView(self._scene.sceneRect(), Qt.KeepAspectRatio)
-            # The layout settles over a few event cycles; re-fit a bounded few times
-            # so the transform converges on the final viewport size.
+            # The layout completes over several event cycles. Fit again a limited number of
+            # times, thus the transform reaches the final viewport size.
             if self._fit_attempts < 6:
                 QTimer.singleShot(0, self._fit_attempt)
             else:
@@ -670,11 +677,11 @@ class CharmTreeView(QGraphicsView):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        # Re-fit when the view resizes (window resize, splitter drag), so the tree
-        # always fills the current view. But a wheel-zoom makes scrollbars appear,
-        # which shrinks the VIEW for a few frames and fires resize events — re-fitting
-        # those would undo the zoom (that is how zooming came to be blocked), so skip
-        # resizes while the user is wheeling. The deferred fit handles initial sizing.
+        # Fit again when the view changes size, for example on a window resize or a
+        # splitter drag. Thus the tree fills the current view. ⚠ A wheel zoom makes the
+        # scrollbars appear, which makes the VIEW smaller for several frames and sends
+        # resize events. A fit on those events removes the zoom. Thus skip a resize while
+        # the user turns the wheel. The deferred fit sets the initial size.
         if self._just_zoomed or event.size() == event.oldSize():
             return
         if self.graph is not None and self._scene.items():
@@ -684,21 +691,21 @@ class CharmTreeView(QGraphicsView):
         self._just_zoomed = False
 
     def wheelEvent(self, event):
-        # Delta-proportional zoom: a full mouse notch (Δ120) scales ~1.2×; a
-        # trackpad's small smooth-scroll deltas scale proportionally less, so the
-        # same physical scroll distance zooms the same on any device. (A fixed
-        # per-event factor made trackpads zoom wildly faster than a mouse.)
-        # Wayland touchpads deliver only pixelDelta — fall back to it, and treat a
-        # zero delta as a no-op rather than as "scroll down".
+        # Zoom in proportion to the delta. One full mouse notch (delta 120) scales by
+        # approximately 1.2. The small smooth-scroll deltas of a trackpad scale less. Thus
+        # the same physical scroll distance gives the same zoom on each device. ⚠ Do not use
+        # a fixed factor for each event. A trackpad then zooms much faster than a mouse.
+        # ⚠ A Wayland touchpad sends `pixelDelta` only. Read that value as a fallback, and
+        # treat a delta of zero as no action. Do not treat it as "scroll down".
         delta = event.angleDelta().y()
         if delta == 0:
             delta = event.pixelDelta().y()
         if delta == 0:
             event.accept()
             return
-        # Zooming makes scrollbars appear, which shrinks the view and fires resize
-        # events for a few frames; re-fitting those would undo the zoom. Flag it so
-        # resizeEvent ignores resizes until the wheel interaction settles.
+        # A zoom makes the scrollbars appear. That makes the view smaller and sends resize
+        # events for several frames. ⚠ A fit on those events removes the zoom. Set this flag,
+        # thus `resizeEvent` ignores a resize until the wheel action ends.
         self._just_zoomed = True
         QTimer.singleShot(250, self._clear_zoom_flag)
         factor = 1.0015 ** delta
@@ -710,10 +717,9 @@ class CharmTreeView(QGraphicsView):
 class CappedCombo(QComboBox):
     """QComboBox whose popup is capped at `max_rows` rows.
 
-    ⚠ `setMaxVisibleItems` is ignored for popup HEIGHT on this Qt build (measured:
-    the popup sizes to the whole screen even with the property set and the view's
-    maximum height set), so the cap is applied to the popup window itself once it
-    opens."""
+    ⚠ This Qt build ignores `setMaxVisibleItems` for the HEIGHT of the popup. The popup
+    takes the height of the screen, with that property set and with a maximum height on the
+    view. Thus this class applies the limit to the popup window after it opens."""
 
     def __init__(self, max_rows: int = 15, parent=None):
         super().__init__(parent)
@@ -731,20 +737,20 @@ class CharmsPage(QWidget):
     """The Charms tab: per-splat picker groups as tree tabs (Charms / Martial Arts /
     Arcanoi) and list panels (Spells, Thaumaturgy), over a shared detail panel.
 
-    Tabs are built per character and only when that splat has content in the group — a
-    Solar gets Charms/Martial Arts/Spells/Thaumaturgy and no Arcanoi; a Ghost gets
-    Arcanoi/Thaumaturgy and no Charms. Each tree tab owns its category dropdown and
-    tree view; the shared detail panel shows the selection in whichever is active.
-    `reload()` rebuilds the whole tab set for the character currently in ctx."""
+    Build the tabs for each character, and build a tab only when that splat has content in
+    the group. A Solar gets Charms, Martial Arts, Spells and Thaumaturgy, and no Arcanoi. A
+    Ghost gets Arcanoi and Thaumaturgy, and no Charms. Each tree tab owns its category
+    dropdown and its tree view. The shared detail panel shows the selection of the active
+    tab. `reload()` rebuilds the full set of tabs for the character in ctx."""
 
     def __init__(self, ruleset, ctx, *, notify=None, on_change=None, parent=None):
         super().__init__(parent)
         self._ruleset = ruleset
         self._ctx = ctx
         self._notify = notify or (lambda text, kind="info": None)
-        # ⚠ Spending on THIS tab moves the shell's readout bar too — a Charm pick past
-        # the free pool costs bonus points, and every buy here is a buy. Fired from
-        # `_update_readout`, which is the one place every purchase path already meets.
+        # ⚠ A purchase on THIS tab also moves the readout bar of the shell. A Charm above
+        # the free pool costs bonus points, and each action here is a purchase.
+        # `_update_readout` sends this signal. Every purchase path passes through it.
         self._on_change = on_change or (lambda: None)
         self._selected_node: str | None = None
         self._selected_spell: str | None = None
@@ -774,33 +780,35 @@ class CharmsPage(QWidget):
         dp.setSpacing(4)
         act_row = QHBoxLayout()
         act_row.addWidget(self.action_btn, 1)
-        # Owned-but-under-cap is the one state `action_btn` cannot express: it says
-        # Remove, and a generic repeatable Charm wants one MORE copy. Its own button,
-        # shown only in that state — see `_update_action`.
+        # `action_btn` cannot show one state: the character owns the Charm, and the count is
+        # below the limit. That button says Remove, and a repeatable Charm needs one MORE
+        # copy. Thus this state has its own button. See `_update_action`.
         self.again_btn = QPushButton("Add another")
         self.again_btn.setVisible(False)
         self.again_btn.clicked.connect(self._add_another)
         act_row.addWidget(self.again_btn)
-        # The regional version of a ritual or formula (p.124) — enabled only when a
-        # ritual/formula is selected for its first purchase.
+        # The regional version of a ritual or a formula (p.124). Enable this control only
+        # when the user selects a ritual or a formula for its first purchase.
         self._orientation_combo = QComboBox()
         for o in Orientation:
             self._orientation_combo.addItem(o.value, o)
         self._orientation_combo.setVisible(False)   # only a ritual/formula buy shows it
         self._orientation_combo.setToolTip("Regional version of a ritual or formula")
         act_row.addWidget(self._orientation_combo)
-        # ⚠ A SECOND control, not a re-use of `action_btn`: an owned ritual's button
-        # says Drop, and "know it in one more region" is a different purchase at a
-        # different price (a flat point each, p.124) — the same shape as `again_btn`
-        # beside an owned repeatable Charm. Without it the combo was reachable only
-        # before the first purchase, so every further version was unbuyable here.
+        # ⚠ Use a SECOND control. Do not re-use `action_btn`. The button of a ritual that the
+        # character owns says Drop. To know the ritual in one more region is a different
+        # purchase at a different price: one flat point for each region (p.124). `again_btn`
+        # has the same shape next to a repeatable Charm. Without this control, the user
+        # reaches the combo box before the first purchase only, and cannot buy a further
+        # version.
         self._orientation_btn = QPushButton("Add version")
         self._orientation_btn.setVisible(False)
         self._orientation_btn.clicked.connect(self._add_orientation)
         act_row.addWidget(self._orientation_btn)
-        # Narrowing an Art's aspect — Summoning alone (p.127). Chosen BEFORE the buy
-        # and stored on the purchase (`ArtSpecialty.narrowed`), so it is a checkbox
-        # beside the button rather than anything applied afterwards.
+        # The narrowing of the aspect of an Art. It applies to Summoning only (p.127). The
+        # user selects it BEFORE the purchase, and the purchase stores it
+        # (`ArtSpecialty.narrowed`). Thus it is a checkbox next to the button. ⚠ No code
+        # applies it after the purchase.
         self._narrow_check = QCheckBox("narrow")
         self._narrow_offered = False
         self._narrow_check.setVisible(False)
@@ -810,16 +818,16 @@ class CharmsPage(QWidget):
         self._narrow_check.toggled.connect(
             lambda _=False: (self._show_thaum_detail(), self._update_action()))
         act_row.addWidget(self._narrow_check)
-        # Sciences step DOWN as well as up before the lock — the same usability escape
-        # hatch Crafts and Colleges have. `action_btn` says Raise, so this is its own.
+        # Before the lock, a Science can go DOWN and up. Crafts and Colleges have the same
+        # usability rule. `action_btn` says Raise, thus the decrease needs its own button.
         self._lower_btn = QPushButton("Lower")
         self._lower_btn.setVisible(False)
         self._lower_btn.setToolTip("Step this Science back down (chargen only)")
         self._lower_btn.clicked.connect(self._lower_science)
         act_row.addWidget(self._lower_btn)
         dp.addLayout(act_row)
-        # The Path rating dot track — visible only while a Path is selected on the
-        # Paths page (which binds the track). Hidden on every other selection.
+        # The dot track of the Path rating. Show it only while a Path is selected on the
+        # Paths page, which connects the track. Hide it for every other selection.
         self._path_box = QWidget()
         self._path_box_lay = QHBoxLayout(self._path_box)
         self._path_box_lay.setContentsMargins(0, 0, 0, 0)
@@ -830,9 +838,10 @@ class CharmsPage(QWidget):
         self._path_box.setVisible(False)
         dp.addWidget(self._path_box)
         dp.addWidget(self.detail, 1)
-        # Submodules (Alchemical p.89) sit UNDER the detail text rather than in it:
-        # each row buys, so they need real buttons and the detail pane is a
-        # QTextBrowser. Hidden for the Charms that have none, which is most of them.
+        # Put the submodules (Alchemical p.89) BELOW the detail text, not in it. Each row
+        # makes a purchase, thus each row needs a button, and the detail pane is a
+        # QTextBrowser. Hide this panel for a Charm that has no submodule. Most Charms have
+        # none.
         self._submodule_box = QWidget()
         self._submodule_lay = QVBoxLayout(self._submodule_box)
         self._submodule_lay.setContentsMargins(0, 0, 0, 0)
@@ -858,9 +867,8 @@ class CharmsPage(QWidget):
         return self._ctx["char"]
 
     def _clear_lay(self, lay) -> None:
-        """Empty `lay`, detaching every descendant NOW. One line, because the shape is
-        subtle enough that six hand-written copies produced a wrong one — see
-        `qt/layout.py`, which owns both traps and the reason they matter."""
+        """Empty `lay`, and detach every descendant immediately. ⚠ Call `qt/layout.py`.
+        That module holds the two traps in this operation."""
         clear_layout(lay)
 
     # ------------------------------------------------------------------ #
@@ -868,11 +876,13 @@ class CharmsPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def _chargen_pick_bp(self, *, charm_id=None, spell_id=None) -> int:
-        """The bonus-point price of ONE more chargen Charm/Spell pick, once the free
-        pool is exhausted (0 while it has room). Exact dearest-first accounting: the
-        pool covers the free dearest picks, so the marginal is the delta of the pool
-        sum, not the raw rate — a new cheap pick can sit below the pool and add
-        nothing, a dear one displaces a cheaper held pick."""
+        """The bonus-point price of ONE more Charm or Spell at chargen, after the free pool
+        is full. Returns 0 while the pool has space.
+
+        ⚠ The accounting takes the most expensive picks first. The pool covers those picks.
+        Thus the price of one more pick is the difference of the pool sum. It is not the
+        rate of that pick. A new cheap pick can go below the pool and cost nothing, and an
+        expensive pick can remove a cheaper pick from the pool."""
         ruleset, char = self._ruleset, self._char()
         if charm_id is not None and charm_id in char.charms:
             return 0
@@ -885,16 +895,16 @@ class CharmsPage(QWidget):
         spell_rate = bp_costs.charm_favored_caste if occult_cf else bp_costs.charm
 
         def _pool_total(stage: bool) -> int:
-            """The pool sum with the candidate staged in (or not). Staging runs the
-            picker's own enumeration, so the candidate is priced with its favoured
-            flags and any Calling/Immaculate/MA/magic ladder it falls on.
+            """The pool sum, with or without the candidate. This function runs the
+            enumeration of the picker. Thus it prices the candidate with its favoured flags
+            and with each Calling, Immaculate, martial-arts or magic ladder that applies.
 
-            ⚠ The free-pool SIZE is derived inside here, under the staged state, not
-            once outside. A Dragon-Blooded's pool is 7 on the standard path and 5 on
-            the Immaculate one, and the pick that flips the path changes its own
-            denominator: computing `free` before staging sliced the staged pool at 7
-            when it had become 5, so the two Charms the flip evicted stayed counted as
-            free. The button quoted 7 BP for a pick that charged 21."""
+            ⚠ Calculate the SIZE of the free pool inside this function, with the candidate
+            in place. Do not calculate it one time outside. The pool of a Dragon-Blooded is
+            7 on the standard path and 5 on the Immaculate path, and the pick that changes
+            the path changes its own pool size. A `free` value from before the candidate
+            cuts the pool at 7 when it is 5. The two Charms that the change removed then
+            count as free, and the button shows 7 BP for a pick that costs 21."""
             if stage:
                 if charm_id is not None:
                     char.charms.append(charm_id)
@@ -922,21 +932,21 @@ class CharmsPage(QWidget):
         return _pool_total(True) - _pool_total(False)
 
     def _update_action(self) -> None:
-        """The Learn/Remove button follows the selection: a Charm tree node, a spell
-        row, or a Thaumaturgy entry. Disabled with no selection; 'Remove' for an
-        owned pick, 'Learn' otherwise (a Science reads 'Raise'). The price rides on
-        the Learn side — a chargen Charm pick is free, an XP buy and every
-        Thaumaturgy buy show their cost."""
+        """Update the Learn/Remove button for the selection: a Charm tree node, a spell row
+        or a Thaumaturgy entry. With no selection, the button is disabled. For a pick that
+        the character owns, it says 'Remove'. In any other case it says 'Learn', and for a
+        Science it says 'Raise'. The Learn side carries the price. A Charm pick at chargen
+        is free. An XP purchase and every Thaumaturgy purchase show their cost."""
         char = self._char()
         self._orientation_combo.setVisible(False)      # a ritual/formula buy re-shows it
         self._orientation_btn.setVisible(False)
         self._narrow_check.setVisible(False)
         self._narrow_offered = False
         self._lower_btn.setVisible(False)
-        # ⚠ Hidden HERE, not on each branch: _update_action has a dozen early returns
-        # and a button left visible from the previous selection offers "Add another"
-        # against whatever is selected now. The submodule panel is torn down for the
-        # same reason — its rows buy against a charm_id captured when they were built.
+        # ⚠ Hide these controls HERE, not in each branch. `_update_action` has many early
+        # returns. A button that stays visible from the previous selection offers "Add
+        # another" for the current selection. Remove the submodule panel for the same
+        # reason. Its rows buy against a `charm_id` from the time when the code built them.
         self.again_btn.setVisible(False)
         self._rebuild_submodules(self._selected_node)
         if self._selected_node is not None:
@@ -946,9 +956,9 @@ class CharmsPage(QWidget):
                 self.action_btn.setEnabled(False)
                 self.action_btn.setText("Select an entry…")
                 return
-            # A variant-menu Charm is bought as a PACKAGE and is not toggleable —
-            # `charm_actions.variant_menu_reason` refuses the toggle, so the button
-            # must open the chooser instead of offering Learn.
+            # The user buys a variant-menu Charm as a PACKAGE. It has no toggle.
+            # `charm_actions.variant_menu_reason` refuses a toggle. Thus this button opens
+            # the chooser. It must not offer Learn.
             menu = build_package_menu(self._ruleset, char, cid)
             if menu is not None:
                 verb = {"gift": "Choose Gifts…",
@@ -970,10 +980,10 @@ class CharmsPage(QWidget):
                     if bp:
                         label += f" — {bp} BP"
             else:
-                # A generic repeatable Charm is owned-but-not-full while its copies are
-                # under the trait cap (Mountain Folk Essence Satiation Method /
-                # Stone-Still Lungs, CH6 pp.245-246). Offered on BOTH sides of the lock;
-                # post-lock the button carries the XP price, like Learn does.
+                # A repeatable Charm is owned and not full while its copies stay below the
+                # trait limit. Examples: the Mountain Folk Essence Satiation Method and
+                # Stone-Still Lungs (CH6 pp.245-246). Offer this button on BOTH sides of the
+                # lock. After the lock, the button shows the XP price, as Learn does.
                 cap = validate._repeatable_purchase_cap(charm, char)
                 held = char.charms.count(cid)
                 if cap and held < cap:
@@ -982,10 +992,10 @@ class CharmsPage(QWidget):
                         f"Add another — {costs.charm_cost(self._ruleset, char, charm)} XP"
                         if char.chargen_locked else "Add another")
                     self.again_btn.setToolTip(f"{held} of {cap} copies")
-                # ⚠ Post-lock "Remove" is only ever the LAST XP purchase: the log is
-                # append-only and undo is LIFO (decision 0004), so there is no correct
-                # way to pull an arbitrary Charm out. This button used to be enabled
-                # regardless and refuse every click.
+                # ⚠ After the lock, "Remove" applies to the LAST XP purchase only. The log
+                # is append-only, and an undo takes the last entry (decision 0004). Thus
+                # there is no correct method to remove any other Charm. Disable the button
+                # in that state. An enabled button that refuses every click is a defect.
                 blocked = charm_actions.undo_charm_reason(char, cid)
             self.action_btn.setText(label)
             self.action_btn.setEnabled(not blocked)
@@ -1022,22 +1032,22 @@ class CharmsPage(QWidget):
                 else:
                     self.action_btn.setText(f"{row.name} at max")
                 self.action_btn.setEnabled(bool(row.can_raise))
-                # ⚠ Chargen only. `lower_thaum_science` does not check the lock — it
-                # is the free-setter half of the pre-lock dot track, and after the
-                # lock a rating comes back through the XP ledger's undo, not here.
+                # ⚠ Show this control at chargen only. `lower_thaum_science` does not check
+                # the lock. It is the free half of the dot track before the lock. After the
+                # lock, a rating decreases through an undo in the XP ledger, not here.
                 self._lower_btn.setVisible(bool(row.rating)
                                            and not char.chargen_locked)
             elif kind == "art_specialty":
                 art, spec = self._selected_thaum[1], self._selected_thaum[2]
-                # Narrowing is Summoning's alone, is chosen before the purchase, and
-                # cannot change after it — so the box is offered only on an unowned
-                # PRINTED aspect of an Art that allows it.
+                # A narrowing applies to Summoning only. The user selects it before the
+                # purchase, and it cannot change after that. Thus show this box only on a
+                # PRINTED aspect that the character does not own, in an Art that permits it.
                 offer_narrow = (art.allows_narrowing and not spec.owned
                                 and spec.printed)
-                # ⚠ Remembered as a FLAG, never read back off the widget with
-                # `isVisible()`: a widget on a page that was never shown reports
-                # invisible whatever it was set to, so the purchase would silently
-                # stop narrowing in every headless test and in any not-yet-shown tab.
+                # ⚠ Store this state as a FLAG. Never read it back from the widget with
+                # `isVisible()`. A widget on a page that the shell never showed reports
+                # invisible, whatever value you set. Thus the purchase stops the narrowing
+                # in every headless test, and on any tab that the user has not opened.
                 self._narrow_offered = offer_narrow
                 self._narrow_check.setVisible(offer_narrow)
                 if not offer_narrow:
@@ -1057,8 +1067,8 @@ class CharmsPage(QWidget):
                 self._sync_orientation(row, currency)
             return
         if self._selected_elemental is not None:
-            # Owned-ness is read live off the character, never off a stored row — a
-            # rebuilt list would leave the row's owned flag stale.
+            # ⚠ Read the owned state from the character. Never read it from a stored row. A
+            # rebuild of the list leaves the owned flag of a row at an old value.
             char = self._char()
             row = next((r for r in build_elemental_power_picker(self._ruleset, char).powers
                         if r.id == self._selected_elemental), None)
@@ -1068,8 +1078,8 @@ class CharmsPage(QWidget):
                 return
             if self._selected_elemental in char.elemental_powers:
                 if char.chargen_locked:
-                    # A known power is not droppable in play — the undo lives on the
-                    # Edit tab, matching the picker's disabled check-icon.
+                    # In play, the user cannot drop a power that the character knows. The
+                    # undo is on the Edit tab. The picker shows a disabled check icon.
                     self.action_btn.setEnabled(False)
                     self.action_btn.setText(f"{row.name} — known")
                     self.action_btn.setToolTip(
@@ -1084,8 +1094,8 @@ class CharmsPage(QWidget):
                 self.action_btn.setEnabled(True)
                 self.action_btn.setToolTip("")
             else:
-                # A chargen Elemental Power costs bonus points (PG p.68) — the button
-                # carries the BP price on both sides of the lock, like the Thaum rows.
+                # An Elemental Power at chargen costs bonus points (PG p.68). The button
+                # shows the BP price on both sides of the lock, as the Thaumaturgy rows do.
                 self.action_btn.setText(f"Learn {row.name} — {row.price} BP")
                 self.action_btn.setEnabled(row.available)
                 self.action_btn.setToolTip(row.reason if not row.available else "")
@@ -1149,20 +1159,21 @@ class CharmsPage(QWidget):
         """Fill the orientation combo for the selected ritual/formula and show the
         control that applies.
 
-        Unowned: every region, and the combo is which one the FIRST purchase is in.
-        Owned: only the regions still missing, beside a button that buys one more
-        (p.124). Owned in all five: neither, because there is nothing left to buy.
+        When the character does not own the entry, the combo holds every region, and it
+        selects the region of the FIRST purchase. When the character owns the entry, the
+        combo holds the regions that the character does not have, next to a button that buys
+        one more (p.124). When the character owns all five regions, this method shows
+        neither control, because there is nothing to buy.
         """
         offered = [o for o in Orientation
                    if not row.owned or o.value not in row.orientations]
         self._orientation_combo.clear()
         for o in offered:
             self._orientation_combo.addItem(o.value, o)
-        # ⚠ Default to REALM where it is on offer, not to whatever the enum lists
-        # first. The webapp's page-level picker has defaulted to Realm since
-        # Thaumaturgy shipped; this combo took enum order and so bought a NORTHERN
-        # version by default — the same purchase at the same price, in a tradition
-        # nobody chose.
+        # ⚠ Set the default to REALM where the list offers it. Do not use the first member
+        # of the enum. The picker of the webapp uses Realm as its default. In enum order,
+        # this combo buys a NORTHERN version by default. That is the same purchase at the
+        # same price, in a tradition that the user did not select.
         if offered:
             self._orientation_combo.setCurrentIndex(
                 offered.index(Orientation.REALM) if Orientation.REALM in offered else 0)
@@ -1181,9 +1192,9 @@ class CharmsPage(QWidget):
         if self._selected_thaum is None:
             return
         kind, row = self._selected_thaum[0], self._selected_thaum[1]
-        # PySide6 stores the enum's str value, not the member — reconstruct, exactly
-        # as `_toggle_thaum` does. (Never read a key back out of a widget: this one is
-        # a value, not a key into a dict we built.)
+        # ⚠ PySide6 stores the str value of the enum, not the member. Build the member
+        # again, as `_toggle_thaum` does. This value is not a key into a dict that this
+        # code built. Never read a key back from a widget.
         raw = self._orientation_combo.currentData() or Orientation.REALM.value
         try:
             msg = thaum_actions.add_thaum_orientation(
@@ -1195,7 +1206,7 @@ class CharmsPage(QWidget):
         self._refresh_current_tree()
 
     def _lower_science(self) -> None:
-        """Step the selected Science back down a dot — the chargen escape hatch."""
+        """Decrease the selected Science by one dot. This control operates at chargen."""
         if self._selected_thaum is None or self._selected_thaum[0] != "science":
             return
         row = self._selected_thaum[1]
@@ -1208,11 +1219,11 @@ class CharmsPage(QWidget):
         self._refresh_current_tree()
 
     def _add_custom_specialty(self, name: str) -> None:
-        """Invent a specialty for the selected Art — p.126 invites it in as many words,
-        and it is the same purchase at the same rate as a printed aspect.
+        """Create a specialty for the selected Art. Page 126 permits this. It is the same
+        purchase at the same rate as a printed aspect.
 
-        ⚠ Never narrowed: narrowing further limits a PRINTED aspect (p.127), and one
-        you wrote is already as narrow as you made it.
+        ⚠ Never narrow this specialty. A narrowing limits a PRINTED aspect (p.127). A
+        specialty that the user writes already has the limits that the user gave it.
         """
         art = self._selected_art()
         if art is None:
@@ -1225,14 +1236,14 @@ class CharmsPage(QWidget):
             self._notify(str(ex), "warning")
             return
         self._notify(msg, "info")
-        # A new row in the tree, which only a rebuilt page has — the same reason
-        # `_add_custom_ritual` reloads rather than refreshing the selection.
+        # This action adds a row to the tree, and only a rebuilt page holds that row.
+        # `_add_custom_ritual` reloads for the same reason.
         self.reload()
         self._update_readout()
 
     def _selected_art(self):
-        """The Art the selection is in: the Art itself, or the parent of a selected
-        specialty. None when the selection is neither."""
+        """The Art of the selection. It is the Art itself, or the parent Art of a selected
+        specialty. Returns None when the selection is neither."""
         if self._selected_thaum is None:
             return None
         kind = self._selected_thaum[0]
@@ -1241,12 +1252,12 @@ class CharmsPage(QWidget):
         return None
 
     def _add_custom_ritual(self, name: str, level: int) -> None:
-        """Author a ritual for THIS character alone — the inline `RitualEntry` path
-        (p.148: the chapter prints five and expects more).
+        """Write a ritual for THIS character only. It uses the inline `RitualEntry` path.
+        The chapter prints five rituals and expects more (p.148).
 
-        ⚠ Not the same thing as the Custom tab's Rituals library, and both stay (the
-        human's ruling, 2026-08-28): this one is "I need a ritual mid-session", the
-        library one is reusable and joins the catalogue for every character.
+        ⚠ This path is not the Rituals library of the Custom tab. Keep both (human's
+        ruling). This path makes a ritual during a session. The library path makes a ritual
+        that every character can use, and it joins the catalogue.
         """
         try:
             raw = self._orientation_combo.currentData() or Orientation.REALM.value
@@ -1256,16 +1267,16 @@ class CharmsPage(QWidget):
             self._notify(str(ex), "warning")
             return
         self._notify(msg, "info")
-        # A new entry means a new ROW, which only a rebuilt page holds — unlike a buy,
-        # where the row already exists and `_refresh_current_tree` re-finds it.
+        # A new entry adds a ROW, and only a rebuilt page holds that row. A purchase is
+        # different: the row exists, and `_refresh_current_tree` finds it again.
         self.reload()
         self._update_readout()
 
     def _toggle_thaum(self, kind: str, *rest) -> None:
-        """Buy/drop a Thaumaturgy entry via engine.thaum_actions — Arts and
-        Rituals/Formulas toggle, a Science raises one dot, and an Art's specialty
-        toggles under its parent Art. The action functions own the state change and
-        raise on refusal; this only surfaces the outcome."""
+        """Buy or drop a Thaumaturgy entry through `engine.thaum_actions`. An Art, a ritual
+        and a formula toggle. A Science raises by one dot. A specialty of an Art toggles
+        below its parent Art. The action functions change the state, and they raise on a
+        refusal. This method shows the outcome only."""
         ruleset, char = self._ruleset, self._char()
         try:
             if kind == "art":
@@ -1288,7 +1299,7 @@ class CharmsPage(QWidget):
                 msg = thaum_actions.drop_thaum_entry(char, kind, row.key)
             else:
                 row = rest[0]
-                # PySide6 stores the enum's str value, not the member — reconstruct.
+                # ⚠ PySide6 stores the str value of the enum, not the member. Build it again.
                 raw = self._orientation_combo.currentData() or Orientation.REALM.value
                 msg = thaum_actions.buy_thaum_entry(
                     ruleset, char, kind, row.key, Orientation(raw))
@@ -1299,9 +1310,9 @@ class CharmsPage(QWidget):
         self._refresh_current_tree()
 
     def _act(self, action, *args) -> bool:
-        """Run an engine.charm_actions dispatcher and show what it says — its return
-        message, or its AdvancementError as a warning. True when the character
-        changed, so the caller can skip its repaint."""
+        """Run a dispatcher in `engine.charm_actions`, and show its result. Show the return
+        message, or show its AdvancementError as a warning. Returns True when the character
+        changed. Thus the caller can skip its repaint."""
         try:
             self._notify(action(*args), "info")
         except advancement.AdvancementError as ex:
@@ -1312,14 +1323,14 @@ class CharmsPage(QWidget):
     def _toggle_charm(self, charm_id: str) -> None:
         """A node click: learn an unowned Charm, drop an owned one, buy post-lock.
 
-        ⚠ The dispatch is engine.charm_actions.toggle_charm and must stay there — the
-        web picker holds the SAME logic and the two drifted once already (Ox-Body's
-        variant menu reached only the web copy, so this one would have appended the
-        package Charm's id straight into `char.charms`). `variant_menu_reason` now
-        refuses that here rather than relying on a widget-level branch."""
+        ⚠ Dispatch through `engine.charm_actions.toggle_charm`. Keep the logic there. The
+        web picker uses the SAME function. With two copies, they become different. For
+        example, the variant menu of Ox-Body reached the web copy only, and this copy then
+        wrote the id of the package Charm into `char.charms`. `variant_menu_reason` refuses
+        that here. Do not add a branch in the widget."""
         char = self._char()
-        # Post-lock an owned Charm is handed back through the XP ledger, not dropped —
-        # `toggle_charm` would try to LEARN it again.
+        # ⚠ After the lock, the XP ledger removes a Charm that the character owns. Do not
+        # drop it here. `toggle_charm` then tries to LEARN it again.
         if char.chargen_locked and charm_id in char.charms:
             if self._act(charm_actions.undo_charm, self._ruleset, char, charm_id):
                 self._refresh_current_tree()
@@ -1328,12 +1339,12 @@ class CharmsPage(QWidget):
             self._refresh_current_tree()
 
     def _rebuild_submodules(self, charm_id) -> None:
-        """Rebuild the submodule rows for the selected Charm (Alchemical p.89), or hide
-        the panel when it has none — which is every Charm on most splats.
+        """Rebuild the submodule rows of the selected Charm (Alchemical p.89). Hide the
+        panel when the Charm has no submodule. On most splats, every Charm has none.
 
-        Each row is name · price · its own Essence/Attribute minimum, over an
-        Add/Buy/Remove button. The price shown follows the lock: bonus points at
-        chargen, experience after it, exactly as the page prints both."""
+        Each row shows the name, the price and the Essence or Attribute minimum of that
+        submodule, above an Add, Buy or Remove button. The price follows the lock: bonus
+        points at chargen, and experience after the lock. The page prints both."""
         clear_layout(self._submodule_lay)
         rows = (viewmod.build_submodule_rows(self._ruleset, self._char(), charm_id)
                 if charm_id else [])
@@ -1375,9 +1386,10 @@ class CharmsPage(QWidget):
         return box
 
     def _submodule_button(self, r, char) -> QWidget:
-        """The row's control: Remove pre-lock for an owned one, a disabled button
-        carrying the reason for a blocked one, Buy/Add otherwise. Post-lock an owned
-        submodule offers no Remove — the refund is the Edit tab's last-first undo."""
+        """The control of one row. Before the lock, an owned submodule gets Remove. A
+        blocked submodule gets a disabled button with the reason. Any other submodule gets
+        Buy or Add. ⚠ After the lock, an owned submodule gets no Remove. The refund is the
+        undo on the Edit tab, which takes the last entry first."""
         if r.owned:
             if char.chargen_locked:
                 label = QLabel("Purchased.")
@@ -1398,7 +1410,8 @@ class CharmsPage(QWidget):
         return btn
 
     def _learn_submodule(self, charm_id: str, key: str) -> None:
-        """Buy a submodule — BP at chargen, XP after the lock, one dispatcher for both."""
+        """Buy a submodule. It costs bonus points at chargen, and XP after the lock. One
+        dispatcher handles both cases."""
         if self._act(charm_actions.learn_submodule, self._ruleset, self._char(),
                      charm_id, key):
             self._after_submodule_change()
@@ -1408,30 +1421,31 @@ class CharmsPage(QWidget):
             self._after_submodule_change()
 
     def _after_submodule_change(self) -> None:
-        """A submodule spends bonus points or XP, so the budget readout — and the
-        shell's bar behind it — has to move. `_update_action` rebuilds the rows."""
+        """A submodule spends bonus points or XP. Thus the budget readout and the bar of the
+        shell must change. `_update_action` rebuilds the rows."""
         self._update_action()
         self._update_readout()
 
     def _add_another(self) -> None:
-        """Buy ONE MORE copy of the selected generic repeatable Charm. Calls the LEARN
-        half directly — `toggle_charm` would see an owned Charm and remove it, which is
-        exactly why this needs a button of its own rather than a second click."""
+        """Buy ONE MORE copy of the selected repeatable Charm. ⚠ Call the LEARN function
+        directly. `toggle_charm` finds an owned Charm and removes it. Thus this action needs
+        its own button, not a second click on the main button."""
         cid = self._selected_node
         if cid is None:
             return
         if not self._act(charm_actions.learn_charm, self._ruleset, self._char(), cid):
             return
         self._refresh_current_tree()
-        # Re-select the node in the freshly built scene. Buying copies is inherently
-        # repetitive (the cap is a trait rating, so it can be several), and rebuilding
-        # the tree drops the selection — without this the button vanishes under the
-        # cursor after every single copy.
+        # Select the node again in the new scene. The user buys copies repeatedly, because
+        # the limit is a trait rating and it can be several copies. A rebuild of the tree
+        # drops the selection. ⚠ Without this line, the button goes away below the pointer
+        # after each copy.
         self._reselect_node(cid)
 
     def _reselect_node(self, charm_id: str) -> None:
-        """Select `charm_id`'s node in the current tab's rebuilt scene, if it is on it.
-        Selecting emits selectionChanged, which repaints the detail panel and button."""
+        """Select the node of `charm_id` in the rebuilt scene of the current tab, when that
+        scene holds it. A selection sends `selectionChanged`, and that signal repaints the
+        detail panel and the button."""
         view = self.tabs.currentWidget().findChild(CharmTreeView)
         if view is None:
             return
@@ -1441,14 +1455,16 @@ class CharmsPage(QWidget):
                 return
 
     def _toggle_spell(self, spell_id: str) -> None:
-        """A spell row's click — the same chargen/XP split, same shared dispatcher."""
+        """Handle a click on a spell row. It uses the same chargen and XP branches, and the
+        same shared dispatcher, as a Charm."""
         if self._act(charm_actions.toggle_spell, self._ruleset, self._char(), spell_id):
             self._refresh_current_tree()
 
     def _refresh_current_tree(self) -> None:
-        """Re-render the active tree so the owned/available state reflects the change
-        (build_charm_graph reads the character's holdings), refresh the budget readout,
-        and re-find a selected Thaumaturgy entry so its owned state flips the button."""
+        """Draw the active tree again, thus the owned state and the available state show the
+        change. `build_charm_graph` reads what the character holds. Then refresh the budget
+        readout, and find the selected Thaumaturgy entry again, thus its owned state sets
+        the button."""
         view = self.tabs.currentWidget().findChild(CharmTreeView)
         if view is not None and view.category_combo is not None:
             view.reload_tree()
@@ -1458,9 +1474,9 @@ class CharmsPage(QWidget):
         self._update_readout()
 
     def _refresh_thaum_selection(self) -> None:
-        """Re-find the selected Thaumaturgy entry in a fresh picker. The row we hold
-        was built before the buy/drop, so its owned flag is stale and the button would
-        stay on "Learn" — the same entry in the fresh picker has the new state."""
+        """Find the selected Thaumaturgy entry again, in a new picker. ⚠ The stored row comes
+        from before the purchase or the drop. Thus its owned flag is old, and the button
+        stays on "Learn". The same entry in a new picker holds the new state."""
         picker = build_thaum_picker(self._ruleset, self._char())
         kind = self._selected_thaum[0]
         if kind == "art":
@@ -1479,34 +1495,34 @@ class CharmsPage(QWidget):
             rows = picker.rituals if kind == "ritual" else picker.formulas
             fresh = next((r for r in rows if r.key == self._selected_thaum[1].key), None)
             self._selected_thaum = (kind, fresh) if fresh else None
-        # ⚠ The DETAIL text is stale too, not just the button. It was written from the
-        # pre-purchase row, and the panel now carries lines that move when you buy —
-        # "Known in: Realm" after adding a version, "Narrowed" after a half-price buy.
+        # ⚠ The DETAIL text is also old, not the button only. The code wrote it from the row
+        # before the purchase, and the panel holds lines that change with a purchase. For
+        # example: "Known in: Realm" after the user adds a version, and "Narrowed" after a
+        # half-price purchase.
         self._show_thaum_detail()
         self._update_action()
 
     def _show_thaum_detail(self) -> None:
         """Render the selected Thaumaturgy row into the detail panel.
 
-        ⚠ ONE renderer for three call sites (the Arts tree, the entry lists, and the
-        post-purchase refresh). The last of them was missing for as long as the panel
-        held nothing that could change on a purchase, and that stopped being true the
-        moment it grew "Known in:".
+        ⚠ Use ONE renderer for the three call sites: the Arts tree, the entry lists and the
+        refresh after a purchase. The refresh site is necessary, because the panel holds
+        lines that a purchase changes, for example "Known in:".
 
-        The row is the LAST member of the selection tuple either way: ("art", row),
-        ("science", row), ("ritual", row) — and ("art_specialty", art, spec), where
-        the specialty is what the panel is about.
+        The row is the LAST member of the selection tuple in every case: ("art", row),
+        ("science", row), ("ritual", row), and ("art_specialty", art, spec). In the last
+        form, the panel describes the specialty.
         """
         if self._selected_thaum is None:
             return
         row = self._selected_thaum[-1]
-        # ⚠ The panel's Cost line has to agree with the button. With "narrow" ticked
-        # the button offers the half price (p.127) and the panel went on printing the
-        # full one — two numbers for one purchase, on one screen.
+        # ⚠ The Cost line of the panel must agree with the button. With "narrow" selected,
+        # the button shows the half price (p.127). If the panel prints the full price, the
+        # screen shows two numbers for one purchase.
         #
-        # ⚠ Derived from the ROW here, not from `_narrow_offered`: that flag is set by
-        # `_update_action`, which runs AFTER this on a selection change, so reading it
-        # would price the new row against the old row's eligibility.
+        # ⚠ Calculate this value from the ROW. Do not read `_narrow_offered`.
+        # `_update_action` sets that flag, and it runs AFTER this method on a selection
+        # change. Thus that flag prices the new row against the state of the old row.
         if self._selected_thaum[0] == "art_specialty":
             art = self._selected_thaum[1]
             if (art.allows_narrowing and not row.owned and row.printed
@@ -1517,16 +1533,16 @@ class CharmsPage(QWidget):
     def _update_readout(self) -> None:
         """Redraw this tab's budget line AND tell the shell its own bar moved.
 
-        ⚠ A wrapper rather than a call at the end of `_draw_readout`, because that has
-        two exits (locked/chargen) and the shell hook must fire from both. Every
-        purchase path on this tab already funnels through here."""
+        ⚠ Use this wrapper. Do not put the call at the end of `_draw_readout`. That method
+        has two exits, one for the locked state and one for chargen, and the shell hook must
+        run from both. Every purchase path on this tab passes through this method."""
         self._draw_readout()
         self._on_change()
 
     def _draw_readout(self) -> None:
-        """The budget line: in play it is XP, in chargen the Charm pick count and the
-        validation verdict — so buying Charms here shows when the budget breaks, the
-        way the Edit tab's side column does for traits."""
+        """The budget line. In play it shows the XP. At chargen it shows the count of Charm
+        picks and the validation result. Thus a purchase here shows when the budget fails,
+        as the side column of the Edit tab does for the traits."""
         ruleset, char = self._ruleset, self._char()
         if char.chargen_locked:
             available = advancement.xp_available(char)
@@ -1539,9 +1555,10 @@ class CharmsPage(QWidget):
         bp = next((i.message for i in view.issues if i.code == "bonus-points"), "")
         errors = [i for i in view.issues if i.severity == "error"]
         status = "✓ Legal" if not errors else f"✗ {len(errors)} error(s)"
-        # ⚠ The Slots readout is the LIVE load, not the frozen chargen snapshot —
-        # the same conflation the Vat Refit page documents. charm_slot_budget reports
-        # the snapshot, so buying a Charm post-lock never moved the count.
+        # ⚠ The Slots readout shows the LIVE load. It does not show the chargen snapshot.
+        # The Vat Refit page records the same difference. `charm_slot_budget` reports the
+        # snapshot. Thus with that function, a purchase after the lock never moves the
+        # count.
         if refit.supports_refit(ruleset, char):
             load = refit.slot_load(ruleset, char)
             picks = (f"Slots: {load.installed}/{load.total_slots} used "
@@ -1549,7 +1566,7 @@ class CharmsPage(QWidget):
         else:
             b = ruleset.budgets_for(char.exalt_type, char.origin, char.upbringing)
             if b.path_dots > 0:
-                # A Dragon-King learns Paths, not Charms — 'Charms: 0' is noise.
+                # A Dragon-King learns Paths, not Charms. Thus 'Charms: 0' has no meaning.
                 used = sum(p.rating for p in char.paths)
                 picks = f"Path dots: {used} · Spells: {len(char.spells)}"
             else:
@@ -1569,10 +1586,11 @@ class CharmsPage(QWidget):
         """For a Dragon-Blooded at chargen, which Charm path they are on; "" for
         everyone else.
 
-        The Immaculate path is triggered by any *Immaculate* Charm — the five Dragon
-        style trees (Air/Earth/Fire/Water/Wood Dragon), NOT martial arts in general:
-        Five-Dragon Style is Martial Arts but a normal Charm and does not switch paths.
-        Counts come from the budget, never hardcoded."""
+        ⚠ Any *Immaculate* Charm starts the Immaculate path. Those Charms are the five
+        Dragon style trees: Air, Earth, Fire, Water and Wood Dragon. Martial arts in general
+        do NOT start it. Five-Dragon Style is a Martial Arts Charm, it is a normal Charm,
+        and it does not change the path. ⚠ Read the counts from the budget. Never write them
+        in the code."""
         ruleset, char = self._ruleset, self._char()
         if char.exalt_type != "Dragon-Blooded":
             return ""
@@ -1588,14 +1606,14 @@ class CharmsPage(QWidget):
         """A tree tab: Splat and category dropdowns filtered to `group`, over a
         CharmTreeView.
 
-        `cache` is the caller's per-build memo (see `_cached`); `reload` shares one
-        across all of its `trees_for` calls, which otherwise rescan the whole Charm
-        catalogue once per group and again per page.
+        `cache` is the memo of the caller for one build (see `_cached`). `reload` shares one
+        memo across all of its `trees_for` calls. ⚠ Without the memo, those calls read the
+        full Charm catalogue one time for each group, and again for each page.
 
-        ⚠ The Splat dropdown is PER TAB here, unlike the web picker's single shared
-        one (core p.127). Each tab offers only the splats with trees in its own group,
-        so the picker's fall-back-to-another-group dance has nothing to handle: a
-        splat with no martial arts simply is not on the Martial Arts tab's list."""
+        ⚠ Each tab has its OWN Splat dropdown. The web picker has one shared dropdown
+        (core p.127). Each tab offers the splats with trees in its own group only. Thus this
+        page needs no fallback to another group: a splat with no martial arts is not in the
+        list of the Martial Arts tab."""
         char = self._char()
         page = QWidget()
         combo = CappedCombo(15)
@@ -1617,7 +1635,8 @@ class CharmsPage(QWidget):
                                "double to learn and to use (p.127)")
         view.splat_combo = splat_combo
         splat_combo.currentIndexChanged.connect(lambda _i, v=view: self._splat_changed(v))
-        # One entry is the character's own splat, which is no choice at all.
+        # With one entry, that entry is the splat of the character, and the user has no
+        # choice.
         splat_label = QLabel("Splat:")
         for w in (splat_label, splat_combo):
             w.setVisible(len(splats) > 1)
@@ -1638,20 +1657,21 @@ class CharmsPage(QWidget):
         lay.addWidget(style_head)
         lay.addWidget(style_body)
         lay.addWidget(view, 1)
-        # The first added item is already current (addItem selects it), so
-        # setCurrentIndex(0) would not fire currentIndexChanged — load explicitly.
+        # ⚠ `addItem` makes the first item current. Thus `setCurrentIndex(0)` sends no
+        # `currentIndexChanged` signal. Load the tree with an explicit call.
         if combo.count():
             self._category_changed(view)
         return page
 
     def _style_panel(self, view):
-        """The collapsible style-level text above a martial-arts tree: the printed
-        `Type:`, the prose and the "Weapons and Armor" rules that have nowhere else to
-        live (docs/status/martial-arts-styles.md). Returns its (header, body) widgets,
-        both hidden until `_sync_style_panel` finds an authored style for the category.
+        """The style text above a martial-arts tree, which the user can fold. It holds the
+        printed `Type:`, the prose, and the "Weapons and Armor" rules. No other surface
+        holds those rules (`docs/status/martial-arts-styles.md`). Returns the (header, body)
+        widgets. Both are hidden until `_sync_style_panel` finds an authored style for the
+        category.
 
-        Collapsed by default: the tree canvas is what the tab is for, and a style's
-        preamble runs to paragraphs."""
+        The panel starts folded. The tab exists for the tree canvas, and the text of a style
+        is several paragraphs."""
         head = QPushButton("")
         head.setCheckable(True)
         head.setCursor(Qt.PointingHandCursor)
@@ -1661,8 +1681,9 @@ class CharmsPage(QWidget):
             f"font-weight:600; }}")
         body = QTextBrowser()
         body.setMaximumHeight(190)
-        # ⚠ Inline, not a palette: an ancestor stylesheet beats a set palette every
-        # time, and a QTextBrowser inside a styled page otherwise paints the card shade.
+        # ⚠ Set the stylesheet inline. Do not use a palette. An ancestor stylesheet always
+        # beats a palette that you set on the widget, and a QTextBrowser in a themed page
+        # then paints the card shade.
         body.setStyleSheet(f"QTextBrowser {{ background:{TREE}; border:none; "
                            f"color:{MUTED}; }}")
         body.setVisible(False)
@@ -1676,11 +1697,10 @@ class CharmsPage(QWidget):
         return head, body
 
     def _sync_style_panel(self, view) -> None:
-        """Point a tab's style panel at its current category. Renders NOTHING when the
-        category is not an authored style — `martial_arts:enlightenment` is the
-        Dragon-Path initiation tree, not a style, and a homebrew style has no page to
-        have a preamble from. An empty panel on every other category would be worse
-        than no panel, the rule the printed sheet follows."""
+        """Point the style panel of a tab at its current category. ⚠ Render NOTHING when the
+        category is not an authored style. `martial_arts:enlightenment` is the Dragon-Path
+        initiation tree, not a style, and a homebrew style has no page. An empty panel on
+        every other category is worse than no panel."""
         head = getattr(view, "style_head", None)
         if head is None:
             return
@@ -1692,12 +1712,12 @@ class CharmsPage(QWidget):
             view.style_body.setVisible(False)
             return
         head.setVisible(True)
-        # The arrow follows the expanded state, which SURVIVES a category change —
-        # a player who opened the panel wants the next style's prose open too.
+        # The arrow shows the expanded state. That state STAYS through a category change. A
+        # user who opened the panel also wants the text of the next style open.
         head.setText(("▾ " if head.isChecked() else "▸ ") + style.heading)
-        # ⚠ Every field is optional even on a non-None style — only the Player's Guide
-        # prints both a Type: line and prose. Interpolating unconditionally gives an
-        # empty paragraph under a heading.
+        # ⚠ Every field is optional, also on a style that is not None. The Player's Guide is
+        # the one book that prints a Type: line and prose. If you insert each field without
+        # a test, an empty paragraph appears below a heading.
         parts = []
         if style.preamble:
             parts.append("<p>" + html.escape(style.preamble).replace("\n", "<br>")
@@ -1710,14 +1730,15 @@ class CharmsPage(QWidget):
         view.style_body.setVisible(head.isChecked())
 
     def _category_changed(self, view) -> None:
-        """A category pick: re-render the tree and re-point the style panel at it."""
+        """Handle a category selection. Draw the tree again, and point the style panel at
+        the new category."""
         view.reload_tree()
         self._sync_style_panel(view)
 
     def _fill_categories(self, view, group, cache=None):
-        """(Re)stock a tab's category dropdown for the splat its Splat dropdown names.
-        Signals stay blocked throughout: the caller decides when the tree renders, and
-        clearing a combo emits currentIndexChanged with an index of -1."""
+        """Fill the category dropdown of a tab for the splat that its Splat dropdown names.
+        ⚠ Keep the signals blocked through this method. The caller decides when the tree
+        renders, and a `clear()` on a combo box sends `currentIndexChanged` with -1."""
         char = self._char()
         splat = view.splat_combo.currentData() or char.exalt_type
         combo = view.category_combo
@@ -1730,16 +1751,18 @@ class CharmsPage(QWidget):
         combo.blockSignals(False)
 
     def _splat_changed(self, view) -> None:
-        """Switch a tab's trees to another Exalt type's page. Category names collide
-        across splats, so the held category is almost never valid on the new page —
-        restock and land on its first, which `reload_tree` then renders."""
+        """Change the trees of a tab to the page of a different Exalt type. ⚠ Two splats can
+        use the same category name, thus the current category is rarely valid on the new
+        page. Fill the dropdown again and select its first entry. `reload_tree` then renders
+        that entry."""
         group = next((g for g, v in self._tree_views.items() if v is view), "")
         self._fill_categories(view, group)
         self._category_changed(view)
 
     def _tree_detail(self, view):
-        # A scene emits selectionChanged as it is destroyed (window teardown); by then
-        # its C++ object is gone, so touching it raises RuntimeError — ignore it.
+        # ⚠ A scene sends `selectionChanged` while Qt destroys it, for example when the
+        # window closes. Its C++ object is gone at that time, thus a read raises
+        # RuntimeError. Catch that error.
         try:
             sel = [i for i in view._scene.selectedItems() if isinstance(i, NodeItem)]
         except RuntimeError:
@@ -1753,8 +1776,8 @@ class CharmsPage(QWidget):
             self._update_action()
             return
         node = sel[0].node
-        # A collapsed augmentation summary node ('augment:<type>') is not a Charm —
-        # show the type's installed-Attribute readout and offer Pick Attributes.
+        # ⚠ A collapsed augmentation summary node ('augment:<type>') is not a Charm. Show
+        # the installed-Attribute readout of that type, and offer Pick Attributes.
         if node.id.startswith("augment:"):
             self._selected_augment = node.label
             self._selected_node = None
@@ -1781,12 +1804,12 @@ class CharmsPage(QWidget):
         self._update_action()
 
     def _charm_flags_html(self, detail) -> str:
-        """The five callouts a Charm's detail card carries beyond its stat block:
-        homebrew, another splat's Charm, an Immaculate Order Charm, a discounted
-        Calling Charm, and one the training camp granted free.
+        """The five notes that a Charm detail card shows below its stat block: a homebrew
+        Charm, a Charm of a different splat, an Immaculate Order Charm, a Calling Charm with
+        a discount, and a Charm that the training camp gave free.
 
-        Four of the five change what the Charm COSTS, which is why they sit next to
-        the price rather than on the sheet. Nothing is rendered when none apply.
+        Four of the five change what the Charm COSTS. Thus they go next to the price, not on
+        the sheet. This method renders nothing when no note applies.
         """
         char = self._char()
         pal = theme.palette(char.exalt_type)
@@ -1811,9 +1834,9 @@ class CharmsPage(QWidget):
         return f"<div style='margin-top:6px'>{rows}</div>"
 
     def _package_summary_html(self, menu) -> str:
-        """The packages already bought and the cap, appended to a variant-menu
-        Charm's detail. The tree paints the node "owned" off a single Charm id; what
-        a player needs here is HOW MANY packages and which."""
+        """The packages that the character owns, and the limit. This text goes at the end of
+        the detail of a variant-menu Charm. ⚠ The tree paints the node "owned" from one
+        Charm id. The user needs the NUMBER of packages and their names."""
         rows = [f"<b>Bought:</b> {menu.bought} / {menu.cap} · "
                 f"{html.escape(menu.cap_phrase)}"]
         for h in menu.held:
@@ -1855,17 +1878,17 @@ class CharmsPage(QWidget):
         row.addStretch()
         lay.addLayout(row)
         lay.addWidget(entries, 1)
-        # addItem already made the first circle current before the connect; load it.
+        # ⚠ `addItem` made the first circle current before this connect. Load it explicitly.
         if circles:
             self._fill_list(entries, spells_in_circle(self._ruleset, circles[0]))
         return page
 
     def _thaum_page(self):
-        """A panel tab: inner Arts / Sciences / Rituals / Formulas sub-tabs, built
-        from build_thaum_picker's rows so each entry carries its owned/price state
-        and the action button can offer to learn it. Arts show their specialties
-        grouped under each Art as an expandable tree — a specialty is bought from
-        under its Art, the way the web app nests it."""
+        """A panel tab with Arts, Sciences, Rituals and Formulas sub-tabs. The rows of
+        `build_thaum_picker` build them. Thus each entry carries its owned state and its
+        price, and the action button can offer to learn it. The Arts show their specialties
+        below each Art, in a tree that the user can expand. The user buys a specialty below
+        its Art, as in the web app."""
         page = QWidget()
         inner = QTabWidget()
         inner.setDocumentMode(True)
@@ -1889,8 +1912,8 @@ class CharmsPage(QWidget):
                 ("Formulas", "formula", picker.formulas)):
             entries = QListWidget()
             for row in rows:
-                # ⚠ `getattr`, because the three lists are three ROW TYPES: only a
-                # ritual/formula row carries `custom`, and a Science does not.
+                # ⚠ Use `getattr`. The three lists hold three ROW TYPES. A ritual row and a
+                # formula row carry `custom`. A Science row does not.
                 item = QListWidgetItem(f"{row.name}  ✎" if getattr(row, "custom", False)
                                        else row.name)
                 item.setData(Qt.UserRole, (kind, row))
@@ -1906,12 +1929,12 @@ class CharmsPage(QWidget):
         return page
 
     def _arts_tab(self, tree) -> QWidget:
-        """The Arts tree with an authoring row under it — "Player-invented specialties
-        are explicitly invited" (p.126), and they are the same purchase at the same
-        rate as a printed aspect.
+        """The Arts tree, with a row below it that writes a new specialty. Page 126 permits
+        a specialty that the user invents, and it is the same purchase at the same rate as a
+        printed aspect.
 
-        The row acts on whatever Art the selection is in, so it needs no Art picker of
-        its own; with nothing selected it says so rather than guessing."""
+        The row acts on the Art of the current selection. Thus it needs no Art picker. ⚠ With
+        no selection, the row states that. It must not select an Art itself."""
         page = QWidget()
         lay = QVBoxLayout(page)
         lay.setContentsMargins(0, 0, 0, 0)
@@ -1933,10 +1956,11 @@ class CharmsPage(QWidget):
     def _rituals_tab(self, entries) -> QWidget:
         """The Rituals list with an authoring row under it.
 
-        ⚠ The ONE list in the picker that can be added to. Every other entry here is
-        printed content you buy; a ritual can also be WRITTEN, because the chapter
-        prints five and says more should exist (p.148). The regional version comes off
-        the same combo the buy button uses, so there is one control for one concept.
+        ⚠ This is the ONE list in the picker that accepts a new entry. Every other entry
+        here is printed content that the user buys. The user can also WRITE a ritual,
+        because the chapter prints five and states that more exist (p.148). The regional
+        version comes from the combo box that the buy button uses. Thus one control serves
+        one concept.
         """
         page = QWidget()
         lay = QVBoxLayout(page)
@@ -1973,31 +1997,31 @@ class CharmsPage(QWidget):
     def _combos_label(self) -> str:
         """"Combos", or "Arrays" for a Charm-Slot splat.
 
-        ⚠ The build matches the book's vocabulary deliberately (`charm_noun`, "Arrays"
-        for Alchemicals), and `view.uses_arrays` is the one place that decides which
-        word a character gets — this must never hardcode either."""
+        ⚠ Use the word of the book: `charm_noun`, and "Arrays" for an Alchemical.
+        `view.uses_arrays` is the one place that decides the word for a character. Never
+        write either word in this code."""
         return "Arrays" if viewmod.uses_arrays(self._ruleset, self._char()) \
             else "Combos"
 
     def _combos_page(self):
         """The Combos (or Arrays) sub-tab — `qt/combos.py`.
 
-        ⚠ Its own module rather than more of this one: it is a full collection surface,
-        and this file is already the largest in the port.
+        ⚠ Keep this surface in its own module. It is a full collection surface, and this
+        file is the largest one in the port.
 
-        ⚠ `on_change` is passed THROUGH, not swallowed. A Combo costs bonus points at
-        chargen and XP in play, so building one moves both this page's readout and the
-        shell's — the hook contract every sibling page has."""
+        ⚠ Pass `on_change` THROUGH. Do not stop it here. A Combo costs bonus points at
+        chargen and XP in play. Thus a new Combo moves the readout of this page and the
+        readout of the shell. Every other page has the same hook contract."""
         return CombosPage(self._ruleset, self._ctx, notify=self._notify,
                           on_change=self._update_readout)
 
     def _form_library_page(self):
         """The Lunar Form Library: the Totem plus every animal shape recorded.
 
-        Entirely free-form — no cost, no cap, no validation, never budget- or
-        XP-audited (play-state, decision 0006). Which animals a Lunar has heart's
-        blood for is a narrative record the Storyteller adjudicates, so this is a
-        notepad, not a picker. Available on both sides of the lock."""
+        ⚠ This page is free text. It has no cost, no limit and no validation. The budget
+        audit and the XP audit never read it (play state, decision 0006). The Storyteller
+        decides which animals a Lunar has heart's blood for. Thus this page is a notepad,
+        not a picker. It is available on both sides of the lock."""
         char = self._char()
         pal = theme.palette(char.exalt_type)
         page = QWidget()
@@ -2025,10 +2049,10 @@ class CharmsPage(QWidget):
         self._forms_lay.setSpacing(2)
         scroll.setWidget(forms_host)
         lay.addWidget(scroll, 1)
-        # Pinned BELOW the scroll area, not inside it: the Add button stays at the
-        # panel bottom however many forms are listed. Inside the list it rode the
-        # content block, and a short list was vertically centred in the viewport,
-        # so the button drifted from bottom to middle on the first add.
+        # ⚠ Put the Add button BELOW the scroll area, not in it. Thus it stays at the bottom
+        # of the panel with any number of forms. In the list, the button moves with the
+        # content, and a short list is centred vertically in the viewport. The button then
+        # moves from the bottom to the middle on the first add.
         add = QPushButton("+ Add form")
         add.clicked.connect(self._add_form)
         lay.addWidget(add)
@@ -2044,8 +2068,8 @@ class CharmsPage(QWidget):
         self._rebuild_forms()
 
     def _rebuild_forms(self) -> None:
-        """Rebuild just the forms list (the totem field and the pinned Add button
-        survive, so typing in either is not interrupted by an add/remove)."""
+        """Rebuild the forms list only. The totem field and the Add button stay. Thus an add
+        or a remove does not stop the user from typing in either one."""
         self._clear_lay(self._forms_lay)
         char = self._char()
         if not char.animal_forms:
@@ -2066,19 +2090,20 @@ class CharmsPage(QWidget):
             rm.clicked.connect(lambda _, i=i: self._remove_form(i))
             row.addWidget(rm)
             self._forms_lay.addLayout(row)
-        # Top-anchor the list: without a trailing stretch a short list is vertically
-        # centred in the scroll viewport, and the rows drift as forms are added.
+        # ⚠ Add a stretch at the end of the list. Without it, a short list is centred
+        # vertically in the scroll viewport, and each new form moves the rows.
         self._forms_lay.addStretch(1)
 
     def _vat_page(self):
         """The Vat Refit page: swap Charms between the installed Slots and the
         Panoply (Alchemical CH2/CH3 pp.88-89, or an Eclipse with a crossover Slot).
-        Play-state like the Form Library — the Charms are already paid for, so the
-        move costs nothing and writes no XP entry; only *which* are worn changes.
+        This page holds play state, as the Form Library does. The character has already paid
+        for the Charms. Thus a move costs nothing and writes no XP entry. It changes *which*
+        Charms are installed.
 
-        The load readout is refit.slot_load (the LIVE load), deliberately not
-        charm_slot_budget (the frozen chargen snapshot) — conflating the two is the
-        refit module's documented bug to avoid."""
+        ⚠ Read the load from `refit.slot_load`, which is the LIVE load. Do not read
+        `charm_slot_budget`, which is the chargen snapshot. The refit module records that
+        difference."""
         char = self._char()
         pal = theme.palette(char.exalt_type)
         page = QWidget()
@@ -2121,8 +2146,8 @@ class CharmsPage(QWidget):
         self._rebuild_vat()
 
     def _refit_row(self, charm_id: str, *, installed: bool) -> None:
-        """One installed/Panoply Charm: name + the trait bits that decide which Slot
-        it fits, the block reason if a move is refused, and the move button."""
+        """One Charm in the installed set or in the Panoply. It shows the name, the traits
+        that decide its Slot, the reason for a refused move, and the move button."""
         ruleset, char = self._ruleset, self._char()
         charm = ruleset.charms.get(charm_id)
         name = charm.name if charm is not None else charm_id
@@ -2160,8 +2185,8 @@ class CharmsPage(QWidget):
         self._vat_content_lay.addLayout(row)
 
     def _rebuild_vat(self) -> None:
-        """Rebuild the Vat page body: the live load readout, the Ox-Body note, then
-        the INSTALLED and PANOPLY rows. Rebuilt after every move."""
+        """Rebuild the body of the Vat page. It holds the live load readout, the Ox-Body
+        note, and then the INSTALLED rows and the PANOPLY rows. Call this after each move."""
         self._clear_lay(self._vat_content_lay)
         ruleset, char = self._ruleset, self._char()
         pal = theme.palette(char.exalt_type)
@@ -2187,8 +2212,9 @@ class CharmsPage(QWidget):
             note.setStyleSheet(f"color:{MUTED}; font-style:italic;")
             self._vat_content_lay.addWidget(note)
         self._vat_content_lay.addWidget(self._section_header("INSTALLED", pal))
-        # The refittable installed set — ox_body and PLM Charms occupy Slots but are
-        # not swappable, so they stay off this list (the web computes the same way).
+        # The installed Charms that the user can move. ⚠ An ox_body Charm and a PLM Charm
+        # use a Slot, and the user cannot move them. Thus they stay off this list. The web
+        # app calculates the same set.
         slotted = [cid for cid in char.charms
                    if (ch := ruleset.charms.get(cid)) is not None
                    and validate.charm_occupies_slot(ruleset, char, ch)]
@@ -2208,11 +2234,11 @@ class CharmsPage(QWidget):
         self._vat_content_lay.addStretch(1)
 
     # ---- Augmentation templates (Alchemical 'general') ---------------------- #
-    # The 18 '<Type> Augmentation of <Attribute>' Charms stay distinct ids in the
-    # data (other Charms name a specific one as a prerequisite) but render as TWO
-    # groups — Transitory / Sustained — each with a per-Attribute picker, mirroring
-    # the web picker's collapsed cards. `build_augmentation_view` supplies the rows;
-    # the toggle is the same state change as a tree-node Charm buy.
+    # ⚠ The 18 '<Type> Augmentation of <Attribute>' Charms keep separate ids in the data,
+    # because other Charms name one of them as a prerequisite. This page renders them as TWO
+    # groups, Transitory and Sustained, and each group has a picker for the Attributes. The
+    # web picker uses the same collapsed cards. `build_augmentation_view` supplies the rows.
+    # The toggle makes the same state change as a purchase on a tree node.
 
     def _augment_page(self):
         """The Alchemical augmentations page: one card per type (Transitory /
@@ -2238,9 +2264,8 @@ class CharmsPage(QWidget):
         return page
 
     def _rebuild_augments(self) -> None:
-        """Rebuild the two type cards from a live read — install state changes with
-        every toggle, so a stored group's `owned` flags go stale (the picker's
-        stale-selection trap)."""
+        """Rebuild the two type cards from a live read. ⚠ Each toggle changes the install
+        state. Thus the `owned` flags of a stored group hold old values."""
         self._clear_lay(self._augment_lay)
         for group in build_augmentation_view(self._ruleset, self._char()):
             self._augment_lay.addWidget(self._augment_card(group))
@@ -2272,9 +2297,9 @@ class CharmsPage(QWidget):
         return card
 
     def _open_augment_dialog(self, group) -> None:
-        """A checkbox per Attribute for one type; toggling installs/removes it
-        immediately (the same guards as a tree-node buy), then re-syncs the checkbox
-        to the actual state — a refused toggle stays as it was."""
+        """One checkbox for each Attribute of one type. A toggle installs or removes that
+        Attribute immediately, with the same checks as a purchase on a tree node. It then
+        sets the checkbox to the real state. ⚠ A refused toggle keeps its old state."""
         char = self._char()
         dialog = QDialog(self)
         dialog.setWindowTitle(group.title)
@@ -2282,7 +2307,8 @@ class CharmsPage(QWidget):
         intro = QLabel("Each installed Augmentation occupies a Charm Slot.")
         intro.setStyleSheet(f"color:{MUTED};")
         lay.addWidget(intro)
-        # Re-read the group so the checkbox states are live, not the card's snapshot.
+        # ⚠ Read the group again. Thus the checkbox states are live, and they are not the
+        # snapshot of the card.
         grp = next((g for g in build_augmentation_view(self._ruleset, char)
                     if g.title == group.title), group)
         locked = char.chargen_locked
@@ -2290,8 +2316,9 @@ class CharmsPage(QWidget):
             row = QHBoxLayout()
             cb = QCheckBox(e.attribute)
             cb.setChecked(e.owned)
-            # An owned copy is not droppable in play (undo on the Edit tab); an
-            # unavailable one is locked behind its requirement, shown as the reason.
+            # In play, the user cannot drop a copy that the character owns. The undo is on
+            # the Edit tab. A copy that is not available has an unsatisfied requirement, and
+            # this code shows that requirement as the reason.
             if (locked and e.owned) or (not e.owned and not e.available):
                 cb.setEnabled(False)
             cb.toggled.connect(lambda checked, cid=e.charm_id, c=cb:
@@ -2310,9 +2337,10 @@ class CharmsPage(QWidget):
         dialog.exec()
 
     def _toggle_augment(self, charm_id: str, cb) -> None:
-        """The state change is `_toggle_charm`'s (guards, notify, both sides of the
-        lock); the checkbox is then re-synced to the truth, since a buy or remove can
-        be refused — requirements, a dependent Charm, or an advancement error."""
+        """`_toggle_charm` makes the state change. It applies the checks, it shows a message,
+        and it operates on both sides of the lock. ⚠ Then set the checkbox to the real state.
+        A purchase or a removal can be refused by a requirement, by a Charm that depends on
+        it, or by an advancement error."""
         owned = charm_id in self._char().charms
         if cb.isChecked() == owned:
             return
@@ -2324,11 +2352,12 @@ class CharmsPage(QWidget):
         self._rebuild_augments()
 
     # ---- Variant-menu packages (Ox-Body, Deadly Beastman Gifts) ------------ #
-    # Neither Charm is toggleable: each purchase is a PACKAGE of picks landing in its
-    # own character field, so the node's action button opens this instead of Learn.
-    # ONE dialog for both, off `view.build_package_menu` — Ox-Body picks one variant
-    # of two, Gifts pick 2-then-1 out of a prerequisite-chained roster, and the only
-    # difference the widget sees is `menu.needed` and the picks' reasons.
+    # ⚠ Neither Charm has a toggle. Each purchase is a PACKAGE of picks, and it writes to
+    # its own field on the character. Thus the action button of the node opens this dialog,
+    # and it does not offer Learn. ONE dialog serves both, and `view.build_package_menu`
+    # supplies it. Ox-Body selects one variant of two. Gifts select two, then one, from a
+    # list with prerequisites. The widget sees one difference: `menu.needed`, and the
+    # reasons of the picks.
 
     def _open_package_dialog(self, charm_id: str) -> None:
         dialog = self._build_package_dialog(charm_id)
@@ -2336,15 +2365,17 @@ class CharmsPage(QWidget):
             dialog.exec()
 
     def _build_package_dialog(self, charm_id: str):
-        """Build the package chooser WITHOUT running it (`exec()` blocks a headless
-        run, so this is the tested seam — the Gear and Advantages pages' shape).
-        None when `charm_id` is not a variant-menu Charm.
+        """Build the package chooser and do NOT run it. `exec()` stops a headless run, thus
+        this is the seam that the tests drive. The Gear page and the Advantages page use the
+        same shape. Returns None when `charm_id` is not a variant-menu Charm.
 
-        The dialog shows the packages already bought (each removable pre-lock), then a
-        checkbox per pick, then Add/Buy. The selection is local and only reaches the
-        character on confirm, so Cancel is a true cancel. Legality is not decided
-        here — the picks' reasons come from `view.build_package_menu` and the purchase
-        from `engine.charm_actions`, which refuses an over-cap or unaffordable buy.
+        The dialog shows the packages that the character owns, and the user can remove each
+        one before the lock. Below them it shows one checkbox for each pick, then Add or
+        Buy. The selection stays in the dialog, and it reaches the character on a confirm
+        only. Thus Cancel changes nothing. ⚠ This dialog does not decide legality.
+        `view.build_package_menu` supplies the reasons of the picks, and
+        `engine.charm_actions` makes the purchase. That module refuses a purchase above the
+        limit, and a purchase that the character cannot pay for.
 
         Handles for tests and for the rebuild: `.selection`, `.checks` (keyed by pick
         key — never index a `findChildren` list), `.confirm`, `.rebuild`."""
@@ -2362,8 +2393,8 @@ class CharmsPage(QWidget):
         scroll.setWidget(inner)
         outer.addWidget(scroll, 1)
         selection: list[str] = []
-        # The live menu's shape, as one-element lists so the handlers below read what
-        # the LAST rebuild computed rather than a snapshot taken before any purchase.
+        # The shape of the live menu, in lists of one element. Thus the handlers below read
+        # the values of the LAST rebuild, not a copy from before a purchase.
         menu_needed = [1]
         menu_kind = [""]
         sync_parts: list = []    # [the "Choose N" label, {pick key: its reason label}]
@@ -2389,15 +2420,16 @@ class CharmsPage(QWidget):
                     selection.remove(key)
                 selection[:] = prune_package_selection(
                     self._ruleset, self._char(), charm_id, selection)
-            # ⚠ SYNC, never rebuild. A pick changes no row's existence, and tearing
-            # the rows down under the click sent the scroll area to the bottom —
-            # deleting the focused checkbox hands focus on, and a QScrollArea scrolls
-            # to whatever has it. Only a buy or a remove changes the dialog's shape.
+            # ⚠ SYNC the rows. Never rebuild them. A pick adds no row and removes no row. A
+            # rebuild below the click moves the scroll area to its bottom, because a delete
+            # of the focused checkbox gives the focus to another widget, and a QScrollArea
+            # scrolls to that widget. Only a purchase or a removal changes the shape of this
+            # dialog.
             sync()
 
         def buy() -> None:
-            # ⚠ Each kind lands on its OWN Character list, so the dispatcher is chosen
-            # by `menu.kind` and never by the shape of the selection.
+            # ⚠ Each kind writes to its OWN list on the Character. Thus `menu.kind` selects
+            # the dispatcher. Never select it from the shape of the selection.
             if menu_kind[0] == "gift":
                 ok = self._act(charm_actions.add_gift_purchase, self._ruleset,
                                self._char(), sorted(selection))
@@ -2421,8 +2453,8 @@ class CharmsPage(QWidget):
                 rebuild()
 
         def rebuild() -> None:
-            # A remove changes the held list above the picks, so the rows really are
-            # rebuilt here — hold the scroll where the reader left it.
+            # A removal changes the list of owned packages above the picks. Thus this code
+            # rebuilds the rows. Keep the scroll position of the user.
             at = scroll.verticalScrollBar().value()
             QTimer.singleShot(0, lambda: scroll.verticalScrollBar().setValue(at))
             clear_layout(body)
@@ -2434,18 +2466,18 @@ class CharmsPage(QWidget):
             menu_needed[0] = menu.needed
             menu_kind[0] = menu.kind
             pal = theme.palette(char.exalt_type)
-            # The Charm's own description is NOT repeated here — it is already in the
-            # detail pane this dialog opened from, and Deadly Beastman's runs eleven
-            # lines, which pushes the picks themselves off the first screen.
+            # ⚠ Do NOT repeat the description of the Charm here. The detail pane that opened
+            # this dialog shows it. The description of Deadly Beastman is eleven lines, and
+            # it moves the picks off the first screen.
             if menu.note:
                 note = QLabel(menu.note)
                 note.setWordWrap(True)
                 note.setStyleSheet(f"color:{MUTED};")
                 body.addWidget(note)
-            # What caps the purchases is per-splat data, never a literal: Lunar
-            # Ox-Body counts Stamina where every other splat counts Endurance, and a
-            # unique-version menu is capped by its versions instead — `cap_phrase`
-            # is the ONE place that sentence is composed.
+            # ⚠ The limit on the purchases comes from the data of the splat. Never write it
+            # in the code. Lunar Ox-Body counts Stamina, and every other splat counts
+            # Endurance. A unique-version menu takes its limit from its versions.
+            # `cap_phrase` is the ONE place that builds that sentence.
             head = QLabel(f"Bought {menu.bought} / {menu.cap}  ·  {menu.cap_phrase}")
             head.setStyleSheet(f"font-weight:bold; color:{accent_light(pal)};")
             body.addWidget(head)
@@ -2478,8 +2510,9 @@ class CharmsPage(QWidget):
                     rep = QLabel(f"repeatable ×{pick.max_purchases}")
                     rep.setStyleSheet(f"color:{MUTED};")
                     row.addWidget(rep)
-                # Built empty even when the pick is free right now: its reason appears
-                # and disappears as the selection moves, and `sync` only sets text.
+                # Build this label empty, also when the pick has no reason now. The reason
+                # appears and goes away as the selection changes, and `sync` writes text
+                # only.
                 why = QLabel("")
                 why.setStyleSheet("color:#b45309; font-style:italic;")
                 reasons[pick.key] = why
@@ -2497,9 +2530,9 @@ class CharmsPage(QWidget):
             sync()
 
         def sync() -> None:
-            """Re-derive the pick rows in place from the current selection: what is
-            ticked, what is now pickable, each row's reason, and the confirm button.
-            Creates and destroys nothing, so the scroll position holds."""
+            """Update the pick rows in place from the current selection. It sets the ticks,
+            the rows that the user can pick, the reason of each row, and the confirm button.
+            ⚠ It creates no widget and deletes no widget. Thus the scroll position stays."""
             menu = build_package_menu(self._ruleset, self._char(), charm_id, selection)
             if menu is None:
                 return
@@ -2513,8 +2546,9 @@ class CharmsPage(QWidget):
                 cb.blockSignals(True)
                 cb.setChecked(picked)
                 cb.blockSignals(False)
-                # A one-pick menu never disables an unpicked row — picking replaces —
-                # so its variants stay clickable the way radio buttons would.
+                # ⚠ A menu with one pick never disables a row that the user did not pick. A
+                # new pick replaces the old one. Thus its variants stay clickable, as radio
+                # buttons do.
                 blocked = bool(pick.reason) or (full and menu.needed > 1)
                 cb.setEnabled(picked or not blocked)
                 reasons[pick.key].setText(pick.reason)
@@ -2534,10 +2568,11 @@ class CharmsPage(QWidget):
         return lbl
 
     def _elemental_page(self):
-        """The Elemental Powers page: Elemental-origin God-Blooded only (Core p.296,
-        GoD p.56, PG p.68). A Charm-like catalogue — 7 BP each chargen, 14 XP in play
-        (double the bonus-point value, PG p.68). Selection drives the shared detail
-        pane and the Learn/Remove action button, exactly like Spells and Thaum."""
+        """The Elemental Powers page. It applies to a God-Blooded with an Elemental origin
+        only (Core p.296, GoD p.56, PG p.68). It is a catalogue like the Charms catalogue.
+        One power costs 7 bonus points at chargen, and 14 XP in play, which is twice the
+        bonus-point value (PG p.68). A selection fills the shared detail pane and sets the
+        Learn or Remove button, as the Spells page and the Thaumaturgy page do."""
         char = self._char()
         pal = theme.palette(char.exalt_type)
         page = QWidget()
@@ -2555,9 +2590,9 @@ class CharmsPage(QWidget):
         return page
 
     def _rebuild_elemental(self) -> None:
-        """Rebuild the power list from a fresh picker so owned/available state is
-        live, then re-select the previously selected id (a stored row's owned flag
-        goes stale the moment the list is rebuilt)."""
+        """Rebuild the power list from a new picker. Thus the owned state and the available
+        state are live. Then select the same id again. ⚠ The owned flag of a stored row is
+        old after a rebuild of the list."""
         picker = build_elemental_power_picker(self._ruleset, self._char())
         self._elemental_list.clear()
         for row in picker.powers:
@@ -2590,9 +2625,10 @@ class CharmsPage(QWidget):
         self._update_action()
 
     def _elemental_detail_html(self, row, currency: str | None = None) -> str:
-        """The detail pane for an ElementalPowerRow: name, Requires, Cost, activation
-        (italic) and description. The shared `_detail_html` reads `requirement`/`type`,
-        which this row does not carry, so it gets its own small formatter."""
+        """The detail pane for an ElementalPowerRow. It shows the name, Requires, Cost, the
+        activation in italic text, and the description. ⚠ The shared `_detail_html` reads
+        `requirement` and `type`, and this row has neither field. Thus this row needs its
+        own formatter."""
         if currency is None:
             currency = "XP" if self._char().chargen_locked else "BP"
         lines = []
@@ -2612,10 +2648,11 @@ class CharmsPage(QWidget):
         return "<br>".join(parts)
 
     def _toggle_elemental(self, power_id: str) -> None:
-        """The web picker's elemental toggle, ported. Pre-lock: edit the chargen list
-        directly, gated by `validate.meets_elemental_power_requirements` (the 7-BP
-        charge is validation-side). Post-lock: `advancement.learn_elemental_power`
-        (14 XP); a known power is not droppable in play — undo on the Edit tab."""
+        """Toggle one Elemental Power. Before the lock, this method writes the chargen list
+        directly, and `validate.meets_elemental_power_requirements` controls it. The
+        validation side applies the 7-BP charge. After the lock, it calls
+        `advancement.learn_elemental_power`, which costs 14 XP. ⚠ In play, the user cannot
+        drop a power that the character knows. The undo is on the Edit tab."""
         ruleset, char = self._ruleset, self._char()
         if char.chargen_locked:
             if power_id in char.elemental_powers:
@@ -2647,23 +2684,26 @@ class CharmsPage(QWidget):
         self._refresh_elemental()
 
     def _refresh_elemental(self) -> None:
-        """After a toggle: rebuild the list (re-selecting the same id), refresh the
-        detail + action button, and the readout. Not routed through
-        `_refresh_current_tree` — that re-renders a CharmTreeView, wrong-shaped here."""
+        """Refresh this page after a toggle. Rebuild the list and select the same id again,
+        refresh the detail pane and the action button, and refresh the readout. ⚠ Do not
+        call `_refresh_current_tree`. That method renders a CharmTreeView, and this page has
+        no tree."""
         self._rebuild_elemental()
         self._update_readout()
 
     def _paths_page(self):
-        """The Dragon-King Paths page (PG pp.175-177): a rated-track subsystem with
-        its own chargen pool, NOT Charms. Each Path is rated 1-6 (learned in fixed
-        order, gated by Essence); each dot grants that level's power. Pre-lock the
-        rating is a free setter into character.paths; post-lock it becomes XP +/-
-        via advancement. The breed's two element Paths are auto-favoured (★) and the
-        player chooses one more (✚) from the other eight.
+        """The Dragon-King Paths page (PG pp.175-177). ⚠ A Path is a rated track with its own
+        chargen pool. It is NOT a Charm. Each Path has a rating of 1 to 6. The user learns
+        the dots in a fixed order, and Essence controls them. Each dot grants the power of
+        that level. Before the lock, the rating writes to `character.paths` and costs
+        nothing. After the lock, `advancement` raises and lowers it with XP. The two element
+        Paths of the breed are favoured automatically (★), and the user selects one more (✚)
+        from the other eight.
 
-        A selectable list, like Spells: picking a Path fills the shared detail pane
-        with its powers and the next-dot cost, the action button carries the buy
-        price, and the rating is a dot track bound to the selected Path."""
+        This page is a selectable list, as the Spells page is. A selected Path fills the
+        shared detail pane with its powers and the cost of the next dot. The action button
+        shows the purchase price. The rating is a dot track that is bound to the selected
+        Path."""
         char = self._char()
         pal = theme.palette(char.exalt_type)
         page = QWidget()
@@ -2695,12 +2735,15 @@ class CharmsPage(QWidget):
         return page
 
     def _build_favoured_picker(self, fav_row) -> None:
-        """The Favoured Path combo (a plain read-only label once locked): one choice
-        from the eight non-breed Paths. ⚠ A saved `favored_path` that is one of the
-        breed's two (an illegal-but-possible state) must still be an option — a combo
-        whose value is absent from its options misbehaves — and never index
-        `ruleset.paths[saved]` directly: a stale id from a catalogue rename would
-        KeyError and take the whole tab down (the web's setdefault fallback)."""
+        """The Favoured Path combo box. After the lock it is a read-only label. The user
+        selects one of the eight Paths that are not breed Paths.
+
+        ⚠ Keep a saved `favored_path` in the options, also when it is one of the two breed
+        Paths. That state is illegal and it can occur, and a combo box whose value is not in
+        its options does not operate correctly.
+
+        ⚠ Never index `ruleset.paths[saved]` directly. An old id from a rename in the
+        catalogue raises a KeyError, and the whole tab fails."""
         ruleset, char = self._ruleset, self._char()
         breed_el = engine_paths.breed_element(ruleset, char)
         breed_path_ids = {p.id for p in ruleset.paths.values() if p.element == breed_el}
@@ -2726,8 +2769,8 @@ class CharmsPage(QWidget):
         else:
             combo.setCurrentIndex(0)
         combo.blockSignals(False)
-        # ⚠ Capture the combo as a default arg — a bare `combo` in the closure is the
-        # shared local, and a rebuild after the change must read THIS one.
+        # ⚠ Capture the combo box in a default argument. A `combo` name in the closure reads
+        # the shared local variable, and a rebuild after the change must read THIS box.
         combo.currentIndexChanged.connect(lambda _, c=combo: (
             setattr(char, "favored_path", c.currentData() or ""),
             self._rebuild_paths_list()))
@@ -2735,9 +2778,10 @@ class CharmsPage(QWidget):
         fav_row.addWidget(combo, 1)
 
     def _rebuild_paths_list(self) -> None:
-        """Rebuild the selectable Path list (★/✚ markers, element, held rating),
-        re-selecting the current Path with signals blocked so no selection handler
-        runs mid-rebuild. Clears the path pane when nothing survives (a reload)."""
+        """Rebuild the Path list, with the ★ and ✚ markers, the element and the rating.
+        ⚠ Select the current Path again with the signals blocked. Thus no selection handler
+        runs during the rebuild. Clear the Path pane when the list holds no Path, which
+        happens on a reload."""
         ruleset, char = self._ruleset, self._char()
         ratings = {p.path_id: p.rating for p in char.paths}
         breed_el = engine_paths.breed_element(ruleset, char)
@@ -2763,8 +2807,9 @@ class CharmsPage(QWidget):
             self._update_action()
 
     def _path_selected(self, current, _prev) -> None:
-        """A Path picked from the list: it owns the shared detail/action/rating pane —
-        the Spells-list pattern."""
+        """Handle a Path that the user selects in the list. That Path fills the shared
+        detail pane, the action button and the rating track. The Spells list uses the same
+        shape."""
         if current is None:
             self._selected_path = None
             self._path_box.setVisible(False)
@@ -2793,8 +2838,9 @@ class CharmsPage(QWidget):
         self._rebuild_path_track(self._selected_path)
 
     def _update_path_detail_text(self, path) -> None:
-        """The detail pane for a Path: name, element, the granted powers (one per held
-        dot), and the XP step for the next dot."""
+        """The detail pane for a Path. It shows the name, the element, the granted powers,
+        with one power for each dot that the character holds, and the XP cost of the next
+        dot."""
         if path is None:
             self.detail.setHtml("<b>Unknown Path</b>")
             return
@@ -2824,10 +2870,10 @@ class CharmsPage(QWidget):
         self.detail.setHtml("<br>".join(parts))
 
     def _rebuild_path_track(self, path_id: str) -> None:
-        """A fresh DotTrack bound to one Path, dropped into the hidden rating row
-        (which a selection shows). Rebuilt per selection — the DotTrack captures
-        get/setv at construction, so it cannot be re-bound in place. Never called
-        from inside a track's own handler; the track refreshes itself there."""
+        """A new DotTrack for one Path, in the hidden rating row. A selection shows that
+        row. ⚠ Build a new track for each selection. The DotTrack captures `get` and `setv`
+        in its constructor, thus you cannot bind it again in place. ⚠ Never call this method
+        from inside the handler of a track. The track refreshes itself there."""
         while self._path_box_lay.count():
             item = self._path_box_lay.takeAt(0)
             w = item.widget()
@@ -2857,10 +2903,11 @@ class CharmsPage(QWidget):
         self._path_box_lay.addWidget(track)
 
     def _set_path_rating(self, path_id: str, rating: int) -> None:
-        """Pre-lock free setter into character.paths (validation via validate_chargen):
-        a rating of 0 removes the Path, otherwise append or update the PathRating.
-        Refreshes the list/detail/action/readout but NOT the dot track — this runs
-        from inside the track's own click handler, which refreshes itself."""
+        """Write a Path rating before the lock. It costs nothing, and `validate_chargen`
+        validates it. A rating of 0 removes the Path. Any other rating adds or updates the
+        PathRating. This method refreshes the list, the detail pane, the action button and
+        the readout. ⚠ It does NOT refresh the dot track. It runs inside the click handler of
+        that track, and the track refreshes itself."""
         char = self._char()
         existing = next((p for p in char.paths if p.path_id == path_id), None)
         if rating <= 0:
@@ -2876,9 +2923,9 @@ class CharmsPage(QWidget):
         self._update_readout()
 
     def _path_buy(self, path_id: str, current: int, wanted: int, refresh) -> None:
-        """Post-lock XP raise/lower of a Path to `wanted` dots, via advancement (each
-        dot its own XP step, PG p.176). `refresh` is the DotTrack's own pip refresh —
-        the track must not be rebuilt from inside its own callback."""
+        """Raise or lower a Path to `wanted` dots after the lock, through `advancement`. Each
+        dot is its own XP step (PG p.176). `refresh` is the pip refresh of the DotTrack.
+        ⚠ Never rebuild the track from inside its own callback."""
         ruleset, char = self._ruleset, self._char()
         try:
             if wanted > current:
@@ -2898,9 +2945,10 @@ class CharmsPage(QWidget):
         self._update_readout()
 
     def _path_act(self) -> None:
-        """The action button for a selected Path: one-dot raise — free from the
-        chargen pool pre-lock, an XP step post-lock (a new Path is learned first).
-        The dot track is rebuilt here (an external click, safe) so its pips agree."""
+        """The action button for a selected Path. It raises the Path by one dot. Before the
+        lock, the chargen pool pays for it. After the lock, it is an XP step, and a new Path
+        must be learned first. This method rebuilds the dot track, thus its pips agree. That
+        rebuild is safe, because the click comes from outside the track."""
         path_id = self._selected_path
         if path_id is None:
             return
@@ -2924,8 +2972,9 @@ class CharmsPage(QWidget):
         self._update_readout()
 
     def _rebuild_paths(self) -> None:
-        """Full Paths refresh (reload / external change): rebuild the list and the
-        selected Path's detail + dot track, and refresh the readout."""
+        """Refresh the full Paths page, after a reload or a change from outside. Rebuild the
+        list, the detail pane of the selected Path and its dot track, then refresh the
+        readout."""
         self._rebuild_paths_list()
         if self._selected_path is not None:
             self._update_path_detail()
@@ -2933,9 +2982,9 @@ class CharmsPage(QWidget):
         self._update_readout()
 
     def _art_selected(self, tree):
-        """The Arts tree's selection: an Art or one of its specialties. Sets
-        `_selected_thaum` to ("art", row) or ("art_specialty", art, spec) and shows
-        the detail."""
+        """Handle a selection in the Arts tree. The selection is an Art or one of its
+        specialties. This method sets `_selected_thaum` to ("art", row) or to
+        ("art_specialty", art, spec), and it shows the detail."""
         item = tree.currentItem()
         self._selected_node = None
         self._selected_spell = None
@@ -2950,7 +2999,7 @@ class CharmsPage(QWidget):
         self._update_action()
 
     def _thaum_currency(self) -> str:
-        """'BP' or 'XP' — which budget Thaumaturgy is being bought with right now."""
+        """The budget that pays for Thaumaturgy now. Returns 'BP' or 'XP'."""
         return build_thaum_picker(self._ruleset, self._char()).currency
 
     def _fill_list(self, entries, items):
@@ -2980,36 +3029,36 @@ class CharmsPage(QWidget):
             self._show_thaum_detail()
         else:
             self._selected_thaum = None
-            # A Spell carries a circle; a Thaumaturgy entry does not — that is how
-            # the action button knows a spell row is selected and can offer to learn it.
+            # A Spell has a circle, and a Thaumaturgy entry does not. Thus the action button
+            # identifies a spell row, and it can offer to learn that spell.
             self._selected_spell = obj.id if getattr(obj, "circle", None) else None
             self.detail.setHtml(_detail_html(obj) if obj is not None
                                 else f"<b>{item.text()}</b>")
         self._update_action()
 
     def reload(self):
-        """Rebuild the tab bar for the current character: a tree tab per non-empty
-        group, then Spells, Thaumaturgy and the splat-specific extras."""
+        """Rebuild the tab bar for the current character. It adds one tree tab for each group
+        that has content, then Spells, then Thaumaturgy, then the extra pages of the
+        splat."""
         char = self._char()
         self._tree_views.clear()
-        # Reset every selection: a reload rebuilds the pages, so any remembered
-        # selection points at widgets that no longer exist (or, worse, still exists
-        # but is a different character's entry).
+        # ⚠ Clear every selection. A reload rebuilds the pages. Thus a stored selection
+        # points at a widget that no longer exists, or at an entry of a different character.
         self._selected_node = None
         self._selected_spell = None
         self._selected_thaum = None
         self._selected_elemental = None
         self._selected_augment = None
         self._selected_path = None
-        # Block tab signals across the rebuild: the QTabWidget fires currentChanged
-        # during clear()/addTab (the qt-port.md construction trap), and with several
-        # gated builders a mid-build signal could poke a panel that is only half
-        # built. `_tab_changed()` below runs explicitly once the bar is complete.
+        # ⚠ Block the tab signals across the rebuild. A QTabWidget sends `currentChanged`
+        # during `clear()` and `addTab` (see `docs/plans/qt-port.md`). This page has several
+        # conditional builders, thus a signal during the build reaches a panel that is not
+        # complete. The code below calls `_tab_changed()` after the bar is complete.
         self.tabs.blockSignals(True)
         try:
             self.tabs.clear()
-            # ⚠ Built fresh HERE, and deliberately not stored on the page: it is only
-            # valid for this one rebuild, against this character and this catalogue.
+            # ⚠ Build this memo HERE, and do not store it on the page. It is valid for this
+            # one rebuild only, against this character and this catalogue.
             cache: dict = {}
             for group, label in (("abilities", "Charms"), ("styles", "Martial Arts"),
                                  ("arcanoi", "Arcanoi")):
@@ -3018,12 +3067,11 @@ class CharmsPage(QWidget):
             if _cached(cache, "augmentation_category",
                        lambda: augmentation_category(self._ruleset, char)) is not None:
                 self.tabs.addTab(self._augment_page(), "Augmentations")
-            # Combos sit with the Charms they are assembled from (2026-08-21, the
-            # human's call) — on the webapp this is a top-level tab, and the two were a
-            # rail apart. ⚠ The show/hide rule came WITH it: `has_combos_tab` is false
-            # for a splat that builds neither Combos nor Arrays (the dead may never
-            # learn Combos — E:Ab p.234), and an empty tab answering every attempt with
-            # a validation error is worse than no tab.
+            # Combos go with the Charms that build them (human's ruling). On the webapp,
+            # Combos is a top-level tab. ⚠ This page also holds the show/hide rule.
+            # `has_combos_tab` is false for a splat that builds neither Combos nor Arrays,
+            # for example the dead, who can never learn Combos (E:Ab p.234). An empty tab
+            # that answers each attempt with a validation error is worse than no tab.
             if viewmod.has_combos_tab(self._ruleset, char):
                 self.tabs.addTab(self._combos_page(), self._combos_label())
             circles = spell_circles(self._ruleset, char)
@@ -3054,21 +3102,20 @@ class CharmsPage(QWidget):
                                      f"{len(view.graph.edges)} edges")
         else:
             self.count_label.setText("")
-        # The Path rating row lives in the shared detail panel but belongs to the
-        # Paths page alone — hide it (and drop the stale selection) on any other tab.
+        # The Path rating row is in the shared detail panel, and it belongs to the Paths page
+        # only. ⚠ Hide it on every other tab, and drop the old selection.
         if self.tabs.currentWidget() is not getattr(self, "_paths_page_widget", None):
             if self._selected_path is not None:
                 self._selected_path = None
                 self._path_box.setVisible(False)
-        # A summary-node selection lives on a tree tab; drop it elsewhere.
+        # A summary-node selection belongs to a tree tab. Drop it on every other tab.
         if self._selected_augment is not None:
             self._selected_augment = None
-        # ⚠ The Combos sub-tab is the ONE that brings its own detail pane. Every other
-        # sub-tab is a content pane that FEEDS the shared one, so leaving it up beside
-        # `CombosPage`'s splitter put two detail panes on screen — the real one, and an
-        # empty column saying "Select an entry to see details." A page added to a shell
-        # inherits a layout contract from its siblings; this one breaks it deliberately,
-        # so it has to say so here.
+        # ⚠ The Combos sub-tab is the ONE sub-tab with its own detail pane. Every other
+        # sub-tab is a content pane that FILLS the shared pane. Thus the shared pane next to
+        # the splitter of `CombosPage` puts two detail panes on the screen: the real one,
+        # and an empty column that says "Select an entry to see details." Hide the shared
+        # pane on this sub-tab.
         self._detail_panel.setVisible(
             not isinstance(self.tabs.currentWidget(), CombosPage))
         self._update_action()

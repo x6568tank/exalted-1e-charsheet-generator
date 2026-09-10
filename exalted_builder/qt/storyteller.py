@@ -1,29 +1,30 @@
 """exalted_builder/qt/storyteller.py — the ST Options tab: the table's optional rules.
 
-Input: a RuleSet and the shared context's Character. Output: the settled collection
-surface — a readout line, a sub-tab per scope holding a sortable table of rules, and a
-splitter with the selected rule's control in a detail pane. Mechanism: `reload()`
-rebuilds both tables from `view.build_house_rules` and re-selects the rule that was
-selected before; flipping a control writes through `engine.house_rule_actions.set_rule`
-and reloads, because a house rule changes what OTHER rows say about themselves.
+Input: a RuleSet and the Character in the shared context. Output: the collection surface.
+It has a readout line, one sub-tab for each scope with a sortable table of rules, and a
+splitter that puts the control of the selected rule in a detail pane. Mechanism:
+`reload()` rebuilds both tables from `view.build_house_rules`, then selects the rule that
+was selected before. A change to a control writes through
+`engine.house_rule_actions.set_rule` and reloads, because a house rule changes what the
+OTHER rows report about themselves.
 
-⚠ **The toggles are frozen at the lock**, and that is the whole reason this tab differs
-from the other collections. They change how chargen is PRICED, so flipping one after
-the fact retroactively re-prices a signed-off chargen. Post-lock every control is
-disabled and the readout points at Unlock — the same route as any other chargen
-correction. The webapp's tab does exactly this.
+⚠ **The toggles are frozen at the lock.** This is the difference between this tab and the
+other collections. The toggles change the PRICE of chargen. Thus a change after the lock
+prices an approved chargen again. After the lock, every control is disabled, and the
+readout shows the Unlock route. This is the route for any other chargen correction. The
+tab of the webapp operates in the same way.
 
-⚠ **`on_change` is REQUIRED here.** `magic_for_everyone` grants free purchases and
-`godblooded_inheritance_rating` moves the bonus-point pool, so a flip moves the shell's
-readout bar. (`CharmsPage` shipped without the hook for want of this check — a page
-added to the shell inherits a hook contract from its siblings.)
+⚠ **`on_change` is REQUIRED here.** `magic_for_everyone` gives free purchases, and
+`godblooded_inheritance_rating` changes the bonus-point pool. Thus a change moves the
+readout bar of the shell. A page that you add to the shell takes this hook contract from
+the other pages.
 
-⚠ **No action toolbar, deliberately.** The collection layout puts actions in one, and
-this collection has none: the rules are fixed by the books, so there is nothing to add,
-buy or delete. The absence is written down so it reads as a decision, not as drift.
+⚠ **This tab has no action toolbar.** The collection layout puts the actions in a toolbar,
+and this collection has no actions. The books fix the rules. Thus you cannot add, buy or
+delete a rule. This absence is intended.
 
-Zero game logic. Every row, every note and every label comes from `ui/view.py`; the one
-mutation goes through `engine.house_rule_actions`.
+This module has no game logic. `ui/view.py` supplies every row, every note and every
+label. The one mutation goes through `engine.house_rule_actions`.
 """
 
 from __future__ import annotations
@@ -45,9 +46,9 @@ from .theme import MUTED, accent as accent_light
 
 _COLUMNS = ("Rule", "Setting", "Source")
 
-# The scopes, in the order the tab shows them. ⚠ Read from the presenter rather than
-# hardcoded: `HouseRules` marks each field TABLE-WIDE or PER-CHARACTER, and a party-wide
-# "apply to all" control may only ever touch the first of these.
+# The scopes, in the order that the tab shows them. ⚠ Read the scopes from the presenter.
+# Do not write them in the code. `HouseRules` marks each field TABLE-WIDE or
+# PER-CHARACTER. A party-wide "apply to all" control can change a TABLE-WIDE field only.
 _SCOPES = ("table", "character")
 
 _LOCKED_NOTE = (
@@ -59,9 +60,9 @@ _LOCKED_NOTE = (
 
 
 class StorytellerPage(QWidget):
-    """The tab widget. `reload()` rebuilds the tables for the character in ctx;
-    `notify` surfaces transient messages; `on_change` pings the shell so its readout bar
-    and status strip re-derive after a rule moves the accounting."""
+    """The tab widget. `reload()` rebuilds the tables for the character in ctx. `notify`
+    shows a temporary message. `on_change` calls the shell, thus the shell calculates its
+    readout bar and its status strip again after a rule changes the accounting."""
 
     def __init__(self, ruleset, ctx, *, notify=None, on_change=None, parent=None):
         super().__init__(parent)
@@ -69,9 +70,9 @@ class StorytellerPage(QWidget):
         self._ctx = ctx
         self._notify = notify or (lambda text, kind="info": None)
         self._on_change = on_change
-        # The selection is the rule's FIELD NAME, not a row position — the row set is
-        # fixed and a field survives any rebuild, so there is no slid-into-that-slot
-        # hazard here.
+        # The selection is the FIELD NAME of the rule, not a row position. The set of rows
+        # is fixed, and a field name stays correct through a rebuild. Thus a different rule
+        # cannot move into the selected position.
         self._selected: str | None = None
 
         self.readout = QLabel("")
@@ -90,21 +91,21 @@ class StorytellerPage(QWidget):
             table.setRootIsDecorated(False)
             table.setAlternatingRowColors(True)
             table.setSortingEnabled(True)
-            # ⚠ Sortable, but not sorted to start with. Enabling sorting sorts by
-            # column 0 immediately, which threw the rules into alphabetical order and
-            # lost the presenter's — which is the order the BOOKS introduce them in,
-            # Magic for Everyone first. `-1` clears the indicator and leaves insertion
-            # order until the player clicks a header.
+            # ⚠ The table is sortable, but it starts unsorted. `setSortingEnabled(True)`
+            # sorts by column 0 immediately. That puts the rules in alphabetical order and
+            # removes the order of the presenter, which is the order of the BOOKS, with
+            # Magic for Everyone first. `-1` removes the indicator and keeps the insertion
+            # order until the user clicks a header.
             table.sortByColumn(-1, Qt.AscendingOrder)
-            # ⚠ And hide the indicator explicitly: `setSortingEnabled(True)` turns it on,
-            # and with no section to point at Qt drew the little arrow over the LAST
-            # header instead, as though the rules were sorted by Source.
+            # ⚠ Also hide the indicator. `setSortingEnabled(True)` shows it. With no
+            # section to mark, Qt draws the arrow over the LAST header. The table then
+            # reads as sorted by Source.
             table.header().setSortIndicatorShown(False)
             table.setSelectionMode(QAbstractItemView.SingleSelection)
-            # ⚠ The RULE column takes the slack, not the last one. QHeaderView stretches
-            # its last section by default, so with both on, "Sidereal may hold Celestial
-            # Manse above 3 dots" elided to "…Manse abo…" while dead space sat under
-            # the Source header.
+            # ⚠ Give the free width to the RULE column, not to the last column.
+            # QHeaderView stretches its last section by default. Thus "Sidereal may hold
+            # Celestial Manse above 3 dots" becomes "…Manse abo…", and empty space stays
+            # below the Source header.
             table.header().setStretchLastSection(False)
             table.header().setSectionResizeMode(0, QHeaderView.Stretch)
             table.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
@@ -134,8 +135,8 @@ class StorytellerPage(QWidget):
         split.addWidget(detail_panel)
         split.setSizes([620, 560])
 
-        # The scope's blurb sits UNDER the splitter: it is about the whole sub-tab, not
-        # about whichever rule happens to be selected.
+        # The text of the scope goes BELOW the splitter. It describes the full sub-tab. It
+        # does not describe the selected rule.
         self.scope_note = QLabel("")
         self.scope_note.setWordWrap(True)
         self.scope_note.setContentsMargins(8, 2, 8, 4)
@@ -180,9 +181,9 @@ class StorytellerPage(QWidget):
         rows = self._rows()
         on = sum(1 for r in rows if not r.options and r.value)
         inert = sum(1 for r in rows if r.inert)
-        # ⚠ Only the boolean toggles are counted as "on". A multiple-choice rule always
-        # holds a value, so counting it would report every character as having rules
-        # switched on before the ST has touched anything.
+        # ⚠ Count the boolean toggles only. A multiple-choice rule always holds a value.
+        # If you count it, the readout reports rules as on for every character, before the
+        # Storyteller changes anything.
         bits = [f"{len(rows)} optional rules", f"{on} switched on"]
         if inert:
             bits.append(f"{inert} cannot affect this character")
@@ -202,10 +203,10 @@ class StorytellerPage(QWidget):
         rows = self._rows()
         dim = QBrush(QColor(MUTED))
         for scope, table in self._tables.items():
-            # ⚠ Sorting OFF across the fill: with it on Qt re-sorts after every insert,
-            # which scrambles the order the books are cited in. The player's chosen sort
-            # is restored afterwards — re-enabling alone would silently re-impose column
-            # 0 ascending on every reload, and a reload happens on every toggle.
+            # ⚠ Turn sorting OFF for the full fill. If sorting is on, Qt sorts again after
+            # each insert, and the order of the book citations is lost. The code below
+            # restores the sort that the user selected. If it only enabled sorting again,
+            # every reload would apply column 0 ascending, and each toggle causes a reload.
             column = table.header().sortIndicatorSection()
             order = table.header().sortIndicatorOrder()
             shown = table.header().isSortIndicatorShown()
@@ -222,8 +223,8 @@ class StorytellerPage(QWidget):
                     for column in range(len(_COLUMNS)):
                         item.setToolTip(column, row.note)
                 if row.inert:
-                    # Dimmed, never hidden — an ST hunting for a toggle must find it and
-                    # be told why it does nothing (the presenter's whole premise).
+                    # Make the row dim. Never hide it. A Storyteller who looks for a
+                    # toggle must find it, and must read why it has no effect.
                     for column in range(len(_COLUMNS)):
                         item.setForeground(column, dim)
                 table.addTopLevelItem(item)
@@ -236,14 +237,14 @@ class StorytellerPage(QWidget):
                 table.setCurrentItem(restore)
             elif table.topLevelItemCount():
                 table.setCurrentItem(table.topLevelItem(0))
-            # ⚠ Signals stay blocked ACROSS `setCurrentItem`. Both tables are filled in
-            # one pass, so an unblocked select on the inactive one would fire
-            # `_selection_changed`, which reads the ACTIVE table — overwriting
-            # `self._selected` halfway through the loop and losing the restore for the
-            # table not yet filled.
+            # ⚠ Keep the signals blocked ACROSS `setCurrentItem`. This code fills both
+            # tables in one pass. An unblocked selection on the inactive table sends
+            # `_selection_changed`, which reads the ACTIVE table. That writes over
+            # `self._selected` during the loop, and the table that is not yet filled
+            # loses its selection.
             table.blockSignals(False)
-        # The tables now hold a selection that no signal announced, so adopt it here or
-        # the detail pane reads "select a rule" beside a visibly selected row.
+        # The tables now hold a selection that no signal reported. Adopt it here. If you
+        # do not, the detail pane shows "select a rule" next to a selected row.
         item = self._active_table().currentItem()
         self._selected = None if item is None else item.data(0, Qt.UserRole)
 
@@ -261,9 +262,9 @@ class StorytellerPage(QWidget):
 
     def _sync_detail(self) -> None:
         """Rebuild the right-hand pane for the current selection."""
-        # ⚠ `clear_layout`, never a hand-written loop — `item.widget()` is None for a
-        # nested QLayout, so a widget-only sweep leaves the old rows painting over the
-        # new ones (qt/layout.py owns both traps).
+        # ⚠ Use `clear_layout`. Never write a teardown loop here. `item.widget()` is None
+        # for a nested QLayout. Thus a widget-only sweep lets the old rows paint over the
+        # new rows. `qt/layout.py` holds both traps.
         clear_layout(self._detail_lay)
         scope = _SCOPES[self.tabs.currentIndex()]
         heading, blurb = viewmod.HOUSE_RULE_SCOPES[scope]
@@ -290,17 +291,16 @@ class StorytellerPage(QWidget):
                 f"font-style:italic; color:{MUTED if row.inert else self._accent()};")
             self._detail_lay.addWidget(note)
         if self._locked():
-            # Short here on purpose — the readout above already carries the full
-            # explanation, and repeating a five-line paragraph beside the control it
-            # describes is the wall of text the webapp's card avoided.
+            # Keep this text short. The readout above holds the full explanation. A long
+            # paragraph next to the control makes the pane difficult to read.
             self._detail_lay.addWidget(
                 self._muted("Read-only: chargen is locked.", italic=True))
         self._detail_lay.addStretch(1)
 
     def _control(self, row) -> QWidget:
-        """The one editing control for a rule: a checkbox for a toggle, a combo for a
-        multiple-choice rule. Named after the field it writes so a test addresses the
-        rule it means rather than a position in the child list."""
+        """The one editing control for a rule. A toggle gets a checkbox. A multiple-choice
+        rule gets a combo box. The control takes the name of the field that it writes.
+        Thus a test can address the rule by name, not by a position in the child list."""
         if row.options:
             combo = QComboBox()
             combo.setObjectName(f"houserule.{row.field}")
@@ -308,9 +308,9 @@ class StorytellerPage(QWidget):
                 combo.addItem(label, value)
             combo.setCurrentIndex(max(0, combo.findData(str(row.value))))
             combo.setEnabled(not self._locked())
-            # ⚠ The value written is the one indexed out of `row.options`, never read
-            # back off the widget — Qt hands item data back as a QVariant and a
-            # str-valued Enum returns as a plain str (CLAUDE.md's Qt trap).
+            # ⚠ Write the value that you index out of `row.options`. Never read the value
+            # back from the widget. Qt returns item data as a QVariant, and an Enum with a
+            # str value returns as a plain str.
             keys = list(row.options)
             combo.currentIndexChanged.connect(
                 lambda index, f=row.field: self._set(f, keys[index]))
@@ -332,9 +332,9 @@ class StorytellerPage(QWidget):
         return box
 
     def _set(self, field: str, value) -> None:
-        """Write one rule and rebuild. The WHOLE tab reloads rather than just the row:
-        a rule's note reports what it is currently worth ("granting 2 free purchases",
-        "offering all 61 Backgrounds"), so flipping one restates its own line."""
+        """Write one rule, then rebuild. The WHOLE tab reloads, not the one row. The note
+        of a rule reports its current value, for example "granting 2 free purchases" or
+        "offering all 61 Backgrounds". Thus a change to a rule rewrites its own line."""
         house_rule_actions.set_rule(self._char(), field, value)
         self.reload()
         if self._on_change is not None:

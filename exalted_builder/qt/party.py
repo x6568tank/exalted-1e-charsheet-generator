@@ -9,47 +9,45 @@ every play-state click goes through `engine.play`, every roster mutation through
 `engine.adversaries`; "Open in builder" calls back into the MainWindow, which re-points
 itself at that member's Character — the same object, so nothing needs syncing.
 
-⚠ **The Party tab carries the ADVERSARY cards too**, under the members, because a fight
-is run off one screen. The roster is therefore drawn on two tabs and a change to either
-has to reach the other: the discrete events push through `on_roster_change` /
-`on_change`, and a per-keystroke edit is picked up when the other tab is next shown
-(`_tab_shown`). Editing stays on the Adversaries tab alone — a roster card's "Edit"
-raises it rather than growing a second editor.
+⚠ **The Party tab also holds the ADVERSARY blocks**, below the members, because the user
+runs a fight from one screen. Thus two tabs draw the roster, and a change on one tab must
+reach the other. A discrete event goes through `on_roster_change` or `on_change`. A
+keystroke edit reaches the other tab when the user next opens it (`_tab_shown`). ⚠ The user
+edits an adversary on the Adversaries tab only. The "Edit" control on a roster block raises
+that tab. Do not build a second editor here.
 
-⚠ **A tracker click REPAINTS, it never redraws.** `_sync_card` restyles one card's boxes
-and re-texts its headings. Rebuilding deletes the box under the cursor, and Qt hands the
-focus to whatever inherits it with the scroll area following: measured at 354 → 463 with
-the focus thrown into the toolbar. `trackers.restyle` carries the full note.
+⚠ **A tracker click REPAINTS. It never rebuilds.** `_sync_card` restyles the boxes of one
+card and writes its heading text again. A rebuild deletes the box below the pointer, Qt
+gives the focus to a different widget, and the scroll area follows that widget. The
+measured jump is 354px to 463px, with the focus in the toolbar. `trackers.restyle` holds
+the full note.
 
-⚠ **A WINDOW, not a tab** (human, 2026-08-27). The builder and the party are two
-surfaces a Storyteller uses at once — the settled tab layout never decided this one,
-because the shape was never a tab. A QDialog was rejected for the same reason: you must
-be able to read a character sheet and the party at the same time.
+⚠ **This is a WINDOW, not a tab** (human's ruling). A Storyteller uses the builder and the
+party at the same time. A QDialog is also refused, for the same reason: the user must read
+a character sheet and the party together.
 
-⚠ **The Party tab is the THIRD written exception to the collection layout**, and it is
-Play's exception for Play's reason: these cards are live TRACKERS. There is nothing to
-select and a detail pane would hide the health tracks the surface exists to show. The
-Adversaries tab beside it IS a collection, because its entries are edited as well as
-tracked — the two halves of this window are deliberately different shapes.
+⚠ **The Party tab is the THIRD written exception to the collection layout.** It has the
+same reason as Play: these blocks are live TRACKERS. There is nothing to select, and a
+detail pane hides the health tracks that this surface must show. The Adversaries tab IS a
+collection, because the user edits its entries and tracks them. The two halves of this
+window have different shapes, and that is correct.
 
-⚠ **A LIST plus a fixed rail, not a card grid** (human, 2026-09-09, from the
-`spikes/qt_party_dense` spike — *"it's currently card-based, which feels off compared to
-the rest of the app… for gm management i don't think we need to use that much space &
-scrolling"*). Members are two-line blocks stacked one per row; adversaries go two-up
-underneath; the batch roller and the session notes live in a fixed-width rail OUTSIDE the
-scroll area. Measured on ten combatants at 1250x950: 2,097px of scrolling content became
-505px, so a full table fits above the fold. **This did not make it a collection** — there
-is still nothing to select and no detail pane. What changed is the card grid, which was
-never what made this tab an exception.
+⚠ **Use a LIST and a fixed rail. Do not use a card grid** (human's ruling). A card grid
+uses too much space and needs too much scrolling for this task. Each member is a two-line
+block, one for each row. The adversaries go below them, two for each row. The batch roller
+and the session notes are in a fixed-width rail OUTSIDE the scroll area. Measured with ten
+combatants at 1250x950: the scrolling content went from 2,097px to 505px, thus a full
+table fits on one screen. ⚠ **This tab is still not a collection.** There is nothing to
+select, and there is no detail pane.
 
-⚠ **Play-state stays isolated (decision 0006).** Nothing on this window enters chargen
-validation, the XP audit or a permanent derivation. There is ZERO game logic here: every
-number comes from `view.build_party_card_view`.
+⚠ **Play state stays isolated (decision 0006).** No value on this window enters chargen
+validation, the XP audit or a permanent derivation. This module has ZERO game logic.
+`view.build_party_card_view` supplies every number.
 
-⚠ **Members are held BY REFERENCE.** A card and the builder edit one Character object,
-which is what makes "Open in builder" need no syncing code — and what makes removing a
-member from the roster leave the builder pointing at a character that is no longer in
-it, so `on_close_member` is called on every path that drops or replaces the roster.
+⚠ **The window holds each member BY REFERENCE.** A card and the builder edit one Character
+object. Thus "Open in builder" needs no synchronising code. ⚠ Thus a member that you remove
+from the roster leaves the builder pointing at a character that the roster does not hold.
+Call `on_close_member` on every path that removes or replaces the roster.
 """
 
 from __future__ import annotations
@@ -75,8 +73,8 @@ from exalted_builder.ui import pdf, theme
 from exalted_builder.ui import view as viewmod
 
 from . import theme as qtheme
-# ⚠ The trait ORDER is imported, not re-listed. A fourth copy of the nine Attributes is
-# how the roster card and the roster editor come to print them in different orders.
+# ⚠ Import the trait ORDER. Do not write the list again. With a fourth copy of the nine
+# Attributes, the roster block and the roster editor print them in different orders.
 from .adversaries import (AdversariesPage, AdversaryTrackers,
                           _ATTRIBUTES as _ADV_ATTRIBUTES, _VIRTUES as _ADV_VIRTUES)
 from .layout import clear_layout
@@ -85,44 +83,45 @@ from .sheet import (SheetColors, build_document, print_colors, screen_colors,
 from .theme import CARD, INPUT, MUTED, accent as accent_light
 from .trackers import MARK_FILL, box as tracker_box, restyle as restyle_box
 
-# ⚠ 16, not 10. A member's track wraps at this, and wrapping costs the block a whole
-# extra line — with the block down to two lines that is the difference between four
-# members on screen and two. It is not higher because the block's second line has to hold
-# the Essence, Willpower and Limit panels BESIDE the track: 16 boxes is what leaves room
-# for them at the narrowest window worth supporting. 7 base levels covers everyone who
-# has not bought Ox-Body; a heavy Solar at 19 wraps, and the wrap rules in `_health`
-# are what make that safe.
+# ⚠ The value is 16, not 10. The track of a member wraps at this count, and a wrap adds a
+# line to the block. The block has two lines, thus a wrap changes four members on the
+# screen to two. ⚠ The value is not higher, because line 2 must hold the Essence, Willpower
+# and Limit panels BESIDE the track. 16 boxes leave space for them at the narrowest
+# supported window. 7 base levels cover a character with no Ox-Body. A Solar with 19 levels
+# wraps, and the wrap rules in `_health` make that safe.
 #
 # ⚠ This number, the tracker box sizes and `_RAIL_WIDTH` are ONE budget. Line 2 holds the
-# track, the Essence pools, Willpower and Limit side by side, and the widest real member
-# (a 19-level Ox-Body Solar) came to 887px against an 856px viewport — a horizontal
-# scrollbar on the shipped window at its design size. Changing any one of them without
-# re-measuring the others brings it back. Below 1250px wide the scrollbar is the
-# intended degradation; at 1250 it must not appear.
+# track, the Essence pools, Willpower and Limit side by side. The widest real member, a
+# Solar with 19 Ox-Body levels, measured 887px against an 856px viewport. That gives a
+# horizontal scrollbar at the design size. ⚠ If you change one of the three values, measure
+# the other two again. Below 1250px wide, the scrollbar is the intended behaviour. At
+# 1250px it must not appear.
 _BOXES_PER_ROW = 14
 
-# The batch roll's name column. Fixed so every row's dice box lines up.
-# ⚠ Narrower than the Play tab's: the roller now lives in a fixed-width rail.
+# The name column of the batch roll. It is fixed, thus the dice box of every row aligns.
+# ⚠ It is narrower than the column on the Play tab, because the roller is in a fixed-width
+# rail.
 _BATCH_NAME_WIDTH = 104
 
 # A botched row in a batch log, the same amber the Play tab uses for "your call".
 _BATCH_BOTCH = "#d9a441"
 
-# The right rail — the batch roller and the session notes. FIXED, and outside every
-# scroll area: the roller being a function of how many combatants are on the board is
-# exactly the complaint this layout answers (human, 2026-09-09).
-# ⚠ Sized by the BATCH ROW, which is the widest thing in it: a tick, a name column, a
-# dice box, a repeat box and a free-text label. Narrower and the label field is unusably
-# small — and it is the only place the Storyteller can say what a row's dice were for.
+# The right rail. It holds the batch roller and the session notes. It is FIXED, and it is
+# outside every scroll area. ⚠ The position of the roller must not depend on the number of
+# combatants (human's ruling).
+# ⚠ Size the rail from the BATCH ROW, which is the widest item in it: a tick, a name
+# column, a dice box, a repeat box and a free-text label. A narrower rail makes the label
+# field too small, and that field is the only place where the Storyteller can record the
+# purpose of a row.
 _RAIL_WIDTH = 380
 
-# One adversary block is unreadable much under this; the roster grid takes as many
-# columns as fit. ⚠ The MEMBERS are no longer a grid — see `reload`.
+# Below this width, an adversary block is difficult to read. The roster grid uses the
+# number of columns that fit. ⚠ The MEMBERS are not a grid. See `reload`.
 _CARD_WIDTH = 400
 
-# The Great Geas, core CH6 p.235 (Mountain Folk). Divergence is Storyteller-adjudicated
-# and never engine-enforced — whether an oath was broken is an ST call — so the nine
-# clauses ride the card as the sheet's copy of the page (the human's ruling, 2026-08-07).
+# The Great Geas, The Mountain Folk (CH6) p.235. ⚠ The Storyteller decides a divergence.
+# The engine never enforces one, because a broken oath is a decision of the Storyteller.
+# Thus the block shows the nine clauses as a copy of the page (human's ruling).
 _GEAS = (
     "Breaking a sworn oath — 5 points (once broken, an oath no longer has power).",
     "Fighting against a Celestial Exalt except in self-defense or at the behest of "
@@ -154,17 +153,19 @@ class _StatLine(QLabel):
     "…", with the whole line on hover. Mechanism: `resizeEvent` re-elides against the
     label's own width, which is the only place that width is known.
 
-    ⚠ **Not a word-wrapped QLabel.** A wrapped label answers `heightForWidth`, and the
-    `QGridLayout` that lays these cards out does not honour it — the card comes out too
-    short and paints the tracker boxes through the heading below them.
+    ⚠ **Do NOT use a QLabel with word wrap.** A label that wraps answers `heightForWidth`,
+    and the `QGridLayout` that lays out these blocks ignores that value. The block is then
+    too short, and it paints the tracker boxes through the heading below them.
 
-    ⚠ **`Ignored` horizontally, and that is the point.** An abilities line runs to
-    "Archery 1, Athletics 1, Awareness 1, Brawl 1, Bureaucracy 1, …" and a prose line to
-    "All Solar Charms the Storyteller cares to give him" (p.303). A normal policy lets
-    one of those set the card's minimum width and blow the grid apart; `Ignored` lets the
-    card size itself and the text elide into it. ⚠ Eliding by CHARACTER COUNT instead was
-    tried and shipped a card whose lines were CLIPPED mid-word with no ellipsis at all —
-    one count cannot be right for both a one-column and a three-column layout.
+    ⚠ **Set the horizontal policy to `Ignored`.** An abilities line reads "Archery 1,
+    Athletics 1, Awareness 1, Brawl 1, Bureaucracy 1, …", and a prose line reads "All Solar
+    Charms the Storyteller cares to give him" (p.303). With a normal policy, one of those
+    lines sets the minimum width of the block and makes the grid too wide. `Ignored` lets
+    the block set its own width, and the text shortens to that width.
+
+    ⚠ Do NOT shorten the text by CHARACTER COUNT. That cuts a line in the middle of a word
+    and shows no "…". One count cannot be correct for a one-column layout and a
+    three-column layout.
     """
 
     def __init__(self, text: str, parent=None):
@@ -185,15 +186,15 @@ class _StatLine(QLabel):
 
 
 def _row_button(label: str, tip: str) -> QPushButton:
-    """A block's action button: small, quiet, and BORDERED.
+    """The action button of a block. It is small, quiet and BORDERED.
 
-    ⚠ The border is the whole point (human, 2026-09-09). These sit inline on a stat line
-    rather than in a button row of their own, and the spike drew them as flat muted text
-    — at which weight they read as more stat text. A full-weight QPushButton beside four
-    others on every row is too loud; an outline is what says "clickable" for the least
-    ink. ⚠ Its OWN border rule, so the shell QSS's `:disabled` and `:hover` rules still
-    apply — a colour set here would not have replaced those, and none of these is ever
-    disabled anyway.
+    ⚠ Keep the border (human's ruling). These buttons are inline on a stat line, not in a
+    row of their own. As flat muted text, they read as more stat text. Four full-weight
+    QPushButtons on each row are too prominent. An outline shows "clickable" with the least
+    ink.
+
+    ⚠ Set the border rule ONLY. Thus the `:disabled` and `:hover` rules of the shell QSS
+    still apply.
     """
     button = QPushButton(label)
     button.setToolTip(tip)
@@ -209,10 +210,10 @@ def _row_button(label: str, tip: str) -> QPushButton:
 # --------------------------------------------------------------------------- #
 
 class PartyPage(QWidget):
-    """The member cards. `reload()` redraws every card for the party in ctx.
+    """The member blocks. `reload()` draws every block for the party in ctx again.
 
-    `on_open`, `on_sheet`, `on_pdf` and `on_remove` are the window's — the card owns the
-    trackers and nothing else."""
+    The window supplies `on_open`, `on_sheet`, `on_pdf` and `on_remove`. A block owns its
+    trackers only."""
 
     def __init__(self, ruleset, ctx, *, on_open, on_sheet, on_pdf, on_remove,
                  on_edit_adversary=None, on_roster_change=None, parent=None):
@@ -224,31 +225,33 @@ class PartyPage(QWidget):
         self._on_pdf = on_pdf
         self._on_remove = on_remove
         self._on_edit_adversary = on_edit_adversary or (lambda entry_id: None)
-        # ⚠ A hook, not a direct call into the sibling tab. The roster is drawn on TWO
-        # surfaces now, so a change made on either has to reach the other — and the page
-        # must still stand alone in a test, which is why the default is a no-op.
+        # ⚠ Use a hook. Do not call the other tab directly. TWO surfaces draw the roster,
+        # thus a change on one must reach the other. The page must also operate alone in a
+        # test. Thus the default hook does nothing.
         self._on_roster_change = on_roster_change or (lambda: None)
         self._columns = 0
-        # Per-card tracker widgets, keyed by member index — what `_sync_card` repaints.
+        # The tracker widgets of each block, keyed by member index. `_sync_card` repaints
+        # them.
         self._card_boxes: dict[int, dict] = {}
-        # Per-adversary tracker widgets, keyed by entry id — repainted, never rebuilt.
+        # The tracker widgets of each adversary, keyed by entry id. ⚠ Repaint them. Never
+        # rebuild them.
         self._adv_trackers: dict[str, AdversaryTrackers] = {}
 
         body = QWidget()
         outer_body = QVBoxLayout(body)
         outer_body.setContentsMargins(8, 8, 8, 8)
         outer_body.setSpacing(6)
-        # ⚠ A LIST, not a grid. One member per row, full width — the two-line block reads
-        # left-to-right, so a second column would halve the space the health track needs
-        # and buy back nothing (a block is ~62px tall either way).
+        # ⚠ Use a LIST, not a grid. Put one member on each row, at full width. The two-line
+        # block reads from left to right. A second column halves the space of the health
+        # track and saves no height, because a block is approximately 62px high.
         self._members_lay = QVBoxLayout()
         self._members_lay.setContentsMargins(0, 0, 0, 0)
         self._members_lay.setSpacing(4)
         outer_body.addLayout(self._members_lay)
-        # The opposition, under the party it is fighting — the ONE screen a fight is run
-        # off. `_roster_lay` holds a heading and its own block grid, both rebuilt
-        # together. This one IS a grid: an adversary block is short and narrow enough
-        # that two-up wastes nothing.
+        # The adversaries, below the party that fights them. The user runs a fight from
+        # this ONE screen. `_roster_lay` holds a heading and its own block grid, and this
+        # code rebuilds both together. This part IS a grid. An adversary block is short and
+        # narrow, thus two blocks on a row waste no space.
         self._roster_lay = QVBoxLayout()
         self._roster_lay.setContentsMargins(0, 0, 0, 0)
         self._roster_lay.setSpacing(4)
@@ -259,21 +262,21 @@ class PartyPage(QWidget):
         self._scroll.setWidget(body)
 
         # ---- the rail ---------------------------------------------------- #
-        # ⚠ Fixed width, and OUTSIDE the scroll area. The batch roller used to sit under
-        # both rosters, so three characters pushed it entirely off the window — the
-        # complaint this layout answers. Nothing in here may be a function of how many
-        # combatants are on the board.
+        # ⚠ Use a fixed width, and put the rail OUTSIDE the scroll area. Below both
+        # rosters, three characters push the batch roller off the window. ⚠ No size in this
+        # rail can depend on the number of combatants.
         rail = QWidget()
         rail.setObjectName("partyRail")
         rail.setFixedWidth(_RAIL_WIDTH)
-        # ⚠ Inline, on the widget itself — an ancestor stylesheet beats a set palette.
+        # ⚠ Set the stylesheet inline, on the widget. An ancestor stylesheet beats a
+        # palette that you set on the widget.
         rail.setStyleSheet(f"QWidget#partyRail {{ background:{CARD}; }}")
         rail_lay = QVBoxLayout(rail)
         rail_lay.setContentsMargins(8, 8, 8, 6)
         rail_lay.setSpacing(6)
-        # The batch roll rolls for BOTH rosters: its rows are party members and
-        # adversaries alike (a dice count does not care which). Decision 0019 —
-        # read `_build_batch` before changing it.
+        # The batch roll operates on BOTH rosters. Its rows hold party members and
+        # adversaries, because a dice count is the same for both. ⚠ Read decision 0019 and
+        # `_build_batch` before you change it.
         self._batch_lay = QVBoxLayout()
         self._batch_lay.setContentsMargins(0, 0, 0, 0)
         self._batch_lay.setSpacing(4)
@@ -318,12 +321,12 @@ class PartyPage(QWidget):
     def resizeEvent(self, event: QResizeEvent) -> None:      # noqa: N802 - Qt override
         """Re-flow the ADVERSARY blocks when their column count changes.
 
-        ⚠ Only when it CHANGES. A redraw on every resize event would tear down the block
-        the Storyteller is typing notes into, on a window drag.
+        ⚠ Reflow only when the column count CHANGES. A redraw on each resize event deletes
+        the block that the Storyteller types notes into, during a window drag.
 
-        ⚠ Only the roster reflows now — the members are a full-width list and have no
-        column count to change. `_reload_roster` is therefore the redraw, not `reload`,
-        which is also what keeps a member's notes box alive through a window drag."""
+        ⚠ Only the roster reflows. The members are a full-width list, and they have no
+        column count. Thus call `_reload_roster`, not `reload`. That also keeps the notes
+        box of a member through a window drag."""
         super().resizeEvent(event)
         if self._fit_columns() != self._columns:
             self._columns = self._fit_columns()
@@ -337,19 +340,18 @@ class PartyPage(QWidget):
     def _even_columns(grid: QGridLayout, columns: int) -> None:
         """Give every column of `grid` the same width.
 
-        ⚠ Without this a grid only ever creates the columns it has items in, so ONE card
-        in a two-column layout is drawn full width. That was invisible while the members
-        were the only cards on the tab; with the roster underneath it, a full-width lone
-        member over half-width adversaries reads as two different card sizes. Columns
-        past `columns` are zeroed, or a narrowed window keeps the stretch it had."""
+        ⚠ Without this, a grid creates a column only where it holds an item. Thus ONE block
+        in a two-column layout draws at full width, and a full-width block above half-width
+        blocks reads as two block sizes. ⚠ Set the stretch of each column after `columns` to
+        zero. Without that, a narrower window keeps the old stretch."""
         for column in range(max(columns, grid.columnCount())):
             grid.setColumnStretch(column, 1 if column < columns else 0)
 
     def reload(self) -> None:
         """Redraw every card, and re-read the session notes from the party."""
-        # ⚠ The notes box is refilled only when the model and the widget actually
-        # disagree — setPlainText moves the cursor to the end, so an unconditional
-        # refill would jump the caret on every reload.
+        # ⚠ Refill the notes box only when the model and the widget disagree.
+        # `setPlainText` moves the cursor to the end. Thus an unconditional refill moves
+        # the cursor on each reload.
         notes = self._party().session_notes
         if self.session_notes.toPlainText() != notes:
             self.session_notes.blockSignals(True)
@@ -357,8 +359,8 @@ class PartyPage(QWidget):
             self.session_notes.blockSignals(False)
 
         clear_layout(self._members_lay)
-        # ⚠ Cleared with the blocks it points at. These are the widgets a play-state
-        # click repaints IN PLACE rather than rebuilding, so a stale entry here is a
+        # ⚠ Clear this map with the blocks that it points at. A play-state click repaints
+        # these widgets IN PLACE and does not rebuild them. Thus an old entry here is a
         # reference to a deleted C++ object.
         self._card_boxes = {}
         self._columns = self._fit_columns()
@@ -377,8 +379,8 @@ class PartyPage(QWidget):
 
     @staticmethod
     def _section(title: str, count: int) -> QLabel:
-        """A section rule over a stack of blocks. The count is live — an empty roster
-        must say so, and "ADVERSARIES (0)" says it before the note underneath does."""
+        """A section heading over a stack of blocks. The count is live. An empty roster
+        must state that, and "ADVERSARIES (0)" states it above the note below it."""
         label = QLabel(f"{title}  ({count})")
         label.setStyleSheet(f"font-weight:700; letter-spacing:1px; color:{MUTED}; "
                             f"font-size:10px;")
@@ -387,18 +389,19 @@ class PartyPage(QWidget):
     # ---- the opposition -------------------------------------------------- #
 
     def reload_roster(self) -> None:
-        """Redraw the adversary cards only — what an edit on the Adversaries tab needs,
-        without tearing down a member card someone is typing notes into."""
+        """Draw the adversary blocks again, and no other block. An edit on the Adversaries
+        tab needs this. ⚠ It must not delete a member block that the user types notes
+        into."""
         self._reload_roster()
 
     def _reload_roster(self) -> None:
         clear_layout(self._roster_lay)
-        # ⚠ Cleared with the cards. Same rule as `_card_boxes`: a surviving entry here is
-        # a handle on a deleted C++ object.
+        # ⚠ Clear this map with the blocks. This is the rule of `_card_boxes`. An entry
+        # that stays is a reference to a deleted C++ object.
         self._adv_trackers = {}
         entries = self._party().adversaries
-        # `reload_roster` is reachable before the first full `reload` has measured the
-        # viewport, and a column count of 0 is a division by zero rather than a layout.
+        # ⚠ A caller can reach `reload_roster` before the first full `reload` measures the
+        # viewport. A column count of 0 then causes a division by zero.
         columns = self._columns or self._fit_columns()
         self._roster_lay.addWidget(self._section("ADVERSARIES", len(entries)))
         if not entries:
@@ -422,27 +425,27 @@ class PartyPage(QWidget):
     def _adversary_card(self, entry) -> QFrame:
         """One adversary as a live tracker card, beside the characters fighting it.
 
-        ⚠ **This is what the port dropped.** The webapp renders the roster as a card
-        grid on the party page; the native app compressed it into a table plus ONE detail
-        pane, so a Storyteller could see exactly one bandit's health at a time — "gming
-        combat is a challenge" (human, 2026-08-28). The table is still where an entry is
-        typed off the page; this is where a fight is run.
+        ⚠ **Keep this block.** A table with ONE detail pane shows the health of one
+        adversary at a time, and a Storyteller runs a fight against many (human's ruling).
+        The table on the Adversaries tab is where the user types an entry from the page.
+        This block is where the user runs a fight.
 
-        ⚠ Trackers and a stat READOUT only — no editor. Editing lives on the Adversaries
-        tab, and "Edit" jumps there rather than growing a second one here.
+        ⚠ Show the trackers and a stat READOUT only. Add no editor. The user edits an
+        adversary on the Adversaries tab, and "Edit" opens that tab.
         """
         accent = accent_light(self._pal_for_roster())
         card = QFrame()
         card.setObjectName("advCard")
-        # ⚠ Inline, on the widget itself — an ancestor stylesheet beats a set palette.
+        # ⚠ Set the stylesheet inline, on the widget. An ancestor stylesheet beats a
+        # palette that you set on the widget.
         card.setStyleSheet(f"QFrame#advCard {{ background:{CARD}; border-radius:6px; }}")
         card.setMinimumWidth(_CARD_WIDTH - 40)
         lay = QVBoxLayout(card)
         lay.setContentsMargins(8, 4, 8, 4)
         lay.setSpacing(2)
 
-        # Line 1: who it is, then the actions, on ONE row. The old block spent a line on
-        # the title, a line on the sub-line and a line on the button row.
+        # Line 1 holds the name and then the actions, on ONE row. Three separate lines for
+        # the title, the sub-line and the buttons make the block too tall.
         head = QHBoxLayout()
         head.setSpacing(6)
         title = QLabel(entry.name or "(unnamed)")
@@ -456,10 +459,10 @@ class PartyPage(QWidget):
             head.addWidget(sub, 1)
         else:
             head.addStretch(1)
-        # ⚠ `_c=False` FIRST in every one of these. `clicked` carries a `checked` bool,
-        # and it lands in the first default argument — a `lambda e=entry:` is handed
-        # False as its entry and dies inside the handler, where the Qt event loop
-        # swallows the traceback and the button simply does nothing.
+        # ⚠ Put `_c=False` FIRST in each of these lambdas. `clicked` sends a `checked`
+        # bool, and that value goes into the first default argument. Thus a
+        # `lambda e=entry:` receives False as its entry and raises in the handler. The Qt
+        # event loop does not show that traceback, and the button does nothing.
         for label, tip, slot in (
                 ("Reset", "Clear damage and both spent pools",
                  lambda _c=False, e=entry: self._reset_adversary(e)),
@@ -473,8 +476,8 @@ class PartyPage(QWidget):
             head.addWidget(button)
         lay.addLayout(head)
 
-        # ⚠ `dense` — the three tracker panels SIDE BY SIDE rather than stacked. Stacked
-        # they are ~130px per adversary and six of them are a screenful on their own.
+        # ⚠ Use `dense`. It puts the three tracker panels SIDE BY SIDE. Stacked panels are
+        # approximately 130px for each adversary, and six adversaries then fill the screen.
         trackers = AdversaryTrackers(
             entry, accent, prefix=f"adv.{entry.id}", framed=False, box_size=20,
             dense=True, on_change=self._on_roster_change)
@@ -484,13 +487,14 @@ class PartyPage(QWidget):
         return card
 
     def _pal_for_roster(self):
-        """The roster takes the PARTY's palette, not a member's — an adversary has no
-        splat of its own."""
+        """The roster takes the palette of the PARTY, not the palette of a member. An
+        adversary has no splat."""
         splats = {m.character.exalt_type for m in self._party().members}
         return theme.palette(splats.pop() if len(splats) == 1 else None)
 
     def _adversary_stats(self, lay, entry) -> None:
-        """The printed block, read-only: the lines a Storyteller calls a roll against."""
+        """The printed stat block, read-only. It holds the lines that a Storyteller uses to
+        call a roll."""
         rows = [viewmod.summary_line(self._ruleset, entry),
                 viewmod.trait_map_line(entry.attributes, _ADV_ATTRIBUTES)]
         virtues = viewmod.trait_map_line(entry.virtues, _ADV_VIRTUES)
@@ -507,13 +511,12 @@ class PartyPage(QWidget):
                 rows.append(f"{label}: {prose}")
         if entry.notes:
             rows.append(entry.notes)
-        # ⚠ NOT word-wrapped, and that is load-bearing rather than a style choice. A
-        # wrapped QLabel answers `heightForWidth`, and `QGridLayout` — which is what lays
-        # the cards out — does not honour it: the card was handed a height computed from
-        # one-line labels, overflowed, and painted the health boxes through the heading
-        # under them (2026-08-28). Every label here is a printed one-liner anyway; the
-        # prose that isn't is elided with the full text on hover, which is the right
-        # trade on a card you glance at mid-fight. The editor is one click away.
+        # ⚠ Do NOT set word wrap. This is a functional rule, not a style choice. A QLabel
+        # that wraps answers `heightForWidth`, and the `QGridLayout` that lays out these
+        # blocks ignores that value. The block then gets a height for one-line labels, its
+        # content goes past that height, and it paints the health boxes through the heading
+        # below them. Each label here is a printed single line. This code shortens the
+        # longer prose and shows the full text on hover. The editor is one click away.
         for text in rows:
             if not text:
                 continue
@@ -522,9 +525,9 @@ class PartyPage(QWidget):
             lay.addWidget(label)
 
     def _reset_adversary(self, entry) -> None:
-        """⚠ Repaints, never rebuilds — for the button's OWN sake. `_reload_roster` here
-        would delete the Reset button that was just clicked, which is the same
-        focus-and-scroll defect one widget over from the one that was reported."""
+        """⚠ Repaint the boxes. Never rebuild them. A call to `_reload_roster` here deletes
+        the Reset button that the user clicked. That causes the same focus and scroll
+        defect as a rebuild of a tracker box."""
         adv.reset_tracking(entry)
         trackers = self._adv_trackers.get(entry.id)
         if trackers is not None:
@@ -546,25 +549,23 @@ class PartyPage(QWidget):
     # ---- the batch roll (decision 0019) ---------------------------------- #
 
     def _build_batch(self) -> None:
-        """The Storyteller's batch roll, built ONCE: a name for the batch, the two
-        switches, a Roll button, then a rebuilt row list and a rebuilt log.
+        """The batch roll of the Storyteller. Build it ONCE. It has a name for the batch,
+        the two switches, a Roll button, a row list and a log. This code rebuilds the row
+        list and the log.
 
-        ⚠ Read 0019 first. Every count is TYPED — nothing here reads a character's
-        pool, and nothing may. With six rows on screen, filling them from a named
-        roll is the obvious convenience and is exactly what the decision rejects:
-        the app would claim to know what six sheets are rolling, and "add their
-        Charm dice" is the next ask. A row's name is the CHARACTER's, which
-        asserts nothing about a pool; a roll's name would.
+        ⚠ Read decision 0019 first. The user TYPES every count. ⚠ No code here reads the
+        pool of a character, and no code can. To fill six rows from a named roll is a
+        convenience that decision 0019 refuses: the app then reports what six sheets roll,
+        and the next request is "add their Charm dice". A row takes the name of the
+        CHARACTER, which states nothing about a pool. The name of a roll states one.
 
-        ⚠ The controls are built once and only `_batch_rows_lay` / `_batch_log_lay`
-        are cleared, so a roll or a roster change cannot delete the button under
-        the Storyteller's cursor.
+        ⚠ Build the controls one time, and clear `_batch_rows_lay` and `_batch_log_lay`
+        only. Thus a roll or a roster change cannot delete the button below the pointer.
         """
         body = self._panel(self._batch_lay, "BATCH ROLL", self._accent())
-        # ⚠ TWO rows, because the panel is now a fixed-width rail rather than a
-        # full-width band under the rosters. On one row the name field, the target and
-        # the Roll button each clipped the next; the batch name is the field that wants
-        # the width, so it gets a row to itself.
+        # ⚠ Use TWO rows. The panel is a fixed-width rail, not a full-width band below the
+        # rosters. On one row, the name field, the target and the Roll button cut each
+        # other. The batch name needs the width, thus it gets its own row.
         self._batch_name = QLineEdit()
         self._batch_name.setObjectName("party.batch.name")
         self._batch_name.setPlaceholderText("Name this roll — e.g. Join Battle")
@@ -603,10 +604,9 @@ class PartyPage(QWidget):
         switches.addStretch(1)
         body.addLayout(switches)
 
-        # ⚠ The row list SCROLLS inside the rail. It is the one thing in here that grows
-        # with the roster, and a rail that grows with the roster re-creates the defect
-        # the rail exists to fix — it just eats the note and the log from below instead
-        # of pushing the whole roller off the window.
+        # ⚠ The row list SCROLLS in the rail. It is the one item here that grows with the
+        # roster. A rail that grows with the roster causes the defect that the rail
+        # prevents: it removes the note and the log from the bottom of the rail.
         self._batch_rows_lay = QVBoxLayout()
         self._batch_rows_lay.setContentsMargins(0, 0, 0, 0)
         self._batch_rows_lay.setSpacing(2)
@@ -632,11 +632,11 @@ class PartyPage(QWidget):
     def _sync_batch_rows(self) -> None:
         """Rebuild the row list, but ONLY when the roster actually changed.
 
-        ⚠ An unconditional rebuild deletes a spin box mid-keystroke: `reload()`
-        runs on every roster change, and the Storyteller may be typing counts
-        while adding the last adversary. The typed values themselves survive
-        regardless — they live in `_batch_state`, keyed by row id, never by
-        position (a positional key moves one character's dice onto another's row).
+        ⚠ An unconditional rebuild deletes a spin box while the user types. `reload()` runs
+        on each roster change, and the Storyteller can type counts while adding the last
+        adversary. The typed values stay in either case. `_batch_state` holds them, keyed
+        by row id. ⚠ Never key them by position. A positional key moves the dice of one
+        character onto the row of another character.
         """
         rows = viewmod.batch_roster(self._party())
         keys = [key for key, _ in rows]
@@ -651,8 +651,9 @@ class PartyPage(QWidget):
         for brow in viewmod.batch_rows(self._batch_state, rows):
             key, name, count, label = brow.key, brow.name, brow.count, brow.label
             row = QHBoxLayout()
-            # Rebuilt from state on every repaint: typing dice ticks the row on
-            # (view.set_batch_count), so the box cannot own its own value.
+            # Build this box from the state on each repaint. A typed dice count also
+            # selects the row (`view.set_batch_count`). Thus the box cannot hold its own
+            # value.
             tick = QCheckBox()
             tick.setObjectName(f"party.batch.include.{key}")
             tick.setChecked(brow.included)
@@ -661,12 +662,11 @@ class PartyPage(QWidget):
                 lambda on, k=key: viewmod.set_batch_included(
                     self._batch_state, k, on))
             row.addWidget(tick)
-            # ⚠ A FIXED width, and elided HERE rather than by `_StatLine`. A
-            # minimum width lets "Gearheart-of-the-Ninefold-Cog" — a real
-            # character name — push that row's dice box out of line with every
-            # other row's; `_StatLine` cannot be used because its `Ignored`
-            # horizontal policy beats a fixed width and collapses the column to
-            # nothing. The width is known here, so the elision can be too.
+            # ⚠ Use a FIXED width, and shorten the text HERE. Do not use `_StatLine`. With
+            # a minimum width, a long character name moves the dice box of that row out of
+            # line with the other rows. `_StatLine` does not operate here, because its
+            # `Ignored` horizontal policy beats a fixed width and makes the column empty.
+            # This code knows the width, thus it can shorten the text.
             who = QLabel()
             who.setFixedWidth(_BATCH_NAME_WIDTH)
             who.setToolTip(name)
@@ -719,8 +719,8 @@ class PartyPage(QWidget):
             hook(text)
 
     def _fill_batch_log(self) -> None:
-        """Repaint the log alone. Each batch is a fold captioned with the
-        Storyteller's name for it; opening one shows a line per row."""
+        """Paint the log again, and no other widget. Each batch is a fold, and its caption
+        is the name that the Storyteller gave it. An open fold shows one line per row."""
         clear_layout(self._batch_log_lay)
         self._batch_folds = {}
         for batch in self._batch_state["log"]:
@@ -759,8 +759,8 @@ class PartyPage(QWidget):
         head.setText(("▾  " if open_ else "▸  ") + batch.caption)
 
     def _toggle_batch(self, key: int) -> None:
-        """Open or close one fold. A visibility change ONLY — rebuilding the log
-        here would delete the button being clicked."""
+        """Open or close one fold. Change the visibility ONLY. ⚠ A rebuild of the log here
+        deletes the button that the user clicks."""
         open_set = self._batch_state["open"]
         if key in open_set:
             open_set.discard(key)
@@ -774,19 +774,19 @@ class PartyPage(QWidget):
     def _panel(self, lay, title: str | None, accent: str) -> QVBoxLayout:
         """A heading over a body, as a COLUMN added to `lay`.
 
-        `self._last_head` is the heading just added — every one of these carries a live
-        count that is re-texted rather than rebuilt. `title` of None is a body with no
-        heading, which is what the health strip wants: its counts ride the stat line on
-        the row above, so a second copy here would be two things to keep in step.
+        `self._last_head` holds the new heading. Each heading carries a live count, and
+        `_sync_card` writes that text again. A `title` of None gives a body with no
+        heading. The health strip needs that, because its counts are on the stat line
+        above. A second copy here gives two values to keep in agreement.
 
-        ⚠ A column, not two additions to `lay`. The blocks lay their panels out
-        HORIZONTALLY now, and a heading added straight to a QHBoxLayout lands *beside*
-        the boxes it labels rather than over them.
+        ⚠ Add a column. Do not add two items to `lay`. The blocks lay out their panels
+        HORIZONTALLY. Thus a heading that you add to a QHBoxLayout goes BESIDE its boxes,
+        not above them.
         """
         column = QVBoxLayout()
-        # ⚠ Margins zeroed. A nested QVBoxLayout inherits an 11px default on all four
-        # sides, and six of them down a block add 130px of nothing between each heading
-        # and the boxes it labels.
+        # ⚠ Set the margins to zero. A nested QVBoxLayout takes an 11px default on all four
+        # sides. Six of them in one block add 130px of empty space between each heading and
+        # its boxes.
         column.setContentsMargins(0, 0, 0, 0)
         column.setSpacing(1)
         self._last_head = None
@@ -813,8 +813,9 @@ class PartyPage(QWidget):
 
         card = QFrame()
         card.setObjectName("partyCard")
-        # ⚠ Inline, on the widget itself. An ancestor stylesheet beats a set palette
-        # every time, so a block that relied on a QPalette would paint the page shade.
+        # ⚠ Set the stylesheet inline, on the widget. An ancestor stylesheet always beats a
+        # palette that you set on the widget. Thus a block that uses a QPalette paints the
+        # page shade.
         card.setStyleSheet(f"QFrame#partyCard {{ background:{CARD}; border-radius:4px; }}")
         lay = QVBoxLayout(card)
         lay.setContentsMargins(8, 4, 8, 4)
@@ -830,45 +831,42 @@ class PartyPage(QWidget):
         title.setToolTip("Chargen locked — in play" if cv.chargen_locked else "")
         title.setStyleSheet(f"font-weight:700; font-size:13px; color:{accent};")
         head.addWidget(title)
-        # ⚠ `_StatLine`, so it ELIDES under pressure instead of forcing the line wider
-        # than the window. Line 1 carries six things and four of them have a hard minimum
-        # (the name, the live health readout, the notes box, the four buttons); if the
-        # two informational labels could not shrink, the buttons were pushed off the
-        # right edge and the page grew a horizontal scrollbar — which is what the first
-        # render of this layout did.
+        # ⚠ Use `_StatLine`. It SHORTENS its text, and it does not make the line wider than
+        # the window. Line 1 holds six items, and four of them have a hard minimum width:
+        # the name, the live health readout, the notes box and the four buttons. If the two
+        # information labels cannot become smaller, the buttons go past the right edge and
+        # the page gets a horizontal scrollbar.
         identity = _StatLine(cv.identity_line)
         identity.setStyleSheet(f"color:{MUTED}; font-size:10px;")
         head.addWidget(identity, 1)
-        # The permanent numbers a Storyteller calls a roll against. ⚠ Kept SEPARATE from
-        # the live label beside it: nothing here changes from a play-state click, so
-        # folding the two into one string would make `_sync_card` rewrite three derived
-        # numbers on every health box press for no reason — and `dodge` is a stored
-        # Ability rating, not a pool, which is a distinction a shared label loses.
+        # The permanent numbers that a Storyteller uses to call a roll. ⚠ Keep these
+        # SEPARATE from the live label next to them. A play-state click changes none of
+        # these values. In one string, `_sync_card` writes three derived numbers again on
+        # each health click with no cause. Also, `dodge` is a stored Ability rating, not a
+        # pool, and one shared label loses that difference.
         permanent = _StatLine(f"Soak {cv.soak.bashing}B/{cv.soak.lethal}L/"
                               f"{cv.soak.aggravated}A · Dodge {cv.dodge} · "
                               f"Essence {cv.essence_rating}")
         permanent.setStyleSheet(f"color:{MUTED}; font-size:10px;")
         head.addWidget(permanent, 2)
-        # ⚠ This label is `health_head`, and it is the one `_sync_card` re-texts. The
-        # heading it replaces read "HEALTH · penalty -1 · 1/ 0x 0*" over its own boxes;
-        # with the boxes on the line below, the same live counts ride the stat line. A
-        # repaint that moved the boxes and not this reads as a card that did nothing.
+        # ⚠ This label is `health_head`, and `_sync_card` writes its text again. The boxes
+        # are on the line below, thus the stat line carries the live counts. A repaint that
+        # changes the boxes and not this label reads as a block that did nothing.
         stats = QLabel(self._health_title(cv, marks))
         stats.setStyleSheet(f"color:{MUTED}; font-size:10px;")
         self._card_boxes[index]["health_head"] = stats
         head.addWidget(stats)
 
-        # ⚠ No reload on change: redrawing the block per keystroke would delete the box
-        # mid-word and steal the focus. Nothing else on the block reads the notes.
-        # ⚠ It takes the STRETCH on this line rather than a line of its own — a
-        # third line for a field that is empty on most members is what the card grid
-        # was spending height on.
+        # ⚠ Do not reload on a change. A redraw of the block on each keystroke deletes the
+        # box and takes the focus. No other widget on the block reads the notes.
+        # ⚠ Give this box the STRETCH on this line. Do not give it its own line. On most
+        # members this field is empty, and a third line for it makes every block taller.
         notes = QPlainTextEdit(member.notes)
         notes.setObjectName(f"party.{index}.notes")
         notes.setPlaceholderText("Notes…")
         notes.setFixedHeight(22)
-        # ⚠ A FIXED width, not a stretch. Given the stretch it wins the whole line's
-        # slack and squeezes the two elided labels beside it to nothing.
+        # ⚠ Use a FIXED width. Do not use a stretch. With the stretch, this widget takes
+        # all the free space of the line, and the two shortened labels become empty.
         notes.setFixedWidth(150)
         notes.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         notes.setStyleSheet(f"background:{INPUT}; font-size:10px;")
@@ -892,9 +890,10 @@ class PartyPage(QWidget):
         lay.addLayout(head)
 
         # ---- line 2: everything that is clicked --------------------------- #
-        # ⚠ Aligned BOTTOM. The health cells are two rows tall (a wound-penalty caption
-        # over each box) and everything beside them is one; aligned any other way the
-        # spin boxes float against the captions instead of lining up with the boxes.
+        # ⚠ Align this row to the BOTTOM. A health cell is two rows high, because a
+        # wound-penalty caption is above each box. Each widget next to it is one row high.
+        # With a different alignment, the spin boxes align with the captions, not with the
+        # boxes.
         track = QHBoxLayout()
         track.setSpacing(10)
         track.setAlignment(Qt.AlignmentFlag.AlignBottom)
@@ -914,8 +913,8 @@ class PartyPage(QWidget):
                 f"{counts[Damage.AGGRAVATED]}*")
 
     def _health(self, lay, index, character, cv, marks, accent) -> None:
-        """The track, with no heading of its own — `_card` puts the live counts on the
-        stat line and keeps the handle to re-text them."""
+        """The health track. It has no heading. `_card` puts the live counts on the stat
+        line, and it keeps the label to write those counts again."""
         body = self._panel(lay, None, accent)
         row = None
         rows: list[QHBoxLayout] = []
@@ -926,9 +925,9 @@ class PartyPage(QWidget):
                 body.addLayout(row)
                 rows.append(row)
             mark = marks[i]
-            # The wound penalty is CAPTIONED, not just a tooltip: which box to mark next
-            # is the thing a Storyteller reads off a card mid-fight, and a hover is no
-            # use when six cards are on screen.
+            # Put the wound penalty in a CAPTION. Do not put it in a tooltip only. During a
+            # fight, a Storyteller reads the next box to mark from the block. A tooltip
+            # needs a hover, and six blocks can be on the screen.
             cell = QVBoxLayout()
             cell.setSpacing(0)
             caption = QLabel(box.label)
@@ -945,25 +944,24 @@ class PartyPage(QWidget):
             self._card_boxes[index]["health"].append(button)
             cell.addWidget(button)
             row.addLayout(cell)
-        # ⚠ EVERY row, not just the last — the same defect the Play tab carried. A
-        # QHBoxLayout of fixed-size cells with no trailing stretch spreads its slack
-        # BETWEEN them, so a track that wraps draws its full rows justified and the
-        # short final row packed left, changing pitch mid-track. Only an Ox-Body
-        # character wraps at all, which is why every fixture missed it.
+        # ⚠ Add a stretch to EVERY row, not to the last row only. The Play tab has the same
+        # rule. A QHBoxLayout of fixed-size cells with no stretch at the end puts its free
+        # space BETWEEN the cells. Thus a track that wraps spreads its full rows and keeps
+        # the short last row at the left, and the box pitch changes. ⚠ Only an Ox-Body
+        # character wraps. A short fixture cannot show this fault.
         for lay_ in rows:
             lay_.addStretch(1)
 
     def _motes(self, lay, index, character, cv, cur, accent) -> None:
         """The Essence pools.
 
-        ⚠ A merged pool is ONE track — "all of which is considered Peripheral" (p.41) —
-        so a Personal box would sit at a permanent 0/0 and read as broken. `single_pool`
-        is carried on the view for exactly this, and the card honours it the way the Play
-        tab does."""
-        # ⚠ The heading is short because the panel is now a COLUMN in a row of them, not
-        # a full-width band — "ESSENCE — SINGLE POOL (motes spent)" set the whole block's
-        # minimum width on its own. The distinction it drew is kept in the input's own
-        # caption ("All motes") and its tooltip, which is where it is read anyway.
+        ⚠ A merged pool is ONE track: "all of which is considered Peripheral" (p.41). Thus
+        a Personal box stays at 0/0 and reads as broken. The view carries `single_pool` for
+        this rule, and this block uses it as the Play tab does."""
+        # ⚠ Keep this heading short. The panel is a COLUMN in a row of columns, not a
+        # full-width band. A heading of "ESSENCE — SINGLE POOL (motes spent)" sets the
+        # minimum width of the full block. The caption of the input ("All motes") and its
+        # tooltip carry the same information.
         body = self._panel(lay, "ESSENCE" if cv.play.single_pool
                            else "ESSENCE (spent)", accent)
         row = QHBoxLayout()
@@ -979,10 +977,9 @@ class PartyPage(QWidget):
                          cv.play.peripheral_max, accent)
         row.addStretch(1)
         body.addLayout(row)
-        # ⚠ The COMPACT form. These cards are one row per party member, so the Play
-        # tab's full sentence would bury the numbers the card exists to show — but a
-        # short pool with no explanation at all reads as a defect, which is the whole
-        # reason the note exists.
+        # ⚠ Use the COMPACT form. These blocks are one row for each party member, and the
+        # full sentence of the Play tab hides the numbers that the block must show. ⚠ Keep
+        # the note. A small pool with no explanation reads as a defect.
         committed = viewmod.committed_note(cv.play, compact=True)
         if committed:
             note = QLabel(committed)
@@ -991,10 +988,10 @@ class PartyPage(QWidget):
             body.addWidget(note)
 
     def _mote_input(self, row, index, character, caption, field, value, cap, accent) -> None:
-        # ⚠ The caption is ABBREVIATED on the block and spelled out in the tooltip. Two
-        # of these sit side by side in a column a few hundred pixels wide; "Personal" and
-        # "Peripheral" both start "Per" and neither fits, so the short forms are the ones
-        # that can actually be told apart at a glance.
+        # ⚠ ABBREVIATE the caption on the block, and give the full word in the tooltip. Two
+        # of these are side by side in a column of a few hundred pixels. "Personal" and
+        # "Peripheral" both start with "Per", and neither word fits. Thus the user can
+        # identify the short forms and cannot identify the cut full words.
         label = QLabel({"Personal": "P", "Peripheral": "Pp"}.get(caption, caption))
         label.setToolTip(caption)
         label.setStyleSheet(f"color:{MUTED}; font-size:10px;")
@@ -1009,10 +1006,10 @@ class PartyPage(QWidget):
         left = QLabel(f"{max(0, cap - value)}/{cap}")
         left.setStyleSheet(f"color:{MUTED}; font-size:10px;")
         row.addWidget(left)
-        # ⚠ No card reload from a spin box: the redraw would delete it mid-keystroke and
-        # take the focus with it. The one label that depends on the value is re-texted
-        # in place instead — a "left" count that only moved on the next full reload was
-        # worse than no count at all.
+        # ⚠ Do not reload the block from a spin box. The redraw deletes the box while the
+        # user types, and it takes the focus. Write the one label that depends on the value
+        # again, in place. ⚠ A "left" count that changes only on the next full reload is
+        # worse than no count.
         spin.valueChanged.connect(
             lambda v, c=character, f=field, m=cap: (
                 engineplay.set_motes(c, f, v, m),
@@ -1041,8 +1038,9 @@ class PartyPage(QWidget):
                 f"{f'  — {label} BREAK' if cur.limit >= 10 else ''})")
 
     def _limit(self, lay, index, character, cur, accent) -> None:
-        """Limit, or Clarity for an Alchemical (p.69) — never both. Only the temporary
-        half of Clarity is clickable; the permanent half is derived."""
+        """Limit, or Clarity for an Alchemical (p.69). ⚠ Never show both. The user can
+        click the temporary half of Clarity only. The program derives the permanent
+        half."""
         ruleset = self._ruleset
         body = self._panel(lay, self._count_title(character, cur), accent)
         self._card_boxes[index]["count_head"] = self._last_head
@@ -1052,12 +1050,12 @@ class PartyPage(QWidget):
             return
         self._count_track(body, index, character, "limit", cur.limit, 10, accent)
         if derive.limit_label(ruleset, character) == "Divergence":
-            # ⚠ A BUTTON, not a hover. Divergence is Storyteller-adjudicated and never
-            # engine-enforced, so the nine clauses are the card's copy of the page — and
-            # a page nobody can find is not on the card.
-            # ⚠ The label is short and the sentence moved into the tooltip: this sits in
-            # a column beside three others now, and a button captioned with a full clause
-            # sets the whole block's minimum width on its own.
+            # ⚠ Use a BUTTON, not a hover. The Storyteller decides a divergence, and the
+            # engine never enforces one. Thus the nine clauses are the copy of the page on
+            # this block, and the user must be able to open them.
+            # ⚠ Keep the label short, and put the sentence in the tooltip. This button is
+            # in a column beside three others. A button with a full clause as its caption
+            # sets the minimum width of the full block.
             geas = _row_button("Great Geas…", "The nine Divergence triggers (CH6 p.235)")
             geas.setObjectName(f"party.{index}.geas")
             geas.clicked.connect(self._show_geas)
@@ -1082,10 +1080,10 @@ class PartyPage(QWidget):
             button.clicked.connect(
                 lambda _c=False, c=character, i=i, f=field, m=cap, x=index:
                 (engineplay.set_count(c, f, i, m), self._sync_card(x)))
-            # ⚠ Filed under "willpower_spent" or "count", not under `field`: the third
-            # track is `limit` for most splats and `clarity_temporary` for an Alchemical,
-            # and a sync keyed on the field name would silently skip whichever one this
-            # character does not have.
+            # ⚠ Key these boxes under "willpower_spent" or "count", not under `field`. The
+            # third track is `limit` for most splats, and `clarity_temporary` for an
+            # Alchemical. A sync that uses the field name skips the track that this
+            # character does not have, and it reports no error.
             key = "willpower_spent" if field == "willpower_spent" else "count"
             self._card_boxes[index][key].append(button)
             row.addWidget(button)
@@ -1095,16 +1093,14 @@ class PartyPage(QWidget):
     def _sync_card(self, index: int) -> None:
         """Repaint ONE member card's tracker boxes and headings from the model.
 
-        ⚠ **Never `reload()`.** A play-state click used to redraw every card on the tab,
-        which deletes the box under the cursor — Qt hands the focus on to whatever
-        inherits it and the scroll area scrolls to follow. Measured: clicking a health
-        box on the third of six cards threw the scroll from 354 to 463 and left the
-        focus in the toolbar's party-name field. This is the adversary detail pane's bug
-        (human, 2026-08-28) on the surface one tab over; both were found by the same
-        probe, and only one of them had been reported.
+        ⚠ **Never call `reload()` here.** A redraw of every block deletes the box below the
+        pointer. Qt then gives the focus to a different widget, and the scroll area scrolls
+        to that widget. Measured: a click on a health box of the third block of six moved
+        the scroll from 354 to 463, and put the focus in the party-name field of the
+        toolbar. The adversary detail pane has the same defect.
 
-        Nothing structural can change from a play click — no cap moves, so no track
-        changes length — which is what makes repainting in place sound here."""
+        A play click changes nothing structural. No limit moves, thus no track changes its
+        length. Thus a repaint in place is correct here."""
         card = self._card_boxes.get(index)
         if card is None:
             return
@@ -1136,13 +1132,13 @@ class PartyPage(QWidget):
 # --------------------------------------------------------------------------- #
 
 class ReferencePage(QWidget):
-    """The Storyteller's reference screen (`RuleSet.st_screen`) as one scrollable
-    document. Read-only and purely presentational — the tables are already
-    render-ready, so there is no logic here.
+    """The reference screen of the Storyteller (`RuleSet.st_screen`), as one scrollable
+    document. It is read-only. The tables are ready to render, thus this class has no
+    logic.
 
-    ⚠ It lives on THIS window rather than on the builder's ST Options tab (human,
-    2026-08-27): it is a Storyteller-at-the-table surface and belongs beside the party
-    and the opposition. Absent (an explanatory line) when no `st_screen.json` shipped."""
+    ⚠ This screen is on THIS window, not on the ST Options tab of the builder (human's
+    ruling). The Storyteller uses it at the table, thus it belongs next to the party and
+    the adversaries. When the app has no `st_screen.json`, this tab shows a note."""
 
     def __init__(self, ruleset, parent=None):
         super().__init__(parent)
@@ -1154,13 +1150,13 @@ class ReferencePage(QWidget):
         self.apply_colors(theme.palette(None))
 
     def apply_colors(self, pal) -> None:
-        """Redraw the screen in `pal`'s accent on the dark base. Called from the
-        window's `apply_chrome`, so a party that becomes single-splat re-tints the
-        reference with everything else.
+        """Draw the screen again, in the accent of `pal` on the dark base. `apply_chrome`
+        of the window calls this. Thus a party that becomes one splat re-tints this
+        reference with the other surfaces.
 
-        ⚠ The widget background is set here as well as the document's colours: the
-        shell QSS gives every QTextBrowser the card shade, and an ancestor stylesheet
-        beats anything the document says about its own page."""
+        ⚠ Set the widget background here, and the colours of the document. The shell QSS
+        gives the card shade to every QTextBrowser, and an ancestor stylesheet beats the
+        page colour of the document."""
         colors = screen_colors_for(pal)
         self.view.setStyleSheet(
             f"QTextBrowser {{ background:{colors.paper}; color:{colors.ink}; }}")
@@ -1168,11 +1164,12 @@ class ReferencePage(QWidget):
 
 
 def reference_html(ruleset, colors: SheetColors | None = None) -> str:
-    """The ST screen as HTML: a heading per group, a table per RefTable. A
-    `columns`-less table renders as a bare list of rows (a step sequence).
+    """The ST screen as HTML. It has one heading for each group, and one table for each
+    RefTable. A table with no `columns` renders as a list of rows, which is a sequence of
+    steps.
 
-    `colors` defaults to the PAPER set, like `sheet_html`; the tab passes the screen
-    set."""
+    The default of `colors` is the PAPER set, as in `sheet_html`. The tab supplies the
+    screen set."""
     screen = ruleset.st_screen
     esc = _html.escape
     if screen is None:
@@ -1221,8 +1218,8 @@ class PartyWindow(QMainWindow):
         self._ctx = ctx
         self._on_open_member = on_open_member
         self._on_close_member = on_close_member
-        # ⚠ No `notify` hook from the builder: this window has its own status bar, and a
-        # second unused messaging channel is the shape a dead field takes.
+        # ⚠ Take no `notify` hook from the builder. This window has its own status bar. A
+        # second messaging channel with no caller becomes a dead field.
 
         self.resize(1180, 860)
         self._build_toolbar()
@@ -1241,10 +1238,10 @@ class PartyWindow(QMainWindow):
         self.tabs.addTab(self.party_page, "Party")
         self.tabs.addTab(self.adversaries_page, "Adversaries")
         self.tabs.addTab(self.reference_page, "Reference")
-        # ⚠ The roster is drawn on TWO tabs, and the editor writes per keystroke. Firing
-        # `on_change` from every one of those would rebuild every roster card while
-        # someone types a name — so the discrete events push, and typing is picked up
-        # when the other tab is next SHOWN.
+        # ⚠ TWO tabs draw the roster, and the editor writes on each keystroke. An
+        # `on_change` call from each keystroke rebuilds every roster block while the user
+        # types a name. Thus a discrete event sends the signal, and a keystroke reaches the
+        # other tab when the user next SHOWS it.
         self.tabs.currentChanged.connect(self._tab_shown)
         self.setCentralWidget(self.tabs)
         self.statusBar().showMessage("")
@@ -1256,18 +1253,18 @@ class PartyWindow(QMainWindow):
         return self._ctx["party"]
 
     def _pal(self):
-        """The party's chrome: the shared splat when every member is the same Exalt
-        type, else the default. A mixed party carries its identity on the cards, which
-        are always tinted per character."""
+        """The chrome of the party. It takes the shared splat when every member has the
+        same Exalt type, and the default palette in any other case. A mixed party shows its
+        identity on the blocks, which always take the colour of their character."""
         splats = {m.character.exalt_type for m in self._party().members}
         return theme.palette(splats.pop() if len(splats) == 1 else None)
 
     def apply_chrome(self) -> None:
-        """Re-theme the window for whatever the party is now.
+        """Theme the window again for the current party.
 
-        ⚠ Its OWN `qtheme.apply`. This is a top-level window, so it inherits neither the
-        builder's palette nor its stylesheet — the same trap that left every QDialog in
-        the port drawing the platform light grey."""
+        ⚠ Call `qtheme.apply` on THIS window. It is a top-level window. Thus it does not
+        get the palette of the builder, and it does not get the stylesheet of the builder.
+        A QDialog has the same behaviour, and it draws the light grey of the platform."""
         name = self._party().name or "(unnamed)"
         self.setWindowTitle(f"Exalted 1e — Party: {name}")
         qtheme.apply(self, self._pal())
@@ -1283,23 +1280,24 @@ class PartyWindow(QMainWindow):
             self.adversaries_page.reload()
 
     def _roster_changed(self) -> None:
-        """A change made on the Party tab's roster cards — refresh the Adversaries
-        tab's table so the two never disagree."""
+        """Apply a change from the roster blocks of the Party tab. Refresh the table of the
+        Adversaries tab. Thus the two surfaces always agree."""
         self.adversaries_page.reload()
 
     def _adversaries_changed(self) -> None:
-        """The mirror: a change made on the Adversaries tab reaches the Party cards.
+        """Apply a change from the Adversaries tab to the blocks of the Party tab.
 
-        ⚠ The ROSTER only. A full `party_page.reload()` would tear down the member card
-        whose notes box someone is typing into, and a member card shows nothing an
-        adversary edit can change."""
+        ⚠ Draw the ROSTER only. A full `party_page.reload()` deletes the member block whose
+        notes box the user types into. A member block shows nothing that an adversary edit
+        changes."""
         self.party_page.reload_roster()
 
     def _edit_adversary(self, entry_id: str) -> None:
-        """"Edit" on a roster card: raise the Adversaries tab with that entry selected.
+        """Apply "Edit" on a roster block. Show the Adversaries tab, with that entry
+        selected.
 
-        ⚠ The card carries no editor of its own. Two editors for one model is how the
-        `powers`/`combat_pool` dead-field class of bug got in the first time."""
+        ⚠ A block has no editor. Two editors for one model cause a dead field, as the
+        `powers` and `combat_pool` fields show."""
         self.adversaries_page.select(entry_id)
         self.tabs.setCurrentWidget(self.adversaries_page)
 
@@ -1329,14 +1327,15 @@ class PartyWindow(QMainWindow):
         tb.addAction("New party", self._confirm_new_party)
 
     def _rename(self, text: str) -> None:
-        # ⚠ The title only. Re-theming here would rebuild the toolbar's own line edit
-        # on every keystroke; the palette does not depend on the name anyway.
+        # ⚠ Write the title only. A re-theme here rebuilds the line edit of the toolbar on
+        # each keystroke. The palette does not depend on the name.
         self._party().name = text
         self.setWindowTitle(f"Exalted 1e — Party: {text or '(unnamed)'}")
 
     def reload(self) -> None:
-        """Redraw both live tabs. Called when the builder has changed a character the
-        party holds — the objects are shared, so only the DRAWING is stale."""
+        """Draw both live tabs again. The builder calls this after it changes a character
+        that the party holds. The two windows share the objects, thus only the DRAWING is
+        old."""
         if self.name_edit.text() != self._party().name:
             self.name_edit.blockSignals(True)
             self.name_edit.setText(self._party().name)
@@ -1348,8 +1347,8 @@ class PartyWindow(QMainWindow):
     # ---- members --------------------------------------------------------- #
 
     def add_character(self, character: Character) -> PartyMember:
-        """Append a character to the roster BY REFERENCE — editing it in the builder
-        keeps the card in step with no syncing code."""
+        """Add a character to the roster BY REFERENCE. Thus an edit in the builder appears
+        on the block, and no code synchronises them."""
         member = PartyMember(character=character)
         self._party().members.append(member)
         self.party_page.reload()
@@ -1357,12 +1356,12 @@ class PartyWindow(QMainWindow):
         return member
 
     def build_add_character_dialog(self) -> QDialog:
-        """⚠ Three sources, not just the file picker. Jumping straight to the OS dialog
-        would make the character open in the builder — the commonest case at a table —
-        unreachable from here.
+        """⚠ Offer three sources, not the file picker only. If this action opens the file
+        dialog of the operating system directly, the user cannot add the character that the
+        builder holds. At a table, that is the usual case.
 
-        BUILT but not run, like the other modals here: `exec()` blocks a headless run,
-        so this is the seam the tests drive."""
+        This function BUILDS the dialog and does not run it, as the other modals here do.
+        `exec()` stops a headless run, thus the tests drive this seam."""
         dialog = QDialog(self)
         dialog.setWindowTitle("Add a character to the party")
         lay = QVBoxLayout(dialog)
@@ -1381,7 +1380,7 @@ class PartyWindow(QMainWindow):
         lay.addWidget(browse)
 
         open_char = self._ctx["char"]
-        # Identity, not equality: two characters may legitimately share a name.
+        # ⚠ Compare the objects, not their values. Two characters can have the same name.
         if not any(m.character is open_char for m in self._party().members):
             take = QPushButton(f"Add “{open_char.name or 'the character in the builder'}”")
             take.setObjectName("party.addOpen")
@@ -1416,8 +1415,9 @@ class PartyWindow(QMainWindow):
         finish(loaded, Path(path).stem)
 
     def _open_member(self, index: int) -> None:
-        """Hand this member to the builder window and raise it. The Character object is
-        shared, so whatever the builder does lands back on this card."""
+        """Give this member to the builder window, and show that window. The two windows
+        share the Character object. Thus each change in the builder appears on this
+        block."""
         self._on_open_member(index)
         self.party_page.reload()
 
@@ -1431,8 +1431,8 @@ class PartyWindow(QMainWindow):
         if answer != QMessageBox.StandardButton.Yes:
             return
         del self._party().members[index]
-        # ⚠ The builder may be pointed at the member that just went away, or at one
-        # whose index has shifted. Drop the pointer rather than leave it stale.
+        # ⚠ The builder can point at the member that this code removed, or at a member
+        # whose index moved. Drop the pointer. Do not leave an old pointer.
         self._on_close_member()
         self.party_page.reload()
         self.apply_chrome()
@@ -1441,8 +1441,8 @@ class PartyWindow(QMainWindow):
     # ---- the read-only sheet --------------------------------------------- #
 
     def build_sheet_dialog(self, character: Character) -> QDialog:
-        """One member's sheet as a document, BUILT but not run — `exec()` blocks a
-        headless run, so this is the seam the tests drive."""
+        """The sheet of one member, as a document. This function BUILDS the dialog and does
+        not run it. `exec()` stops a headless run, thus the tests drive this seam."""
         dialog = QDialog(self)
         dialog.setWindowTitle(f"Sheet — {character.name or '(unnamed)'}")
         dialog.resize(900, 800)
@@ -1494,9 +1494,9 @@ class PartyWindow(QMainWindow):
                             f"({len(loaded.members)} character(s))")
 
     def apply_party(self, loaded: Party, path: Path | None) -> None:
-        """Swap the whole bundle in. ⚠ The builder is pointed at a member of the party
-        that just went away — drop that pointer, or a later save is attributed to a
-        member of a roster nobody is holding any more."""
+        """Replace the full party. ⚠ The builder points at a member of the party that this
+        method removed. Drop that pointer. If it stays, a later save goes to a member of a
+        roster that the program no longer holds."""
         self._ctx["party"] = loaded
         self._ctx["party_path"] = path
         self._on_close_member()
@@ -1514,9 +1514,9 @@ class PartyWindow(QMainWindow):
     # ---- PDF ------------------------------------------------------------- #
 
     def build_export_dialog(self, character: Character | None) -> QDialog | None:
-        """The export dialog for one member, or for the whole party when `character` is
-        None. BUILT but not run, like the other modals here. None when there is nothing
-        to export."""
+        """The export dialog for one member. With `character` as None, it exports the full
+        party. This function BUILDS the dialog and does not run it, as the other modals
+        here do. It returns None when the party holds nothing to export."""
         members = ([character] if character is not None
                    else [m.character for m in self._party().members])
         if not members:
@@ -1545,9 +1545,9 @@ class PartyWindow(QMainWindow):
             if not path:
                 return
             try:
-                # ⚠ A party export is NOT a loop over single-sheet exports: `build_pdf`
-                # and `build_party_pdf` are two documents, and the party one names
-                # itself after the party rather than after its first member.
+                # ⚠ A party export is NOT a loop over single-sheet exports. `build_pdf` and
+                # `build_party_pdf` make two different documents, and the party document
+                # takes the name of the party, not the name of its first member.
                 data = (pdf.build_pdf(views[0], paper=paper.currentText())
                         if len(views) == 1
                         else pdf.build_party_pdf(views, paper=paper.currentText(),

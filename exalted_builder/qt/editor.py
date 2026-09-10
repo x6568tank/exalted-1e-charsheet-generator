@@ -1,21 +1,21 @@
 """exalted_builder/qt/editor.py — the Edit tab: chargen and XP on one trait surface.
 
-Input: a RuleSet and a Character (from the shared context). Output: a scrollable form
-of dot-track trait rows (Attributes, Abilities, Crafts, Virtues, Essence, Willpower),
-the identity/structural controls, and a sticky side column — Live Validation + Bonus
-Points while chargen is open, the XP card + ledger after the lock. Mechanism:
-retained-mode widgets built once and mutated; a dot click sets the rating (chargen) or
-hands the click to engine.advancement (post-lock, decision 0013); the side column
-re-derives from view.build_sheet_view + validate on every change.
+Input: a RuleSet and a Character from the shared context. Output: a scrollable form of
+dot-track trait rows (Attributes, Abilities, Crafts, Virtues, Essence, Willpower), the
+identity and structural controls, and a side column. During chargen, the side column shows
+the live validation and the bonus points. After the lock, it shows the XP card and the
+ledger. Mechanism: this page builds its widgets one time and changes them. During chargen,
+a dot click sets the rating. After the lock, the click goes to `engine.advancement`
+(decision 0013). Each change calculates the side column again from `view.build_sheet_view`
+and `validate`.
 
-This is a re-architecture, not a transliteration (docs/plans/qt-port.md, "What does
-NOT translate"): the NiceGUI editor rebuilds the page per click; this rebuilds only
-what a change moves (a dot click touches its row + the side column; a structural
-change — Exalt type, caste, origin, favoured picks — rebuilds the body).
+⚠ This page is not a copy of the NiceGUI editor (`docs/plans/qt-port.md`, "What does NOT
+translate"). The NiceGUI editor rebuilds the page on each click. This page rebuilds only
+what a change moves: a dot click changes its own row and the side column. A structural
+change (Exalt type, caste, origin, favoured picks) rebuilds the body.
 
-Nothing on this tab is deferred to the webapp any more (2026-08-22). The Downtime
-calculator lives with the other XP controls, in the shell's popover — see
-`qt/main_window.py::_downtime_dialog`, not here.
+⚠ The Downtime calculator is with the other XP controls, in the popover of the shell. See
+`qt/main_window.py::_downtime_dialog`. It is not on this tab.
 """
 
 from __future__ import annotations
@@ -40,36 +40,37 @@ from .layout import clear_layout
 from exalted_builder.ui import theme
 from exalted_builder.ui import view as viewmod
 
-# XP-log targets whose change moves OTHER rows' ceilings, so buying one has to rebuild
-# the whole body rather than its own dot row. ⚠ Omit a target here and its dependants
-# keep their stale pips until the tab is re-entered. Essence is the only member: past
-# 5 it IS the ceiling on every Ability and Attribute (engine.elder).
+# The XP-log targets that move the maximum of OTHER rows. A purchase of one of these must
+# rebuild the full body, not its own dot row. ⚠ If you omit a target here, the rows that
+# depend on it keep their old pips until the user opens the tab again. Essence is the one
+# member. Above 5, Essence IS the maximum of every Ability and Attribute (`engine.elder`).
 BODY_REBUILD_TARGETS = {"essence"}
 
-# ⚠ The QSS gives every QPushButton `background:CARD` — which is the shade of the
-# _Panel it sits on, so a small button inside a card is INVISIBLE. The same
-# ancestor-stylesheet trap as the QTextEdit-in-a-_Panel one; the only fix is an inline
-# stylesheet on the widget. INPUT is the shade the human already tuned to read as a
-# clear step off CARD.
+# ⚠ The QSS gives `background:CARD` to every QPushButton. CARD is the shade of the _Panel
+# below the button. Thus a small button on a card is INVISIBLE. An ancestor stylesheet
+# beats a palette that you set on the widget. The correction is an inline stylesheet on the
+# widget. INPUT is a clear step lighter than CARD.
 _TINY_BUTTON = (f"background:{INPUT}; color:#e8e6e1; border:none; border-radius:3px; "
                 f"padding:0px; font-weight:700;")
 
 
 def _trait_reference_dialog(parent, info, accent_colour: str) -> None:
-    """Open `_build_trait_dialog` modally. Split from the builder only so a headless
-    test can assemble the dialog without `exec()` blocking the run."""
+    """Open `_build_trait_dialog` as a modal. `_build_trait_dialog` is a separate function,
+    thus a headless test can build the dialog. `exec()` stops a headless run."""
     _build_trait_dialog(parent, info, accent_colour).exec()
 
 
 def _build_trait_dialog(parent, info, accent_colour: str) -> QDialog:
     """Build the read-only modal showing one trait's core-book text (`viewmod.TraitInfo`).
 
-    The Qt twin of `ui.catalogue.trait_reference_dialog`: same TraitInfo, same order
-    (description, rung ladder with the character's rung bolded, then the sections), so
-    the two shells cannot describe a trait differently.
+    This dialog agrees with `ui.catalogue.trait_reference_dialog`. It uses the same
+    TraitInfo and the same order: the description, then the rung ladder with the rung of
+    the character in bold, then the sections. Thus the two shells describe a trait in the
+    same way.
 
-    ⚠ Every wrapped label sets its colour inline. A parent stylesheet outranks a set
-    palette, and the editor's is on an ancestor of this dialog."""
+    ⚠ Set the colour of each label that wraps inline. A parent stylesheet beats a palette
+    that you set on the widget, and the stylesheet of the editor is on an ancestor of this
+    dialog."""
     dialog = QDialog(parent)
     dialog.setWindowTitle(f"{info.title} — {info.subtitle}")
     dialog.resize(560, 620)
@@ -92,8 +93,8 @@ def _build_trait_dialog(parent, info, accent_colour: str) -> QDialog:
             lay.addWidget(text)
     for rating, rung, current in info.ladder:
         row = QHBoxLayout()
-        # Rung 0 is "Unskilled", which the page prints as a cross rather than as no
-        # dots — an empty cell would read as a missing value instead of a rung.
+        # Rung 0 is "Unskilled". The page prints it as a cross, not as zero dots. An empty
+        # cell reads as a missing value, not as a rung.
         pips = QLabel("●" * rating if rating else "✕")
         pips.setFixedWidth(64)
         pips.setAlignment(Qt.AlignTop)
@@ -138,18 +139,19 @@ class _Pip(QLabel):
         self.clicked.emit(self._index)
 
 
-# ⚠ A nested layout whose spacing is unset (-1) INHERITS its parent's, so the 24px gap
-# set between the COLUMNS became the gap between the ROWS inside each column — the
-# attribute rows sat 41px apart against the Virtues' 21px, which reads as the card
-# trying to fill itself vertically (human, 2026-08-22). Set it explicitly.
+# ⚠ Set the spacing of a nested layout. A layout with unset spacing (-1) TAKES the spacing
+# of its parent. Thus a 24px gap between the COLUMNS becomes the gap between the ROWS in
+# each column. The Attribute rows are then 41px apart and the Virtue rows are 21px apart,
+# and the card reads as too tall.
 _ROW_SPACING = 4
 
 class DotTrack(QWidget):
-    """A clickable dot-track rating control (decision 0013: the buy control on both
-    sides of the lock). `get`/`setv` read and write the rating; pre-lock a click is a
-    free setter, post-lock `buy` (when a `target` is named) prices and validates it.
-    Clicking the current top pip steps it back down. `refresh()` re-reads `get()` and
-    rebuilds the pips — always showing enough to step a too-high value down."""
+    """A clickable dot-track rating control. It is the buy control on both sides of the
+    lock (decision 0013). `get` reads the rating, and `setv` writes it. Before the lock, a
+    click sets the rating and costs nothing. After the lock, `buy` prices and validates the
+    click, if the caller names a `target`. A click on the current top pip decreases the
+    rating. `refresh()` reads `get()` again and rebuilds the pips. It always shows enough
+    pips to decrease a rating that is too high."""
 
     def __init__(self, get, setv, lo, hi, *, accent, target=None, detail="",
                  buy=None, on_change=None, parent=None):
@@ -185,8 +187,8 @@ class DotTrack(QWidget):
     def _click(self, i: int) -> None:
         current = self._get()
         wanted = max(self._lo, min(self._hi, i - 1 if i == current else i))
-        # Post-lock, the click is a purchase, a refund or a curse — never a write.
-        # `buy` returns True when it has taken responsibility for it.
+        # ⚠ After the lock, a click is a purchase, a refund or a curse. It is never a
+        # direct write. `buy` returns True when it accepts the click.
         if self._buy is not None and self._target is not None:
             if self._buy(self._target, current, wanted, self.refresh, self._detail):
                 return
@@ -197,9 +199,9 @@ class DotTrack(QWidget):
 
 
 class _FilterCombo(QComboBox):
-    """An editable combo that opens its list on click — type to filter (the
-    completer), click to see everything. Plain QComboBox only opens the list from its
-    arrow; clicking the text area just focuses it."""
+    """An editable combo box that opens its list on a click. The user types to filter the
+    list with the completer, or clicks to see all of it. ⚠ A plain QComboBox opens its list
+    from the arrow only. A click on its text area sets the focus and does nothing else."""
 
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
@@ -208,18 +210,18 @@ class _FilterCombo(QComboBox):
 
 
 class _FavoredPicker(QWidget):
-    """Type-to-filter multi-pick with chips — the web app's use-chips select.
+    """A multiple-selection control with chips and a type-to-filter box.
 
-    An editable combo holding every option, whose completer filters the labels as you
-    type; clicking opens the full list. Picking (dropdown, completer or Enter) adds the
-    option as a chip, capped at `cap`. `on_change` fires with the current picks whenever
-    a chip is added or removed. Disabled when frozen (chargen choices are fixed at the
-    lock).
+    Input: every option, in an editable combo box. The completer filters the labels while
+    the user types, and a click opens the full list. A selection from the dropdown, the
+    completer or the Enter key adds the option as a chip, up to `cap`. `on_change` sends
+    the current selections after the user adds or removes a chip. The control is disabled
+    when it is frozen, because the lock fixes the chargen choices.
 
-    ⚠ **`cap=None` means UNBOUNDED**, and is not the same as a very large number: the
-    placeholder PRINTS the cap, so a caller passing 999 to mean "no limit" put
-    "Type a name… (pick 999)" on screen. The lists on the Custom tab (prerequisites,
-    extra-requirement traits, open-to tiers) have no cap in the models."""
+    ⚠ **`cap=None` means NO LIMIT.** It is not the same as a large number. The placeholder
+    PRINTS the cap. Thus a caller that passes 999 to mean "no limit" shows "Type a name…
+    (pick 999)". The models put no limit on the lists of the Custom tab: prerequisites,
+    extra-requirement traits and open-to tiers."""
 
     def __init__(self, options: dict, current: list, cap: int | None, accent: str,
                  on_change, *, frozen: bool = False, parent=None):
@@ -244,8 +246,9 @@ class _FavoredPicker(QWidget):
         self.combo.lineEdit().setPlaceholderText(
             "Type a name…" if cap is None else f"Type a name… (pick {cap})")
         self.combo.lineEdit().returnPressed.connect(self._add_current)
-        # Both paths: activated(int) on a dropdown pick, textActivated(str) from the
-        # completer. `_add_current` is idempotent, so double-fires are safe.
+        # Connect both signals: `activated(int)` for a dropdown selection, and
+        # `textActivated(str)` for the completer. `_add_current` gives the same result on a
+        # second call, thus two signals for one selection are safe.
         self.combo.activated[int].connect(lambda _i: self._add_current())
         self.combo.textActivated.connect(lambda _s: self._add_current())
         self.combo.setEnabled(not frozen)
@@ -296,10 +299,11 @@ class _FavoredPicker(QWidget):
     def _remove(self, key):
         if key not in self._picked:
             return
-        # The clicked ✕ has focus; deleting it lets Qt's focus handling scroll the
-        # surrounding scroll area to whatever focusable widget it picks next (a
-        # QSpinBox deep in the form), yanking the view to the bottom. Park focus on
-        # the combo — part of this picker, already on screen — before deleting.
+        # ⚠ Move the focus to the combo box BEFORE you delete the chip. The ✕ that the user
+        # clicked holds the focus. When you delete it, Qt gives the focus to the next
+        # focusable widget, which can be a QSpinBox at the end of the form, and the scroll
+        # area scrolls to that widget. The combo box is part of this picker and is on the
+        # screen.
         self.combo.setFocus()
         self._picked.remove(key)
         self._render_chips()
@@ -307,17 +311,17 @@ class _FavoredPicker(QWidget):
 
 
 class _Panel(QFrame):
-    """A titled card — the editor's section container. node_bg fill with an
-    accent-tinted border, like the web app's card tint."""
+    """A card with a title. It is the section container of the editor. It has a `node_bg`
+    fill and a border in the accent colour."""
 
     def __init__(self, title: str, pal, parent=None):
         super().__init__(parent)
         self.setStyleSheet(
             f"QFrame {{ background:{CARD}; border:none; border-radius:6px; }}")
-        # A card takes its content's natural height and never expands vertically —
-        # otherwise a card beside a taller sibling (the caste card next to the
-        # Identity panel) is stretched to match, and the extra height is spread
-        # across its labels. The body's trailing stretch absorbs leftover space.
+        # ⚠ A card takes the height of its content, and it never expands vertically.
+        # Without this rule, a card next to a taller card, for example the caste card next
+        # to the Identity panel, becomes as tall as that card, and the extra height goes
+        # between its labels. The stretch at the end of the body takes the free space.
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
         lay = QVBoxLayout(self)
         lay.setContentsMargins(10, 8, 10, 10)
@@ -332,12 +336,13 @@ class _Panel(QFrame):
 
 
 class _EditorPage(QWidget):
-    """Shared machinery for the Identity and Traits pages: a retained-mode scrollable
-    body, the dot-track buying / downward-dialog plumbing, scroll-hold and layout
-    clearing. `reload()` rebuilds the body from the character in ctx; a subclass's
-    `_build_body()` supplies the content. `notify` surfaces transient messages;
-    `on_change` fires whenever the character changed so the shell can refresh its
-    readout/status (the old side column now lives in the shell's popover)."""
+    """The shared parts of the Identity page and the Traits page. It supplies a scrollable
+    body that it builds one time, the dot-track purchase path, the decrease dialog, the
+    scroll hold and the layout teardown. `reload()` rebuilds the body from the character in
+    ctx. The `_build_body()` of a subclass supplies the content. `notify` shows a temporary
+    message. `on_change` sends a signal after the character changes, thus the shell can
+    refresh its readout and its status strip. The popover of the shell holds the side
+    column."""
 
     def __init__(self, ruleset, ctx, *, notify=None, on_change=None, parent=None):
         super().__init__(parent)
@@ -360,18 +365,17 @@ class _EditorPage(QWidget):
         self.reload()
 
     def reload(self) -> None:
-        """Rebuild the body from the character in ctx, then ping the shell. Pin the
-        body's height across the rebuild (clearing the layout collapses the content
-        under the scrollbar, clamping the saved value), then re-apply the scroll
-        position for a short settle window (see _hold_scroll).
+        """Rebuild the body from the character in ctx, then call the shell. Hold the height
+        of the body across the rebuild, because a cleared layout makes the content shorter
+        than the scrollbar and limits the saved value. Then apply the scroll position again
+        for a short period (see `_hold_scroll`).
 
-        ⚠ The `on_change` ping lives HERE, not at the call sites. A full reload is what
-        every structural change does — Exalt type, caste, origin, favoured picks, a
-        craft row, `_do_trait`'s purchases, `_lower_willpower` — and all ten sites
-        moved the bonus-point spend or the validation errors while leaving the shell's
-        readout bar showing the previous answer. One ping in the wrapper is a mechanism;
-        ten remembered call sites is the same house bug waiting for an eleventh.
-        Re-entry is not a risk: the shell's `_refresh` writes labels and never reloads a
+        ⚠ Call `on_change` HERE, not at the call sites. Every structural change does a full
+        reload: Exalt type, caste, origin, favoured picks, a craft row, the purchases of
+        `_do_trait`, and `_lower_willpower`. All ten sites move the bonus-point spend or
+        the validation errors. One call in this wrapper is a mechanism. Ten call sites are
+        the house bug, and an eleventh site will omit the call. A second entry is not a
+        risk, because the `_refresh` of the shell writes labels and never reloads a
         page."""
         saved = self._body_scroll.verticalScrollBar().value()
         self._body_container.setMinimumHeight(self._body_container.height())
@@ -407,7 +411,7 @@ class _EditorPage(QWidget):
         return row
 
     def _vsep(self) -> QFrame:
-        """A 1px vertical rule between columns (the web app's `border-left`)."""
+        """A vertical divider of 1px between two columns."""
         line = QFrame()
         line.setFixedWidth(1)
         line.setStyleSheet("background:#55535a;")
@@ -418,21 +422,19 @@ class _EditorPage(QWidget):
         """A select over `options` {key: label}, calling `on_change(key)` with the key
         the caller supplied.
 
-        ⚠ **The key is looked up by INDEX, never read back out of the widget.** Qt
-        stores item data as a QVariant, and a `str`-valued Enum comes back out of
-        `currentData()` as a plain `str` — so a handler doing `setattr(row, "ability",
-        …)` writes "dodge" onto a field typed `AbilityName`, and the model has no
-        `validate_assignment` to catch it. Nothing fails at the write; it fails later
-        at the first `.value` on what is no longer an enum. Indexing the original dict
-        hands back the identical object for every key type.
+        ⚠ **Index the key. NEVER read it back from the widget.** Qt stores item data as a
+        QVariant, and `currentData()` returns an Enum with a `str` value as a plain `str`.
+        Thus a handler that calls `setattr(row, "ability", …)` writes "dodge" onto a field
+        of type `AbilityName`. The model has no `validate_assignment`, thus it accepts the
+        write. The failure occurs later, at the first `.value` on a value that is no longer
+        an enum. An index into the original dict returns the same object for every key type.
 
-        ⚠ **`placeholder` is REQUIRED wherever "nothing chosen" is a real state.** Qt
-        has no empty state for a combo: given a `value` that is not among the keys it
-        simply sits on index 0, so the control ANNOUNCES a pick the character does not
-        hold. Found on the camp style select, which displayed the first martial art
-        while the package was unresolved and no Charm list beneath it (human,
-        2026-08-22). The placeholder row is added only while the value is missing, so a
-        resolved control never carries a blank option.
+        ⚠ **Supply a `placeholder` where "nothing chosen" is a real state.** A Qt combo box
+        has no empty state. With a `value` that is not one of the keys, it shows index 0.
+        Thus the control REPORTS a selection that the character does not hold. The camp
+        style select showed the first martial art while the package was unresolved, and it
+        showed no Charm list below it. This code adds the placeholder row only while the
+        value is absent. Thus a resolved control has no blank option.
         """
         combo = QComboBox()
         keys = list(options)
@@ -465,14 +467,13 @@ class _EditorPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def _clear_lay(self, lay) -> None:
-        """Empty `lay`, detaching every descendant NOW. One line, because the shape is
-        subtle enough that six hand-written copies produced a wrong one — see
-        `qt/layout.py`, which owns both traps and the reason they matter."""
+        """Empty `lay`, and detach every descendant immediately. ⚠ Call `qt/layout.py`.
+        That module holds the two traps in this operation."""
         clear_layout(lay)
 
     def _buy(self, target: str, current: int, wanted: int, refresh, detail: str = "") -> bool:
-        """Handle a post-lock dot click. Returns False pre-lock, so the track falls
-        through to its ordinary free-setter behaviour."""
+        """Handle a dot click after the lock. Returns False before the lock. The track then
+        sets the rating directly, at no cost."""
         if not self._char().chargen_locked:
             return False
         if wanted > current:
@@ -489,10 +490,10 @@ class _EditorPage(QWidget):
         return True
 
     def _refresh_after(self, target: str, refresh) -> None:
-        """Redraw what the change actually moved. A dot click normally only has to
-        redraw its own row; ESSENCE is the exception — it is the ceiling on every
-        other track past 5, so the whole body has to rebuild. One or the other, never
-        both: rebuilding the body replaces the very row `refresh` belongs to."""
+        """Draw what the change moved. A dot click draws its own row. ⚠ ESSENCE is the
+        exception. Above 5, Essence is the maximum of every other track, thus the full body
+        must rebuild. ⚠ Do one or the other, never both. A rebuild of the body replaces the
+        row that `refresh` belongs to."""
         if target in BODY_REBUILD_TARGETS:
             self.reload()
         else:
@@ -500,11 +501,11 @@ class _EditorPage(QWidget):
 
     def _downward_dialog(self, target: str, current: int, wanted: int, refresh,
                          detail: str = "") -> None:
-        """Ask which downward event this is — taking XP back and suffering a curse
-        both move the same dots and differ in price, log and floor. Refund is capped
-        by `refundable_depth` (undo is LIFO across the whole log); a curse reaches
-        chargen dots, so its only limit is the trait's own floor — probed on a
-        throwaway copy."""
+        """Ask the user which decrease this is. A refund of XP and a curse move the same
+        dots, and they differ in price, in the log entry and in the floor.
+        `refundable_depth` limits a refund, because an undo takes the last entry of the
+        full log. A curse can remove chargen dots, thus its only limit is the floor of the
+        trait. This method finds that floor on a copy of the character."""
         char = self._char()
         dots_down = current - wanted
         depth = advancement.refundable_depth(char, target, detail)
@@ -666,17 +667,16 @@ class _EditorPage(QWidget):
             self._ruleset, self._char(), choice_index, ids))
 
     def _camp_write(self, refusal) -> None:
-        """⚠ BOTH halves of a refusal matter: say why, and RELOAD regardless. A refused
-        pick leaves the control showing something the character does not hold, and the
-        rebuild is what snaps it back — without it the dropdown looks broken."""
+        """⚠ A refusal needs BOTH actions: show the reason, and RELOAD in every case. After
+        a refusal, the control shows a value that the character does not hold. The rebuild
+        returns the control to the correct value. Without it, the dropdown looks broken."""
         if refusal:
             self._notify(refusal, "warning")
         self.reload()
 
     def add_college(self) -> None:
-        """A fresh College row, defaulting to one of the character's own Maiden's house
-        so it already counts toward the own-house minimum rather than starting in
-        violation of it."""
+        """A new College row. Its default is a house of the character's own Maiden. Thus the
+        row counts toward the own-house minimum, and it does not start as an error."""
         ruleset, char = self._ruleset, self._char()
         own = next((cid for cid, col in ruleset.colleges.items()
                     if col.house == char.caste), None)
@@ -691,9 +691,10 @@ class _EditorPage(QWidget):
     def _info_button(self, row, make_info, accent_colour: str) -> None:
         """Append the ⓘ that opens a trait's core-book reference text to `row`.
 
-        `make_info` returns a `viewmod.TraitInfo` or None. Called once now to decide
-        whether the button exists at all (a ruleset with no trait text grows none) and
-        AGAIN on click, so the highlighted rung is the rating at click time."""
+        `make_info` returns a `viewmod.TraitInfo` or None. This method calls it now, to
+        decide if the button exists. A ruleset with no trait text gets no button. ⚠ It
+        calls `make_info` AGAIN on the click. Thus the marked rung is the rating at the
+        time of the click."""
         if make_info() is None:
             return
         btn = QPushButton("i")
@@ -707,9 +708,9 @@ class _EditorPage(QWidget):
     def _specialty_rows(self, group, ability: AbilityName, locked: bool) -> None:
         """One indented child row per specialty GROUP under its Ability's dot row.
 
-        Pre-lock the name is editable and ✕ drops one instance; post-lock the row is
-        read-only, because removal in play is undo, not deletion — the same rule the
-        Charms rows follow."""
+        Before the lock, the user can edit the name, and ✕ removes one instance. After the
+        lock, the row is read-only, because a removal in play is an undo, not a delete. The
+        Charms rows follow the same rule."""
         char = self._char()
         for name, count in viewmod.specialty_groups(char, ability):
             row = QHBoxLayout()
@@ -743,9 +744,9 @@ class _EditorPage(QWidget):
             group.addLayout(row)
 
     def _add_specialty(self, ability: AbilityName) -> None:
-        """Pre-lock: append a blank row to name in place. Post-lock: a specialty is a
-        PURCHASE, so it is named and priced up front — an empty row would already have
-        cost XP."""
+        """Before the lock, add a blank row, and the user names it in place. After the lock,
+        a specialty is a PURCHASE. Thus the user names it and the engine prices it first. An
+        empty row after the lock has already cost XP."""
         if not self._char().chargen_locked:
             self.add_spec_to(ability)
             return
@@ -784,26 +785,26 @@ class _EditorPage(QWidget):
     def add_spec_to(self, ability: AbilityName, name: str = "") -> None:
         """Append one instance of a specialty to a NAMED Ability.
 
-        ⚠ The per-Ability control knows its Ability, so there is no blank-row-on-Melee
-        -then-retarget dance any more. The cap is still NOT enforced here: chargen
-        writes the list straight and `validate.check_specialties` reports an over-capped
-        Ability, which is also what covers a save that arrives over it. Enforcing on the
-        add would be inventing a rule the engine does not ask for."""
+        The control of each Ability knows its Ability. Thus the user does not add a blank
+        row and then change its target. ⚠ Do NOT apply the limit here. Chargen writes the
+        list, and `validate.check_specialties` reports an Ability above the limit. That
+        check also covers a save that arrives above the limit. A limit on the add is a rule
+        that the engine does not state."""
         self._char().specialties.append(
             Specialty(ability=ability, name=name, rating=1))
         self.reload()
 
     def rename_spec_group(self, ability: AbilityName, old: str, new: str) -> None:
-        """Rename every instance in a group. The group IS the specialty — two rows
-        named "Swords" are one specialty taken twice — so renaming one and not the
-        other would silently split it in half."""
+        """Rename every instance in a group. ⚠ The group IS the specialty. Two rows named
+        "Swords" are one specialty that the character took two times. If you rename one row
+        and not the other, the group divides into two specialties."""
         for sp in self._char().specialties:
             if sp.ability == ability and sp.name == old:
                 sp.name = new
         self._changed()
 
     def drop_spec_instance(self, ability: AbilityName, name: str) -> None:
-        """Remove ONE instance from a group; the row disappears when the last goes."""
+        """Remove ONE instance from a group. The row goes away with the last instance."""
         specialties = self._char().specialties
         for i, sp in enumerate(specialties):
             if sp.ability == ability and sp.name == name:
@@ -814,9 +815,9 @@ class _EditorPage(QWidget):
     def set_virtue_flaw_virtue(self, virtue: VirtueName) -> None:
         """Set which Virtue is flawed, keeping any description already written.
 
-        ⚠ Reloads rather than redrawing in place: the sample-Flaw dropdown beside this
-        one is built from the flawed Virtue, so without the rebuild it keeps offering
-        the OLD Virtue's Flaws — wrong exactly while it is being read."""
+        ⚠ Reload the page. Do not draw the control in place. The sample-Flaw dropdown next
+        to this control is built from the flawed Virtue. Without the rebuild, it offers the
+        Flaws of the OLD Virtue, at the moment when the user reads it."""
         char = self._char()
         desc = char.virtue_flaw.description if char.virtue_flaw else ""
         char.virtue_flaw = VirtueFlaw(virtue=virtue, description=desc)
@@ -825,10 +826,10 @@ class _EditorPage(QWidget):
     def set_virtue_flaw_sample(self, flaw_id: str) -> None:
         """Copy a sample Flaw's printed text into the free-text description.
 
-        A COPY, not a reference (decision 0007: ids for invariant content, inline
-        copies for variable). The player is expected to edit the text — the book offers
-        these as a guide to severity for Flaws of their own — so storing the id would
-        make an edited Flaw claim to be the printed one."""
+        ⚠ Store a COPY, not a reference (decision 0007: ids for invariant content, inline
+        copies for variable content). The user edits this text, because the book gives
+        these Flaws as a guide to severity. A stored id makes an edited Flaw report that it
+        is the printed Flaw."""
         flaw = self._ruleset.virtue_flaw_catalog.get(flaw_id or "")
         if flaw is None:
             return
@@ -892,12 +893,12 @@ class _EditorPage(QWidget):
     def _hold_scroll(self, saved: int) -> None:
         """Keep the body scrolled where it was across the rebuild just done.
 
-        Belt-and-braces on top of the height pin above: the rebuild's relayout can
-        still yank the scrollbar (a direct setValue, not just a range change, on the
-        real display), so this re-applies the saved position on every range and value
-        change for a short settle window, then releases so the user's own scrolling
-        is free again. A prior hold is dropped first — reload() runs several times in
-        a row at startup, and a stale hold must not resurrect an old position."""
+        This method operates with the height hold above. The layout pass of a rebuild can
+        move the scrollbar with a direct `setValue`, not with a range change only. Thus
+        this method applies the saved position again on each range change and each value
+        change, for a short period. It then releases the scrollbar, and the user controls
+        it again. ⚠ Drop a previous hold first. `reload()` runs more than one time at
+        start, and an old hold restores an old position."""
         bar = self._body_scroll.verticalScrollBar()
         self._drop_scroll_hold()
         self._scroll_hold_saved = saved
@@ -929,9 +930,10 @@ class _EditorPage(QWidget):
             pass
 
     def _changed(self) -> None:
-        """A change that only moves the readouts — dot clicks, name edits, Adjust XP.
-        Re-runs the registered tallies (the body's dot tracks have already refreshed
-        themselves) and pings the shell's readout/status via `on_change`."""
+        """Apply a change that moves the readouts only, for example a dot click, a name
+        edit or an XP adjustment. This method runs the registered totals again, and it
+        calls `on_change` for the readout and the status strip of the shell. The dot tracks
+        of the body have already refreshed themselves."""
         for tally in self._tallies:
             tally()
         if self._on_change is not None:
@@ -939,10 +941,10 @@ class _EditorPage(QWidget):
 
 
 class IdentityPage(_EditorPage):
-    """The Identity tab: name/concept/anima, the structural selectors (Exalt type,
-    caste, origin, upbringing, nature), the free-fill biography, and the caste-info
-    block. Structural changes rebuild this page and re-theme the shell; the Traits
-    page stays fresh via reload-on-show."""
+    """The Identity tab. It holds the name, the concept and the anima, the structural
+    selectors (Exalt type, caste, origin, upbringing, nature), the free-text biography, and
+    the caste-info block. A structural change rebuilds this page and themes the shell
+    again. The Traits page reloads when the shell shows it."""
 
     def __init__(self, ruleset, ctx, *, notify=None, on_theme_change=None,
                  on_change=None, parent=None):
@@ -1050,22 +1052,22 @@ class IdentityPage(_EditorPage):
             box.addWidget(QLabel(label))
             edit = QTextEdit(getattr(char, attr))
             edit.setFixedHeight(56)
-            # ⚠ QTextEdit is a QAbstractScrollArea inside a _Panel whose own
-            # stylesheet forces the QSS renderer onto every descendant — the viewport
-            # then paints the CARD shade no matter what the QTextEdit palette says,
-            # and the theme's window QSS `background` paints only the frame. A widget
-            # stylesheet on the QTextEdit ITSELF wins over both and paints the text
-            # area the INPUT shade, so the fill-in reads like the line edits.
+            # ⚠ Set a stylesheet on the QTextEdit ITSELF. A QTextEdit is a
+            # QAbstractScrollArea inside a _Panel, and the stylesheet of the _Panel gives
+            # every descendant to the QSS renderer. The viewport then paints the CARD
+            # shade, and it ignores the palette of the QTextEdit. The window QSS of the
+            # theme paints the frame only. A stylesheet on the widget beats both, and it
+            # paints the text area the INPUT shade. Thus the field looks like a line edit.
             edit.setStyleSheet(
                 f"QTextEdit {{ background:{INPUT}; border:none; border-radius:4px; }}")
-            # QTextEdit.textChanged carries NO argument (unlike QLineEdit's) — read
-            # the text off the edit itself.
+            # ⚠ `QTextEdit.textChanged` sends NO argument. The signal of a QLineEdit sends
+            # one. Thus read the text from the widget.
             edit.textChanged.connect(lambda a=attr, e=edit: setattr(char, a, e.toPlainText()))
             box.addWidget(edit, 1)
             bio_lay.addLayout(box)
 
-        # caste info — the description, caste abilities/attributes and anima the old
-        # left-hand card carried, now a panel under the identity fields.
+        # The caste info panel. It holds the description, the caste Abilities or
+        # Attributes, and the anima. It goes below the identity fields.
         caste_lay = self._panel("Caste")
         caste_def = ruleset.castes.get(char.caste)
         splat_has_castes = any(cd.exalt_type == char.exalt_type
@@ -1113,20 +1115,20 @@ class IdentityPage(_EditorPage):
     def _build_camp_panel(self, locked: bool, accent: str) -> None:
         """The Training Camp & Calling panel (Cult of the Illuminated), or nothing.
 
-        Rendered only when the ORIGIN uses camps, which `build_camp_view` answers with
-        None otherwise — so no other splat grows an empty panel. Every write goes
-        through `engine.camp_actions`; this method only draws what the view describes."""
+        Draw this panel only when the ORIGIN uses camps. In any other case,
+        `build_camp_view` returns None, thus no other splat gets an empty panel. Every
+        write goes through `engine.camp_actions`. This method draws the view only."""
         ruleset, char = self._ruleset, self._char()
         cv = viewmod.build_camp_view(ruleset, char)
         if cv is None:
             return
-        # Cult p.96 gives a Dragon-Blooded a camp but no Calling, so the heading follows
-        # what the panel actually CONTAINS rather than naming a control that is absent.
+        # Cult p.96 gives a Dragon-Blooded a camp and no Calling. Thus the heading names
+        # what the panel CONTAINS. It must not name a control that is absent.
         camp_lay = self._panel("Training Camp & Calling" if cv.calling_options
                                else "Training Camp")
-        # ⚠ TWO columns only when there is a Calling to put in the second one. A Cult
-        # Dragon-Blooded has a camp and no Calling (p.96), and holding an empty half of
-        # the panel open reads as something failing to load (human, 2026-08-22).
+        # ⚠ Use TWO columns only when a Calling fills the second column. A Cult
+        # Dragon-Blooded has a camp and no Calling (p.96). An empty half of the panel reads
+        # as content that did not load.
         two_columns = bool(cv.calling_options)
         if two_columns:
             row = QHBoxLayout()
@@ -1135,7 +1137,7 @@ class IdentityPage(_EditorPage):
         else:
             row = None
 
-        # left: the camp, its floors and its free-Charm package
+        # The left column holds the camp, its minimums and its free-Charm package.
         left = QVBoxLayout()
         left.setSpacing(_ROW_SPACING)
         (row.addLayout(left, 1) if two_columns else camp_lay.addLayout(left))
@@ -1161,16 +1163,16 @@ class IdentityPage(_EditorPage):
             left.addWidget(label)
 
         for idx, choice in enumerate(cv.choices):
-            # `pick` rather than `is_category_choice`: a flat-pool choice also picks N,
-            # and only a fixed-set choice (which leaves pick at 0) has no count to show.
+            # ⚠ Read `pick`, not `is_category_choice`. A flat-pool choice also selects N
+            # entries. A fixed-set choice leaves `pick` at 0, and it has no count to show.
             suffix = f" (pick {choice.pick})" if choice.pick else ""
-            # An option the page offers but `data/` cannot yet satisfy stays LISTED —
-            # hiding it would misrepresent the rulebook — but is marked, and
-            # camp_actions refuses it rather than assigning nothing.
+            # ⚠ Keep an option that the page offers and `data/` cannot supply. It stays in
+            # the LIST, because a hidden option misreports the rulebook. Mark that option,
+            # and `camp_actions` refuses it. It must not assign nothing.
             opts = {o.key: (o.label if o.available else f"{o.label} — {o.reason}")
                     for o in choice.options}
-            # A flat-pool choice has no options and no style step; the Charm list below
-            # is the entire control, so a select over nothing is not drawn.
+            # A flat-pool choice has no options and no style step. The Charm list below is
+            # the full control. Thus do not draw a select box with no options.
             if opts:
                 sub = QHBoxLayout()
                 sub.addWidget(QLabel(choice.label + suffix))
@@ -1181,8 +1183,8 @@ class IdentityPage(_EditorPage):
                 style_combo.setObjectName(f"camp.choice.{idx}")
                 sub.addWidget(style_combo, 1)
                 left.addLayout(sub)
-            # Picking the style is only half the choice — the package is "two Charms
-            # from ONE of four martial arts" (p.90), so the player chooses WHICH.
+            # The style is half of the choice. The package is "two Charms from ONE of four
+            # martial arts" (p.90). Thus the user also selects WHICH style.
             if choice.charm_options:
                 heading = QLabel(f"Which {choice.pick}?" if opts
                                  else choice.label + suffix)
@@ -1234,10 +1236,10 @@ class IdentityPage(_EditorPage):
 
 
 class TraitsPage(_EditorPage):
-    """The Traits tab: the favoured-pick chips, the Attribute / Ability / Craft /
-    Virtue / Essence dot tracks, and the read-only Charm & Spells count. Dot clicks
-    buy on both sides of the lock (decision 0013); the validation/bonus/XP content
-    lives in the shell's popover."""
+    """The Traits tab. It holds the favoured-pick chips, the dot tracks for Attributes,
+    Abilities, Crafts, Virtues and Essence, and the read-only count of Charms and Spells. A
+    dot click buys on both sides of the lock (decision 0013). The popover of the shell
+    holds the validation, the bonus points and the XP."""
 
     def _build_body(self) -> None:
         char = self._char()
@@ -1424,10 +1426,10 @@ class TraitsPage(_EditorPage):
                     self._specialty_rows(group, a, locked)
                 cols.addLayout(group, 1)
 
-        # ⚠ There is no Specialties PANEL any more (human, 2026-08-22). A specialty
-        # belongs to one Ability, so it is drawn as a child row under that Ability
-        # rather than in a section of its own where the Ability had to be re-picked
-        # from a dropdown. `_specialty_rows` above is the whole of it.
+        # ⚠ There is no Specialties PANEL (human's ruling). A specialty belongs to one
+        # Ability. Thus this code draws it as a child row below that Ability. Do not put it
+        # in its own section, where the user must select the Ability again from a dropdown.
+        # `_specialty_rows` above is the full implementation.
 
         # crafts
         craft_cf = AbilityName.CRAFT in caste_abilities or AbilityName.CRAFT in char.favored_abilities
@@ -1473,19 +1475,19 @@ class TraitsPage(_EditorPage):
                             1, essence_cap if locked else min(elder.DOT_MAX, essence_cap),
                             target="essence"))
         ew_lay.addLayout(row)
-        # A mortal whose pool is unlocked hits the human ceiling at Essence 3, and the
-        # book explains it in-world rather than mechanically: "the limit of human
-        # potential — mortals that exceed Essence 3 become gods" (PG p.114).
+        # A mortal with an unlocked pool has a maximum Essence of 3. The book gives the
+        # reason in the fiction: "the limit of human potential — mortals that exceed
+        # Essence 3 become gods" (PG p.114).
         #
-        # ⚠ DISPLAY ONLY. The cap is enforced in `advancement.raise_essence` and the
-        # mortal XP table prices nothing past 3 — this says why the next dot is refused,
-        # it does not refuse it. Without the line the track simply stops and nothing on
-        # screen says why (the webapp has had this note since Mortals shipped).
+        # ⚠ This note is for DISPLAY ONLY. `advancement.raise_essence` applies the limit,
+        # and the mortal XP table prices nothing above 3. This note gives the reason for
+        # the refusal. It does not refuse anything. Without it, the track stops and the
+        # screen gives no reason.
         #
-        # ⚠ Read off the CALC, never off a Merit id — no module outside engine/merits.py
-        # may name one. The trigger is the same field the cap came from, so the note
-        # fires only where the ceiling really is a raised 3: an Awareness-only mortal
-        # has a ceiling of 1 and must not be blamed on the god-transition clause.
+        # ⚠ Read the CALC. Never read a Merit id. No module outside `engine/merits.py` can
+        # name one. The trigger is the field that supplied the limit. Thus this note appears
+        # only where the maximum is a raised 3. A mortal with an Awareness-only pool has a
+        # maximum of 1, and this clause does not apply to that character.
         if char.exalt_type == "Mortal" and mf.essence_cap_override is not None \
                 and char.essence_rating >= mf.essence_cap_override:
             note = QLabel("the limit of human potential — mortals that exceed "
@@ -1517,10 +1519,10 @@ class TraitsPage(_EditorPage):
             row.addWidget(spin, 1)
             ew_lay.addLayout(row)
 
-        # Astrological Colleges (Sidereal) — a rated Advantage with its own pool. Shown
-        # only for splats that ship colleges, which `b.college_dots` is the test for.
-        # Options are grouped by house label and the character's own Maiden's house is
-        # marked ★, because the budget has a minimum in it.
+        # Astrological Colleges (Sidereal). A College is a rated Advantage with its own
+        # pool. Show this panel only for a splat that has colleges. `b.college_dots` is the
+        # test. This code groups the options by house label, and it marks the house of the
+        # character's own Maiden with ★, because the budget has a minimum for that house.
         if b.college_dots > 0 and ruleset.colleges:
             own_house = char.caste
             college_opts = {
@@ -1537,16 +1539,17 @@ class TraitsPage(_EditorPage):
                 f"≤{b.college_cap_pre_bp} pre-bonus)")
             for idx, cr in enumerate(char.colleges):
                 row = QHBoxLayout()
-                # ⚠ An off-catalogue id from an old save keeps its own row entry, so the
-                # combo can show it instead of silently snapping to another college.
+                # ⚠ Keep the row entry for an id that the catalogue does not hold. Thus the
+                # combo shows that id, and it does not change to a different college.
                 row_opts = (college_opts if cr.college_id in college_opts
                             else {**college_opts, cr.college_id: cr.college_id})
                 row.addWidget(self._combo(
                     row_opts, cr.college_id, frozen=False,
                     on_change=lambda cid, cr=cr: (setattr(cr, "college_id", cid),
                                                   self._changed())), 1)
-                # lo=0: Colleges can be REDUCED. A usability escape hatch, not a printed
-                # rule — same as Crafts (docs/status/edit-xp-merge.md).
+                # `lo=0`, because the user can DECREASE a College. ⚠ This is a usability
+                # rule, not a printed rule. Crafts have the same rule
+                # (`docs/status/edit-xp-merge.md`).
                 row.addWidget(track(lambda cr=cr: cr.rating,
                                     lambda v, cr=cr: setattr(cr, "rating", v),
                                     0, 5, target="colleges", detail=cr.college_id))
@@ -1559,11 +1562,13 @@ class TraitsPage(_EditorPage):
             add_col.clicked.connect(self.add_college)
             col_lay.addWidget(add_col)
 
-        # Permanent Resonance — the Abyssal Death's Taint counterpart to the temporary
-        # track (p.41). Post-lock only, and only where the cap is non-zero, which is the
-        # engine's way of saying "this character has the Flaw" without naming a Merit id.
-        # ⚠ This is the EDIT surface for it: qt/play.py shows the same number READ-ONLY
-        # and points here, because gain and shed both go through the XP ledger.
+        # Permanent Resonance. It is the Abyssal Death's Taint counterpart to the temporary
+        # track (p.41). Show it after the lock only, and only when the limit is not zero. A
+        # limit above zero is how the engine reports that this character has the Flaw, and
+        # it names no Merit id.
+        # ⚠ This is the EDIT surface for that value. `qt/play.py` shows the same number
+        # READ-ONLY and directs the user here, because a gain and a loss both go through
+        # the XP ledger.
         perm_cap = derive.permanent_limit_cap(ruleset, char) if locked else 0
         if perm_cap:
             lim = derive.limit_label(ruleset, char)
@@ -1590,10 +1595,10 @@ class TraitsPage(_EditorPage):
             row.addWidget(shed)
             res_lay.addLayout(row)
 
-        # Virtue Flaw — splat-gated: the Dragon-Blooded, Sidereals and Alchemicals have
-        # none. ⚠ NOT the same question as having a Limit track (a Sidereal has Paradox
-        # and no flawed Virtue), which is why this asks derive.has_virtue_flaw and not
-        # the limit label.
+        # The Virtue Flaw. The splat controls it. The Dragon-Blooded, the Sidereals and the
+        # Alchemicals have none. ⚠ A Limit track is a DIFFERENT question. A Sidereal has
+        # Paradox and no flawed Virtue. Thus read `derive.has_virtue_flaw`. Do not read the
+        # limit label.
         vf_row = QHBoxLayout()
         vf_row.setSpacing(24)
         self._body_lay.addLayout(vf_row)
@@ -1603,9 +1608,9 @@ class TraitsPage(_EditorPage):
             row = QHBoxLayout()
             row.addWidget(QLabel("Flawed Virtue"))
             opts = {v: _label(v.value) for v in VirtueName}
-            # ⚠ Named, not found by position. Three combos sit in this half of the page
-            # and `findChildren(QComboBox)[0]` is the Flawed Virtue box for all three
-            # callers that want a different one.
+            # ⚠ Give this combo a NAME. Do not find it by position. This half of the page
+            # holds three combos, and `findChildren(QComboBox)[0]` returns the Flawed
+            # Virtue box to each of the three callers.
             virtue_combo = self._combo(
                 opts, vf.virtue if vf else None, frozen=locked,
                 placeholder="— none —",
@@ -1614,11 +1619,10 @@ class TraitsPage(_EditorPage):
             row.addWidget(virtue_combo, 1)
             vf_lay.addLayout(row)
 
-            # The book's SAMPLE Flaws for the Virtue that is actually flawed
-            # (pp.131-133) — offering a Compassion Flaw beside a flawed Valor would be
-            # offering an illegal pick. The list is a shortcut into the free-text field
-            # below, never a replacement for it: the page says in as many words that
-            # these are not the only Flaws an Exalt might develop.
+            # The SAMPLE Flaws of the book, for the Virtue that is flawed (pp.131-133). ⚠ A
+            # Compassion Flaw next to a flawed Valor is an illegal pick. This list fills the
+            # free-text field below. ⚠ It does not replace that field. The page states that
+            # these are not the only Flaws that an Exalt can develop.
             samples = [f for f in ruleset.virtue_flaw_catalog.values()
                        if vf is not None and f.virtue == vf.virtue]
             if samples:
@@ -1642,8 +1646,8 @@ class TraitsPage(_EditorPage):
             row.addWidget(desc, 1)
             vf_lay.addLayout(row)
 
-            # The Limit Break Condition is the half that gets consulted at the table, so
-            # it is shown rather than folded into the description.
+            # The user reads the Limit Break Condition at the table. Thus show it as its own
+            # field. Do not put it in the description.
             picked = next((f for f in samples
                            if vf is not None and f.description == vf.description), None)
             if picked is not None and picked.limit_break:
@@ -1652,9 +1656,9 @@ class TraitsPage(_EditorPage):
                 lb.setStyleSheet("color:#a8a5a0;")
                 vf_lay.addWidget(lb)
 
-        # Bonus health levels per tier. The stored list is a DELTA from the printed
-        # track, which is why the box shows a TOTAL and the engine works out whether
-        # that means added levels or removed ones (engine/health_actions).
+        # The bonus health levels for each tier. ⚠ The stored list is a DIFFERENCE from the
+        # printed track. Thus the box shows a TOTAL, and `engine/health_actions` calculates
+        # the added levels or the removed levels from that total.
         hl_lay = self._panel("Bonus health levels per tier "
                              "(charms raise, curses lower)", vf_row)
         hl_row = QHBoxLayout()
@@ -1662,8 +1666,8 @@ class TraitsPage(_EditorPage):
             col = QVBoxLayout()
             col.addWidget(QLabel("-0" if p == 0 else str(p)))
             spin = QSpinBox()
-            # ⚠ Named, not positional: the Attributes panel's spin boxes are the ones a
-            # `findChildren(QSpinBox)[0]` would reach.
+            # ⚠ Give this box a NAME. Do not find it by position.
+            # `findChildren(QSpinBox)[0]` returns a spin box of the Attributes panel.
             spin.setObjectName(f"health.{p}")
             spin.setRange(0, 20)
             spin.setValue(health_actions.level_total(char, p))

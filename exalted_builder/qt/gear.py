@@ -7,16 +7,15 @@ artifacts budget line beneath. Mechanism: `reload()` rebuilds the table and re-s
 whatever was selected before; changing the selection rebuilds only the detail pane, and
 anything a keystroke touches writes straight to the model and re-syncs its own labels.
 
-⚠ **This is the Charms tab's shape, deliberately** (human, 2026-08-21). The first
-version was the NiceGUI page transliterated — a floating Buy button with a sentence
-beside it, accordion "Edit" expanders, and a stack of cards in a scroll area. It worked
-and read as a web page. A desktop app puts actions in a toolbar, lists in a table with
-a header, and the thing you selected in a detail pane. **A new surface here copies
-`qt/charms.py`'s layout, not `ui/<tab>.py`'s.**
+⚠ **This tab uses the shape of the Charms tab** (human's ruling). A desktop app puts the
+actions in a toolbar, the lists in a table with a header, and the selected item in a
+detail pane. Do not copy a NiceGUI page: a Buy button in the content flow, an accordion
+"Edit" expander and a stack of cards read as a web page. **A new surface here copies the
+layout of `qt/charms.py`. It does not copy `ui/<tab>.py`.**
 
-⚠ Keep the four lists on ONE tab. Splitting an artifact daiklave's STATS onto one
-surface and its BUDGET onto another is what let the same object be entered twice and
-charged twice (`docs/status/rated-artifacts.md`).
+⚠ Keep the four lists on ONE tab. If the STATS of an artifact daiklave are on one surface
+and its BUDGET is on a different surface, the user can enter the same object two times and
+pay for it two times (`docs/status/rated-artifacts.md`).
 
 Zero game logic. Every mutation goes through `engine.gear_actions`, every derived list
 and every line of text through `ui/view.py`.
@@ -42,17 +41,16 @@ from .layout import clear_layout, empty_note
 from .editor import _FilterCombo
 from .theme import MUTED, accent as accent_light
 
-# The issue codes this tab can do something about. ⚠ Artifact findings belong HERE,
-# with the panel that produces them — a report sitting on a surface that no longer
-# edits the thing it reports about is the house bug in UI form. The Advantages tab
-# renders the same findings beside the Artifact Background; one issue list, so the two
-# cannot disagree.
+# The issue codes that this tab can correct. ⚠ Put the artifact findings HERE, with the
+# panel that makes them. A report on a surface that does not edit its subject is the house
+# bug in the UI. The Advantages tab shows the same findings next to the Artifact
+# Background. There is ONE issue list, thus the two surfaces always agree.
 _MY_ISSUES = ("artifact", "hearthstone")
 
 _COLUMNS = ("Name", "Qty", "Res", "Kind", "Detail")
 
-# The per-kind stat editors, as `(field, label, signed)`. A table rather than fifteen
-# hand-built spin boxes, so the two kinds cannot drift in layout or in bounds.
+# The stat editors for each kind, as `(field, label, signed)`. Use this table. Do not
+# write fifteen spin boxes. Thus the two kinds keep the same layout and the same limits.
 #
 # ⚠ `mobility_penalty` is stored NEGATIVE (`docs/status/gear-and-inventory.md`), so it
 # is signed and its floor is below zero. A consumer that reads it as a magnitude adds
@@ -80,9 +78,9 @@ _RES_TOOLTIP = ("The Resources rating needed to buy one (M&C p.123). A record of
 
 
 class GearPage(QWidget):
-    """The tab widget. `reload()` rebuilds the table for the character in ctx; `notify`
-    surfaces transient messages; `on_change` pings the shell so its readout bar and
-    status strip re-derive."""
+    """The tab widget. `reload()` rebuilds the table for the character in ctx. `notify`
+    shows a temporary message. `on_change` calls the shell, thus the shell calculates its
+    readout bar and its status strip again."""
 
     def __init__(self, ruleset, ctx, *, notify=None, on_change=None, parent=None):
         super().__init__(parent)
@@ -92,10 +90,9 @@ class GearPage(QWidget):
         self._on_change = on_change
         self._filter = "all"
         self._search = ""
-        # The selected row as `(list_name, index)`. ⚠ Kept so a rebuild can re-select
-        # what the player was editing — but positions shift when a row is added or
-        # deleted, so `_rebuild` clears it rather than re-selecting whatever slid into
-        # that slot.
+        # The selected row, as `(list_name, index)`. ⚠ Keep this key, thus a rebuild can
+        # select the row again. But an add or a delete moves the positions. Thus
+        # `_rebuild` clears the key. If it kept the key, it would select a different row.
         self._selected: tuple[str, int] | None = None
 
         self.readout = QLabel("")
@@ -103,8 +100,8 @@ class GearPage(QWidget):
         self.readout.setContentsMargins(8, 4, 8, 4)
 
         # ---- the action toolbar -------------------------------------- #
-        # ⚠ Actions live HERE, not in the content flow. A Buy button floating mid-page
-        # with an explanatory sentence beside it is a web call-to-action.
+        # ⚠ Put the actions HERE, not in the content flow. A Buy button in the middle of
+        # the page with a sentence next to it is a web control.
         bar = QHBoxLayout()
         bar.setContentsMargins(8, 0, 8, 0)
         self.buy_btn = QPushButton("Buy…")
@@ -173,8 +170,8 @@ class GearPage(QWidget):
         split.addWidget(detail_panel)
         split.setSizes([720, 460])
 
-        # The budget line sits UNDER the splitter, spanning both — it is about the
-        # collection, not about whichever row happens to be selected.
+        # The budget line goes BELOW the splitter, across both panes. It describes the
+        # collection. It does not describe the selected row.
         self.budget = QLabel("")
         self.budget.setWordWrap(True)
         self.budget.setContentsMargins(8, 2, 8, 4)
@@ -201,9 +198,8 @@ class GearPage(QWidget):
         return accent_light(self._pal())
 
     def _clear_lay(self, lay) -> None:
-        """Empty `lay`, detaching every descendant NOW. One line, because the shape is
-        subtle enough that six hand-written copies produced a wrong one — see
-        `qt/layout.py`, which owns both traps and the reason they matter."""
+        """Empty `lay`, and detach every descendant immediately. ⚠ Call `qt/layout.py`.
+        That module holds the two traps in this operation."""
         clear_layout(lay)
 
     def reload(self) -> None:
@@ -216,11 +212,10 @@ class GearPage(QWidget):
         self._sync_detail()
 
     def _rebuild(self) -> None:
-        """A change that moved the LISTS — rebuild everything and ping the shell.
+        """Apply a change that moved the LISTS. Rebuild the page and call the shell.
 
-        ⚠ Drops the selection first. It is a POSITION, and adding or deleting a row
-        renumbers every row after it, so a surviving key would re-select whatever slid
-        into that slot.
+        ⚠ Drop the selection first. The selection is a POSITION, and an add or a delete
+        gives a new number to every row after it. A key that stays selects a different row.
         """
         self._selected = None
         self.reload()
@@ -274,9 +269,9 @@ class GearPage(QWidget):
     def _sync_filter_combo(self) -> None:
         """Re-option the kind filter with live counts, without disturbing the choice.
 
-        ⚠ Signals blocked across the refill: `clear()` emits `currentIndexChanged`, and
-        letting that through would reset the filter to "all" every time the table
-        rebuilds — the shape that makes a filter un-keepable.
+        ⚠ Block the signals across the refill. `clear()` sends `currentIndexChanged`. If
+        that signal passes, the filter returns to "all" on each rebuild of the table, and
+        the user cannot keep a filter.
         """
         rows = viewmod.inventory_rows(self._ruleset, self._char())
         counts = viewmod.inventory_counts(rows)
@@ -308,8 +303,8 @@ class GearPage(QWidget):
         is still shown."""
         ruleset, char = self._ruleset, self._char()
         rows = viewmod.inventory_rows(ruleset, char)
-        # ⚠ Sorting OFF across the fill: with it on, Qt re-sorts after every insert,
-        # which is quadratic and scrambles the order the items were added in.
+        # ⚠ Turn sorting OFF across the fill. If sorting is on, Qt sorts again after each
+        # insert. That is slow, and it loses the order in which the user added the items.
         self.table.setSortingEnabled(False)
         self.table.blockSignals(True)
         self.table.clear()
@@ -326,8 +321,8 @@ class GearPage(QWidget):
             item.setToolTip(2, _RES_TOOLTIP)
             key = (row.list_name, row.index)
             item.setData(0, Qt.UserRole, key)
-            # The linked half rides along so the detail pane can render both editors
-            # without re-deriving the merge.
+            # Carry the linked half with the row. Thus the detail pane can draw both
+            # editors, and it does not calculate the merge again.
             item.setData(1, Qt.UserRole,
                          (row.linked_list_name, row.linked_index)
                          if row.linked_list_name else None)
@@ -344,8 +339,9 @@ class GearPage(QWidget):
             self._selected = None
 
     def _refresh_selected_row(self) -> None:
-        """Re-render just the selected row's cells after an edit, so the table tracks
-        the detail pane without a full rebuild (which would steal focus mid-keystroke)."""
+        """Draw the cells of the selected row again after an edit. Thus the table agrees
+        with the detail pane. ⚠ Do not do a full rebuild here. A rebuild takes the focus
+        away while the user types."""
         item = self.table.currentItem()
         if item is None or self._selected is None:
             return
@@ -392,9 +388,10 @@ class GearPage(QWidget):
         if tags:
             self._detail_lay.addWidget(self._muted(tags))
         self._row_editor(self._detail_lay, list_name, index)
-        # A merged row is one object with TWO stored halves — the artifact and the stat
-        # line `grant_gear` stamped for it. ⚠ Without this the stat line is uneditable:
-        # there are no per-kind panels, and the merged row is the only place it appears.
+        # A merged row is ONE object with TWO stored halves: the artifact, and the stat
+        # line that `grant_gear` made for it. ⚠ Without this code, the user cannot edit the
+        # stat line. There are no panels for each kind, and the merged row is the only
+        # place that shows the stat line.
         linked = item.data(1, Qt.UserRole)
         if linked:
             self._detail_lay.addWidget(self._heading("Stat line"))
@@ -439,16 +436,14 @@ class GearPage(QWidget):
         except customs.CustomContentError as ex:
             self._notify(str(ex), "warning")
             return
-        # ⚠ The armour default is SAID OUT LOUD rather than guessed silently: a
-        # character's armour row carries no weight and `ArmorType` requires one.
+        # ⚠ Show the armour default to the user. Do not select it silently. The armour row
+        # of a character has no weight, and `ArmorType` needs one.
         extra = " (armour weight defaults to Light)" if kind == "armor" else ""
-        # ⚠ Re-merge NOW. `reload_custom_layer` skipped the gear catalogues until
-        # 2026-08-27, which is why this used to say "the next time the app loads its
-        # rules" — a restart really was required. It is not any more, and the sentence
-        # went with the fix.
-        # ⚠ No page rebuild: saving to the LIBRARY does not move the character's own
-        # lists, and `_rebuild` drops the selection — it would throw the player out of
-        # the row they just tweaked. The shop reads `view.shop_rows` fresh on each open.
+        # ⚠ Re-merge the custom layer NOW. `reload_custom_layer` must include the gear
+        # catalogues. If it does not, the new row appears only after a restart.
+        # ⚠ Do not rebuild the page. A save to the LIBRARY does not change the lists of the
+        # character, and `_rebuild` drops the selection. A rebuild moves the user out of
+        # the row that they edited. The shop reads `view.shop_rows` on each open.
         rules_db.reload_custom_layer(self._ruleset)
         self._notify(f"Saved {item.name} to your library{extra}. It is in Buy now, and "
                      f"on the Custom tab’s Gear list.", "positive")
@@ -456,9 +451,8 @@ class GearPage(QWidget):
     def _stat_grid(self, lay, item, specs, resync) -> None:
         """The stat spin boxes, wrapped at three pairs a row.
 
-        ⚠ Qt has no flex-wrap, and a no-wrap row crushes its later children to slivers
-        (the lesson the Advantages merit rows already paid for). Thirteen weapon stats
-        on one line are unreadable, so the grid wraps by construction.
+        ⚠ Qt has no flex-wrap. A row that does not wrap makes its last children very
+        narrow. Thirteen weapon stats on one line are unreadable. Thus this grid wraps.
         """
         row = None
         for position, (field, label, signed) in enumerate(specs):
@@ -470,9 +464,9 @@ class GearPage(QWidget):
             caption.setMinimumWidth(48)
             row.addWidget(caption)
             spin = QSpinBox()
-            # Named after the field it writes, so a test addresses the stat it means
-            # rather than a position in the child list — the quantity box is a QSpinBox
-            # too, and indexing found that one first.
+            # Give each box the name of the field that it writes. Thus a test addresses
+            # the stat by name, not by a position in the child list. ⚠ The quantity box is
+            # also a QSpinBox, and an index finds that box first.
             spin.setObjectName(f"stat.{field}")
             spin.setRange(-20 if signed else 0, 99)
             spin.setValue(getattr(item, field))
@@ -487,14 +481,14 @@ class GearPage(QWidget):
     def _attune_controls(self, lay, item) -> None:
         """The commitment toggle and its pool, for an item that prints a cost.
 
-        ⚠ Deliberately NOT in `_WEAPON_STATS`/`_ARMOR_STATS`: that table is
-        `(field, label, signed)` driving spin boxes, and a bool and a two-value choice
-        are neither. Widening the triple for these two would put a spin box on a
-        checkbox's field.
+        ⚠ Do NOT put these two controls in `_WEAPON_STATS` or `_ARMOR_STATS`. That table
+        is `(field, label, signed)`, and it drives spin boxes. A bool and a two-value
+        choice are neither. If you widen the triple for these two, a spin box appears on
+        the field of a checkbox.
 
-        Offered only when `attunement > 0`, and nothing here auto-attunes — the flag is
-        the player's statement that they are committing the motes, which is what keeps
-        this inside `engine/play.py`'s dumb-tracker bar.
+        Show these controls only when `attunement > 0`. ⚠ No code here attunes an item
+        automatically. The flag records that the user commits the motes. Thus this control
+        stays inside the tracker rules of `engine/play.py`.
         """
         if item.attunement <= 0:
             return
@@ -543,9 +537,9 @@ class GearPage(QWidget):
         """An editable combo over a catalogue: pick an entry to autofill, or type a name
         the catalogue does not hold. Free text is a rename, never a failed lookup.
 
-        ⚠ Fires only when the text actually CHANGED. `editingFinished` fires on every
-        focus loss, and `on_pick` rebuilds the table — so tabbing past an untouched combo
-        would drop the player out of the row they are working in, for no edit at all.
+        ⚠ Send the signal only when the text CHANGED. `editingFinished` occurs on each
+        loss of focus, and `on_pick` rebuilds the table. Thus a tab past a combo that the
+        user did not edit moves the user out of the row.
         """
         combo = _FilterCombo()
         combo.setEditable(True)
@@ -587,9 +581,9 @@ class GearPage(QWidget):
         summary.setStyleSheet(f"color:{MUTED};")
 
         def resync() -> None:
-            # The EFFECTIVE stats (material folded in) and the wielder's material tag —
-            # `view.weapon_stat_line` is the one copy of the format, shared with the
-            # shop's pre-pick rows.
+            # The EFFECTIVE stats, with the material included, and the material tag of the
+            # wielder. `view.weapon_stat_line` is the one copy of this format. The rows of
+            # the shop use it too.
             material = derivemod.applied_material(ruleset, char, weapon)
             summary.setText(viewmod.weapon_stat_line(
                 derivemod.effective_weapon(ruleset, char, weapon),
@@ -602,10 +596,9 @@ class GearPage(QWidget):
                           self._rebuild())))
         lay.addWidget(summary)
 
-        # Stackable gear. Ammunition is the case that put it here — a player holds
-        # arrows by the score — but nothing stops a stack of javelins. It is a COUNT
-        # and nothing more: no engine reads it, because nothing derives an attack
-        # (decision 0008).
+        # Gear that stacks. Ammunition is the usual case, because a character holds many
+        # arrows. A stack of javelins is also permitted. ⚠ This value is a COUNT only. No
+        # engine module reads it, because the program derives no attack (decision 0008).
         qty = QSpinBox()
         qty.setRange(1, 999)
         qty.setValue(weapon.quantity)
@@ -673,9 +666,9 @@ class GearPage(QWidget):
             lambda v: (setattr(item, "quantity", v), self._changed()))
         self._labelled(lay, "Quantity", qty)
 
-        # LABELLED. A bare "•••" beside an item is unreadable — the browser asked what
-        # it meant (2026-08-13), and every other dot column on the sheet is a rated
-        # trait, which this is not: it is what the thing COST.
+        # Put a LABEL on this column. A "•••" next to an item with no label is unclear.
+        # Every other dot column on the sheet shows a rated trait. This column does not.
+        # It shows the COST of the item.
         cost = QSpinBox()
         cost.setRange(0, 10)
         cost.setValue(item.resources_cost)
@@ -709,9 +702,9 @@ class GearPage(QWidget):
 
         def on_name(text: str) -> None:
             if gear_actions.set_artifact(ruleset, char, index, text):
-                # A catalogue pick may have granted a stat line and changed the budget,
-                # so everything goes — but the spin box is pushed first so the rebuild
-                # reads the new rating rather than the stale one.
+                # A catalogue pick can grant a stat line and change the budget. Thus
+                # rebuild all of it. ⚠ Write the spin box value first. The rebuild then
+                # reads the new rating, not the old one.
                 rating.setValue(artifact.rating)
                 self._rebuild()
                 return
@@ -725,11 +718,11 @@ class GearPage(QWidget):
             lambda v: (setattr(artifact, "rating", v), self._changed()))
         self._labelled(lay, "Rating", rating)
 
-        # ⚠ When this artifact has a gear stat line (`Weapon.from_artifact`), the pair
-        # is ONE object and the gear row owns the commitment (human, 2026-09-03) — so
-        # the editor points at that row instead of offering a second set of controls.
-        # Two editable attunements for one daiklave is the double-count bug
-        # `from_artifact` exists to prevent, in motes rather than dots.
+        # ⚠ When this artifact has a gear stat line (`Weapon.from_artifact`), the pair is
+        # ONE object, and the gear row owns the commitment (human's ruling). Thus the
+        # editor points at that row. It does not show a second set of controls. Two
+        # editable attunements for one daiklave count the motes two times.
+        # `from_artifact` exists to prevent that.
         stat_line = artifactsmod.stat_line_row(
             char, artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, artifact.name))
         if stat_line is not None:
@@ -749,10 +742,10 @@ class GearPage(QWidget):
             self._labelled(lay, "Attune", attune)
             self._attune_controls(lay, artifact)
 
-        # How it was acquired. POST-LOCK ONLY: at creation the Background is the only
-        # channel there is (core p.342, "to start the game owning"), so offering the
-        # choice would be offering an illegal pick. `validate` bars it either way; this
-        # stops the player reaching the bar.
+        # The acquisition channel. Show it AFTER THE LOCK ONLY. At creation, the Background
+        # is the only channel (core p.342, "to start the game owning"). Thus a choice here
+        # offers an illegal pick. `validate` refuses it in both cases. This control stops
+        # the user before the refusal.
         if char.chargen_locked:
             acquired = QComboBox()
             for value, label in ((artifactsmod.ACQUIRED_BACKGROUND, "Background"),
@@ -760,9 +753,9 @@ class GearPage(QWidget):
                                  (artifactsmod.ACQUIRED_LEGENDARY, "Merit")):
                 acquired.addItem(label, value)
             acquired.setCurrentIndex(max(0, acquired.findData(artifact.acquired)))
-            # ⚠ Through the engine, never `setattr`: changing the channel must re-stamp
-            # any stat line this artifact granted, or the two drift and the orphan is
-            # charged to the wrong budget.
+            # ⚠ Write this through the engine. Never use `setattr`. A change to the channel
+            # must write the stat line that this artifact granted again. If it does not,
+            # the two halves disagree, and the budget receives the wrong charge.
             acquired.currentIndexChanged.connect(
                 lambda _i: (gear_actions.set_acquired(char, index,
                                                       acquired.currentData()),
@@ -782,14 +775,15 @@ class GearPage(QWidget):
     # ------------------------------------------------------------------ #
 
     def _build_shop_dialog(self) -> CatalogueDialog:
-        """One shop over every priced catalogue, BUILT but not run.
+        """One shop over every priced catalogue. This function BUILDS the dialog and does
+        not run it.
 
-        ⚠ It replaced four per-panel dialogs, which were four shops; the kind rides in
-        the row KEY so one dialog appends to four differently typed lists
-        (`gear_actions.buy` reads it back).
+        ⚠ There is ONE shop, not one dialog for each panel. The kind is in the row KEY.
+        Thus one dialog adds to four lists of different types, and `gear_actions.buy`
+        reads the kind back.
 
-        Split from `_open_shop` because `exec()` blocks a headless run, so this is the
-        seam the tests drive — the same shape `AdvantagesPage` uses.
+        `_open_shop` runs the dialog. `exec()` stops a headless run, thus the tests drive
+        this seam. `AdvantagesPage` uses the same shape.
         """
         shop = viewmod.shop_rows(self._ruleset, self._char())
         return CatalogueDialog(
@@ -812,11 +806,10 @@ class GearPage(QWidget):
         self._rebuild()
 
     def _build_artifact_dialog(self) -> CatalogueDialog:
-        # ⚠ Recomputed per OPEN, never captured. The list depends on character state
-        # that changes on ANOTHER tab — taking or dropping the Legendary Artifact Merit
-        # — and a captured copy is the stale-closure trap verbatim: a player takes the
-        # Merit, comes back, and the artifact she just paid ten bonus points for is not
-        # in the list.
+        # ⚠ Calculate this list on each OPEN. Never capture it. The list depends on
+        # character state that changes on ANOTHER tab, for example the Legendary Artifact
+        # Merit. A captured copy becomes stale: the user takes the Merit, returns here, and
+        # the artifact that they paid ten bonus points for is not in the list.
         catalog = artifactsmod.purchasable_artifacts(
             self._ruleset.artifact_catalog, self._char())
         rows = [(a.name, a.name, f"{a.rating_notes or ('•' * a.rating)} — "
@@ -839,11 +832,10 @@ class GearPage(QWidget):
         """The other half of the same tables, and NOT inventory: upkeep, events,
         commissions and rentals.
 
-        ⚠ A character does not carry a month of stabling in her pack, so these are a
-        price list she can consult and never own (human's ruling 2026-08-13) — the
-        ruling holds at the OFFER too, which is why `view.shop_rows` skips them. It
-        gets its own sub-tab rather than a card under the inventory: it is reference
-        material, not something owned.
+        ⚠ A character cannot carry a month of stabling. Thus these rows are a price list
+        that the user reads and never owns (human's ruling). The rule also applies to the
+        OFFER, thus `view.shop_rows` omits them. This panel is a sub-tab, not a card below
+        the inventory, because it is reference material.
         """
         self._clear_lay(self._prices_lay)
         services = viewmod.service_rows(self._ruleset, self._char())
@@ -865,11 +857,11 @@ class GearPage(QWidget):
             name_label = QLabel(name)
             row.addWidget(name_label, 1)
             if cash:
-                # ⚠ `GearType.cash` is reference text, never arithmetic. M&C p.122 says
-                # outright that the Resources ladder is not linear and converting it is
-                # a Storyteller judgement, so this is printed verbatim and nothing
-                # computes from it. It is also this panel's whole point: a PRICE list
-                # showing no prices is the house bug, and it shipped that way once.
+                # ⚠ `GearType.cash` is reference text. Never calculate with it. M&C p.122
+                # states that the Resources ladder is not linear, and that a conversion is
+                # a decision of the Storyteller. Thus print this text without change, and
+                # calculate nothing from it. ⚠ Always print it: a PRICE list that shows no
+                # prices is the house bug.
                 cash_label = QLabel(cash)
                 cash_label.setStyleSheet(f"color:{MUTED};")
                 row.addWidget(cash_label)

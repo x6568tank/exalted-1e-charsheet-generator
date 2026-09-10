@@ -5,17 +5,16 @@ QPushButton the caller connects a click to. `MARK_FILL` is the colour a damage t
 paints its box.
 
 ⚠ **One damage tracker, not three.** The Play tab, the party cards and the adversary
-roster all draw the same boxes, and the roster's whole reason for existing is that a
-Storyteller should not have to learn a second one (`docs/status/adversary-roster.md`).
-Three copies of a colour map is how they drift.
+roster draw the same boxes. A Storyteller must not have to learn a second tracker
+(`docs/status/adversary-roster.md`). Three copies of a colour map become different.
 
-⚠ A box's own `:hover` is set explicitly. The shell stylesheet paints every
-QPushButton's hover the splat accent — which is exactly the colour a FILLED box already
-is — so an empty box would read as full under the mouse.
+⚠ A box sets its own `:hover`. The shell stylesheet paints the hover of every
+QPushButton with the splat accent. A FILLED box is already that colour. Thus an empty box
+reads as full below the pointer.
 
-⚠ Boxes are NAMED after what they track (`play.health.3`, `adv.<id>.health.0`), never
-left to their position in a `findChildren` list: these surfaces are full of same-shaped
-boxes and an index picks whichever was built first.
+⚠ Give each box a NAME for what it tracks (`play.health.3`, `adv.<id>.health.0`). Do not
+use its position in a `findChildren` list. These surfaces contain many boxes of the same
+shape, and an index selects the box that was built first.
 """
 
 from __future__ import annotations
@@ -52,12 +51,10 @@ def restyle(button: QPushButton, fill: str, accent: str, text: str = "") -> None
 
     Input: a box from `box`, its new fill and text. Output: the same button, repainted.
 
-    ⚠ **A tracker repaints by RESTYLING, never by rebuilding its panel.** A rebuild
-    deletes the button that was just clicked; Qt then hands the focus to whatever
-    inherits it and a `QScrollArea` scrolls to follow — which is why every damage click
-    on the adversary detail pane jumped the pane to the bottom (human, 2026-08-28). It
-    also takes the focus out of the surface entirely, so the keyboard stops working
-    mid-fight.
+    ⚠ **A tracker repaints with RESTYLE. It must not rebuild its panel.** A rebuild
+    deletes the button that the user clicked. Qt then gives the focus to a different
+    widget, and a `QScrollArea` scrolls to that widget. Thus the pane moves to the bottom.
+    A rebuild also moves the focus out of the surface, and the keyboard stops to operate.
     """
     button.setText(text)
     button.setStyleSheet(_style(fill, accent))
