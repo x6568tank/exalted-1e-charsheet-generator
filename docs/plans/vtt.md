@@ -348,9 +348,20 @@ all four files.
 
 ✅ **§3 IS COMPLETE as of 2026-09-11.** All five rows of §3.9 are done: the registry, the
 isolation tests, per-request `ctx`, `save_fn`, and per-session destinations plus
-write-through auto-save. **§5 — the entry point, auth and the DB — is what remains of
-P2.** ⚠ A hosted run now needs **two** environment variables, and each raises when it is
-absent: `EXALTED_STORAGE_SECRET` and `EXALTED_SESSION_ROOT`.
+write-through auto-save.
+
+✅ **§5 piece 1 — the entry point — is DONE (2026-09-11).** `exalted_builder/server/main.py`
+passes `session_root` to `register_pages`, so **§3 is no longer dormant**. `§5.1a` of
+`hosting-state-model.md` is the record. **Auth and the DB remain**, and `§5.5` now carries
+the four severed pieces and their state.
+
+⚠ A hosted run needs **two** environment variables: `EXALTED_STORAGE_SECRET` and
+`EXALTED_SESSION_ROOT`. **`config.required_storage_secret()` is the one that raises on the
+first**, and it was added by piece 1 — ⚠ **`config.storage_secret()` does not raise**, it
+returns a random per-process key, which a server must never take.
+
+⚠ **There is no auth**, so `server/main.py` binds loopback and refuses a public bind
+without `--public`. That guard is a stand-in for the gate; **delete it when auth lands.**
 
 ✅ **The 3.14.0 re-verification is DONE (2026-09-11).** `hosting-state-model.md` §3.4 now
 carries the corrected table, the method, and the three new constraints. Summary: the table

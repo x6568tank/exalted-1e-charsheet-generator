@@ -694,6 +694,39 @@ tier 2 does not use it.
 
 Routes: `/login`, `/` (character index), `/builder`, `/gm`.
 
+### 5.1a The entry point, as shipped 2026-09-11
+
+`exalted_builder/server/main.py` exists. **It is §5.1's first piece only — the switch
+that makes §3 reachable. There is no auth and no DB.**
+
+* `build_server(session_root=None)` loads the ruleset, builds a prototype context and
+  calls `register_pages(..., session_root=root)`. With no argument it reads
+  `config.session_root()`, which raises when the environment gives none.
+* `main()` reads both variables, makes the root, and runs `ui.run(reload=False)`.
+* The split exists so a test can assert on the wiring. `ui.run` is not testable and the
+  one argument this file adds is.
+
+⚠ **`storage_secret()` does NOT raise, and §3.7b's handoff said it did.** It returns a
+random per-process key, which is correct for the desktop. A server that takes it
+invalidates every session cookie at each restart, so every browser gets a new session
+id, a new session directory, and no view of the character the auto-save timer wrote for
+it. **`config.required_storage_secret()` is the hosted accessor and it raises.** The
+desktop accessor is unchanged.
+
+⚠ **`DEFAULT_HOST` is `127.0.0.1`, which departs from §5.1's `0.0.0.0` sketch.** That
+sketch assumes the auth gate, and the auth gate is not built. `check_bind_is_allowed`
+raises on a non-loopback bind unless `--public` is passed. **Delete that function when
+auth lands, not before** — it is the mechanism standing in for the gate.
+
+⚠ **The prototype path is deliberately OUTSIDE the session root.** It is a marker: a
+prototype path appearing inside a session directory shows the factory returned the
+prototype's own path, which is §3.7's defect. A prototype inside the root would make
+every `is_relative_to(root)` assertion pass with no isolation at all.
+
+`tests/test_server_main.py` is the discriminator. ⚠ Its subject is *"the entry point
+passes a root"*, not *"the factory isolates"* — `test_session_context_factory.py` and
+`test_session_destinations.py` both stay green with this file deleted.
+
 ### 5.2 Correcting the original §5 on `app.storage.user`
 
 The original says:
@@ -752,6 +785,19 @@ keep one shared read-only book ruleset and overlay per-user custom at request ti
 
 ~150 lines for the entry point and page registration (up from the original's 100 — the
 auth gate and per-request resolution are the additions), plus whatever 5.3's ruling costs.
+
+**Remaining after 2026-09-11**, in the order they were severed:
+
+| Piece | State |
+|---|---|
+| 1. `server/main.py` — the switch | ✅ done, §5.1a |
+| 2. `builder.save()`'s third branch | ❌ still the trap in `vtt.md` §5 |
+| 3. Auth — `/login`, the gate, `bcrypt`, the `[server]` extra | ❌ not started |
+| 4. The DB, and §5.3's per-user rulesets | ❌ not started; **measure one merged `RuleSet` before fixing the layout** |
+
+⚠ Piece 1 shipped **without** piece 2, so a hosted run now persists edits by timer while
+the Save button still downloads to the browser. That is a better failure than losing the
+edits and it is still a failure.
 
 ---
 

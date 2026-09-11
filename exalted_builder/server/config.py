@@ -46,6 +46,30 @@ def storage_secret() -> str:
     return _ephemeral
 
 
+def required_storage_secret() -> str:
+    """Return the key that signs the session cookie. Raise `RuntimeError` if the
+    environment gives none.
+
+    This is the hosted accessor. `storage_secret` is the desktop accessor, and the
+    two differ only in what an absent value does.
+
+    ⚠ A server must not take the random fallback of `storage_secret`. The key
+    changes at each restart, thus every session cookie becomes invalid, thus each
+    browser gets a new session id, a new session directory, and no view of the
+    character that the auto-save timer wrote for it. The server starts and reports
+    no error. Section 3.7 of docs/plans/hosting-state-model.md gives the
+    destination rule that this breaks.
+    """
+    configured = os.environ.get(STORAGE_SECRET_ENV, "").strip()
+    if not configured:
+        raise RuntimeError(
+            f"{STORAGE_SECRET_ENV} is not set. A hosted run must have a stable "
+            "cookie key. There is no default and no random fallback here: a key "
+            "that changes at each restart separates every browser from the "
+            "character that it saved.")
+    return configured
+
+
 def session_root() -> Path:
     """Return the folder that holds one save directory for each browser session.
 

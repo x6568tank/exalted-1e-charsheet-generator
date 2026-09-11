@@ -1,231 +1,174 @@
-# Session handoff — 2026-09-11 (§3.7 shipped; §3 of the hosting model is COMPLETE)
+# Session handoff — 2026-09-11 (§5 piece 1 shipped; hosting is no longer dormant)
 
 # 👉 YOU ARE HERE
 
-Last FULL suite: **3527 passed · 1 skipped · 0 failed** (10m23s, on the tree described
+Last FULL suite: **3540 passed · 1 skipped · 0 failed** (11m02s, on the tree described
 below). **Observed, not computed.** ⚠ The count moves by machine and by optional
 dependency — see `docs/testing.md`, and do not reconcile this against another machine.
 
-**The arithmetic lands, and it was checked by ID rather than by adding up.** HEAD
-collected **3483** (= the previous handoff's 3482 + 1 skipped). This tree collects
-**3528** = 3527 + 1 skipped. The **+45** is `test_session_context_factory.py` +15,
-`test_session_root.py` +7, `test_session_destinations.py` +8, `test_auto_save.py` +15.
-A `comm` of the two collected-id lists shows **nothing else added and nothing removed**.
-⚠ Two earlier full runs this session were discarded because the tree was still being
-edited under them. Do not reuse a suite number taken over a moving tree.
+**The arithmetic lands.** The previous handoff observed **3527 passed · 1 skipped**. This
+tree is **3540 + 1 skipped**. The **+13** is `tests/test_server_main.py`, which is the
+only file added. Nothing else moved, in either direction.
 
-**Working tree: clean as of 2026-09-11.** The §3.7 row is committed on `main`, on top of
-`1a9288b`. ⚠ Five handoffs in a row have now made a tree claim; **run `git status` and
-`git log` yourself before acting on this line.**
+**Working tree: check it yourself.** ⚠ Six handoffs in a row have now made a tree claim.
+Run `git status` and `git log` before acting on this line.
 
-## ✅ SHIPPED this session — per-session destinations + write-through auto-save
+## ✅ SHIPPED this session — `server/main.py`, the switch
 
-Row 5 of `hosting-state-model.md` §3.9, and **the last row of §3. §3 is now complete.**
-**§3.7b of that file and the last section of `status/engine-and-ui.md` are the record; do
-not restate them here.** What a reader needs before touching anything:
+Piece 1 of §5 of `hosting-state-model.md`. **§5.1a of that file is the record; do not
+restate it here.** What a reader needs before touching anything:
 
-* `server/config.session_root()` reads `EXALTED_SESSION_ROOT` and **raises** when it is
-  unset. No default, for the same reason `storage_secret()` has none.
-* `session_context_factory(prototype, session_root=None)` → `<root>/<key>/<filename>`.
-  With **no** root it keeps the prototype path — that is the desktop, and it is
-  deliberate.
-* `saving.AutoSave` polls a digest of `model_dump_json()`; `build_app(..., auto_save=)`
-  runs it on a `ui.timer` every `saving.AUTOSAVE_SECONDS` (5 s).
+* `server/main.py:build_server(session_root=None)` calls
+  `register_pages(..., session_root=root)`. With no argument it reads
+  `config.session_root()`.
+* `main()` reads both environment variables, makes the root, and runs
+  `ui.run(reload=False)`. The `build_server` / `main` split exists **so a test can assert
+  on the wiring**; `ui.run` is not testable and the one argument this file adds is.
+* `config.required_storage_secret()` is new.
 
-### ⚠ A hosted run needs TWO environment variables now, and each raises
+### ✅ The previous handoff's headline scope line is now FALSE, on purpose
 
-`EXALTED_STORAGE_SECRET` and `EXALTED_SESSION_ROOT`. Both raise when absent, on purpose.
+It said *"NOTHING SHIPPED REACHES THIS YET… no shipped entry point turns it on."* **An
+entry point now turns it on.** Everything §3 built — per-session destinations, the
+auto-save timer, the registry — is reachable through `python -m exalted_builder.server.main`.
 
-### ⚠ NOTHING SHIPPED REACHES THIS YET — and that is the honest scope
+### 🐞 The previous handoff was wrong that both variables raise
 
-All three production callers of `register_pages` (`ui/gm.py:738`, `pack/run_app.py:99`,
-`ui/builder.py:714`) are desktop and pass **no** root. So the capability exists, is
-tested, and **no shipped entry point turns it on.** Wiring it is §5's job.
-**Do not read this row as having deployed hosted saving.** What it removed is the
-blocker that made §3.7's auto-save unsafe to build at all.
+It said *"`EXALTED_STORAGE_SECRET` and `EXALTED_SESSION_ROOT`. Both raise when absent, on
+purpose."* **`config.storage_secret()` does not raise.** It returns a **random
+per-process key**, which is right for the desktop and silently wrong for a server: the key
+changes at each restart, so every session cookie becomes invalid, so every browser gets a
+new session id, a **new session directory**, and no view of the character the auto-save
+timer wrote for it. The server starts and looks healthy.
 
-### 🐞 Two handlers undid the factory, and only the wiring test saw it
+⚠ **This is why the claim was dangerous rather than merely untidy** — the failure it
+describes is invisible, and the doc said the code prevented it.
 
-**The spec's fix was not sufficient, and this is the finding worth carrying.**
-`new_character` and the upload branch of `_apply_loaded` each recomputed the destination
-from `persistence.default_save_dir()`, which is process-wide. The factory gave the
-session its own directory and **the first click of New took it straight back out**, into
-a folder every session shares.
+`config.required_storage_secret()` raises. `config.storage_secret()` is unchanged, and
+the desktop still takes the random fallback. ⚠ **Do not call `storage_secret()` from
+anything hosted.**
 
-⚠ **The factory's own unit tests pass with this defect present** — the factory *is*
-correct, and a later handler overrules it. That is the house bug, type 1, and it is why
-"assert on the factory" (which §3.7 rightly demands) is **necessary but not sufficient**.
-`tests/test_session_destinations.py` runs the production wiring and clicks New; nothing
-else could see it.
+### ⚠ There is no auth, and a mechanism stands in for it
 
-The fix is `ctx["home_dir"]`, the one folder a session owns.
-⚠ **Do not call `persistence.default_save_dir()` in a handler.**
+`DEFAULT_HOST` is `127.0.0.1`, **departing from §5.1's `0.0.0.0` sketch** — that sketch
+assumes the auth gate, which is piece 3 and is not built.
+`check_bind_is_allowed(host, acknowledged=)` raises on a non-loopback bind without
+`--public`. **Delete that function when auth lands, not before.** It is a mechanism rather
+than a warning per `feedback_turn_a_repeated_warning_into_a_mechanism`; a comment saying
+"do not expose this" would not have stopped a `--host 0.0.0.0`.
 
-### 🐞 Sanitising the session key was not enough to keep two sessions apart
+### ⚠ The prototype path is OUTSIDE the session root, and that is load-bearing
 
-`session_dirname` replaces an unsafe character with an underscore, which maps `"a/b"` and
-`"a_b"` to **one** directory — this whole section's defect, one level down. A digest of
-the original key is now appended whenever a character changed. A plain UUID session id is
-unchanged and stays readable.
+`prototype_context` points the prototype at `<root>/../prototype.character.json`. It is a
+**marker**: a prototype path appearing inside a session directory shows the factory
+returned the prototype's own path, which is §3.7's defect. ⚠ **A prototype inside the root
+would make every `is_relative_to(root)` assertion pass with no isolation at all** — the
+`fixture_missing_the_keyed_axis` shape, one layer over.
 
-### ⚠ Auto-save and isolation are ONE switch, on purpose
+### Negative controls, all four run, restored from a copy
 
-`register_pages` passes `auto_save=session_root is not None`. The hazard §3.7 names — a
-timer over a shared path — **cannot be configured.** Do not give them separate switches.
-This spent a mechanism instead of another warning, per
-`feedback_turn_a_repeated_warning_into_a_mechanism`; the last row proved a ⚠ in a
-docstring does not prevent the mistake it describes.
+Per `feedback_restore_a_probe_from_a_copy_not_git`.
 
-### ✅ The spec's one unverified precondition is CONFIRMED
+* Drop `session_root=` from `build_server` → **4 cases redden**, the other 9 stay green.
+* Move the prototype path inside the root → **only** the negative-control case reddens.
+* Neuter `check_bind_is_allowed` → only the public-bind case reddens.
+* Make `required_storage_secret` fall through to `storage_secret` → **2 cases redden**.
 
-Play-tab state serializes: `Character.play` is a real pydantic field (`PlayState`), so
-`willpower_spent`, `fatigue`, `health`, `limit`, `clarity_temporary` and `renown` all
-reach the digest. ⚠ A tracker added **beside** the Character in future would be invisible
-to auto-save, with nothing failing.
+### ✅ A real server was run, and here is exactly what that proved
 
-### Negative controls, all three run
+`EXALTED_STORAGE_SECRET=… EXALTED_SESSION_ROOT=… python -m exalted_builder.server.main
+--port 8099`. Two bare `curl`s got **two distinct session ids** in the signed cookie
+(`aae506df-…` and `f38112b6-…`), so the per-browser key is real and not a harness artifact.
+Both guards were also confirmed live: a `--host 0.0.0.0` and an unset secret each refused
+to start with their own message.
 
-* Reintroduce the shared path in the factory → the 10 destination cases redden, the 10
-  older ones **and the desktop control** stay green. The desktop control is therefore not
-  passing vacuously.
-* Unwire the `ui.timer` → the two auto-save cases redden, the six destination cases stay
-  green.
-* Both restored **from a copy taken aside**, not `git checkout`, per
-  `feedback_restore_a_probe_from_a_copy_not_git`.
+⚠ **What it did NOT prove, and this is the honest half.** **No session directory appeared**
+— correctly, because `AutoSave` writes on a digest *change* and nothing edited a character.
+The edit → two-files step is covered by `tests/test_session_destinations.py` through the
+production wiring, **not by this run**. Per `a compensation is a hypothesis`: the live run
+is not a substitute for two real browsers, and that click-through item is still owed.
 
 ## 👉 NEXT — in rough order of what would bite
 
-- **P2 §5 — the entry point, auth, and the DB. THE NEXT PIECE, and all that remains of
-  P2.** Read §5 of `hosting-state-model.md`; it has its own corrections (§5.2 on
-  `app.storage.user`, §5.3 on the shared ruleset and the custom layer). What this
-  session changes about it:
-  - **§5's `server/main.py` is now the thing that turns hosting on.** It must pass
-    `session_root=config.session_root()` to `register_pages`. Until it does, every code
-    path built this session is dormant.
-  - **Re-keying anonymous work at signup**: a DB row is an owner-column update; a
-    directory is a move. §3.7 notes this is a mild argument for the DB and **not** a
-    reason to build it before the directory.
-  - ⚠ **`builder.save()`'s two-way branch is still wrong for a hosted run** — see the
-    traps below. Auto-save writes server-side and does **not** go through it, so the
-    hosted story is now *"your edits persist, but the Save button still lies."* That is
-    a better failure than before and still a failure.
-
-  Carried findings still live for the rest of P2:
-  - ⚠ **Run one worker.** The registry holds live `Character` objects, so it can never be
-    JSON, so it can never cross processes. Redis is not an alternative — it makes *every*
-    NiceGUI store serialized, including `tab`.
-  - ⚠ **Do not take the tab-storage shortcut §3.4 describes.** `app.storage.tab` does
-    hold a live object and does survive navigation, but it is keyed per *tab* and the
-    ruling is per *browser*. It reintroduces the isolation bug one scope down, and
-    nothing fails.
-  - ⚠ **Tier-1 misuse fails in a background task, not at the assignment.** Putting a
-    `Character` into `app.storage.user` succeeds at the line that does it; the
-    `TypeError` arrives later as a logged ERROR. Only a `caplog` assertion catches it.
-    Tier 1 is still **unused**.
-  - ⚠ **`ctx` is a PROTOTYPE**, copied per session by `session_context_factory`. An edit
-    to the caller's dict after registration lands where no session sees it. The
-    destination is **no longer** part of that copy when a root is supplied.
+- **§5 piece 2 — `builder.save()`'s third branch. The smallest and the most misleading
+  thing left.** Native gets a dialog, everything else downloads to the browser, so a
+  hosted Save shows a green *"Downloading …"* toast over an empty volume. It was built
+  once and **reverted in full** (`hosting-per-instance.md` has the shape). ⚠ **Piece 1
+  made this worse in one specific way**: edits now persist by timer, so the hosted story
+  is *"your work is safe, but the Save button lies about where it went."*
+- **§5 piece 3 — auth.** `/login`, the gate, `bcrypt` (not `passlib`), a `[server]` extra.
+  ⚠ **The first piece of this project with no adjacent pattern to copy** — §3 always had
+  `register_pages` or `custom_content` to follow. It is also the one place where an
+  unreviewed default is a security bug rather than a wrong number.
+  **`check_bind_is_allowed` is deleted by this piece.**
+- **§5 piece 4 — the DB, and §5.3's per-user rulesets.** ⚠ **Measure one merged `RuleSet`
+  in memory BEFORE fixing the DB layout.** §5.3 reverses the original plan (per-user is
+  *easier* than shared, because shared needs the `load_character` write hazard solved and
+  per-user dissolves it) and that reversal has to be decided before the layout, not after.
 - **Backgrounds `source` — 51 of 63 DONE. 12 left, and they need a human with a page.**
   `status/backgrounds.md` lists all 12 with their scores. Two are Lunar and have no
   page-marked text on this machine at all. ⚠ **Do not lower the matcher threshold to
-  clear them**; that threshold is what stopped ten Mountain Folk rows being written into
-  the wrong book. A row with no `source` is honest; a confident wrong one is not.
+  clear them.**
 - **Roll initiative for the whole table — BLOCKED** on the party holding real characters.
   That is phase **P3** of `docs/plans/vtt.md`, so it is scheduled rather than stuck.
   Stays a one-off: initiative's +1d10 is a printed fixed count. Do not generalise it.
 - **A content-fidelity SCRIPT** (`tools/`) — diff authored descriptions against pasted
-  source and REPORT differences. ⚠ **An option, not a debt.** Nothing is blocked on it
-  and it must never go back into the suite.
-- ⚠ **The duplicated Merit/Flaw strings — and it is TEN, not one.** Re-derived
-  2026-09-11 by intersecting the string literals of `qt/advantages.py` and
-  `ui/advantages.py` with `ast`: **10 shared literals of 40+ characters**, byte-identical,
-  with nothing stopping them drifting. The longest is the *"Gaining a Merit or losing a
-  Flaw costs twice its point value …"* sentence; the rest include the Player's Guide p.17
-  no-cost wording, the flaw-cap fragments and the XP-debt line. ⚠ **Previous handoffs
-  called this "the duplicated Custom Merit/Flaw sentence", singular** — the scope was
-  wrong, and a one-sentence framing invites a one-line fix that leaves nine behind.
-  `ui/view.py` owns every other shared string and should own these. A real refactor.
+  source and REPORT differences. ⚠ **An option, not a debt.** It must never go into the suite.
+- ⚠ **The duplicated Merit/Flaw strings — and it is TEN, not one.** Re-derived by
+  intersecting the string literals of `qt/advantages.py` and `ui/advantages.py` with `ast`:
+  **10 shared literals of 40+ characters**, byte-identical, with nothing stopping them
+  drifting. ⚠ **Previous handoffs called this "the duplicated sentence", singular** — a
+  one-sentence framing invites a one-line fix that leaves nine behind. `ui/view.py` owns
+  every other shared string and should own these.
 
-## ⚠ Traps still live — all carried, none fixed this session
+## ⚠ Traps still live
 
-**`builder.save()`'s two-way branch is silently wrong for a third deployment.** Native
-gets a dialog, everything else downloads to the browser. The fix was built and **reverted
-in full** (`hosting-per-instance.md`). ⚠ **This session's row did NOT address it.**
+**`builder.save()`'s two-way branch.** Now the next item rather than a background trap —
+see above.
 
-**The stale server wears a healthy port.** `ui/builder.py` runs `reload=False`; a `kill`
-on the PID from `pgrep … | tail -1` kills the WRAPPER, not the listener, and `curl` still
-answers **200** off the old build. Get the PID from `ss -ltnp | grep 8080`. **Cost two
-sessions.** ⚠ A long-running hosted process makes this worse.
+**The stale server wears a healthy port.** `reload=False`; a `kill` on the PID from
+`pgrep … | tail -1` kills the WRAPPER, not the listener, and `curl` still answers **200**
+off the old build. **Get the PID from `ss -ltnp | grep <port>`.** Cost two sessions.
+✅ This session used `ss -ltnp` and the port released cleanly — the recipe works.
 
-**Any future `ui.run` that registers these routes must pass a `storage_secret`, and
-nothing enforces it.** `session_key()` raises without one, on purpose — there is no
-fallback key. This already bit `ui/gm.py:main()`.
+**Any `ui.run` that registers these routes must pass a `storage_secret`.** `session_key()`
+raises without one, on purpose. `server/main.py` passes the **required** accessor.
 
 **The width budget** — `_BOXES_PER_ROW`, the tracker box sizes and `_RAIL_WIDTH` are ONE
 budget, and no test can see it. Measure `page._scroll.widget().minimumSizeHint().width()`
 against `page._scroll.viewport().width()`.
 
-**The app still reports no version anywhere.** `pyproject.toml` says 1.0.0, no titlebar
-string, no About item. ⚠ On a server with players connecting, *"is everyone on the same
-build?"* becomes a support question with no answer. Pair it with the launcher trap:
-`branding.install_desktop_entry()` writes `Exec=` from `sys.executable`, so the desktop
-entry PINS to the first frozen binary that ever ran. ⚠ Check the DATES before blaming the
-build; the stale-binary theory has been wrong twice.
+**The app still reports no version anywhere.** ⚠ Now worse: there is a runnable server, so
+*"is everyone on the same build?"* is a live support question. Pair it with the launcher
+trap: `branding.install_desktop_entry()` writes `Exec=` from `sys.executable`. ⚠ Check the
+DATES before blaming the build; the stale-binary theory has been wrong twice.
 
 ## 🖱 Not browser-verified — what a human should click
 
-**The desktop behaviour is unchanged, and that is the cheap claim to check.**
-`EXALTED_SESSION_ROOT` is unset on the desktop, so the destination rule and the auto-save
-timer are both off. Nothing this session can reach a desktop user.
+**The desktop is untouched.** `server/main.py` is a new module and no desktop entry point
+imports it. `config.storage_secret()` is byte-identical.
 
-1. **The desktop builder: Save, Load, New, upload, Print.** They must write where they
-   did before. ⚠ **New and the upload path are the two that changed lines** — they read
-   `ctx["home_dir"]` instead of calling `default_save_dir()`, and on the desktop those
-   are the same folder. Confirm a New character still offers to save beside the
-   executable / in the launch folder.
-2. **No auto-save toast should ever appear on the desktop.** Auto-save is quiet by
-   design, so the thing to confirm is the absence of surprise writes.
-
-**The hosted path needs a real server, and the suite cannot express it:**
-
-3. ⚠ **Run with both variables set and open TWO browsers.**
-   `EXALTED_STORAGE_SECRET=… EXALTED_SESSION_ROOT=/tmp/exalted-sessions` — but note
-   **no entry point passes the root yet**, so this needs §5 or a throwaway script that
-   calls `register_pages(rs, ctx, session_root=…)`. Then: edit a name in each, wait ~5 s,
-   and confirm **two directories** under the root, each holding that browser's character.
-4. **Carried and still owed from the previous session:** two real browsers, each editing
-   a name, then **`/gm` → Builder in one of them** — the second must keep its own
-   character. And a **second tab of the SAME browser** must show the *same* character,
-   because the key is per browser by ruling (`vtt.md` §8 Q1), not per tab. **That last
-   case the suite cannot express at all.**
-5. **GM page → a member card → the "Builder" button**, with two or more party members.
-   It carries `.mark(f"open-in-builder-{index}")`; the marker is per-index and a wrong
-   index would be a wrong-member handoff.
+1. ⚠ **Two real browsers against `python -m exalted_builder.server.main`**, with both
+   variables set. Edit a name in each, wait ~5 s, and confirm **two directories** under
+   the root, each holding that browser's character. **This is the step the live run above
+   could not reach**, and it is the whole point of the session.
+2. **A second tab of the SAME browser must show the SAME character** — the key is per
+   browser by ruling (`vtt.md` §8 Q1), not per tab. ⚠ **The suite cannot express this at all.**
+3. **`/gm` → Builder in one of two browsers** — the other must keep its own character.
+4. **The Save button on the hosted server.** ⚠ Expect it to be **wrong** — it downloads to
+   the browser. Confirm that is what it does, so piece 2 is fixing an observed behaviour.
 
 ## ❓ Open for the human
 
-- **Nothing is waiting on the human.** All seven of `vtt.md`'s open questions are ruled.
-  ⚠ Q3's *ruling* stands but its *mechanism* was wrong; `vtt.md` is corrected in place.
+- **Nothing is waiting on the human** to proceed. All seven of `vtt.md`'s questions are
+  ruled, and §5.3's per-user ruleset question belongs to piece 4.
 - **No open RULES questions.** This session touched no game values.
-- **A design choice made without asking, worth knowing about:** the no-root case keeps
-  the prototype path rather than isolating. The polarity is deliberate — forgetting the
-  root on the desktop is loud (the file does not update), and a hosted run that forgets
-  it gets a raise. Say so if you want the opposite.
-- ✅ **The `close-out` skill is NOT stale — that item was wrong and is struck.** It was
-  fixed in `68bca45`, the previous session's own commit. Step 4 now opens with *"CLAUDE.md
-  has no status section, no test count, no date and no TODO list"*, quotes CLAUDE.md's
-  preamble, and says most close-outs change nothing there. The skill even carries a
-  *"Keeping this file true"* section naming the old `## Status` / Done-Next TODO wording
-  as **already removed**.
-
-  ⚠ **How this survived: the item was copied forward from the previous handoff without
-  being checked, and the phrase "carried unfixed for two sessions" was added — which
-  manufactured confidence out of repetition alone.** The retraction inside the skill was
-  then read as a description of a live bug. `git log --oneline -- <path>` would have
-  settled it in one command, and the file was touched by the very commit that handoff was
-  describing. See `feedback_stale_blocker_prose`: when a change closes a blocker, strike
-  the prose describing it in the same change — **and do not re-assert an inherited
-  blocker without re-deriving it.**
+- **Two design choices made without asking, both reversible, both worth a look:**
+  - **Loopback default + `--public`.** It departs from §5.1's written `0.0.0.0`. Say so if
+    you want the sketch honoured instead.
+  - **A separate strict secret accessor** rather than making `storage_secret()` itself
+    raise. The desktop's random fallback is deliberate and keeping both was the smaller
+    change; merging them would break `ui/builder.py:main` and `ui/gm.py:main`.
 
 ## Still deferred, still NOT gaps
 
