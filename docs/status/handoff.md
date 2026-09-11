@@ -136,9 +136,15 @@ to auto-save, with nothing failing.
 - **A content-fidelity SCRIPT** (`tools/`) — diff authored descriptions against pasted
   source and REPORT differences. ⚠ **An option, not a debt.** Nothing is blocked on it
   and it must never go back into the suite.
-- ⚠ **The duplicated Custom Merit/Flaw sentence.** Byte-identical in `qt/advantages.py`
-  and `ui/advantages.py`, with nothing stopping them drifting. `ui/view.py` owns every
-  other shared string and should own this one. A real refactor, not a one-liner.
+- ⚠ **The duplicated Merit/Flaw strings — and it is TEN, not one.** Re-derived
+  2026-09-11 by intersecting the string literals of `qt/advantages.py` and
+  `ui/advantages.py` with `ast`: **10 shared literals of 40+ characters**, byte-identical,
+  with nothing stopping them drifting. The longest is the *"Gaining a Merit or losing a
+  Flaw costs twice its point value …"* sentence; the rest include the Player's Guide p.17
+  no-cost wording, the flaw-cap fragments and the XP-debt line. ⚠ **Previous handoffs
+  called this "the duplicated Custom Merit/Flaw sentence", singular** — the scope was
+  wrong, and a one-sentence framing invites a one-line fix that leaves nine behind.
+  `ui/view.py` owns every other shared string and should own these. A real refactor.
 
 ## ⚠ Traps still live — all carried, none fixed this session
 
@@ -205,11 +211,21 @@ timer are both off. Nothing this session can reach a desktop user.
   the prototype path rather than isolating. The polarity is deliberate — forgetting the
   root on the desktop is loud (the file does not update), and a hosted run that forgets
   it gets a raise. Say so if you want the opposite.
-- ⚠ **The `close-out` skill is stale about CLAUDE.md.** Its step 3 names four edits to a
-  `## Status` heading and a Done/Next TODO. **CLAUDE.md has none of them** — it was
-  converted to a pure index, and its own §1 forbids status, counts and dates. Three of
-  the four steps describe sections that no longer exist. Worth a fix to the skill.
-  **Carried unfixed for two sessions now.**
+- ✅ **The `close-out` skill is NOT stale — that item was wrong and is struck.** It was
+  fixed in `68bca45`, the previous session's own commit. Step 4 now opens with *"CLAUDE.md
+  has no status section, no test count, no date and no TODO list"*, quotes CLAUDE.md's
+  preamble, and says most close-outs change nothing there. The skill even carries a
+  *"Keeping this file true"* section naming the old `## Status` / Done-Next TODO wording
+  as **already removed**.
+
+  ⚠ **How this survived: the item was copied forward from the previous handoff without
+  being checked, and the phrase "carried unfixed for two sessions" was added — which
+  manufactured confidence out of repetition alone.** The retraction inside the skill was
+  then read as a description of a live bug. `git log --oneline -- <path>` would have
+  settled it in one command, and the file was touched by the very commit that handoff was
+  describing. See `feedback_stale_blocker_prose`: when a change closes a blocker, strike
+  the prose describing it in the same change — **and do not re-assert an inherited
+  blocker without re-deriving it.**
 
 ## Still deferred, still NOT gaps
 
