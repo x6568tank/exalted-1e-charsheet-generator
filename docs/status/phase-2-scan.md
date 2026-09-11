@@ -186,6 +186,19 @@ the discovery index has no row for either. A zero in a census is not evidence of
 
 ### What genuinely remains
 
+> ⚠ **SUPERSEDED 2026-09-11. The estimate below is wrong and is kept as the record of
+> how it was wrong.** It was carried forward from a census taken BEFORE the 2026-08-11/12
+> Background overhaul, which had already read the Lunar, Dragon-Blooded and Sidereal
+> Background lists into `catalogue_backgrounds` — three of the five groups, three days
+> before this file named them. The caste and aspect books were never swept for
+> Backgrounds, but the human's reading (2026-09-11) is that they print none, so no page
+> read is scheduled. **What actually remains is backfilling `source` on 63/63
+> Backgrounds.** The full re-measurement is in `status/backgrounds.md`, under "Coverage and
+> provenance, re-measured 2026-09-11". ⚠ **Do not point a permanent document at
+> `status/handoff.md`** — that file is rewritten every session, so the reference is stale
+> by design. **A census in a status doc has a shelf life; re-run it before you plan from
+> it.**
+
 **Backgrounds in the five pure-scan splat groups** — Lunars (258 pp.), Dragon-Blooded
 (297 pp.), Sidereals (277 pp.), the five Caste Books (~490 pp.) and the five Aspect
 Books. Roughly **1,800 pages**, all needing the phase-2 treatment (`pdftoppm` +

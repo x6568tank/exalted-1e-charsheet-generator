@@ -173,3 +173,32 @@ def test_immaculate_charm_uses_its_own_rate():
     assert costs.charm_cost(rs, c, imm) == 15                  # immaculate full rate (MA not favored)
     c.favored_abilities = [A.MARTIAL_ARTS]
     assert costs.charm_cost(rs, c, imm) == 12                  # immaculate, MA favored -> discounted
+
+
+def test_the_splats_that_deliberately_keep_the_solar_rates(ruleset):
+    """Abyssals pay the Solar rates, and mortals pay the Solar bonus-point rates.
+
+    ⚠ A ruled fallback and an unauthored table are the same bytes. `costs_bonus.json`
+    has no Abyssal row and no Mortal row. `costs_xp.json` has no Abyssal row. Each
+    absence sends the accessor to the model defaults, which are the Solar baseline.
+    The human ruled on 2026-09-11 that this is correct. This test records the ruling.
+
+    ⚠ The discriminators are the neighbour splats. Lunar and Sidereal are Celestial
+    Exalts, and both override the Essence rates. Thus the Abyssal absence is a choice
+    that a person made, and not a table that nobody opened.
+    """
+    bp_abyssal = ruleset.bonus_costs_for("Abyssal")
+    bp_mortal = ruleset.bonus_costs_for("Mortal")
+    xp_abyssal = ruleset.xp_costs_for("Abyssal")
+
+    # The Solar baseline, CLAUDE.md section 3.
+    assert (bp_abyssal.essence, bp_abyssal.charm, bp_abyssal.charm_favored_caste) == (7, 5, 4)
+    assert (bp_mortal.essence, bp_mortal.charm, bp_mortal.charm_favored_caste) == (7, 5, 4)
+    assert (xp_abyssal.essence.coeff, xp_abyssal.new_charm,
+            xp_abyssal.new_charm_favored_caste) == (8, 10, 8)
+
+    # The discriminators: the other Celestial Exalts each print their own rates.
+    assert ruleset.bonus_costs_for("Lunar").essence == 10
+    assert ruleset.bonus_costs_for("Sidereal").essence == 10
+    assert ruleset.xp_costs_for("Lunar").essence.coeff == 9
+    assert ruleset.xp_costs_for("Sidereal").essence.coeff == 9

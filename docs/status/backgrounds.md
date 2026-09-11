@@ -269,3 +269,35 @@ entries; the house-rules toggle's live count AND the Advantages dropdown picking
 after a tab switch; the Ghost "Arcanoi" wording; the Sidereal and God-Blooded offered
 lists. Ladder rungs read correctly. The readability change (blank lines +
 `whitespace-pre-line`) landed after that pass and is covered by test, not by eyes.
+
+## Coverage and provenance, re-measured 2026-09-11
+
+This section exists because the coverage this overhaul achieved **was never written down
+as coverage**, and a later document went on estimating the gap as if the overhaul had not
+happened. `status/phase-2-scan.md` (2026-08-15) listed "Backgrounds in the five pure-scan
+splat groups … roughly 1,800 pages" three days after the splat-book lists had been read in
+here. That estimate rode the NEXT list for four weeks.
+
+**What this overhaul actually covers.** 20 of the 34 `chargen_budgets.json` rows carry a
+`catalogue_backgrounds` list taken from that splat's own book — Lunar 13, Sidereal 11,
+Dragon-Blooded 14, Abyssal 14, God-Blooded 25, Dragon-Kings 14, Alchemical 10, Ghost 11,
+Mortal 10, Mountain Folk 10, and the rest. ⚠ **A row reading 0 is not an uncovered
+splat**: sub-origin rows inherit by the `E:o:u` → `E:o` → `E` cascade in
+`catalogue_backgrounds_for`, and an origin authors a list only where its book prints a
+DIFFERENT one. Counting raw non-empty rows understates coverage by about half.
+
+**What was never swept: the caste books and the aspect books.**
+`status/solar-castebooks.md` and `status/dragonblooded-aspect-books.md` contain zero
+occurrences of the word "background" — both reads were scoped to the Charm and gear
+chapters (29 castebook page scans; aspect-book CH 6 only), and neither group has a budget
+row of its own that would have pulled one in.
+
+**Human, 2026-09-11:** *"I don't think Caste/Aspectbooks print any backgrounds at all."*
+⚠ **A hedge, not a ruling.** Closed for planning — do not schedule the ~490-page read, do
+not list those books as a content gap. NOT authority to author a Background citing one of
+them. If a page turns up that prints one, the page wins, and nothing here needs reopening.
+
+**What is left is provenance.** `source` is missing on **63/63** Backgrounds. It is the
+record type with no discovery index to diff against, so an unsourced row is precisely what
+a wrong value would hide behind — the necromancy bug's shape. Backfilling it is the whole
+of the remaining Backgrounds item.
