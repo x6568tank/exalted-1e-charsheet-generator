@@ -1,10 +1,17 @@
-# Session handoff — 2026-09-11 (the VTT is planned, ruled, and phases P0/P1 are done)
+# Session handoff — 2026-09-11 (the VTT is planned and ruled; P0/P1 done, P2 started)
 
 # 👉 YOU ARE HERE
 
-Last FULL suite: **3443 passed · 1 skipped · 2 xfailed · 0 failed** (main PC, `main`,
-10m56s), **3446 collected**. **Observed, not computed**, and run after every executable
-change of the session. Only docs changed afterwards.
+Last FULL suite: **3462 passed · 1 skipped · 2 xfailed · 0 failed** (**work laptop**,
+`main`, 11m47s). **Observed, not computed.** ⚠ The count moves by machine and by optional
+dependency — see `docs/testing.md`, and do not reconcile this against another machine.
+
+⚠ **An earlier run in the same session read 3455 and MUST NOT be quoted.** Three files
+were edited while it was in flight, so it describes a tree that no longer exists. The
+mistake that caused it is worth knowing: `pgrep -c pytest` matches the process NAME, which
+is `python`, so it reported zero while the run was alive, and piping through `tail` kept
+the output file at zero bytes. **Use `pgrep -af pytest`, and write the log to a file
+rather than through a pipe.**
 
 ⚠ **THE SUITE NOW HAS TWO `xfailed` TESTS, AND THAT IS NEW.** Both are
 `tests/test_session_isolation.py`, both are `xfail(strict=True)`, and both describe the
@@ -13,12 +20,53 @@ change of the session. Only docs changed afterwards.
 which pytest reports as a FAILURE** until whoever fixed it deletes the marker. That is
 deliberate; do not "fix" it by weakening an assertion. `docs/testing.md` has the reasoning.
 
-✅ **The arithmetic that was owed is now settled.** The previous handoff carried
-**3391 passed / 3392 collected** as *"arithmetic, not an observation"*. This run confirms
-it: 3391 + 52 = **3443**, and 3392 + 54 = **3446**. Both columns land exactly.
+✅ **The arithmetic that was owed is now settled.** The handoff before this one carried
+**3391 passed / 3392 collected** as *"arithmetic, not an observation"*. The 3443 run
+confirmed it: 3391 + 52 = **3443**. This session then added **19**: 12 registry tests and
+7 secret tests. 3443 + 19 = **3462**, on a different machine, which lands exactly.
 
-**Working tree: DIRTY, nothing committed.** ⚠ Last session's handoff made a tree claim that
-was already false; **run `git status` and `git log` yourself before acting on this line.**
+**Working tree: clean as of the last commit of this session.** ⚠ Two handoffs in a row
+made a tree claim that was already false; **run `git status` and `git log` yourself before
+acting on this line.**
+
+## ✅ SHIPPED this session, part 2 — P2 has begun, additively
+
+Work done on the **work laptop**, in a short window, which chose the pieces: the two
+**purely additive** rows of `hosting-state-model.md` §3.9, and neither invasive one.
+
+**The storage table is re-verified against NiceGUI 3.14.0** — P2's gating task. Two cells
+were wrong, the two-tier design survives, and Redis is answered. §3.4 has it all; the
+summary is in the P2 entry below. Do not re-open it.
+
+**`exalted_builder/server/` is new, and nothing imports it yet.** That is deliberate.
+
+* `session.py` — `SessionRegistry`: `ctx_for(key)`, a bounded LRU with an idle `sweep()`,
+  rehydration through a `factory(key)`, and an `on_evict` hook for §3.7's auto-save.
+  ⚠ It departs from §3.4's sketch in two ways ON PURPOSE — a class rather than a
+  module-level `_SESSIONS` dict (a module global is itself process-global state, which is
+  the shape of the bug being removed, and it leaks between tests), and `factory(key)`
+  rather than `ctx_for(key, user_id)` (the registry knows nothing of auth or the DB).
+* `config.py` — `storage_secret()`. Reads `EXALTED_STORAGE_SECRET`; with none, mints a
+  random per-process key. ⚠ **There is no default secret and there must never be one.**
+  A known constant lets anybody forge a session cookie, and every functional test still
+  passes while it happens.
+* Three `ui.run` call sites now pass it: `ui/builder.py:main()` (both branches),
+  `pack/run_app.py`, and `tests/_isolation_main.py` — the last closes §3.4's Constraint 3
+  and is what lets P0 reach tier 1 at all. The nine per-screen dev entry points are
+  untouched; they use no storage.
+
+### 🐞 A test that passed against the defect it guarded
+
+⚠ **The best thing this session produced.** `test_the_cap_never_evicts_the_session_it_just
+_made` passed with the protection deleted. Above `max_sessions=0` the new session is always
+the most recently used, so the least-recently-used rule can never select it and the guard
+cannot be observed to fail. **A cap of 0 is the one reachable failing case**, and the test
+uses it now. This is `CLAUDE.md` §7 exactly — a rule in a place where it does not operate —
+and it was found by mutation, not by reading.
+
+**Five mutations were run against the registry and two against the secret.** All seven fail
+the intended test now. ⚠ That method is the reason to trust these 19 tests; a green run on
+new code proves nothing on its own.
 
 ## ✅ SHIPPED this session — the VTT is a plan with rulings, not an idea
 
@@ -94,20 +142,30 @@ Written up in `status/engine-and-ui.md`.
 
 ## 👉 NEXT — in rough order of what would bite
 
-- **P2, the hosting substrate** — `hosting-state-model.md` §3 and §5. **The riskiest work
-  in the plan.** ⚠ **The estimate has been quoted two ways: ~5 days is §3 alone; the phase
-  is 10–12 days part-time** (`vtt.md:502`, §3 + §5 + auth + DB). Use the larger one.
-  ✅ **Its gating task is now DONE** — §3.4's storage table is re-verified against the
-  installed NiceGUI **3.14.0** (2026-09-11), by running the stores, not reading about them.
-  **Two cells were wrong**, the two-tier design survives, and Redis is answered: it turns
-  every store serialized, so it cannot hold the live registry and does not relieve the
-  single-process assumption. **Run one worker.** Three new constraints landed —
-  `app.storage.tab` needs `await context.client.connected()`, tier-1 misuse fails in a
-  **background task** and not at the assignment, and `storage_secret` blocks P0's own main
-  file (`tests/_isolation_main.py` calls bare `ui.run()`). Details in §3.4, including the
-  probe method and its three harness traps. ⚠ **Do not take the tab-storage shortcut §3.4
-  describes** — it is per tab, the ruling is per browser, and it reintroduces the isolation
-  bug one scope down.
+- **P2, continued — `register_pages` → per-request `ctx`. THE NEXT PIECE, and the first
+  invasive one.** The registry exists and nothing calls it; this is the row that connects
+  them. ⚠ **Do not start it in a short window.** It rewires the live entry point, and the
+  row after it — `save_path` → `save_fn` — touches **9** signatures plus call sites
+  (8 in `ui/`, plus `qt/main_window.py:593`, which §3.5 warns the count of 8 omits).
+  ⚠ **The estimate has been quoted two ways: ~5 days is §3 alone; the phase is 10–12 days
+  part-time** (`vtt.md:502`, §3 + §5 + auth + DB). Use the larger one.
+  **The gate for this row: the two `xfail(strict=True)` tests XPASS, which pytest reports
+  as a FAILURE — then delete the markers.** That is the signal the wiring worked.
+  Carried findings that bite here:
+  - ⚠ **Do not take the tab-storage shortcut §3.4 describes.** `app.storage.tab` does hold
+    a live object and does survive navigation, but it is keyed per *tab* and the ruling is
+    per *browser*. It reintroduces the isolation bug one scope down, and nothing fails.
+  - ⚠ **Run one worker.** The registry holds live `Character` objects, so it can never be
+    JSON, so it can never cross processes. Redis is not an alternative — it makes *every*
+    NiceGUI store serialized, including `tab`.
+  - ⚠ **Any page that reads `app.storage.tab` must be `async` and
+    `await context.client.connected()` first.** A page body runs before the client
+    connects. This cost is not in §3.9's estimate.
+  - ⚠ **Tier-1 misuse fails in a background task, not at the assignment.** Putting a
+    `Character` into `app.storage.user` succeeds at the line that does it; the `TypeError`
+    arrives later as a logged ERROR. A test only catches it by asserting on `caplog`.
+  - ⚠ **`builder.save()`'s two-way branch is the third-deployment trap below, and this row
+    is where it bites.**
 - **Backfill `source` on the 63 Backgrounds** — still **63/63** missing. A provenance job,
   not a reading job; it needs no pages fed. ⚠ The "~1,800 pages" framing was wrong and was
   corrected 2026-09-11 — do not re-raise it.
@@ -147,7 +205,17 @@ and nothing in the code will warn them. ⚠ **P2 hits this.**
 
 ## 🖱 Not browser-verified — what a human should click
 
-Almost nothing this session has a UI surface. One thing does:
+Almost nothing this session has a UI surface. Two things do:
+
+0. **The app still launches.** `storage_secret` was added to `ui/builder.py:main()` and to
+   `pack/run_app.py`, and **no test calls either** — the suite never runs `main()`. Checked
+   headlessly on the laptop: the server starts, `/` returns 200 at 507 KB, `/gm` returns
+   200, and the log holds no error. ⚠ **That proves it does not crash, and nothing more**
+   (`feedback_serve_and_grep_is_not_verification`). The **native** branch
+   (`--native`, PySide-backed window) and the **frozen** build were NOT run; both take the
+   same argument by the same edit, but neither was executed. ⚠ Also unrun: the `v*` tag's
+   four release assets.
+
 
 1. **GM page → a member card → the "Builder" button.** It gained
    `.mark(f"open-in-builder-{index}")`, following the `mark("batch-roll")` convention

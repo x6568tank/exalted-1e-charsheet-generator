@@ -183,19 +183,43 @@ navigating. It is *pointers*, never objects.
 
 **Tier 2 — a server-side registry holding the live `ctx`, keyed by session.**
 
-```python
-# exalted_builder/server/session.py
-_SESSIONS: dict[str, dict] = {}
+✅ **BUILT 2026-09-11** — `exalted_builder/server/session.py`, with
+`tests/test_session_registry.py` (12 tests). ⚠ **Nothing imports it yet.** It is
+deliberately additive: the wiring is the next row of 3.9's table, and the P0 isolation
+tests stay `xfail` until that lands. **A green registry suite is not evidence that the app
+is isolated.**
 
-def ctx_for(session_key: str, user_id: int) -> dict:
-    """The live, mutable context for one browser session. Created on first use from
-    whatever app.storage.user points at; reused on every subsequent page load in that
-    session, which is what makes the /gm -> / handoff keep working."""
+The shipped API differs from this sketch in two ways, both deliberate:
+
+```python
+registry = SessionRegistry(factory=..., max_idle_seconds=3600, max_sessions=200,
+                           on_evict=..., clock=time.monotonic)
+registry.ctx_for(session_key)   # same dict for the same key; factory on first use
+registry.sweep()                # evict by idle time; returns the count
+registry.discard(key)           # logout
 ```
+
+1. **A class, not a module-level `_SESSIONS` dict.** A module global is itself
+   process-global state, which is the shape of the bug being removed, and it leaks
+   between tests. The wiring layer instantiates one per process.
+2. **`factory(key)`, not `user_id`.** The registry does not know about auth or the DB.
+   Mapping a cookie to a user is the caller's job, in the closure it passes.
 
 The registry holds the real `Character` object, so in-place mutation, the by-reference
 party handoff and every existing tab contract all keep working **unchanged**. What
 changes is that there are now N of them instead of one.
+
+⚠ **`on_evict` is the seam 3.7's auto-save plugs into, and it is load-bearing.** If the
+hook raises, the registry **keeps** the session and re-raises. An eviction discards
+unsaved work, so a failed save must not also lose the context — memory is the cheaper
+loss.
+
+⚠ **`protect` in `_apply_cap` has exactly one reachable failing case, and it is
+`max_sessions=0`.** Above 0 the new session is always the most recently used, so the
+least-recently-used rule can never select it and a defect in the protection cannot show.
+The test uses a cap of 0 for that reason. This was found by mutation: the first version
+of that test **passed against the broken implementation**, which is the
+`CLAUDE.md` §7 pattern — a rule in a location where it does not operate.
 
 ⚠ **The registry is a leak unless it is bounded.** One `Character` (plus an embedded
 `Party`) per browser session, held forever, is a slow OOM on a 16GB box. It needs a TTL
@@ -305,9 +329,9 @@ suite.
 
 | Piece | Effort |
 |---|---|
-| `server/session.py` — registry, rehydrate, eviction | 1 day |
-| Isolation tests (3.8), written first | 1 day |
-| `register_pages` → per-request ctx resolution | 1 day |
+| ✅ `server/session.py` — registry, rehydrate, eviction | 1 day — **DONE 2026-09-11** |
+| ✅ Isolation tests (3.8), written first | 1 day — **DONE (P0), still `xfail`** |
+| `register_pages` → per-request ctx resolution | 1 day — **NEXT, and the first invasive one** |
 | `save_path` → `save_fn` across 8 signatures + call sites | 1–2 days |
 | Debounced auto-save helper | Half a day |
 | **§3 total** | **~5 days part-time** |

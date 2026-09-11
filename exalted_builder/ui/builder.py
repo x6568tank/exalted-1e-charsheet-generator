@@ -32,6 +32,7 @@ from ..engine import lifecycle, validate
 from ..models.character import Character, new_character_id
 from ..models.party import Party
 from ..models.rules import RuleSet
+from ..server.config import storage_secret
 from . import advantages
 from . import gear as gear_mod
 from . import app as sheet_app
@@ -508,10 +509,18 @@ def main() -> None:
     ruleset, character, path = load(args.character)
     register_pages(ruleset, make_context(character, path))
 
+    # `storage_secret` signs the session cookie. Without it `app.storage.user`
+    # raises, thus the per-session state of hosting-state-model.md section 3.4
+    # cannot work. See server/config.py: a deployment sets EXALTED_STORAGE_SECRET,
+    # and this process makes a random key if it does not.
+    secret = storage_secret()
+
     if args.native:
-        ui.run(title="Exalted 1e — Builder", reload=False, native=True, window_size=(1280, 900))
+        ui.run(title="Exalted 1e — Builder", reload=False, native=True,
+               window_size=(1280, 900), storage_secret=secret)
     else:
-        ui.run(title="Exalted 1e — Builder", reload=False, show=args.show, port=args.port)
+        ui.run(title="Exalted 1e — Builder", reload=False, show=args.show,
+               port=args.port, storage_secret=secret)
 
 
 if __name__ in {"__main__", "__mp_main__"}:

@@ -159,6 +159,24 @@ Contains **zero game logic**. Two layers:
 If a renderer needs to know a rule, the answer is to add a function to the engine or
 the presenter, not an `if` to the render.
 
+### `server/` — the hosted deployment's state
+
+Holds what a hosted deployment needs and the desktop and Qt shells do not: **one `ctx`
+per browser session** instead of the one process-wide `ctx` that `ui/builder.py:main()`
+builds. `session.py` is the registry — `ctx_for`, a bounded LRU with an idle sweep, and
+an `on_evict` hook for auto-save.
+
+Two boundaries hold here:
+
+* **It imports no web toolkit and no database.** The caller supplies the session key and
+  a `factory(key) -> dict`. Auth maps a cookie to a user; `server/` does not.
+* **It is not on the engine side.** `tests/test_engine_seam.py` does not police it, and
+  it must not become a dependency of `engine/` or `models/`.
+
+⚠ The registry holds live `Character` objects, so it can never be JSON, so it can never
+move between processes. **Run one worker.** `docs/plans/hosting-state-model.md` §3.4 has
+the evidence, including why Redis is not an alternative.
+
 ## The character lifecycle
 
 Chargen and advancement are **different shapes**, not two settings of one shape.

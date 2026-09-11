@@ -45,4 +45,9 @@ CTX["adversary_catalog"] = {}
 builder.register_pages(RS, CTX)
 
 if __name__ in {"__main__", "__mp_main__"}:
-    ui.run()
+    # ⚠ The secret is necessary, and the harness does not supply it. The User
+    # simulation passes a secret only when it builds the application from a `root`
+    # function. This file goes through `main_file`, which runpy executes, thus the
+    # secret must come from this call. Without it `app.storage.user` raises.
+    # See hosting-state-model.md section 3.4, Constraint 3.
+    ui.run(storage_secret="isolation-test-secret")
