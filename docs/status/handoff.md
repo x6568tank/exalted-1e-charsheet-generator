@@ -166,9 +166,16 @@ Written up in `status/engine-and-ui.md`.
     arrives later as a logged ERROR. A test only catches it by asserting on `caplog`.
   - ⚠ **`builder.save()`'s two-way branch is the third-deployment trap below, and this row
     is where it bites.**
-- **Backfill `source` on the 63 Backgrounds** — still **63/63** missing. A provenance job,
-  not a reading job; it needs no pages fed. ⚠ The "~1,800 pages" framing was wrong and was
-  corrected 2026-09-11 — do not re-raise it.
+- **Backgrounds `source` — 51 of 63 DONE 2026-09-11. 12 left, and they need a human with a
+  page.** ⚠ **This entry used to say "a provenance job, not a reading job; it needs no pages
+  fed." That was wrong**: `source` is `{book, page}` and the page is the whole record. The
+  51 were extracted mechanically by `tools/find_background_sources.py`, which scores each
+  row's own `description` against the pasted sources; the page convention was calibrated
+  against 81 known-good Merit citations (74 exact). **The residue is not more of the same
+  job** — `status/backgrounds.md` lists all 12 with their scores. Two are Lunar and have no
+  page-marked text on this machine at all. ⚠ **Do not lower the matcher threshold to clear
+  them**; that threshold is what stopped ten Mountain Folk rows being written into the
+  wrong book. A row with no `source` is honest; a confident wrong one is not.
 - **Roll initiative for the whole table — BLOCKED** on the party holding real characters.
   That is now phase **P3** of `docs/plans/vtt.md`, so it is scheduled rather than stuck.
   Stays a one-off: initiative's +1d10 is a printed fixed count. Do not generalise it.
@@ -223,6 +230,12 @@ Almost nothing this session has a UI surface. Two things do:
    and behaves as before **with two or more party members** — the marker is per-index, and
    a wrong index would be a wrong-member handoff. 265 party/GM/adversary tests pass and not
    one of them looks at a real display.
+
+2. **Nothing for the Backgrounds work.** `source` on a Background has **no read site** —
+   checked, not assumed: the four `row.get("source")` sites in `ui/view.py` (4105, 4245,
+   4309, 4552) are the homebrew authoring forms for Charms, spells, rituals and gear, and
+   they read a custom library row, never `data/backgrounds.json`. ⚠ That is also why a
+   wrong citation is invisible: no test and no screen can report one.
 
 ## ❓ Open for the human
 

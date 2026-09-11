@@ -297,7 +297,62 @@ row of its own that would have pulled one in.
 not list those books as a content gap. NOT authority to author a Background citing one of
 them. If a page turns up that prints one, the page wins, and nothing here needs reopening.
 
-**What is left is provenance.** `source` is missing on **63/63** Backgrounds. It is the
+**What is left is provenance.** `source` was missing on **63/63** Backgrounds. It is the
 record type with no discovery index to diff against, so an unsourced row is precisely what
 a wrong value would hide behind — the necromancy bug's shape. Backfilling it is the whole
 of the remaining Backgrounds item.
+
+## Provenance backfill, 2026-09-11 — 51 of 63 done
+
+⚠ **The handoff called this "a provenance job, not a reading job; it needs no pages fed."
+That was wrong.** `source` is `{book, page}` and the page is the whole point of the record
+(`docs/source-attribution.md`: "the page is what makes a value auditable"). There is no
+way to write one without a page in front of you. The line was written from the shape of
+the task rather than the shape of the record — the same failure as the "~1,800 pages"
+estimate two paragraphs up.
+
+**It was still doable, because the pages are already pasted.** `tools/find_background_
+sources.py` matches each row's heading in `images/**/*.md` and scores the source text that
+follows against the row's **own `description`**. Scoring, not name matching, is the method:
+seven rows are named "Artifact" and ten Mountain Folk rows share a name with a core row, so
+a name match hits the wrong copy every time (`feedback_duplicate_background_names_need_ids`).
+
+**The page convention was calibrated, not assumed.** Against 81 human-verified Merit
+citations in the Player's Guide, **74 agreed exactly** with "nearest preceding
+`<!--PAGE n-->` = the page the text is on". The residue was matcher noise. ⚠ Had the
+convention been the other way, all 63 citations would have been off by one and nothing in
+the suite would ever have said so.
+
+**Two matcher defects were found by the scores, not by reading.** The Mountain Folk chapter
+uses markdown headings (`#### ALLIES`), so all ten of its rows matched a *different book*
+at 0.08–0.26 — low enough to read as weak evidence rather than as a broken matcher. With
+the `#` strip they sit at 0.93–1.00. And two extracts of one book (`Autochthonians(1).md`,
+the Illuminated Backgrounds excerpt) were being counted as two competing opinions, which
+made a row that agreed with itself look like an unresolved tie. ⚠ **Matchers fail
+confidently in both directions** — that is the standing lesson, and it bit twice here.
+
+**Books that appeared, and the rule they confirm.** `Core`, `The Abyssals`, `The
+Dragon-Blooded`, `The Outcaste`, `The Sidereals`, `Player's Guide`, `Cult of the
+Illuminated`, `Games of Divinity`, `The Autochthonians`, `The Mountain Folk (CH6)`. All
+are in `CANONICAL_BOOKS`. ⚠ **The book is not the splat**: the Ghost rows are printed in
+*The Abyssals*, the Alchemical rows in *The Autochthonians*, and `background.cult` — which
+carries no `exalt_type` and so looks like a core Background — is **Games of Divinity
+p.127**, not core. Core prints **ten** Background Traits, and the book says so.
+
+### The 12 left unsourced, and why
+
+Not a backlog of the same job — each needs a human with a page.
+
+| Row | State |
+|---|---|
+| `background.hearts-blood` | **No source on this machine.** `images/Lunar/` is PNG only, with no page-marked text. Needs the page. |
+| `background.renown` (Lunar) | Best candidate scores **0.12**. Almost certainly the wrong passage. Lunar again. |
+| `background.manse-dragonblooded` | 0.19, and it matches the *core* Manse. The DB variant may be a short modifier with no prose of its own. |
+| `background.celestial-manse` (Dragon-Kings) | 0.26, matching the Sidereal entry. Same shape. |
+| `background.connections`, `background.family` (DB) | 0.32 / 0.38, no clear winner. |
+| `background.artifact-abyssal`, `background.artifact-dragonkings`, `background.followers`, `background.backing`, `background.salary` (DK), `background.patron` | 0.37–0.45 with a thin margin over the runner-up. |
+
+⚠ **Do not lower the threshold to clear these.** The threshold (score ≥ 0.45 AND a ≥ 0.12
+margin) is what kept the ten Mountain Folk rows from being written into the wrong book
+before the matcher was fixed. A row with no `source` is honest; a row with a confident
+wrong one is the necromancy bug.
