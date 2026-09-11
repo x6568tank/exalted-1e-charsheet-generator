@@ -92,3 +92,66 @@ def test_no_engine_module_imports_a_toolkit_or_a_shell(path: Path) -> None:
         "The engine must stay free of a UI toolkit and of both shells — see decision "
         "0002 and docs/plans/vtt.md section 1:\n  " + "\n  ".join(offences)
     )
+
+
+# --------------------------------------------------------------------------- #
+# Suite hygiene: a dotted-string monkeypatch target into the package
+# --------------------------------------------------------------------------- #
+
+_TESTS_DIR = Path(__file__).parent
+
+
+def _string_monkeypatch_targets(path: Path) -> list[tuple[int, str]]:
+    """Return the (line, target) of each `monkeypatch.setattr("exalted_builder…")`
+    in `path`.
+
+    Read the syntax tree. Match a call whose function is an attribute named
+    `setattr` or `delattr` on a name `monkeypatch`, and whose first argument is a
+    string constant that starts with the package name.
+    """
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    found: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or not node.args:
+            continue
+        func = node.func
+        if not isinstance(func, ast.Attribute) or func.attr not in {"setattr", "delattr"}:
+            continue
+        if not isinstance(func.value, ast.Name) or func.value.id != "monkeypatch":
+            continue
+        first = node.args[0]
+        if isinstance(first, ast.Constant) and isinstance(first.value, str) \
+                and first.value.startswith("exalted_builder"):
+            found.append((node.lineno, first.value))
+    return found
+
+
+def test_no_test_patches_by_dotted_string() -> None:
+    """⚠ A dotted-string target makes pytest re-walk the path from `sys.modules`
+    at call time, and a NiceGUI main-file test replaces
+    `sys.modules["exalted_builder"]` with a hollow namespace stub (`__file__`
+    None, `__path__` []). The walk then fails at the FIRST step — "module
+    'exalted_builder' has no attribute 'qt'" — while the real module is still in
+    `sys.modules` and every already-imported class still works.
+
+    ⚠ The failure is ORDERING-DEPENDENT, thus it is invisible. It appears only
+    when a main-file test sorts before the patching file. It cost a red full suite
+    on 2026-09-11: the one violation had sorted after every main-file test for
+    months, until a new test file landed at 'h'.
+
+    Import the module and patch the object. See `tests/test_qt_shell.py`.
+
+    ⚠ ONE case over all the test files, not one for each. The rule is repo-wide and
+    the count of the test files is not a property worth 104 cases in the suite. The
+    message names each offending file and line, thus nothing is lost.
+    """
+    offenders = [(path, line, target)
+                 for path in sorted(_TESTS_DIR.glob("test_*.py"))
+                 for line, target in _string_monkeypatch_targets(path)]
+
+    assert not offenders, (
+        "These tests patch by dotted string: "
+        + "; ".join(f"{path.name}:{line} {target!r}" for path, line, target in offenders)
+        + ". Import the module and patch the object instead — a string target "
+          "breaks after any NiceGUI main-file test, depending only on file order."
+    )

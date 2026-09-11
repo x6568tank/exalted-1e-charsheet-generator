@@ -205,13 +205,18 @@ async def test_two_sessions_auto_save_to_their_own_files(create_user) -> None:
 
 def test_the_desktop_gets_no_auto_save_timer() -> None:
     """⚠ Auto-save and destination isolation share one switch, thus the hazardous
-    pair cannot be configured. `build_app` defaults `auto_save` to False, which is
-    the desktop: one user, no eviction, and manual Save is the honest UX."""
+    pair cannot be configured. `build_app` defaults `hosted` to False, which is
+    the desktop: one user, no eviction, and manual Save is the honest UX.
+
+    ⚠ The switch was named `auto_save` until server-side Save became the third
+    behaviour it selects. `tests/test_hosted_save.py` holds the rule that it must
+    not split back into two parameters.
+    """
     import inspect
 
     signature = inspect.signature(builder.build_app)
 
-    assert signature.parameters["auto_save"].default is False
+    assert signature.parameters["hosted"].default is False
 
 
 def test_the_desktop_keeps_the_prototype_path() -> None:

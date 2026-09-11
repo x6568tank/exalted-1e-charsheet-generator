@@ -1,14 +1,21 @@
-# Session handoff — 2026-09-11 (§5 piece 1 shipped; hosting is no longer dormant)
+# Session handoff — 2026-09-11 (§5 pieces 1 and 2; hosting runs and Save tells the truth)
 
 # 👉 YOU ARE HERE
 
-Last FULL suite: **3540 passed · 1 skipped · 0 failed** (11m02s, on the tree described
-below). **Observed, not computed.** ⚠ The count moves by machine and by optional
-dependency — see `docs/testing.md`, and do not reconcile this against another machine.
+Last FULL suite: **PENDING — the final run is in flight; record what it prints.**
+⚠ **Observed, not computed.** The count moves by machine and by optional dependency — see
+`docs/testing.md`, and do not reconcile this against another machine.
 
-**The arithmetic lands.** The previous handoff observed **3527 passed · 1 skipped**. This
-tree is **3540 + 1 skipped**. The **+13** is `tests/test_server_main.py`, which is the
-only file added. Nothing else moved, in either direction.
+**The expected arithmetic, and it was checked by counting rather than by guessing.** The
+previous handoff observed **3527 + 1 skipped**. Piece 1 added
+`tests/test_server_main.py` (**+13** → 3540). Piece 2 adds `tests/test_hosted_save.py`
+(**+7**) and one guard case in `test_engine_seam.py` (**+1**) → **3548 + 1 skipped**.
+
+⚠ **An intermediate run printed 3651, and that number is wrong to carry.** The guard was
+first written parametrized over every `tests/test_*.py`, which is **104 files**, so one
+invariant bought 104 cases: 3540 + 7 + 104 = 3651, exactly. It is now ONE case over all
+the files, and the message names each offending file and line. **Do not reconcile a
+handoff against 3651.**
 
 **Working tree: check it yourself.** ⚠ Six handoffs in a row have now made a tree claim.
 Run `git status` and `git log` before acting on this line.
@@ -88,14 +95,131 @@ The edit → two-files step is covered by `tests/test_session_destinations.py` t
 production wiring, **not by this run**. Per `a compensation is a hypothesis`: the live run
 is not a substitute for two real browsers, and that click-through item is still owed.
 
+## ✅ ALSO SHIPPED — §5 piece 2, the third save branch
+
+**§5.1b of `hosting-state-model.md` is the record.** `builder.save()` branches hosted /
+native / browser. A hosted Save writes `ctx["path"]` with no dialog.
+
+⚠ **The shipped fix is NOT the design `hosting-per-instance.md` sketched**, and the reason
+is that document's own warning. There is no `--save-dir`, no `EXALTED_SAVE_DIR`, no
+`_SERVER_SAVE_DIR`. That global was safe *"only because this deployment is one player per
+process"* — **§3's registry ended that**, so resurrecting it would have re-created the
+shared-state bug one layer over. The destination is `ctx["path"]`, which the session owns.
+
+### ⚠ `build_app`'s `auto_save` parameter is RENAMED to `hosted`
+
+It selects **three** behaviours now: the auto-save timer, server-side Save, and — via
+`register_pages(hosted=session_root is not None)` — the isolated destination. **Do not
+split it into two parameters.** They could then disagree, which is a Save writing
+server-side to a destination every session shares: §3.7's hazard on a button.
+`tests/test_hosted_save.py` asserts no `auto_save` parameter exists.
+
+### 🐞 There were TWO save sites, and every document said one
+
+`gm.save_party()` carried the **identical** two-way branch, and **`/gm` is a hosted
+route**. A hosted Storyteller clicking *"Save party"* got a download and the server kept
+no roster. Fixing only `builder.save()` would have marked the trap closed in four
+documents and left the same failure one page over — **the house bug, type 1.**
+
+⚠ **It was found by grepping `_native_window` across `ui/`, not by reading the plan**,
+which named `builder.save()` and nothing else. `build_gm` now takes the same `hosted` bit
+and `register_pages` passes it to both routes. ⚠ **The negative control that matters is
+registering `/gm` WITHOUT the bit** — that is the defect exactly, and it reddens.
+
+⚠ **The other four `_native_window` sites in `gm.py` are correct as they are**: the party
+PDF export, the party load, the character browse, and the add-to-party dialog shape. Those
+are downloads and uploads, which is what a hosted run wants. **Do not convert them.**
+
+### ⚠ The PDF export deliberately keeps TWO branches
+
+A character file is state the server owns; a sheet is an artefact the player keeps, so a
+hosted export still downloads. The stale *"same split as save()"* comment at that call
+site is corrected in place. **Do not "restore parity".**
+
+### 🐞 My own absence assertion passed against the defect
+
+`should_not_see` **returns on the first attempt at which the text is absent**, so it
+raced the async click handler: the download dialog had not opened yet, the check found
+nothing, and the case went green **with the two-way branch still in place**. Only the
+negative control found it — two of three hosted cases reddened and that one did not.
+The fix is a `should_see` that settles the handler first; ⚠ the two lines must stay in
+that order. See `feedback_should_not_see_races_async_handlers`.
+
+### Negative controls, all four run, restored from a copy
+
+* Restore the two-way branch in `builder.save` → **all 3 hosted character cases** redden
+  (2 of 3 before the `should_not_see` fix above).
+* Make the hosted branch unconditional → the **desktop control** reddens, which is what
+  shows that branch is genuinely protected.
+* Split `hosted` back into two parameters → the one-switch case reddens.
+* Drop the `top-bar-save` mark → 4 redden.
+* Restore the two-way branch in `gm.save_party` → both party cases redden.
+* **Register `/gm` without the hosted bit** → both party cases redden. This is the
+  house-bug control: the branch is correct and the route does not pass the switch.
+
+### 🐞 A PRE-EXISTING suite bug that a new FILENAME exposed
+
+The first full run reddened on `test_qt_shell.py::test_shell_new_resets_the_character`,
+in a file this session never touched.
+
+**Cause:** after any `nicegui_main_file` test, `sys.modules["exalted_builder"]` is **a
+different object** — a hollow namespace stub with `__file__` None and `__path__` `[]`.
+Already-imported classes keep working, so almost nothing notices. What breaks is a
+**dotted-string monkeypatch target**, which makes pytest re-walk the path from the package
+root at call time: `AttributeError: module 'exalted_builder' has no attribute 'qt'`, while
+`sys.modules["exalted_builder.qt"]` sits there, present and correct.
+
+⚠ **It is ordering-dependent, thus invisible, thus it had been green for months.**
+`test_session_isolation.py` and `test_session_destinations.py` both sort AFTER
+`test_qt_shell.py`. `test_hosted_save.py` sorts at 'h' and does not. **Nothing about the
+new file is wrong — a test file's NAME was load-bearing.**
+
+**Proved pre-existing, not caused:** forcing either existing main-file test to run ahead of
+`test_qt_shell.py` reproduces it exactly. ⚠ **Do not diagnose this by renaming the new
+file** — that dodges it and leaves the landmine armed.
+
+**Fixed** at the one violation (import the module, patch the object), and
+negative-controlled twice: the rewritten patch still intercepts (flip Yes→No and the case
+fails), and the old form still reproduces the ordering bug.
+
+⚠ **The guard is `test_engine_seam.py::test_no_test_patches_by_dotted_string`** — AST, per
+test file, message names the offending line. A warning would not have survived; see
+`feedback_turn_a_repeated_warning_into_a_mechanism`. **Never patch by dotted string in this
+repo.**
+
+### ✅ RULED, and it is the next row: "Download a copy"
+
+Piece 2 left a hosted player with no way to get their character JSON out. **Human,
+2026-09-11: *"They should have a way to download a copy."*** **Scoped in §5.1c and NOT
+built** — see NEXT below.
+
 ## 👉 NEXT — in rough order of what would bite
 
-- **§5 piece 2 — `builder.save()`'s third branch. The smallest and the most misleading
-  thing left.** Native gets a dialog, everything else downloads to the browser, so a
-  hosted Save shows a green *"Downloading …"* toast over an empty volume. It was built
-  once and **reverted in full** (`hosting-per-instance.md` has the shape). ⚠ **Piece 1
-  made this worse in one specific way**: edits now persist by timer, so the hosted story
-  is *"your work is safe, but the Save button lies about where it went."*
+- **§5 piece 2b — "Download a copy" on a hosted run. RULED, SCOPED, NOT BUILT, and the
+  human said he would take it next session.** Full spec in `hosting-state-model.md`
+  §5.1c. It is wiring, not a new mechanism — the hosted PDF export already downloads, so
+  `ui.download.content` is proven on that path. Three things the spec insists on:
+  - ⚠ **The helpers exist but are UNREACHABLE on a hosted run**, which reads exactly like
+    present-and-working. `builder._open_browser_save_dialog` / `_browser_download` and
+    `gm._open_browser_party_save` / `_party_download` are all dead on that path now —
+    `save()` returns before them.
+  - ⚠ **THE TRAP: a download must not repoint the save destination.** Both existing
+    helpers set `ctx["path"]` / `ctx["party_path"]` from the typed filename. That is right
+    on the desktop, where the download *is* the save. Hosted, it **moves where the
+    auto-save timer writes**, to a name typed into a download box, silently, on a 5-second
+    timer. **Reuse them unchanged and you ship that.**
+  - ⚠ **TWO sites again** — the character and the party. Piece 2's whole finding was that
+    the singular description hid a second site. Do not repeat it.
+  - **Shape is RULED: hosted only** (human, 2026-09-11 — *"hosted only, yes"*). A
+    "Download a copy" button beside Save, gated on the **same `hosted` bit**, not a fourth
+    switch. ⚠ **The desktop is untouched** — in a plain browser its Save already *is* the
+    download dialog, so an always-present button would duplicate it. Not a parity port.
+  - The tests must assert `ctx` is **unchanged** after a download, not merely that a
+    download happened. The latter passes with the trap fully present. Plus the gate in
+    **both** directions — present hosted, absent not-hosted.
+  - ⚠ It is the **smallest row left**, smaller than piece 2: ~15 lines over two files in
+    front of helpers that already exist. The `ctx` trap is the only thing that can make it
+    expensive.
 - **§5 piece 3 — auth.** `/login`, the gate, `bcrypt` (not `passlib`), a `[server]` extra.
   ⚠ **The first piece of this project with no adjacent pattern to copy** — §3 always had
   `register_pages` or `custom_content` to follow. It is also the one place where an
@@ -123,8 +247,8 @@ is not a substitute for two real browsers, and that click-through item is still 
 
 ## ⚠ Traps still live
 
-**`builder.save()`'s two-way branch.** Now the next item rather than a background trap —
-see above.
+✅ **`builder.save()`'s two-way branch is STRUCK — it is fixed, not carried.** Four
+documents described it; all four are corrected. ⚠ Do not re-assert it from an older copy.
 
 **The stale server wears a healthy port.** `reload=False`; a `kill` on the PID from
 `pgrep … | tail -1` kills the WRAPPER, not the listener, and `curl` still answers **200**
@@ -155,13 +279,20 @@ imports it. `config.storage_secret()` is byte-identical.
 2. **A second tab of the SAME browser must show the SAME character** — the key is per
    browser by ruling (`vtt.md` §8 Q1), not per tab. ⚠ **The suite cannot express this at all.**
 3. **`/gm` → Builder in one of two browsers** — the other must keep its own character.
-4. **The Save button on the hosted server.** ⚠ Expect it to be **wrong** — it downloads to
-   the browser. Confirm that is what it does, so piece 2 is fixing an observed behaviour.
+4. **The Save button on the hosted server.** It must write into that browser's session
+   directory and toast *"Saved …"* — **no download, no filename prompt.** ⚠ Then click
+   Save in the OTHER browser and confirm the two files stay separate.
+5. **The Save button on the DESKTOP still opens the filename prompt and downloads.** That
+   branch is untouched and the harness covers it, but the two branches now sit in one
+   function and a human sees the difference in one click each.
+6. **`/gm` → "Save party" on the hosted server.** It must write a `.party.json` into that
+   session's directory and toast *"Saved party to …"* — no download.
 
 ## ❓ Open for the human
 
 - **Nothing is waiting on the human** to proceed. All seven of `vtt.md`'s questions are
-  ruled, and §5.3's per-user ruleset question belongs to piece 4.
+  ruled; the hosted-download question raised this session is **ruled too** (yes — §5.1c),
+  and §5.3's per-user ruleset question belongs to piece 4.
 - **No open RULES questions.** This session touched no game values.
 - **Two design choices made without asking, both reversible, both worth a look:**
   - **Loopback default + `--public`.** It departs from §5.1's written `0.0.0.0`. Say so if

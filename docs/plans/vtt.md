@@ -350,10 +350,11 @@ all four files.
 isolation tests, per-request `ctx`, `save_fn`, and per-session destinations plus
 write-through auto-save.
 
-✅ **§5 piece 1 — the entry point — is DONE (2026-09-11).** `exalted_builder/server/main.py`
-passes `session_root` to `register_pages`, so **§3 is no longer dormant**. `§5.1a` of
-`hosting-state-model.md` is the record. **Auth and the DB remain**, and `§5.5` now carries
-the four severed pieces and their state.
+✅ **§5 pieces 1 and 2 are DONE (2026-09-11).** `exalted_builder/server/main.py` passes
+`session_root` to `register_pages`, so **§3 is no longer dormant** (§5.1a), and
+`builder.save()` now has its **third branch**, so a hosted Save writes server-side
+(§5.1b). **Auth and the DB remain**, and `§5.5` carries the four severed pieces and their
+state.
 
 ⚠ A hosted run needs **two** environment variables: `EXALTED_STORAGE_SECRET` and
 `EXALTED_SESSION_ROOT`. **`config.required_storage_secret()` is the one that raises on the
@@ -476,12 +477,15 @@ These are already recorded elsewhere and will bite this work specifically.
   opening a save injects their homebrew into everyone's. `hosting-state-model.md` §5.3 has
   the fix (per-user `custom_dir`, which is *cheaper* than shared). **This is latent today
   and becomes real the instant two people share a directory by any route.**
-* ⚠ **`builder.save()`'s two-way branch is silently wrong for a third deployment.** Native
-  gets a dialog, everything else downloads to the browser — so a hosted Save shows a green
-  *"Downloading …"* toast over an empty volume. `hosting-per-instance.md` records the fix
-  (a third branch on `--save-dir`/`EXALTED_SAVE_DIR`) and that **it was reverted in full**.
-  Whoever adds the third deployment must add the third branch, and nothing in the code will
-  warn them.
+* ✅ **The two-way save branch — CLOSED 2026-09-11.** `tests/test_hosted_save.py` is the
+  discriminator. ⚠ **The fix is not the `--save-dir` / `EXALTED_SAVE_DIR` one this list
+  used to name** — that design hung on a module-level global, safe only under one player
+  per process, which the §3 registry ended. The destination is `ctx["path"]` and the
+  switch is `hosted=`, the same bit that isolates the destination and starts auto-save.
+  🐞 ⚠ **This entry, and every other copy of it, said `builder.save()` — and there were
+  TWO sites.** `gm.save_party()` had the identical branch and `/gm` is a hosted route.
+  Both are fixed. **A trap described in the singular is worth grepping before you close
+  it.**
 * ⚠ **The 9th save site.** `hosting-state-model.md` §3.5 counts 8 for `ui/`; `qt/main_window.py:593`
   is the ninth. A `save_fn` refactor assuming 8 leaves it uncompiling.
 * ⚠ **The stale server wears a healthy port.** From the handoff: `reload=False` means a

@@ -239,7 +239,7 @@ def session_key() -> str:
 
 
 def build_app(ruleset: RuleSet, character: Character, save_path: Path,
-              *, ctx: dict | None = None, auto_save: bool = False) -> None:
+              *, ctx: dict | None = None, hosted: bool = False) -> None:
     """Render the single-character builder. `ctx` is the shared app context; when
     omitted (running this module standalone) a private one is created, so the
     builder still works with no party involved.
@@ -249,13 +249,21 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
     function keeps a path because it owns the file dialogs; a tab does not. See
     hosting-state-model.md section 3.5.
 
-    `auto_save` starts the write-through timer. Use it for a hosted run, where an
-    idle session is evicted and its unsaved edits are lost.
+    `hosted` says that this session runs on a server and owns a directory there.
+    It selects three behaviours, and it is ONE switch on purpose:
 
-    ⚠ Give `auto_save` only to a session that owns its destination. Auto-save with
-    a shared path is N browsers writing one file on a timer, last writer wins,
-    with no error. `register_pages` ties the two together: it enables this only
-    when it has a `session_root`. See section 3.7.
+      1. The write-through auto-save timer starts.
+      2. Save writes to `ctx["path"]` instead of sending a download.
+      3. `register_pages` gives the session its own destination, which is the
+         same condition: it passes `hosted=session_root is not None`.
+
+    ⚠ Do not separate these. Auto-save with a shared path is N browsers writing
+    one file on a timer, last writer wins, with no error. A server-side Save with
+    a shared path is the same defect on a button. A deployment that can enable
+    one without the others can configure that. See section 3.7.
+
+    ⚠ The default is the desktop. `build_app` is embedded by the per-screen dev
+    entry points and by the tests; a default of True makes each of them write.
     """
     # ⚠ The seven tabs take a callback here and this function takes a path. That
     # asymmetry is deliberate, and it misleads: a caller that passes a save
@@ -306,7 +314,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
     ui.add_head_html(cytoscape_head_html())
     ui.add_head_html(_pal().head_style())
 
-    if auto_save:
+    if hosted:
         # ⚠ A poll, not a hook on the tabs. Three of the seven tabs define
         # `changed()`; the rest call their own refresh. A hook gives auto-save in
         # three tabs and silence in four, and no test fails. See section 3.7.
@@ -355,13 +363,48 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         if not state["syncing"]:
             select_tab(name)
 
+    def _hosted_save() -> None:
+        """Write the character to the destination that this session owns.
+
+        Show no dialog. The session does not choose a server directory: the
+        factory gave it one, and the auto-save timer already writes there. This
+        button makes that write immediate and reports it.
+
+        ⚠ Read `ctx["path"]` at call time. A Load or a New repoints it.
+        """
+        target = ctx["path"]
+        try:
+            persistence.save_character(ctx["char"], target)
+        except Exception as ex:                     # noqa: BLE001 - surface write errors
+            ui.notify(f"Save failed: {ex}", type="negative")
+            return
+        auto.reset(ctx["char"])
+        ui.notify(f"Saved {target.name}", type="positive")
+
     async def save() -> None:
-        """Native desktop window -> the OS "Save As" dialog (choose folder + name);
-        plain browser -> a filename prompt, then a download to the browser's download
-        folder. Both default the name to the character (overridable)."""
+        """Write the character. There are THREE deployments and each gets its own
+        branch:
+
+        hosted -> write to the session's own directory on the server, no dialog.
+        native desktop window -> the OS "Save As" dialog (choose folder + name).
+        plain browser -> a filename prompt, then a download to the browser.
+
+        ⚠ The two-way version of this was silently wrong for a hosted run: every
+        deployment that was not native downloaded, so a hosted Save showed a green
+        "Downloading …" toast and left the server untouched. It looks like it
+        worked. See hosting-per-instance.md, which records the branch and the
+        first, reverted, fix.
+
+        ⚠ That earlier fix read a module-level `_SERVER_SAVE_DIR`, and its own note
+        says that was safe ONLY because the deployment was one player per process.
+        That is no longer true. The destination here is `ctx["path"]`, which the
+        session owns.
+        """
         win = _native_window()
         default_name = persistence.suggested_filename(ctx["char"])
-        if win is not None:
+        if hosted:
+            _hosted_save()
+        elif win is not None:
             chosen = await win.create_file_dialog(
                 _dialog_type("save"), directory=str(ctx["dir"]), save_filename=default_name)
             if not chosen:                              # cancelled
@@ -575,7 +618,11 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             ui.button("Party", icon="groups", on_click=go_to_party).props(
                 "flat color=white").tooltip("Storyteller view — track the whole party at once")
             ui.button("New", icon="note_add", on_click=confirm_new).props("flat color=white")
-            ui.button("Save", icon="save", on_click=save).props("flat color=white")
+            # ⚠ The mark is the handle a test clicks. `find("Save")` also matches
+            # "Save As" and the dialog buttons, and `find(...).elements` is an
+            # unordered set, thus the click would be ambiguous.
+            ui.button("Save", icon="save",
+                      on_click=save).props("flat color=white").mark("top-bar-save")
             ui.button("Load", icon="folder_open", on_click=open_load).props("flat color=white")
             ui.button("Print", icon="picture_as_pdf", on_click=export_pdf).props(
                 "flat color=white").tooltip("Export a print-ready PDF character sheet")
@@ -678,11 +725,15 @@ def register_pages(ruleset: RuleSet, ctx: dict,
         # Thus the hazardous pair — a timer plus a shared path — cannot be
         # configured. Do not give these two their own switches. See section 3.7.
         build_app(ruleset, session_ctx["char"], session_ctx["path"], ctx=session_ctx,
-                  auto_save=session_root is not None)
+                  hosted=session_root is not None)
 
     @ui.page("/gm")
     def party_page() -> None:
-        gm_mod.build_gm(ruleset, sessions.ctx_for(session_key()))
+        # ⚠ `/gm` takes the SAME hosted bit as '/'. `gm.save_party` carried the
+        # identical two-way branch, so a hosted Storyteller got a download and the
+        # server kept no roster. One page fixed and one not is the house bug.
+        gm_mod.build_gm(ruleset, sessions.ctx_for(session_key()),
+                        hosted=session_root is not None)
 
     return sessions
 

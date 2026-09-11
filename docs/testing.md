@@ -106,3 +106,42 @@ fixture even when the test builds no widget.
 `docs/plans/qt-port.md` for the full account: `tests/test_qt_theme.py`'s first version
 compared whole-widget images with `!=` and passed against the very defect it was named
 for. **Negative-control a rendering test by deleting the rule it guards.**
+
+## The trap where a test file's NAME is load-bearing
+
+⚠ **A NiceGUI main-file test hollows out the package.** After any test marked
+`@pytest.mark.nicegui_main_file(...)`, `sys.modules["exalted_builder"]` is a *different
+object* from the one `import exalted_builder` returned: `__file__` is `None` and
+`__path__` is `[]`. A hollow namespace stub.
+
+Already-imported modules and classes keep working — they hold their own references — so
+almost nothing notices. What breaks is anything that re-walks the dotted path from the
+package root at call time, which in practice means one API:
+
+```python
+# ✗ fails after any main-file test
+monkeypatch.setattr("exalted_builder.qt.main_window.QMessageBox.question", ...)
+#   AttributeError: module 'exalted_builder' has no attribute 'qt'
+#   …while sys.modules["exalted_builder.qt"] is present and correct.
+
+# ✓ import the module, patch the object
+from exalted_builder.qt import main_window as qt_main_window
+monkeypatch.setattr(qt_main_window.QMessageBox, "question", ...)
+```
+
+⚠ **The failure depends only on file order, thus it is invisible.** It fires when a
+main-file test sorts BEFORE the patching file. The one violation in this suite ran green
+for months because `test_session_isolation.py` and `test_session_destinations.py` both
+sort after `test_qt_shell.py`; on 2026-09-11 `test_hosted_save.py` landed at 'h' and the
+full suite went red. **Nothing about the new file was wrong.**
+
+**Diagnosing it.** When a full run reddens in a file your change never touched, settle
+pre-existing vs caused by forcing the order — `pytest A.py B.py` against `pytest B.py A.py`
+— before assuming the new work broke something. ⚠ **Do not rename the new file to make the
+red go away.** That dodges the defect and leaves it armed for whoever next adds a file
+early in the alphabet.
+
+**The mechanism.** `tests/test_engine_seam.py::test_no_test_patches_by_dotted_string`
+reads the syntax tree of every `tests/test_*.py` and fails on a `monkeypatch.setattr` /
+`delattr` whose first argument is a string starting with `exalted_builder`. It names the
+file and the line. **Never patch by dotted string in this repo.**

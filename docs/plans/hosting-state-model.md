@@ -590,11 +590,12 @@ reach the digest. `test_a_play_state_change_changes_the_digest` holds it. ⚠ A 
 added **beside** the Character in future would be invisible to auto-save with nothing
 failing.
 
-#### Still true, still not addressed by this row
+#### Not addressed by this row — ✅ CLOSED LATER THE SAME DAY by §5 piece 2
 
-⚠ **`builder.save()`'s two-way branch is untouched.** A hosted manual Save still shows a
-green *"Downloading …"* toast. Auto-save does not go through it — it writes server-side —
-so the hosted story is now "your edits persist, but the Save button still lies."
+⚠ **`builder.save()`'s two-way branch was untouched by this row.** A hosted manual Save
+showed a green *"Downloading …"* toast; auto-save did not go through it, so the hosted
+story was *"your edits persist, but the Save button still lies."* **§5.1b closes it** —
+`save()` branches three ways and the `hosted` bit drives all three behaviours.
 
 ### 3.7a What this section said before, and why it was wrong
 
@@ -727,6 +728,133 @@ every `is_relative_to(root)` assertion pass with no isolation at all.
 passes a root"*, not *"the factory isolates"* — `test_session_context_factory.py` and
 `test_session_destinations.py` both stay green with this file deleted.
 
+### 5.1b Server-side Save, as shipped 2026-09-11 (piece 2)
+
+`builder.save()` branches **three** ways. The `hosted` bit selects the first:
+
+| Deployment | Behaviour |
+|---|---|
+| hosted | write `ctx["path"]`, no dialog, `"Saved <name>"` *(new)* |
+| native window | the OS "Save As" dialog *(unchanged)* |
+| plain browser | filename prompt, then a download *(unchanged)* |
+
+⚠ **This is NOT the `--save-dir` / `EXALTED_SAVE_DIR` design of
+`hosting-per-instance.md`.** That one read a module-level `_SERVER_SAVE_DIR`, and its own
+note says it was safe **only because the deployment was one player per process**. The §3
+registry ended that. The destination here is `ctx["path"]`, which the session owns.
+
+⚠ **`build_app`'s `auto_save` parameter is RENAMED to `hosted`,** because it now selects
+three behaviours: the auto-save timer, server-side Save, and (via `register_pages`, which
+passes `hosted=session_root is not None`) the isolated destination. **Do not split it
+back into two parameters.** They could then disagree, which is a Save writing
+server-side to a destination every session shares — §3.7's hazard on a button.
+`tests/test_hosted_save.py` asserts no `auto_save` parameter exists.
+
+🐞 **There were TWO save sites, and every document said one.** `gm.save_party()` carried
+the identical two-way branch, and **`/gm` is a hosted route** — so a hosted Storyteller
+clicking *"Save party"* got a download and the server kept no roster. Fixing only
+`builder.save()` would have closed the trap in four documents and left the same failure
+one page over: **the house bug, type 1.**
+
+It was found by grepping `_native_window` across `ui/`, **not** by reading the plan, which
+named `builder.save()` and nothing else. ⚠ `build_gm` now takes the same `hosted` bit and
+`register_pages` passes it to both routes. The discriminator is
+`test_hosted_party_save_writes_the_file`; the negative control is registering `/gm`
+*without* the bit, which is the defect exactly.
+
+⚠ **The other four `_native_window` sites in `gm.py` are correct as they are** — the party
+PDF export, the party load, the character browse, and the add-to-party dialog shape. They
+are downloads and uploads, which is what a hosted run wants. **Do not convert them.**
+
+⚠ **The PDF export deliberately keeps TWO branches.** A character file is state the server
+owns; a sheet is an artefact the player keeps. A hosted export downloads, and that
+asymmetry is correct — do not "restore parity".
+
+### 5.1c "Download a copy" — RULED 2026-09-11, NOT BUILT
+
+Piece 2 left a hosted player with **no way to get their character JSON out**: Save writes
+server-side and the download branch became unreachable. **Human's ruling, 2026-09-11:
+*"They should have a way to download a copy."*** Scoped here; **not built** — it is the
+next session's row.
+
+**This is wiring, not a new mechanism.** Every part already exists and works on a hosted
+run — the PDF export downloads from a hosted page today, so `ui.download.content` is
+proven on that path.
+
+⚠ **"Save writes to the DB" is the intended END state, not the current one.** There is no
+database. A hosted Save writes a JSON file to `<session_root>/<session-key>/<name>.character.json`;
+the DB is piece 4 and is unbuilt. **This row does not depend on which of the two it is** —
+Save goes through one call site, piece 4 changes that call site, and Download never reads
+it. Build this before the DB without waiting.
+
+⚠ **The pieces are present but UNREACHABLE, which reads exactly like present and working.**
+A reader of `builder.py` sees `_open_browser_save_dialog` and `_browser_download` and
+concludes that a browser gets a download. **A hosted browser does not** — `save()` returns
+before them. Same for `gm.py`'s `_open_browser_party_save` and `_party_download`. Do not
+assume these are live because they are there.
+
+#### ⚠ The trap, and it is the whole reason this row needs care
+
+**A download must NOT repoint the session's save destination.** Both existing helpers do
+exactly that today:
+
+* `builder._browser_download` sets `ctx["path"] = ctx["dir"] / filename`
+* `gm._party_download` sets `ctx["party_path"] = ctx["dir"] / filename`
+
+That is correct for the desktop, where the download *is* the save. **On a hosted run it
+would move where the auto-save timer writes**, to a name the player typed into a download
+box — silently, on a 5-second timer, with the old file left behind. ⚠ **Reuse those two
+helpers unchanged and you ship that.** The hosted download must be read-only with respect
+to `ctx`.
+
+#### Two sites, not one
+
+⚠ **The character AND the party.** Piece 2's own finding was that every document described
+the save trap in the singular and there were two sites. **Do not repeat it here.** A
+hosted player needs the character file; a hosted Storyteller needs the party bundle.
+
+#### Shape — RULED 2026-09-11: hosted only
+
+A **"Download a copy"** button beside Save, **rendered only when `hosted` is true**, on
+both surfaces. Human's ruling: *"hosted only, yes."*
+
+Reasons it is not always-present: on the desktop in a plain browser **Save already IS the
+download dialog**, so a second button would duplicate it there; and Save now means *save
+to the server*, which should keep meaning one thing.
+
+⚠ **The button is gated on the SAME `hosted` bit** that selects the save branch, the
+auto-save timer and the isolated destination. Do not introduce a fourth switch. A Download
+button visible without a hosted save behind it is a Save/Download pair where both
+download, which is the confusion this row exists to remove.
+
+⚠ **The desktop is untouched by this row.** Not a parity port — see
+`feedback_qt_and_webapp_are_separate_design_surfaces`. A test should assert the button is
+**absent** on a non-hosted build, or nothing stops it appearing there later.
+
+#### What the tests must say
+
+⚠ **Assert on `ctx`, not only on the download.** The discriminator for the trap above is
+that `ctx["path"]` (and `ctx["party_path"]`) are **unchanged** after a download, and that
+no second file appears in the session directory. A test that only asserts a download
+happened passes with the destination-repointing bug fully present.
+
+Plus the gate itself: the button is **present hosted and absent not-hosted**. Both
+directions — an absence assertion alone is satisfied by a button that never renders at
+all, which would pass against a row that was never built.
+
+⚠ **`should_not_see` cannot carry the absence assertion on its own.** It returns on the
+first attempt at which the text is missing, so after a click it races the async handler.
+Settle on something the branch produces first. This cost a green-against-the-defect case
+in piece 2 — see `feedback_should_not_see_races_async_handlers`.
+
+#### Cost, in this project's terms
+
+**The smallest row left**, and smaller than piece 2: that one invented the three-way branch
+and renamed a parameter tree-wide, whereas this one adds a button in front of helpers that
+already exist. Roughly ~15 lines across `ui/builder.py` and `ui/gm.py`, 4–6 tests, no new
+mechanism, no new dependency, no engine or data change. ⚠ **The real cost is one full suite
+run**, as for any row. The only thing that can make it expensive is the `ctx` trap above.
+
 ### 5.2 Correcting the original §5 on `app.storage.user`
 
 The original says:
@@ -791,7 +919,8 @@ auth gate and per-request resolution are the additions), plus whatever 5.3's rul
 | Piece | State |
 |---|---|
 | 1. `server/main.py` — the switch | ✅ done, §5.1a |
-| 2. `builder.save()`'s third branch | ❌ still the trap in `vtt.md` §5 |
+| 2. the third save branch (both sites) | ✅ done, §5.1b |
+| 2b. "Download a copy" on a hosted run | ⏭ **ruled, scoped, NOT built** — §5.1c. Small, severable, and the next row |
 | 3. Auth — `/login`, the gate, `bcrypt`, the `[server]` extra | ❌ not started |
 | 4. The DB, and §5.3's per-user rulesets | ❌ not started; **measure one merged `RuleSet` before fixing the layout** |
 

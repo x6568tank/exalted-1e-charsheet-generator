@@ -186,7 +186,21 @@ def test_shell_new_resets_the_character(ruleset, qtbot, monkeypatch):
     char = Character(id="char.new", name="Old")
     win = MainWindow(ruleset, char, Path("/tmp/c.json"))
     qtbot.addWidget(win)
-    monkeypatch.setattr("exalted_builder.qt.main_window.QMessageBox.question",
+    # ⚠ Patch the imported MODULE OBJECT, not a dotted string.
+    #
+    # A string target makes pytest re-walk the path from `sys.modules` at call
+    # time, and a NiceGUI main-file test replaces `sys.modules["exalted_builder"]`
+    # with a hollow namespace stub (`__file__` None, `__path__` []). The walk then
+    # fails at the FIRST step with "module 'exalted_builder' has no attribute
+    # 'qt'", even though the real module is still in `sys.modules` and every
+    # already-imported class still works.
+    #
+    # ⚠ The failure is ORDERING-DEPENDENT and therefore invisible: it appears only
+    # when a main-file test sorts BEFORE this file. `test_session_isolation.py` and
+    # `test_session_destinations.py` both sort after; `test_hosted_save.py` does
+    # not, and that is what exposed it on 2026-09-11.
+    from exalted_builder.qt import main_window as qt_main_window
+    monkeypatch.setattr(qt_main_window.QMessageBox, "question",
                         staticmethod(lambda *a, **k: 16384))   # Yes
     win._confirm_new()
     assert win._ctx["char"] is not char

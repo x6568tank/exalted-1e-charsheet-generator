@@ -87,6 +87,18 @@ future hosted, remote or kiosk deployment hits it, and it fails in the worst way
 green "Downloading …" toast over an empty volume. **Whoever adds a third deployment must
 add a third branch**, and will not be warned by anything in the code today.
 
+✅ **CLOSED 2026-09-11. The third branch exists** — `builder.save()` now branches
+hosted / native / browser, and `tests/test_hosted_save.py` is the discriminator. The
+paragraph above is kept as the record of how the gap was found; **it no longer describes
+the code.**
+
+⚠ **The shipped fix is NOT the one sketched above, and the difference is this document's
+own warning.** There is no `--save-dir`, no `EXALTED_SAVE_DIR` and no `_SERVER_SAVE_DIR`.
+A module-level global was safe only under one player per process, and the §3 registry
+ended that. The destination is **`ctx["path"]`, which the session owns**, and the switch
+is `build_app(hosted=)` — the same bit that isolates the destination and starts the
+auto-save timer, so the three cannot be configured apart.
+
 ## What per-instance dissolves for free
 
 ⚠ `persistence.load_character()` calls `custom_content.absorb_definitions()` by default

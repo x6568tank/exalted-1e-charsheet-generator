@@ -197,9 +197,18 @@ def party_palette(party: Party) -> theme.Palette:
     return theme.palette(splats.pop() if len(splats) == 1 else None)
 
 
-def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
+def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
+             hosted: bool = False) -> None:
     """Render the party page over the shared app context (see builder.make_context).
-    `ctx["party"]` is the roster; `ctx["party_path"]` is where it last saved."""
+    `ctx["party"]` is the roster; `ctx["party_path"]` is where it last saved.
+
+    `hosted` says that this session runs on a server and owns a directory there.
+    It selects the same third save branch that `builder.build_app` does. See
+    hosting-state-model.md section 5.1b.
+
+    ⚠ Only the party SAVE reads it. The party PDF export and the party LOAD stay
+    two-way on purpose: an export is an artefact the player keeps, and a load
+    comes from the player's own machine by upload."""
 
     def party() -> Party:
         return ctx["party"]
@@ -269,11 +278,36 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
         ui.navigate.to("/")
 
     # ---- party save / load ------------------------------------------------ #
-    # Deployment-aware in the same way as the builder's character Save/Load: a
-    # native window gets the OS dialogs, a plain browser gets download/upload.
+    # Deployment-aware in the same way as the builder's character Save/Load:
+    # hosted writes to the session's own directory, a native window gets the OS
+    # dialogs, and a plain browser gets download/upload.
+    def _hosted_party_save() -> None:
+        """Write the party into the directory that this session owns.
+
+        Use `ctx["party_path"]` if a previous save set one, and otherwise a name
+        derived from the party, inside `ctx["dir"]`.
+
+        ⚠ `ctx["dir"]` is the session's own folder on a hosted run. Do not call
+        `persistence.default_save_dir()` here: it is process-wide, and a handler
+        that reads it takes the session back out of its directory. See
+        hosting-state-model.md section 3.7b.
+        """
+        target = ctx["party_path"] or (
+            ctx["dir"] / persistence.suggested_party_filename(party()))
+        try:
+            persistence.save_party(party(), target)
+        except Exception as ex:                         # noqa: BLE001 - surface write errors
+            ui.notify(f"Save failed: {ex}", type="negative")
+            return
+        ctx["party_path"] = target
+        ui.notify(f"Saved party to {target.name}", type="positive")
+
     async def save_party() -> None:
         win = builder_mod._native_window()
         default_name = persistence.suggested_party_filename(party())
+        if hosted:
+            _hosted_party_save()
+            return
         if win is None:
             _open_browser_party_save(default_name)
             return
@@ -671,7 +705,8 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
                          ).props("dense outlined").classes("w-64")
                 ui.space()
                 ui.button("Add character", icon="person_add", on_click=add_to_party).props("flat")
-                ui.button("Save party", icon="save", on_click=save_party).props("flat")
+                ui.button("Save party", icon="save",
+                          on_click=save_party).props("flat").mark("gm-save-party")
                 ui.button("Load party", icon="folder_open", on_click=load_party).props("flat")
                 ui.button("Print all", icon="picture_as_pdf",
                           on_click=lambda: export_pdf()).props("flat").tooltip(
