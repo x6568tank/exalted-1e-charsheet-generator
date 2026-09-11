@@ -478,3 +478,48 @@ never opens:
    *"Saved &lt;name&gt;"*** and now say *"Saved to &lt;path&gt;"* — one wording, on
    purpose.
 2. Nothing on the builder's own Save, Load, New or Print. They were not touched.
+
+## Per-session destinations and write-through auto-save (2026-09-11)
+
+Row 5 of `plans/hosting-state-model.md` §3.9, and the last row of §3. **§3.7b of that
+file is the record — do not restate it here.** What a reader of this file needs:
+
+`server/config.session_root()` reads `EXALTED_SESSION_ROOT` and **raises** when it is
+unset. `session_context_factory(prototype, session_root=None)` writes to
+`<root>/<key>/<filename>`; with no root it keeps the prototype path, which is the
+desktop. `saving.AutoSave` polls a digest of `character.model_dump_json()` and writes
+when it differs; `build_app(..., auto_save=...)` runs it on a `ui.timer` every
+`saving.AUTOSAVE_SECONDS` (5 s).
+
+⚠ **Auto-save and destination isolation are ONE switch.** `register_pages` passes
+`auto_save=session_root is not None`. The hazardous pair — a timer over a shared path —
+is therefore not configurable. Do not give them separate switches.
+
+### 🐞 Two handlers undid the factory, and only the wiring test saw it
+
+`new_character` and the upload branch of `_apply_loaded` recomputed the destination from
+`persistence.default_save_dir()`, which is process-wide. The factory gave the session its
+own directory and **the first click of New took it back out**, into a folder every
+session shares.
+
+⚠ The factory's unit tests pass with this present, because the factory is correct and a
+later handler overrules it — the house bug, type 1. `tests/test_session_destinations.py`
+runs the production wiring and clicks New; nothing else could see it.
+
+The destination a session owns is now `ctx["home_dir"]`. ⚠ **Do not call
+`persistence.default_save_dir()` in a handler.**
+
+### 🐞 Sanitising the key was not enough to keep two sessions apart
+
+`session_dirname` replaces an unsafe character with an underscore, which maps `"a/b"` and
+`"a_b"` to **one** directory — this section's own defect one level down. A digest of the
+original key is appended whenever a character changed. A plain session id (a UUID) is
+unchanged and stays readable.
+
+### What a human should click
+
+`EXALTED_SESSION_ROOT` is not set on the desktop, thus **the desktop behaviour is
+unchanged and gets no auto-save**. That is the cheap claim to check: Save, Load, New and
+the file dialogs all still write where they did.
+
+The hosted path needs a real server with the variable set. See the handoff.

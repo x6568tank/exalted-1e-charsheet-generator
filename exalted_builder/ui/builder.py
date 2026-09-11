@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 from collections.abc import Callable
+import hashlib
 from pathlib import Path
 
 from nicegui import app, ui
@@ -111,8 +112,15 @@ def make_context(character: Character, save_path: Path) -> dict:
     load_adversary_catalog). It sits here rather than on the RuleSet because it is
     not rules — see that function. Defaults to empty so a caller that never loads
     it still gets a working roster, offering blank entries only.
+
+    `home_dir` is the folder this session owns. A character that has no file of its
+    own lands there: a new character, and an uploaded one. ⚠ Read this field. Do
+    not call `persistence.default_save_dir()` in a handler. That function is
+    process-wide, thus it takes a hosted session out of its own directory and into
+    one that every session shares. See `session_context_factory`.
     """
     return {"char": character, "path": save_path, "dir": Path(save_path).parent,
+            "home_dir": persistence.default_save_dir(),
             "party": Party(id="party.new"), "party_path": None, "member": None,
             "adversary_catalog": {}}
 
@@ -133,13 +141,53 @@ def close_member(ctx: dict) -> None:
     ctx["member"] = None
 
 
-def session_context_factory(prototype: dict) -> Callable[[str], dict]:
+def session_dirname(key: str) -> str:
+    """Return a safe single directory name for the session key `key`.
+
+    Keep the letters, the digits, the hyphen and the underscore, and replace each
+    other character with an underscore. A key of this shape, which is what a
+    NiceGUI session id is, becomes itself.
+
+    Add a digest of the original key if a character changed. Thus two different
+    keys never get one directory.
+
+    ⚠ The result is one path component. `<root>/<key>` is a path traversal if the
+    key contains a separator or a parent reference. The key comes from a signed
+    cookie today, thus a client cannot choose it; the containment does not depend
+    on that staying true.
+
+    ⚠ Two keys that get one directory is the defect that this whole section
+    removes, one level down. Thus the replacement alone is not sufficient: it maps
+    `"a/b"` and `"a_b"` to one name. The digest is what makes the name unique.
+    """
+    safe = "".join(c if (c.isalnum() or c in "-_") else "_" for c in key)
+    if safe == key and safe:
+        return safe
+    tag = hashlib.sha256(key.encode("utf-8")).hexdigest()[:12]
+    return f"{safe[:64]}-{tag}" if safe else f"session-{tag}"
+
+
+def session_context_factory(prototype: dict,
+                            session_root: Path | None = None) -> Callable[[str], dict]:
     """Return a factory that makes one context for each browser session.
 
-    The factory takes a session key, ignores it, and returns a copy of
-    `prototype`: a deep copy of the Character and of the Party, the same paths,
-    and the SAME adversary catalogue. The catalogue is read-only rules data, thus
-    a copy of it costs memory and buys nothing.
+    The factory takes a session key and returns a copy of `prototype`: a deep
+    copy of the Character and of the Party, its own save destination, and the
+    SAME adversary catalogue. The catalogue is read-only rules data, thus a copy
+    of it costs memory and buys nothing.
+
+    With a `session_root`, the destination is `<session_root>/<key>/<filename>`.
+    The filename comes from the character, thus a rename still renames the file.
+
+    With no `session_root`, the destination is the prototype's path. This is the
+    desktop: one user owns the file system, thus Save writes the file that the
+    user opened. A hosted run must supply a root; `server/config.session_root`
+    raises when the environment gives none.
+
+    ⚠ A hosted run that shares one destination is the defect of
+    hosting-state-model.md section 3.7. Section 3.4a isolated the Character and
+    left the path a copy of one object. The auto-save timer is the live caller
+    that makes it N browsers writing one file, with no error.
 
     `SessionRegistry` calls this. The factory makes a new context on each call;
     the registry, not the factory, gives one key one context.
@@ -157,7 +205,17 @@ def session_context_factory(prototype: dict) -> Callable[[str], dict]:
              if member.character is prototype["char"]), None)
         char = (party.members[member_of].character if member_of is not None
                 else prototype["char"].model_copy(deep=True))
-        return {"char": char, "path": prototype["path"], "dir": prototype["dir"],
+        if session_root is None:
+            directory, path = prototype["dir"], prototype["path"]
+            home = prototype["home_dir"]
+        else:
+            directory = session_root / session_dirname(key)
+            path = directory / persistence.suggested_filename(char)
+            # ⚠ `home_dir` must be the session's own folder too. The New and the
+            # upload handlers rebuild the destination from it, thus a prototype
+            # copy here takes the session back out of its directory.
+            home = directory
+        return {"char": char, "path": path, "dir": directory, "home_dir": home,
                 "party": party, "party_path": prototype["party_path"],
                 "member": prototype["member"],
                 "adversary_catalog": prototype["adversary_catalog"]}
@@ -181,7 +239,7 @@ def session_key() -> str:
 
 
 def build_app(ruleset: RuleSet, character: Character, save_path: Path,
-              *, ctx: dict | None = None) -> None:
+              *, ctx: dict | None = None, auto_save: bool = False) -> None:
     """Render the single-character builder. `ctx` is the shared app context; when
     omitted (running this module standalone) a private one is created, so the
     builder still works with no party involved.
@@ -190,6 +248,14 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
     seam. The tabs receive `tab_save`, which reads the CURRENT `ctx["path"]`. This
     function keeps a path because it owns the file dialogs; a tab does not. See
     hosting-state-model.md section 3.5.
+
+    `auto_save` starts the write-through timer. Use it for a hosted run, where an
+    idle session is evicted and its unsaved edits are lost.
+
+    ⚠ Give `auto_save` only to a session that owns its destination. Auto-save with
+    a shared path is N browsers writing one file on a timer, last writer wins,
+    with no error. `register_pages` ties the two together: it enables this only
+    when it has a `session_root`. See section 3.7.
     """
     # ⚠ The seven tabs take a callback here and this function takes a path. That
     # asymmetry is deliberate, and it misleads: a caller that passes a save
@@ -213,10 +279,23 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
         ⚠ The tabs are built with `with_header=False`, thus none of them shows a
         Save button and none of them calls this today. The Save control of the
-        app is `save()` below, which adds the file dialogs. Keep both correct:
-        section 3.7's auto-save calls this one.
+        app is `save()` below, which adds the file dialogs.
         """
         saving.save_to_path(ctx["path"])(target)
+
+    def _quiet_save(target: Character) -> None:
+        """Write `target` to the current path and show no notification.
+
+        The auto-save timer calls this. It reads `ctx` at each call, for the same
+        reason that `tab_save` does.
+        """
+        saving.save_to_path(ctx["path"], notify=False)(target)
+
+    # Made for each session, and before the handlers that reset it. The digest of
+    # a 3 KB character costs 0.015 ms, thus the poll is free.
+    auto = saving.AutoSave(
+        _quiet_save, ctx["char"],
+        on_error=lambda text: ui.notify(f"Auto-save failed: {text}", type="negative"))
 
     def _pal():
         """The palette for the current character's splat (red for Dragon-Blooded,
@@ -226,6 +305,12 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
     ui.add_head_html(cytoscape_head_html())
     ui.add_head_html(_pal().head_style())
+
+    if auto_save:
+        # ⚠ A poll, not a hook on the tabs. Three of the seven tabs define
+        # `changed()`; the rest call their own refresh. A hook gives auto-save in
+        # three tabs and silence in four, and no test fails. See section 3.7.
+        ui.timer(saving.AUTOSAVE_SECONDS, lambda: auto.poll(ctx["char"]))
 
     # One charm_select handler for the whole app; dispatch to the picker's current
     # select (set whenever the Charms tab builds).
@@ -380,8 +465,12 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             ctx["path"] = path
             ctx["dir"] = path.resolve().parent
         else:
-            ctx["dir"] = persistence.default_save_dir()
+            # An upload carries no path. It lands in the folder this session owns.
+            ctx["dir"] = ctx["home_dir"]
             ctx["path"] = ctx["dir"] / persistence.suggested_filename(loaded)
+        # ⚠ The new character reads as one large difference. Without this reset the
+        # next poll writes it straight back over the file it came from.
+        auto.reset(loaded)
         ui.notify(f"Loaded {loaded.name or source_label}", type="positive")
         select_tab("Sheet")
 
@@ -407,8 +496,11 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
     def new_character(dialog=None) -> None:
         ctx["char"] = Character(id=new_character_id())
-        ctx["dir"] = persistence.default_save_dir()
+        ctx["dir"] = ctx["home_dir"]
         ctx["path"] = ctx["dir"] / persistence.suggested_filename(ctx["char"])
+        # ⚠ See the reset in `_apply_loaded`. A blank character is a large
+        # difference too, and the timer would write it over the previous save.
+        auto.reset(ctx["char"])
         if dialog is not None:
             dialog.close()
         ui.notify("Started a new character", type="positive")
@@ -535,9 +627,15 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
     content()
 
 
-def register_pages(ruleset: RuleSet, ctx: dict) -> SessionRegistry:
+def register_pages(ruleset: RuleSet, ctx: dict,
+                   session_root: Path | None = None) -> SessionRegistry:
     """Register the app's routes: '/' the single-character builder, '/gm' the
     Storyteller's party page. Return the registry of the session contexts.
+
+    `session_root` gives each session its own save directory. Omit it for the
+    desktop, which has one user and keeps the path that the user opened. A hosted
+    run must supply it, from `server/config.session_root`. See
+    `session_context_factory`, and hosting-state-model.md section 3.7.
 
     `ctx` is the PROTOTYPE. Each browser session gets its own copy of it, from
     `session_context_factory`, and the two routes resolve that copy per request.
@@ -571,12 +669,16 @@ def register_pages(ruleset: RuleSet, ctx: dict) -> SessionRegistry:
 
     # One registry for this process. It is bounded by count; the idle sweep needs
     # a timer and belongs to the deployment that runs a long-lived server.
-    sessions = SessionRegistry(factory=session_context_factory(ctx))
+    sessions = SessionRegistry(factory=session_context_factory(ctx, session_root))
 
     @ui.page("/")
     def index() -> None:
         session_ctx = sessions.ctx_for(session_key())
-        build_app(ruleset, session_ctx["char"], session_ctx["path"], ctx=session_ctx)
+        # ⚠ Auto-save is enabled by the same value that isolates the destination.
+        # Thus the hazardous pair — a timer plus a shared path — cannot be
+        # configured. Do not give these two their own switches. See section 3.7.
+        build_app(ruleset, session_ctx["char"], session_ctx["path"], ctx=session_ctx,
+                  auto_save=session_root is not None)
 
     @ui.page("/gm")
     def party_page() -> None:

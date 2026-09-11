@@ -346,6 +346,12 @@ all four files.
 `hosting-state-model.md` §3 and §5 as written: the two-tier session store, per-request
 `ctx` resolution, `save_path` → `save_fn`, debounced auto-save, auth, the DB.
 
+✅ **§3 IS COMPLETE as of 2026-09-11.** All five rows of §3.9 are done: the registry, the
+isolation tests, per-request `ctx`, `save_fn`, and per-session destinations plus
+write-through auto-save. **§5 — the entry point, auth and the DB — is what remains of
+P2.** ⚠ A hosted run now needs **two** environment variables, and each raises when it is
+absent: `EXALTED_STORAGE_SECRET` and `EXALTED_SESSION_ROOT`.
+
 ✅ **The 3.14.0 re-verification is DONE (2026-09-11).** `hosting-state-model.md` §3.4 now
 carries the corrected table, the method, and the three new constraints. Summary: the table
 had **two wrong cells** (`tab` is not serialized by default and *does* survive navigation;
@@ -527,12 +533,16 @@ the human on 2026-09-11 and six are now ruled.
 3. **Eviction vs auto-save — RULED 2026-09-11: dissolve it.** The human accepted the
    recommendation below rather than pick a TTL, so **there is no "how long may an idle
    session hold unsaved work" number to agree** — auto-save removes the question.
-   `hosting-state-model.md` §3.7
-   already proposes debounced auto-save on the existing `changed()` callback — one helper,
-   because every tab funnels mutations through it. With auto-save, eviction stops being a
-   data-loss question and becomes a memory-tuning one, and any idle TTL is defensible.
-   ⚠ Do **not** save on every `changed()` call; the dot tracks fire it per click.
-   **This can be deferred to P2 and does not block the DB layout.**
+   With auto-save, eviction stops being a data-loss question and becomes a memory-tuning
+   one, and any idle TTL is defensible.
+   ✅ **SHIPPED 2026-09-11** — `hosting-state-model.md` §3.7b is the record.
+   ⚠ **The mechanism named in this ruling was wrong, and the correction matters more
+   than the ruling.** "Debounced auto-save on the existing `changed()` callback — one
+   helper, because every tab funnels mutations through it" was **false: three of the
+   seven tabs define `changed()`.** Hooking it would have given auto-save in three tabs
+   and silence in four, with every test green. What shipped is a dirty-hash `ui.timer`,
+   which cannot be wired to the wrong phase because it is not wired to a phase.
+   ⚠ Do **not** save on every mutation; the dot tracks fire their refresh per click.
 4. **The GM page — RULED: it dissolves.** Not deferred, *replaced* — the shared table view
    is the main view. **See §1.3** for the consequences, including the two things that must
    survive the dissolve (the ST-only surface, and server-side membership checks).

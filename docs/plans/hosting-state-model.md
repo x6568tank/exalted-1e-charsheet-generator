@@ -527,6 +527,75 @@ one file back passes when both sessions share it.
 it described. A warning is not a mechanism. See
 `feedback_turn_a_repeated_warning_into_a_mechanism`.
 
+### 3.7b The row, as shipped 2026-09-11
+
+**The spec above is what was built. One thing it did not know about, and it is the
+interesting part.**
+
+#### 🐞 The factory was not the only place that set the destination
+
+The spec fixed `session_context_factory` and stopped there. But **`new_character` and
+the upload branch of `_apply_loaded` each recomputed the destination from
+`persistence.default_save_dir()`**, which is process-wide. So the factory handed the
+session its own directory and **the first click of New took it straight back out**, into
+a folder that every session shares.
+
+⚠ **This is the house bug in its type-1 form** — the rule was implemented in the wrong
+place relative to a later phase — and the factory's own unit tests pass with it present,
+because the factory *is* correct and a handler overrules it afterwards. That is exactly
+why §3.7 says to assert on the factory **and** why that is not sufficient on its own:
+`tests/test_session_destinations.py` runs the production wiring and clicks New, and it
+was the only thing that saw this.
+
+The fix is a `ctx["home_dir"]` — the one folder a session owns — read by both handlers.
+⚠ **Do not call `persistence.default_save_dir()` in a handler.** That is the shape of
+the defect, and `make_context`'s docstring now says so.
+
+#### What shipped
+
+* `server/config.session_root()` — reads `EXALTED_SESSION_ROOT`, **raises** when unset.
+  No default, for the same reason `storage_secret()` has none: a fallback gives every
+  session one directory and one browser looks perfectly healthy.
+* `session_context_factory(prototype, session_root=None)` — `<root>/<key>/<filename>`.
+  With **no** root it keeps the prototype path, which is the desktop: one user owns the
+  file system, so Save must write the file the user opened. ⚠ That polarity is
+  deliberate. Forgetting the root on the desktop is *loud* (the file does not update);
+  a hosted run that forgets it gets the raise.
+* `builder.session_dirname(key)` — one path component. ⚠ The unsafe-character
+  replacement **alone was not sufficient**: it maps `"a/b"` and `"a_b"` to one name,
+  which is this section's own defect one level down. A digest of the original key is
+  appended whenever a character changed, so two keys never collide.
+* `saving.AutoSave` + `saving.AUTOSAVE_SECONDS` (5 s) + `save_to_path(..., notify=False)`.
+  The digest advances **on a successful write only** — a digest that advanced on failure
+  would discard that edit permanently, because the next poll reads clean. A write error
+  is caught and reported once per failure run, never raised: a NiceGUI timer callback
+  that raises is logged, not surfaced.
+* `build_app(..., auto_save=False)`, and `register_pages` passes
+  `auto_save=session_root is not None`.
+
+#### ⚠ Auto-save and isolation share ONE switch, on purpose
+
+The hazard this section names — a timer plus a shared path — **cannot be configured**,
+because the value that enables auto-save is the value that isolates the destination.
+Two independent switches would leave the dangerous pair reachable, and it reports
+nothing. Do not split them. See `feedback_turn_a_repeated_warning_into_a_mechanism`: the
+⚠ in 3.5a's docstring was written an hour before it failed to prevent the mistake it
+described, so this row spent the mechanism instead of another warning.
+
+#### The precondition the spec flagged is CONFIRMED
+
+Play-tab state serializes. `Character.play` is a real pydantic field (`PlayState`), so
+`willpower_spent`, `fatigue`, `health`, `limit`, `clarity_temporary` and `renown` all
+reach the digest. `test_a_play_state_change_changes_the_digest` holds it. ⚠ A tracker
+added **beside** the Character in future would be invisible to auto-save with nothing
+failing.
+
+#### Still true, still not addressed by this row
+
+⚠ **`builder.save()`'s two-way branch is untouched.** A hosted manual Save still shows a
+green *"Downloading …"* toast. Auto-save does not go through it — it writes server-side —
+so the hosted story is now "your edits persist, but the Save button still lies."
+
 ### 3.7a What this section said before, and why it was wrong
 
 Kept because both errors are the project's recurring shapes, not slips.
@@ -570,8 +639,8 @@ suite.
 | ✅ Isolation tests (3.8), written first | 1 day — **DONE (P0), still `xfail`** |
 | ✅ `register_pages` → per-request ctx resolution | 1 day — **DONE 2026-09-11** |
 | ✅ `save_path` → `save_fn` across 7 tab signatures + call sites | 1–2 days — **DONE 2026-09-11** |
-| Per-session save destination + write-through auto-save (3.7) | 1–1½ days — **NEXT** |
-| **§3 total** | **~5½ days part-time** |
+| ✅ Per-session save destination + write-through auto-save (3.7) | 1–1½ days — **DONE 2026-09-11** |
+| **§3 total** | **~5½ days part-time** — **§3 IS COMPLETE** |
 
 ⚠ **That row was "half a day" until 2026-09-11.** It was re-estimated before any code was
 written, when the shared-path blocker in 3.7 was found. The debounce is still half a day;
