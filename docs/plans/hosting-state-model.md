@@ -90,17 +90,82 @@ only for persistence (3.6).
 
 ### 3.4 The design: two-tier session state
 
-The constraint that picks the design is NiceGUI 3.13's storage semantics (verified
-against the installed version, not from memory):
+The constraint that picks the design is NiceGUI's storage semantics.
+
+⚠ **RE-VERIFIED 2026-09-11 against the installed NiceGUI 3.14.0**, by running the stores
+rather than reading about them. The 3.13 table had **two wrong cells**, and the corrected
+table is below. The probe is preserved as the method, not as a test — see "How this was
+checked" at the end of this section. **The design survives, but three new constraints
+land.**
 
 | Store | Survives `navigate.to`? | Holds arbitrary objects? | Verdict |
 |---|---|---|---|
 | `app.storage.client` | **No** — discarded when the connection ends | Yes | Dies on the `/gm` → `/` handoff |
-| `app.storage.tab` | Yes (per tab) | **No** — serialized | Cannot hold a `Character` |
+| `app.storage.tab` | **Yes** (per tab, `sessionStorage`-keyed) | **Yes — if and only if `redis_url` is unset** | Per *tab*, not per browser. See the trap below |
 | `app.storage.user` | Yes (per browser, cookie-keyed, server-persisted) | **No** — serialized | Cannot hold a `Character` |
-| `app.storage.general` | Yes | No | Process-global — the bug we are fixing |
+| `app.storage.general` | Yes | **No** — serialized | Process-global — the bug we are fixing |
 
-No single store does both jobs. So use two:
+**Correction 1 — `app.storage.tab` is NOT serialized by default.** `storage.py:178`: with
+no Redis configured it is a plain `ObservableDict`, in-process, and it holds a live
+`Character`. `static/nicegui.js:383` keys it to `sessionStorage.__nicegui_tab_id`, which is
+reused across a navigation, so it also survives `/gm` → `/`. Proven: a non-serializable
+object written on `/a` was read back intact on `/b` after `ui.navigate.to`, in the same
+run that saw `app.storage.client` come back `GONE`.
+
+⚠ **This looks like it dissolves tier 2, and it does not. Do not take the shortcut.**
+Tab storage is keyed per *tab*; the ruling in `vtt.md` §8 Q1 is per *browser*. A tab-keyed
+live `Character` gives two tabs two divergent in-memory copies of the same character —
+the isolation bug this section exists to remove, one scope down, and with no test that
+would catch it. **Tier 2 stays keyed by the cookie session id.** The one thing worth
+taking from this finding is that `prune_tab_storage` (a 10-second timer, `app/app.py:88`,
+against `max_tab_storage_age`) is a working model for the tier-2 sweep 3.4 already
+requires.
+
+**Correction 2 — `app.storage.general` is serialized too** (`FilePersistentDict`), so its
+"No" was right for the wrong reason. It rules itself out on scope regardless.
+
+**Constraint 1 — reading `app.storage.tab` requires an established socket connection.**
+`storage.py:162` raises if `client.has_socket_connection` is false, and a page body runs
+*before* the client connects. Any page that touches tab storage must be `async` and
+`await context.client.connected()` first. This is a real cost on the per-request `ctx`
+resolution in §5 and is not in the estimate.
+
+**Constraint 2 — `app.storage.user` accepts an unserializable value silently and fails
+later, elsewhere.** The assignment succeeds; the write happens in a background task, and
+`serialization.py:13` raises there. Observed: the page printed *"USER ACCEPTED THE OBJECT
+AT THE ASSIGNMENT"*, and the `TypeError` naming the offending key path arrived as a logged
+`ERROR` record. **Nothing fails at the line that caused it.** A test that puts a
+`Character` into tier 1 by mistake passes unless it asserts on `caplog`. This is the same
+shape as the `⚠` dialog-handler rule already in `feedback_nicegui_dialog_lifecycle`.
+
+**Constraint 3 — `storage_secret` is load-bearing for the tests, not only for production.**
+`app.storage.user` raises `RuntimeError` without it. The `User` harness passes a secret
+**only** when it builds the app from a `root` function; with a `main_file` it `runpy`s the
+file, so the secret must come from **that file's own `ui.run(...)` call**
+(`testing/user_simulation.py:40` vs `:38`). ⚠ `tests/_isolation_main.py` calls bare
+`ui.run()` today, so **P0's own main file cannot exercise tier 1 until it passes one.**
+
+### The Redis question — answered: it does not rescue the single-process assumption
+
+`vtt.md` flagged `app.storage.redis_url` / `redis_key_prefix` as possibly bearing on the
+single-process design. **It does not, and it makes things worse if enabled.**
+
+- Both are read from `NICEGUI_REDIS_URL` / `NICEGUI_REDIS_KEY_PREFIX` **at class-definition
+  time** (`storage.py:78-82`) — an import-time env read. Setting the env var after import
+  has no effect.
+- With a URL set, `_create_persistent_dict` returns a `RedisPersistentDict` for *every*
+  store including `tab` (`storage.py:172`). That **flips the tab row to "No"** and removes
+  the only store that could have held a live object.
+- Redis is therefore the multi-process escape hatch **for JSON-serializable state only**.
+  The tier-2 registry holds a live `Character` and can never be JSON — so it is
+  inherently single-process whether or not Redis is present.
+
+**Conclusion: run one worker. Redis is not an alternative to that, and the plan's
+single-process assumption stands.** ⚠ If Redis is ever turned on, everything above changes
+and this table must be re-verified; treat `NICEGUI_REDIS_URL` as a design-breaking switch,
+not a deployment detail.
+
+No single store does both jobs at browser scope. So use two:
 
 **Tier 1 — `app.storage.user`: identity and pointers only, all JSON-serializable.**
 
@@ -140,8 +205,31 @@ eviction** — which is the argument for auto-save (3.7), not an argument agains
 eviction.
 
 ⚠ **`app.storage.user` requires `storage_secret`.** `ui.run(..., storage_secret=...)`
-is currently set nowhere in the tree (`grep app.storage` returns nothing outside this
-plan). Read it from an env var; do not commit one.
+is currently set nowhere in the tree — re-confirmed 2026-09-11, `grep -rn 'app.storage\|
+storage_secret'` over `exalted_builder/` and `tests/` returns **nothing**. Read it from an
+env var; do not commit one. See Constraint 3 above: this also blocks the P0 main file.
+
+### How this was checked
+
+Re-run this before trusting the table against any future NiceGUI. A copy of the probe is
+**not** in the suite — it asserts a third-party library's semantics, and it belongs in a
+session, not in 3443 tests.
+
+Two files under `tests/`: a `_probe_main.py` with `@ui.page('/a')` and `@ui.page('/b')`,
+each `async` and each awaiting `context.client.connected()`, writing a deliberately
+non-JSON-serializable object into `app.storage.tab` and `app.storage.client` on `/a` and
+reading both back on `/b`; and a test marked `@pytest.mark.nicegui_main_file(MAIN)` that
+opens `/a`, clicks through, and reads the label on `/b`.
+
+Three traps cost time and will cost it again:
+
+1. `pytest_plugins = ['nicegui.testing.plugin']` pulls in Selenium. The project loads
+   `nicegui.testing.user_plugin` in the **top-level** `conftest.py`; a probe outside the
+   project root gets neither that nor `asyncio_mode`. **Put the probe in `tests/`.**
+2. The main file needs the `if __name__ in {"__main__", "__mp_main__"}: ui.run()` guard,
+   because the harness executes it with `runpy.run_path(run_name='__main__')`.
+3. An `async` page body runs **after** the HTTP response. `user.find(...)` immediately
+   after `user.open(...)` finds an empty page; `await user.should_see(...)` first.
 
 ### 3.5 The seam is the `ctx` lifetime, not `save_path`
 

@@ -94,12 +94,20 @@ Written up in `status/engine-and-ui.md`.
 
 ## 👉 NEXT — in rough order of what would bite
 
-- **P2, the hosting substrate** — `hosting-state-model.md` §3 and §5. **~5 days
-  part-time and the riskiest work in the plan.** Nothing blocks it. ⚠ **Re-verify §3.4's
-  storage table first**: it was written against NiceGUI **3.13** and the installed version
-  is **3.14.0**. All five stores still exist, but `app.storage` now also exposes
-  `redis_url` and `redis_key_prefix`, which may bear on the single-process assumption the
-  whole design rests on. **Not investigated.**
+- **P2, the hosting substrate** — `hosting-state-model.md` §3 and §5. **The riskiest work
+  in the plan.** ⚠ **The estimate has been quoted two ways: ~5 days is §3 alone; the phase
+  is 10–12 days part-time** (`vtt.md:502`, §3 + §5 + auth + DB). Use the larger one.
+  ✅ **Its gating task is now DONE** — §3.4's storage table is re-verified against the
+  installed NiceGUI **3.14.0** (2026-09-11), by running the stores, not reading about them.
+  **Two cells were wrong**, the two-tier design survives, and Redis is answered: it turns
+  every store serialized, so it cannot hold the live registry and does not relieve the
+  single-process assumption. **Run one worker.** Three new constraints landed —
+  `app.storage.tab` needs `await context.client.connected()`, tier-1 misuse fails in a
+  **background task** and not at the assignment, and `storage_secret` blocks P0's own main
+  file (`tests/_isolation_main.py` calls bare `ui.run()`). Details in §3.4, including the
+  probe method and its three harness traps. ⚠ **Do not take the tab-storage shortcut §3.4
+  describes** — it is per tab, the ruling is per browser, and it reintroduces the isolation
+  bug one scope down.
 - **Backfill `source` on the 63 Backgrounds** — still **63/63** missing. A provenance job,
   not a reading job; it needs no pages fed. ⚠ The "~1,800 pages" framing was wrong and was
   corrected 2026-09-11 — do not re-raise it.

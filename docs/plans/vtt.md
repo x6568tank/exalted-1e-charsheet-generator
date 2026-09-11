@@ -346,12 +346,14 @@ all four files.
 `hosting-state-model.md` §3 and §5 as written: the two-tier session store, per-request
 `ctx` resolution, `save_path` → `save_fn`, debounced auto-save, auth, the DB.
 
-⚠ **§3.4's storage table was verified against NiceGUI 3.13; the installed version is
-3.14.0.** The five stores still exist (`client`, `tab`, `user`, `general`, `browser`), but
-**re-verify the survives-navigation and serialization columns before designing on them** —
-that table is the constraint that picks the whole design. Also new to check: `app.storage`
-now exposes `redis_url` and `redis_key_prefix`, which may change the single-process
-assumption the plan is built on. Not investigated here.
+✅ **The 3.14.0 re-verification is DONE (2026-09-11).** `hosting-state-model.md` §3.4 now
+carries the corrected table, the method, and the three new constraints. Summary: the table
+had **two wrong cells** (`tab` is not serialized by default and *does* survive navigation;
+`general` is serialized), **the two-tier design survives**, and the Redis question is
+answered — `NICEGUI_REDIS_URL` is an import-time read that turns *every* store into a
+serialized one, so it cannot hold the live registry and **does not** relieve the
+single-process assumption. Read §3.4 before writing `server/session.py`; do not re-open
+this.
 
 **Gate: P0's test goes green, and the `/gm` → `/` handoff still opens the right character.**
 
