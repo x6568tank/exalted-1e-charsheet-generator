@@ -33,3 +33,4 @@ status log says so rather than guessing.
 | [0017](0017-two-acquisition-channels-for-artifacts.md) | Artifacts have two acquisition channels — the Background is pre-game, cash is in-play; only the first is budgeted | Accepted |
 | [0018](0018-qt-port-committed.md) | The Qt port is committed — a PySide6 native app alongside the NiceGUI webapp | Accepted |
 | [0019](0019-a-dumb-dice-roller.md) | A dumb dice roller, unwired from the pools — rolls a COUNT, never a named roll (reverses 0009 narrowly; amends 0016) | Accepted |
+| [0020](0020-the-board-is-dumb.md) | The board is dumb: a picture of the table, never a model of it — no token knows its character (protects 0008) | Accepted |

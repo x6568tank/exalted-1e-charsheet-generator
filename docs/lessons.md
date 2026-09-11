@@ -46,6 +46,23 @@ Each is written up in full where it happened; these are the reusable one-liners.
   confirmed** — a mistaken "free" ships as a silent under-charge.
 - **When a tool closes a blocker, the prose describing the blocker is part of the change.**
   A stale "page-blocked" line reads exactly like a live one.
+- **A census has a shelf life, and nothing re-runs it.** The "~1,800 pages of Backgrounds"
+  item rode the NEXT list for four weeks: `phase-2-scan.md` (2026-08-15) carried forward a
+  census taken before the Background overhaul (2026-08-12) had already read three of its
+  five splat groups. **The work that closes a gap does not go back and edit the documents
+  that estimated it** — so a later doc citing an earlier number is not corroboration, it is
+  the same number twice. ⚠ Worse, the overhaul's coverage was never written down AS
+  coverage, and a raw count of non-empty rows understated it by half because sub-origin
+  rows INHERIT. **Re-measure against the data before you plan from a gap estimate**, and
+  when you close part of a gap, say which part in the estimate's own file.
+  ⚠ **Third instance, 2026-09-11, and this one was a day old.** The VTT plan's "carve the
+  engine into its own package" phase was written from `hosting-per-instance.md`'s
+  comparison table — and `pyproject.toml` already declared `pydantic` as the only hard
+  dependency, so the engine was already installable with no toolkit. A clean-venv install
+  proved it in two minutes; executing the phase would have touched **491 import sites** to
+  buy something already true. **A plan you wrote yourself last session is a census too.**
+  ⚠ And the measurement was not wasted: building the wheel to check is what found the
+  thaumaturgy packaging defect. **Re-measuring a stale item is how you find the live one.**
 
 ### Code and engine
 - **A permission toggle must move the OFFER as well as the bar.** A granted-but-unfindable
@@ -91,6 +108,30 @@ Each is written up in full where it happened; these are the reusable one-liners.
   hold** — and ⚠ **self-authored fixtures agree with the bug**, because every test
   adversary is called "Bandit" and no line in the suite is long enough to reach a card
   edge. When a surface's job is to display real content, render it with real content.
+
+- **When a test NAVIGATES, assert on a value the origin page cannot produce.** The first
+  version of the `/gm` → `/` session-isolation test clicked "Builder" and asserted
+  `should_see(MEMBER_NAME)` — but the GM card *prints the member's name*, so the assertion
+  matched whether or not the navigation ever happened. A test of the leakiest phase in the
+  hosting plan was green while proving nothing. It had two independent causes and both
+  recur: `find("Builder")` matched **two** buttons (and `find(...).elements` is an
+  unordered set), and the assertion was satisfiable by the page it started from. The fix
+  is a marker for the click, an assertion on something only the *destination* renders, and
+  a **mid-test** check that the navigation actually happened so the final assertion cannot
+  pass vacuously.
+- **A deliberate optional and a lost file are the same bytes.** `data/thaumaturgy/` was
+  never added to `package-data`, so an installed wheel had none of it — and nothing
+  reported that, because `rules_db` treats every thaumaturgy file as *optional* so that a
+  data set without thaumaturgy still loads. The correct decision one layer over is what
+  made the omission invisible. **This is attunement-by-absence in the build**, and the
+  discriminator is the same: do not assert the value, assert it against something that
+  proves the absence was chosen. Here that is expanding the declared globs and comparing
+  them to what is on disk, so the test fails for the *next* directory too.
+- **`xfail(strict=True)`, never plain `xfail`, for a test that describes a target.** A
+  non-strict xfail goes quietly green the day the defect is fixed and nothing ever reports
+  that the work was done. Strict turns that day into a failing run that forces someone to
+  delete the marker. ⚠ And a failing test that is *expected* to fail must never be left
+  bare in a suite whose invariant is "a red run is a real one".
 
 ### The two shells, and porting between them
 - **A page added to a shell inherits a HOOK CONTRACT from its sibling pages** — diff the

@@ -646,7 +646,8 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True) -> None:
                           on_click=lambda c=character: export_pdf(c)).props(
                     "flat dense").tooltip("Export a print-ready PDF sheet")
                 ui.button("Builder", icon="open_in_new",
-                          on_click=lambda i=index: open_in_builder(i)).props("flat dense")
+                          on_click=lambda i=index: open_in_builder(i)).props(
+                    "flat dense").mark(f"open-in-builder-{index}")
                 ui.button(icon="delete", on_click=lambda i=index: confirm_remove(i)).props(
                     "flat dense color=red").tooltip("Remove from party")
 

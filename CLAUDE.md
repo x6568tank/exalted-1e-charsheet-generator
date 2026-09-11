@@ -184,6 +184,7 @@ is `docs/decisions/README.md`.
 | 0017 | Artifacts have acquisition channels: the Artifact Background before play, cash during play, and the Legendary Artifact Merit for plot devices. |
 | 0018 | The Qt port is committed: a PySide6 application with the NiceGUI web application. |
 | 0019 | A dice roller that is not connected to the pools. It rolls a dice count only. It never knows which roll it makes. Narrows 0009. |
+| 0020 | The board shows a picture of the table. It is not a model of the table. A token does not know its character. Protects 0008. |
 
 Read 0019 before you cite 0009. Read 0016 before you cite 0008 against a pool calculation.
 
@@ -332,6 +333,7 @@ the primary trap.
 | Adversary roster | `status/adversary-roster.md` |
 | The `engine/validate/` split | `plans/validate-refactor.md` |
 | The Qt port. Read the standing rules first. | `plans/qt-port.md` |
+| The hosted table and the board. Read before any hosting work. | `plans/vtt.md` |
 | Variant-menu Charms | `plans/variant-menu-charms.md` |
 | Why the Mist numina are deferred: there is no effect list to author | `status/mist-numina.md` |
 | The full multi-splat plan | `~/.claude/plans/should-we-plan-out-encapsulated-crab.md` |

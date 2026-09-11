@@ -313,3 +313,77 @@ the Alchemical Arrays builder, which replaces Combos for a Charm-Slot splat), `u
   `value` not in its `options`. Any select whose value can be a free-text/custom
   entry must fold that value into `options` first (`editor._opts_with`) —
   otherwise a custom name renders once, then 500s on the next reload.
+
+## Packaging and the hosting seam — 2026-09-11
+
+Written during phase P0/P1 of `docs/plans/vtt.md`, which holds the plan itself. This
+section records only what changed in this area and what the work turned up. Suite at the
+time: **3,443 passed · 1 skipped · 2 xfailed** (3,446 collected). **Not browser-verified —
+nothing here has a UI surface except one added test marker**; see the click note below.
+
+### 🐞 The thaumaturgy rules data did not ship in an installed package — FIXED
+
+`[tool.setuptools.package-data]` listed `data/*.json` and `data/charms/*.json` **by name**.
+`data/thaumaturgy/` was added later and was never added here, so a built wheel carried
+**189 of the 193 data files** and **none** of the four thaumaturgy ones — 4 arts, 4
+sciences, 30 formulas, 11 rituals. Thaumaturgy is on all sheets.
+
+⚠ **Nothing reported it, because of a correct decision one layer over.** `rules_db.py:790`
+treats every thaumaturgy file as optional — *"a data set without them simply has no
+thaumaturgy"* — which is right for a data set that genuinely has none, and is precisely
+what makes a packaging omission invisible. `load_ruleset` returned success with the
+directory absent, and wrote nothing to `RuleSet.custom_problems`. **A ruled absence and a
+lost file are the same bytes.**
+
+⚠ **Scope, stated precisely: the four release assets were NOT affected.** `pack/*.spec`
+passes `(ROOT/"exalted_builder"/"data", "exalted_builder/data")` to PyInstaller, which
+copies the tree recursively. **Only `pip install` of the wheel or sdist was broken** — the
+deployment hosting will use, which is why this surfaced against the VTT work and not at a
+release.
+
+**Fixed** by making the glob recursive (`data/**/*.json`). Verified by rebuilding: 193 of
+193 in the wheel, and a clean venv carrying only `pydantic` loads
+`thaum_arts 4 · thaum_sciences 4 · thaum_formulas 30 · thaum_rituals 11`, matching the dev
+tree.
+
+`tests/test_packaging.py` reads the globs out of `pyproject.toml` and expands them the way
+setuptools does, so it fails for the **next** uncovered directory rather than only this
+one. Negative-controlled against the old globs: it fails and names all four files.
+
+### The engine seam is enforced, not merely true
+
+`tests/test_engine_seam.py` parses the **syntax tree** of all 47 engine-side files
+(`models/`, `engine/`, `rules_db.py`, `persistence.py`, `custom_content.py`) and fails on
+any import of `nicegui`, `PySide6`, `reportlab`, `ui` or `qt`.
+
+⚠ **It reads the AST, not the text.** `engine/combo_actions.py` and
+`engine/thaum_actions.py` both contain the words *"imports no `nicegui`"* in comments, so a
+text search reports them and a reader learns to ignore the test.
+
+⚠ **It reads source files, not imported modules.** Negative-controlled with both shapes;
+the lazy one — an import inside a function body — is invisible to an import-based check,
+and is how this boundary would actually rot.
+
+**Measured while doing it:** `pyproject.toml` already declares `pydantic` as the only hard
+dependency, with `nicegui`/`PySide6` in optional extras. A clean-venv install proves the
+engine is already consumable with no toolkit (1,921 Charms, 306 spells, neither toolkit
+imported). **The physical package carve-out was therefore deferred** — it would have
+touched 491 absolute import sites (456 of them in `tests/`) to buy something already true.
+
+### The `ctx` isolation defect is now under test, and still present
+
+`tests/test_session_isolation.py` demonstrates `hosting-state-model.md` §3.1 rather than
+reasoning about it: two browser sessions share one `Character`, on `/` and across the
+`/gm` → `/` navigation. Both tests carry **`xfail(strict=True)`** — see `docs/testing.md`
+for why strict is load-bearing. **The defect is unchanged; only its visibility is.**
+
+### What a human should click
+
+Almost nothing has a UI surface. One thing does:
+
+1. **The GM page → a member card → the "Builder" button.** It gained
+   `.mark(f"open-in-builder-{index}")`, following the `mark("batch-roll")` convention
+   already on that page. `.mark()` sets a CSS marker class, so confirm the button still
+   looks and behaves as before with **two or more** party members — the marker is
+   per-index and a stale index would be a wrong-member handoff. 265 party/GM/adversary
+   tests pass, and none of them look at a real display.

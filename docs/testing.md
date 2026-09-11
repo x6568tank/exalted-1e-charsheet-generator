@@ -1,9 +1,38 @@
 # The test suite — the count, and why it moves
 
-**3,181 passing, 1 skipped** (2026-09-03, main PC, `main`, after the 265-spell
-re-transcription — includes the Qt-port tests in `tests/test_qt_*.py`,
-`tests/test_charm_actions.py`, `tests/test_gear_actions.py` and
-`tests/test_variant_purchases.py`).
+**3,443 passing, 1 skipped, 2 xfailed** (2026-09-11, main PC, `main`, 10m56s, after the
+VTT phase-P0/P1 work — 3,446 collected).
+
+⚠ **`xfailed` is a state this suite has never had before. Both are deliberate.**
+`tests/test_session_isolation.py` describes the target state of the hosting session
+refactor, and it FAILS on today's code by design — see `docs/plans/vtt.md` P0. They carry
+`xfail(strict=True)`, so:
+
+- the suite stays green and the *"a red run is a real one"* invariant survives;
+- **when the refactor lands, pytest reports XPASS and FAILS the run**, forcing whoever
+  fixed it to delete the marker. A non-strict xfail would go quietly green and nothing
+  would ever report that the work was done.
+
+**Do not "fix" an xfail here by weakening its assertions.** They assert the target, not
+the current behaviour.
+
+⚠ **Of the +262 over 2026-09-03's 3,181, this session added only 52** — the other ~210 is
+the 2026-09-04..09-10 work, which this file never recorded. **And 48 of those 52 are ONE
+parametrised file:** `tests/test_engine_seam.py` runs once per engine-side source file
+(47) plus a control. `tests/test_packaging.py` adds 3, `tests/test_session_isolation.py` 1
+passing.
+
+**A parametrised file moves this number by its cardinality, not by its coverage** — the
+mirror of the note below about a data sweep moving it by zero. Three new test files read
+as +52 here and are three ideas.
+
+⚠ **The 3,391 the handoff carried was arithmetic, never observed.** This run confirms it:
+3,391 + 52 = 3,443 passed, and 3,392 + 54 = 3,446 collected. Both columns land exactly, so
+that inference is no longer outstanding.
+
+**Historic:** 3,181 passing, 1 skipped (2026-09-03, after the 265-spell re-transcription —
+includes the Qt-port tests in `tests/test_qt_*.py`, `tests/test_charm_actions.py`,
+`tests/test_gear_actions.py` and `tests/test_variant_purchases.py`).
 
 ⚠ **The +32 over 2026-08-28's 3,083 is not the Charm work** — that changed data, not
 tests. It is `tests/test_extract_columns.py`, the column-splitting guards added with the
