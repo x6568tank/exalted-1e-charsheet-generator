@@ -49,8 +49,13 @@ qt = [
 include = ["exalted_builder*"]
 
 # Ship the rules data and vendored JS with the package so they're found after install.
+# ⚠ The glob is RECURSIVE on purpose. It used to list data/ and data/charms/ by name,
+# and data/thaumaturgy/ was added later without being added here — so a pip-installed
+# wheel silently had no thaumaturgy. rules_db treats every thaumaturgy file as optional
+# (rules_db.py:790), so the loader reported nothing. tests/test_packaging.py now fails
+# when a data file is not covered; do not narrow this back to named directories.
 [tool.setuptools.package-data]
-exalted_builder = ["data/*.json", "data/charms/*.json", "ui/vendor/*.js"]
+exalted_builder = ["data/**/*.json", "ui/vendor/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
