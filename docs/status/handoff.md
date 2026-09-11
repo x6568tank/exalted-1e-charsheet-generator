@@ -1,33 +1,61 @@
-# Session handoff — 2026-09-11 (the VTT is planned and ruled; P0/P1 done, P2 started)
+# Session handoff — 2026-09-11 (the VTT is planned and ruled; P0/P1 done, P2 half done)
 
 # 👉 YOU ARE HERE
 
-Last FULL suite: **3462 passed · 1 skipped · 2 xfailed · 0 failed** (**work laptop**,
-`main`, 11m47s). **Observed, not computed.** ⚠ The count moves by machine and by optional
+Last FULL suite: **3473 passed · 1 skipped · 0 xfailed · 0 failed** (`main`, 9m47s, at
+`efd55c1`). **Observed, not computed.** ⚠ The count moves by machine and by optional
 dependency — see `docs/testing.md`, and do not reconcile this against another machine.
 
-⚠ **An earlier run in the same session read 3455 and MUST NOT be quoted.** Three files
-were edited while it was in flight, so it describes a tree that no longer exists. The
-mistake that caused it is worth knowing: `pgrep -c pytest` matches the process NAME, which
-is `python`, so it reported zero while the run was alive, and piping through `tail` kept
-the output file at zero bytes. **Use `pgrep -af pytest`, and write the log to a file
-rather than through a pipe.**
+✅ **THE TWO `xfailed` TESTS ARE GONE, AND THAT IS THE HEADLINE.** They XPASSed on the
+wiring commit — which pytest reports as a FAILURE, exactly as designed — and the markers
+were deleted in the same change. `tests/test_session_isolation.py` is a live suite now.
+⚠ **A failure there means two browsers share a Character again.** Do not weaken an
+assertion to clear it.
 
-⚠ **THE SUITE NOW HAS TWO `xfailed` TESTS, AND THAT IS NEW.** Both are
-`tests/test_session_isolation.py`, both are `xfail(strict=True)`, and both describe the
-**target** state of the hosting session refactor — they fail on today's code by design.
-**A red run is still a real one.** ⚠ **When the session refactor lands they will XPASS,
-which pytest reports as a FAILURE** until whoever fixed it deletes the marker. That is
-deliberate; do not "fix" it by weakening an assertion. `docs/testing.md` has the reasoning.
+✅ **The arithmetic lands again.** 3462 (previous, work laptop) **+ 2** the ex-`xfail`s
+**+ 9** the new `test_session_context_factory.py` = **3473**. The two machines happened to
+agree; do not read anything into that.
 
-✅ **The arithmetic that was owed is now settled.** The handoff before this one carried
-**3391 passed / 3392 collected** as *"arithmetic, not an observation"*. The 3443 run
-confirmed it: 3391 + 52 = **3443**. This session then added **19**: 12 registry tests and
-7 secret tests. 3443 + 19 = **3462**, on a different machine, which lands exactly.
+⚠ **An earlier run of the previous session read 3455 and MUST NOT be quoted.** The mistake
+is still worth knowing: `pgrep -c pytest` matches the process NAME, which is `python`, so
+it reported zero while the run was alive, and piping through `tail` kept the output file at
+zero bytes. **Use `pgrep -af pytest`, and write the log to a file rather than a pipe.**
 
-**Working tree: clean as of the last commit of this session.** ⚠ Two handoffs in a row
-made a tree claim that was already false; **run `git status` and `git log` yourself before
-acting on this line.**
+**Working tree: clean as of `efd55c1`.** ⚠ Two handoffs in a row made a tree claim that was
+already false; **run `git status` and `git log` yourself before acting on this line.**
+
+## ✅ SHIPPED this session, part 3 — the registry is WIRED, and the isolation bug is gone
+
+`efd55c1`. P2's first **invasive** row, and the one P0 was written to gate.
+`hosting-state-model.md` **§3.4a** is the record; do not restate it here. The four things
+a reader needs:
+
+**The routes resolve their context in the page BODY now**, from one `SessionRegistry` per
+process, keyed by the session cookie. `register_pages` keeps its signature and returns the
+registry.
+
+⚠ **`ctx` is a PROTOTYPE now. That is a semantic reversal, not plumbing.** The dict a
+caller hands to `register_pages` stopped being the live application state;
+`builder.session_context_factory` copies it for each session. Desktop is unaffected — one
+run, one session. **Read this before you write anything that mutates the ctx a caller
+built**: your edit lands on the prototype and no session ever sees it.
+
+🐞 **The copy has an invariant no end-to-end test can see.** Inside one context,
+`ctx["char"]` can *be* a party member's character **by identity** — `open_member` points it
+there by reference so the party card follows the builder's edits with no syncing code, and
+`close_member` leaves it there with `member` back to None. Copying `char` and `party`
+independently severs that **silently**. The factory finds the member by `is`. Proven by
+mutation: deleting that branch fails exactly the two cases that cover it and nothing else.
+
+🐞 **`ui/gm.py:main()` was a real defect, and last commit's own note created it.** That
+note said the nine per-screen dev entry points "use no storage" — true when written, false
+the moment the routes read a cookie. `gm.py` calls `register_pages`, so both its pages
+would have raised at load. Fixed. ⚠ **Any future `ui.run` that registers these routes must
+pass a `storage_secret`, and nothing enforces it.**
+
+**Not done, on purpose:** the idle `sweep()` is unwired. `max_sessions` still bounds the
+registry, so this is not a leak; the sweep wants an app-wide timer next to the auto-save
+that `on_evict` feeds, and both are §5 work.
 
 ## ✅ SHIPPED this session, part 2 — P2 has begun, additively
 
@@ -142,30 +170,29 @@ Written up in `status/engine-and-ui.md`.
 
 ## 👉 NEXT — in rough order of what would bite
 
-- **P2, continued — `register_pages` → per-request `ctx`. THE NEXT PIECE, and the first
-  invasive one.** The registry exists and nothing calls it; this is the row that connects
-  them. ⚠ **Do not start it in a short window.** It rewires the live entry point, and the
-  row after it — `save_path` → `save_fn` — touches **9** signatures plus call sites
-  (8 in `ui/`, plus `qt/main_window.py:593`, which §3.5 warns the count of 8 omits).
+- **P2, continued — `save_path` → `save_fn`. THE NEXT PIECE.** It touches **9** signatures
+  plus call sites: 8 in `ui/`, plus `qt/main_window.py:593`, which §3.5 warns the count of
+  8 omits. ⚠ **Do not start it in a short window**, and read §3.5 first — Option B
+  (monkey-patching `persistence.save_character`) is **STRUCK**, not merely discouraged; a
+  module-global rebind is itself process-global state and reintroduces the bug that
+  `efd55c1` just removed.
   ⚠ **The estimate has been quoted two ways: ~5 days is §3 alone; the phase is 10–12 days
   part-time** (`vtt.md:502`, §3 + §5 + auth + DB). Use the larger one.
-  **The gate for this row: the two `xfail(strict=True)` tests XPASS, which pytest reports
-  as a FAILURE — then delete the markers.** That is the signal the wiring worked.
-  Carried findings that bite here:
+  ⚠ **`builder.save()`'s two-way branch is the third-deployment trap below, and this row
+  is where it bites.**
+  Carried findings still live for the rest of P2:
   - ⚠ **Do not take the tab-storage shortcut §3.4 describes.** `app.storage.tab` does hold
     a live object and does survive navigation, but it is keyed per *tab* and the ruling is
     per *browser*. It reintroduces the isolation bug one scope down, and nothing fails.
+    ✅ The shipped key is `app.storage.browser["id"]` and it is **sync** — the cookie needs
+    no socket connection, so Constraint 1's async cost never landed.
   - ⚠ **Run one worker.** The registry holds live `Character` objects, so it can never be
     JSON, so it can never cross processes. Redis is not an alternative — it makes *every*
     NiceGUI store serialized, including `tab`.
-  - ⚠ **Any page that reads `app.storage.tab` must be `async` and
-    `await context.client.connected()` first.** A page body runs before the client
-    connects. This cost is not in §3.9's estimate.
   - ⚠ **Tier-1 misuse fails in a background task, not at the assignment.** Putting a
     `Character` into `app.storage.user` succeeds at the line that does it; the `TypeError`
     arrives later as a logged ERROR. A test only catches it by asserting on `caplog`.
-  - ⚠ **`builder.save()`'s two-way branch is the third-deployment trap below, and this row
-    is where it bites.**
+    Tier 1 is still **unused**; `efd55c1` reads the cookie id and writes nothing.
 - **Backgrounds `source` — 51 of 63 DONE 2026-09-11. 12 left, and they need a human with a
   page.** ⚠ **This entry used to say "a provenance job, not a reading job; it needs no pages
   fed." That was wrong**: `source` is `{book, page}` and the page is the whole record. The
@@ -214,14 +241,21 @@ and nothing in the code will warn them. ⚠ **P2 hits this.**
 
 Almost nothing this session has a UI surface. Two things do:
 
-0. **The app still launches.** `storage_secret` was added to `ui/builder.py:main()` and to
-   `pack/run_app.py`, and **no test calls either** — the suite never runs `main()`. Checked
-   headlessly on the laptop: the server starts, `/` returns 200 at 507 KB, `/gm` returns
-   200, and the log holds no error. ⚠ **That proves it does not crash, and nothing more**
-   (`feedback_serve_and_grep_is_not_verification`). The **native** branch
-   (`--native`, PySide-backed window) and the **frozen** build were NOT run; both take the
-   same argument by the same edit, but neither was executed. ⚠ Also unrun: the `v*` tag's
-   four release assets.
+0. **The app still launches, and the three `main()`s now carry a secret.** No test runs
+   `main()`. Checked headlessly at `efd55c1`: the server starts, `/` returns 200 at 507 KB
+   and `/gm` 200 at 71 KB **to two separate cookie jars**, two distinct session ids are
+   issued, and the log holds no error. ⚠ **That proves it serves, and nothing more**
+   (`feedback_serve_and_grep_is_not_verification`). Unrun: the **native** branch
+   (`--native`, PySide-backed window), the **frozen** build, `ui/gm.py:main()` as a
+   standalone party run, and the `v*` tag's four release assets.
+
+0b. ⚠ **THE ONE THING MOST WORTH A HUMAN AT A BROWSER: open the app in two browsers.**
+   Every claim in this session's headline rests on a test harness that fakes two clients.
+   Two real browsers on one server, each editing a name, then **`/gm` → Builder in one of
+   them** — the second must keep its own character. And a **second tab of the SAME
+   browser** must show the *same* character, because the key is per browser by ruling
+   (`vtt.md` §8 Q1), not per tab. That last one is the case the suite cannot express at
+   all.
 
 
 1. **GM page → a member card → the "Builder" button.** It gained
