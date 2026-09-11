@@ -33,6 +33,7 @@ from ..models.character import Character, Damage, PlayState
 from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import theme
 from . import view as viewmod
+from .saving import SaveFn, save_to_path
 
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
@@ -431,7 +432,7 @@ def dice_pool_sidebar(ruleset: RuleSet, character: Character,
         panel()
 
 
-def build_play(ruleset: RuleSet, character: Character, save_path: Path,
+def build_play(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                *, with_header: bool = True) -> None:
     """Render the in-play tracker for `character`. With `with_header=False` the
     title/Save bar is omitted (the embedding app provides one). The tab is live
@@ -693,7 +694,8 @@ def build_play(ruleset: RuleSet, character: Character, save_path: Path,
             ui.label(f"In-play — {character.name or 'character'}").classes(
                 "text-lg font-bold").style(f"color:{pal.accent}")
             ui.button("Save", icon="save",
-                      on_click=lambda: _save(character, save_path)).props(f"color={pal.button}")
+                      on_click=lambda: save_fn(character)).props(
+                          f"color={pal.button}").mark("tab-save")
     body()
 
 
@@ -702,11 +704,6 @@ def _panel(title: str, pal: theme.Palette):
     with card:
         ui.label(title).classes("text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
     return card
-
-
-def _save(character: Character, save_path: Path) -> None:
-    persistence.save_character(character, save_path)
-    ui.notify(f"Saved {save_path.name}", type="positive")
 
 
 def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character, Path]:
@@ -727,7 +724,7 @@ def main() -> None:
 
     @ui.page("/")
     def index() -> None:
-        build_play(ruleset, character, path)
+        build_play(ruleset, character, save_to_path(path))
 
     ui.run(title=f"Exalted 1e — play: {character.name or path.stem}",
            reload=False, show=args.show, port=args.port)

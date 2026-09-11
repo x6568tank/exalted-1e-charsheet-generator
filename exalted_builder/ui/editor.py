@@ -33,6 +33,7 @@ from ..models.rules import AbilityName, AttributeName, RuleSet, VirtueName
 from . import catalogue as cataloguemod
 from . import theme
 from . import view as viewmod
+from .saving import SaveFn, save_to_path
 # The intra-splat origin / upbringing tables and their lookups moved to view.py
 # (toolkit-free) for the Qt port; re-exported here so `editor._SPLAT_ORIGINS` and
 # `editor.upbringing_options` callers (tests included) keep working.
@@ -200,7 +201,7 @@ def trait_info_button(pal, make_info, key: str) -> None:
         "flat dense round size=sm color=grey-6").classes("shrink-0").mark(f"trait-info-{key}")
 
 
-def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
+def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                  *, with_header: bool = True, on_theme_change=None):
     """Render the whole editor for `character`. Pure-ish wiring: every control
     mutates the Character and refreshes the live readout. With `with_header=False`
@@ -1512,8 +1513,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             character.virtue_flaw.description = text
 
     def save() -> None:
-        persistence.save_character(character, save_path)
-        ui.notify(f"Saved to {save_path}", type="positive")
+        save_fn(character)
 
     # ---- layout: editor on the left, sticky readout on the right ---------- #
     if with_header:
@@ -1523,7 +1523,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_path: Path,
             if with_header:
                 with ui.row().classes("w-full items-center justify-between"):
                     ui.label("Chargen Editor").classes("text-xl font-bold")
-                    ui.button("Save", icon="save", on_click=save).props(f"color={pal.button}")
+                    ui.button("Save", icon="save", on_click=save).props(
+                        f"color={pal.button}").mark("tab-save")
             body()
         with ui.column().classes("w-80 gap-2 sticky top-4"):
             side_column()
@@ -1554,7 +1555,7 @@ def main() -> None:
 
     @ui.page("/")
     def index() -> None:
-        build_editor(ruleset, character, path)
+        build_editor(ruleset, character, save_to_path(path))
 
     ui.run(title=f"Exalted 1e — editing {character.name or path.stem}",
            reload=False, show=args.show, port=args.port)

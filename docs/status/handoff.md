@@ -1,224 +1,136 @@
-# Session handoff — 2026-09-11 (the VTT is planned and ruled; P0/P1 done, P2 half done)
+# Session handoff — 2026-09-11 (P2 row 4 done: the tabs no longer hold a path)
 
 # 👉 YOU ARE HERE
 
-Last FULL suite: **3473 passed · 1 skipped · 0 xfailed · 0 failed** (`main`, 9m47s, at
-`efd55c1`). **Observed, not computed.** ⚠ The count moves by machine and by optional
+Last FULL suite: **3482 passed · 1 skipped · 0 failed** (11m23s, on the tree described
+below). **Observed, not computed.** ⚠ The count moves by machine and by optional
 dependency — see `docs/testing.md`, and do not reconcile this against another machine.
 
-✅ **THE TWO `xfailed` TESTS ARE GONE, AND THAT IS THE HEADLINE.** They XPASSed on the
-wiring commit — which pytest reports as a FAILURE, exactly as designed — and the markers
-were deleted in the same change. `tests/test_session_isolation.py` is a live suite now.
-⚠ **A failure there means two browsers share a Character again.** Do not weaken an
-assertion to clear it.
+**The arithmetic lands.** 3473 (previous) **+ 9** the new `tests/test_tab_save_fn.py`
+= **3482**. Nothing else moved.
 
-✅ **The arithmetic lands again.** 3462 (previous, work laptop) **+ 2** the ex-`xfail`s
-**+ 9** the new `test_session_context_factory.py` = **3473**. The two machines happened to
-agree; do not read anything into that.
+⚠ **Working tree: NOT clean. This work is UNCOMMITTED as of writing.** Four new files
+and ten modified ones — `git status` will show them. ⚠ Three handoffs in a row now have
+made a tree claim; **run `git status` and `git log` yourself before acting on this line.**
 
-⚠ **An earlier run of the previous session read 3455 and MUST NOT be quoted.** The mistake
-is still worth knowing: `pgrep -c pytest` matches the process NAME, which is `python`, so
-it reported zero while the run was alive, and piping through `tail` kept the output file at
-zero bytes. **Use `pgrep -af pytest`, and write the log to a file rather than a pipe.**
+## ✅ SHIPPED this session — `save_path` → `save_fn` across the seven tabs
 
-**Working tree: clean as of `efd55c1`.** ⚠ Two handoffs in a row made a tree claim that was
-already false; **run `git status` and `git log` yourself before acting on this line.**
+Row 4 of `hosting-state-model.md` §3.9. **§3.5a of that file and the last section of
+`status/engine-and-ui.md` are the record; do not restate them here.** What a reader needs
+before touching anything:
 
-## ✅ SHIPPED this session, part 3 — the registry is WIRED, and the isolation bug is gone
+`exalted_builder/ui/saving.py` is new — the `SaveFn` type and `save_to_path(path)`, which
+writes the file and notifies. **Seven `build_*` tabs take `save_fn` as their third
+positional argument** (editor, gear, advantages, picker, combos, play, storyteller). A tab
+cannot see a path, thus a tab cannot assume a file system.
 
-`efd55c1`. P2's first **invasive** row, and the one P0 was written to gate.
-`hosting-state-model.md` **§3.4a** is the record; do not restate it here. The four things
-a reader needs:
+**`build_app` alone still takes a `save_path`** — it owns the file dialogs and builds the
+fallback context. It derives `tab_save` from the **live** `ctx["path"]` and hands that
+down, so a Load, a New or a Save-As is picked up without depending on a refresh.
 
-**The routes resolve their context in the page BODY now**, from one `SessionRegistry` per
-process, keyed by the session cookie. `register_pages` keeps its signature and returns the
-registry.
+### 🐞 The parameter being replaced was already dead in the app
 
-⚠ **`ctx` is a PROTOTYPE now. That is a semantic reversal, not plumbing.** The dict a
-caller hands to `register_pages` stopped being the live application state;
-`builder.session_context_factory` copies it for each session. Desktop is unaffected — one
-run, one session. **Read this before you write anything that mutates the ctx a caller
-built**: your edit lands on the prototype and no session ever sees it.
+Each tab used `save_path` in exactly one place: a `save()` wired to a Save button that
+renders **only under `with_header=True`**, and the builder passes `with_header=False` to
+all seven. So §3.5's "persistence seam" was reachable only from the seven per-screen dev
+entry points.
 
-🐞 **The copy has an invariant no end-to-end test can see.** Inside one context,
-`ctx["char"]` can *be* a party member's character **by identity** — `open_member` points it
-there by reference so the party card follows the builder's edits with no syncing code, and
-`close_member` leaves it there with `member` back to None. Copying `char` and `party`
-independently severs that **silently**. The factory finds the member by `is`. Proven by
-mutation: deleting that branch fails exactly the two cases that cover it and nothing else.
+⚠ **Scope, precisely: this removed a false affordance. It did not add a hosted write
+path.** `builder.save()`'s two-way branch is still the live save and still has no third
+deployment — a hosted Save still shows a green *"Downloading …"* toast over an empty
+volume. **Do not read this row as having fixed hosted saving.**
 
-🐞 **`ui/gm.py:main()` was a real defect, and last commit's own note created it.** That
-note said the nine per-screen dev entry points "use no storage" — true when written, false
-the moment the routes read a cookie. `gm.py` calls `register_pages`, so both its pages
-would have raised at load. Fixed. ⚠ **Any future `ui.run` that registers these routes must
-pass a `storage_secret`, and nothing enforces it.**
+### 🐞 No test in the suite had ever clicked Save
 
-**Not done, on purpose:** the idle `sweep()` is unwired. `max_sessions` still bounds the
-registry, so this is not a leak; the sweep wants an app-wide timer next to the auto-save
-that `on_evict` feeds, and both are §5 work.
+Seven tabs, seven wirings, zero coverage — a tab could have dropped its third argument
+entirely and stayed green. `tests/test_tab_save_fn.py` is the guard: one case per tab,
+each asserting the callback ran **once** with **that tab's character by identity**.
+⚠ The identity assertion is the load-bearing one; a count alone passes when a tab saves
+the wrong character, which a party of several members makes reachable.
 
-## ✅ SHIPPED this session, part 2 — P2 has begun, additively
+**Negative-controlled per tab, and that is why the seven cases are worth trusting.** A
+no-op substitution in one tab reddens exactly that tab's case and leaves six green. Seven
+for seven. One shared assertion would have hidden six of them.
 
-Work done on the **work laptop**, in a short window, which chose the pieces: the two
-**purely additive** rows of `hosting-state-model.md` §3.9, and neither invasive one.
+### 🐞 The two contracts are asymmetric, and it sprang the same day
 
-**The storage table is re-verified against NiceGUI 3.14.0** — P2's gating task. Two cells
-were wrong, the two-tier design survives, and Redis is answered. §3.4 has it all; the
-summary is in the P2 entry below. Do not re-open it.
+"Every `build_*` takes a callback now" is false for exactly one function, and the
+mechanical sweep converted four `build_app` call sites with the rest. **The failure named
+nothing useful**: NiceGUI raised *"argument should be a str or an os.PathLike object …
+not 'function'"* from a page handler, six test files deep, naming neither `build_app` nor
+the argument. ⚠ **The ⚠ in that docstring was written an hour before it failed to prevent
+the mistake it described.** `build_app` now raises a named TypeError, held by
+`test_build_app_rejects_a_save_callback`.
 
-**`exalted_builder/server/` is new, and nothing imports it yet.** That is deliberate.
+### Two corrections to the plan, both in §3.5a
 
-* `session.py` — `SessionRegistry`: `ctx_for(key)`, a bounded LRU with an idle `sweep()`,
-  rehydration through a `factory(key)`, and an `on_evict` hook for §3.7's auto-save.
-  ⚠ It departs from §3.4's sketch in two ways ON PURPOSE — a class rather than a
-  module-level `_SESSIONS` dict (a module global is itself process-global state, which is
-  the shape of the bug being removed, and it leaks between tests), and `factory(key)`
-  rather than `ctx_for(key, user_id)` (the registry knows nothing of auth or the DB).
-* `config.py` — `storage_secret()`. Reads `EXALTED_STORAGE_SECRET`; with none, mints a
-  random per-process key. ⚠ **There is no default secret and there must never be one.**
-  A known constant lets anybody forge a session cookie, and every functional test still
-  passes while it happens.
-* Three `ui.run` call sites now pass it: `ui/builder.py:main()` (both branches),
-  `pack/run_app.py`, and `tests/_isolation_main.py` — the last closes §3.4's Constraint 3
-  and is what lets P0 reach tier 1 at all. The nine per-screen dev entry points are
-  untouched; they use no storage.
+* ⚠ **The "9th save site" warning was wrong.** `qt/` imports only `ui.theme` and
+  `ui.view` and calls no `build_*`; `qt/main_window.py:593` is a save SITE, not a
+  `save_path` PARAMETER. Nothing in `qt/` was touched.
+* **The count that mattered was neither 8 nor 9 but 160** — the `build_*` call sites in
+  `tests/_ui_main.py`, which no estimate mentioned and which are most of the diff.
 
-### 🐞 A test that passed against the defect it guarded
+### ⚠ The runpy trap, which will re-bite the next harness
 
-⚠ **The best thing this session produced.** `test_the_cap_never_evicts_the_session_it_just
-_made` passed with the protection deleted. Above `max_sessions=0` the new session is always
-the most recently used, so the least-recently-used rule can never select it and the guard
-cannot be observed to fail. **A cap of 0 is the one reachable failing case**, and the test
-uses it now. This is `CLAUDE.md` §7 exactly — a rule in a place where it does not operate —
-and it was found by mutation, not by reading.
-
-**Five mutations were run against the registry and two against the secret.** All seven fail
-the intended test now. ⚠ That method is the reason to trust these 19 tests; a green run on
-new code proves nothing on its own.
-
-## ✅ SHIPPED this session — the VTT is a plan with rulings, not an idea
-
-The human asked to plan the VTT. The blocking question was *"how hard is a basic
-whiteboard/spatial surface?"*, with the scope choice riding on the answer.
-
-**`docs/plans/vtt.md` is the plan and the authority on phasing.** Do not restate it here.
-The findings that shaped it:
-
-* **The board is cheap; the substrate under it is expensive, and the table-only option
-  needs that same substrate.** So the two options were never a fork — the board is ~15% of
-  the total, additive, and severable. **The scope choice was deferred at no cost.**
-* Three things make it cheap, all verified in-tree rather than recalled: the custom-canvas
-  bridge already ships (`ui/assets.py` → `ui/picker.py:1813` → `emitEvent` →
-  `ui/builder.py:150`), `Client.instances` + per-client `run_javascript` is the broadcast
-  primitive, and the engine learns nothing.
-* **`Table` should be a first-class entity.** The human's rulings on homebrew scope and on
-  the GM page arrived separately and both describe it. `HouseRules` already marks each
-  field TABLE-WIDE or PER-CHARACTER — **the grain was right before there was a table.**
-* **Homebrew "modding" is one new scope, not two new mechanisms.** Decision 0012 shipped
-  character-carried copies in 2026-07-29, and its precedence rules already compose. ⚠ The
-  hazard: `load_party()` already absorbs every member's homebrew into one library
-  (`persistence.py:236-239`) — at table scope that is *simultaneously* the feature asked
-  for and an unprompted injection path. **The difference is consent, and nothing in the
-  code expresses it.** Ruled: on a table, `absorb_custom=False` and the ST approves.
-
-**All seven open questions are RULED** (§8 of the plan). Q5 — does the board ship —
-was answered 2026-09-11: *"Board ships later; assume yes for now, we'll see how it
-ships."* ⚠ **Assume yes for PLANNING; the shape is a hedge, not a spec.** It is not
-authority to start P4, which still comes after P3 and is still severable.
-
-**Decision 0020 is RATIFIED** — `docs/decisions/0020-the-board-is-dumb.md`, indexed in
-`CLAUDE.md` §9 and `docs/decisions/README.md`. *"The board may hold a picture of the table.
-It may not hold a model of the table."* Same cut as 0019, and it exists because the moment
-a token knows which character it is, the next ask is "how far can I move" — which is 0008,
-and no test would fail on the way.
-
-### P0 — the isolation test, confirmed RED
-
-`tests/test_session_isolation.py` + `_isolation_main.py` + `_isolation_names.py`.
-Demonstrates `hosting-state-model.md` §3.1 instead of reasoning about it: two sessions
-share one `Character`, on `/` and across `/gm` → `/`.
-
-⚠ **The first `/gm` version PASSED and was wrong**, and this is the session's best lesson —
-see `docs/lessons.md`. It asserted `should_see(MEMBER_NAME)`, which the GM card **prints**,
-so it matched whether or not the navigation happened. Also `find("Builder")` matched
-**two** buttons. Now in `lessons.md` as: **when a test navigates, assert on a value the
-origin page cannot produce.**
-
-### P1 — re-scoped, because it was already done
-
-⚠ **The third carried plan item this project has found already complete, and the same
-cause each time: written from a census nothing re-ran.** `pyproject.toml` already declares
-`pydantic` as the only hard dependency. A clean-venv install proves the engine is already
-consumable with no toolkit. The carve-out would have touched **491 absolute import sites**
-(456 in `tests/`) to buy something already true. **Physical split DEFERRED until
-`exalted-table` exists.** §1.1's structure and the private-dependency rule still stand.
-
-What P1 became: **`tests/test_engine_seam.py`** — the boundary is now enforced rather than
-merely true. Full detail in `status/engine-and-ui.md`.
-
-### 🐞 And it found a real defect — the thaumaturgy data did not ship
-
-`package-data` named `data/*.json` and `data/charms/*.json`; `data/thaumaturgy/` was added
-later and never added there. A wheel carried **189 of 193** data files and **zero**
-thaumaturgy. ⚠ **The four release assets were NOT affected** — `pack/*.spec` copies the
-tree recursively. **Only `pip install` was**, which is the deployment hosting uses.
-
-⚠ **Nothing reported it, because `rules_db.py:790` treats every thaumaturgy file as
-optional — correctly.** A ruled absence and a lost file are the same bytes. Fixed, proven
-by rebuild, and `tests/test_packaging.py` now catches the *next* uncovered directory.
-Written up in `status/engine-and-ui.md`.
+A `nicegui_main_file` is executed **by path**, so it becomes a module object that is *not*
+the one the test imports. The first version of the guard recorded into a module-level list
+in `_save_fn_main.py` and read an always-empty one — **all seven cases failed for a reason
+that was not the defect**, which is the worst kind of red. Shared state must live in a
+third module both sides import by name (`tests/_save_fn_state.py`;
+`tests/_isolation_names.py` exists for the same reason).
 
 ## 👉 NEXT — in rough order of what would bite
 
-- **P2, continued — `save_path` → `save_fn`. THE NEXT PIECE.** It touches **9** signatures
-  plus call sites: 8 in `ui/`, plus `qt/main_window.py:593`, which §3.5 warns the count of
-  8 omits. ⚠ **Do not start it in a short window**, and read §3.5 first — Option B
-  (monkey-patching `persistence.save_character`) is **STRUCK**, not merely discouraged; a
-  module-global rebind is itself process-global state and reintroduces the bug that
-  `efd55c1` just removed.
-  ⚠ **The estimate has been quoted two ways: ~5 days is §3 alone; the phase is 10–12 days
-  part-time** (`vtt.md:502`, §3 + §5 + auth + DB). Use the larger one.
-  ⚠ **`builder.save()`'s two-way branch is the third-deployment trap below, and this row
-  is where it bites.**
+- **P2 §3.7 — the debounced auto-save helper. THE NEXT PIECE, and the last of §3.**
+  Half a day. Every tab funnels mutations through `changed()`, so this is one helper, not
+  eight. It calls `build_app`'s `tab_save`, which already reads the live `ctx["path"]`.
+  ⚠ **Do not save on every `changed()` call — the dot tracks fire it per click.**
+  ⚠ It is what makes eviction safe: once a session can be evicted, *"your edits are on
+  the server until you press Save"* stops being true.
   Carried findings still live for the rest of P2:
-  - ⚠ **Do not take the tab-storage shortcut §3.4 describes.** `app.storage.tab` does hold
-    a live object and does survive navigation, but it is keyed per *tab* and the ruling is
-    per *browser*. It reintroduces the isolation bug one scope down, and nothing fails.
-    ✅ The shipped key is `app.storage.browser["id"]` and it is **sync** — the cookie needs
-    no socket connection, so Constraint 1's async cost never landed.
   - ⚠ **Run one worker.** The registry holds live `Character` objects, so it can never be
     JSON, so it can never cross processes. Redis is not an alternative — it makes *every*
     NiceGUI store serialized, including `tab`.
+  - ⚠ **Do not take the tab-storage shortcut §3.4 describes.** `app.storage.tab` does
+    hold a live object and does survive navigation, but it is keyed per *tab* and the
+    ruling is per *browser*. It reintroduces the isolation bug one scope down, and
+    nothing fails.
   - ⚠ **Tier-1 misuse fails in a background task, not at the assignment.** Putting a
-    `Character` into `app.storage.user` succeeds at the line that does it; the `TypeError`
-    arrives later as a logged ERROR. A test only catches it by asserting on `caplog`.
-    Tier 1 is still **unused**; `efd55c1` reads the cookie id and writes nothing.
-- **Backgrounds `source` — 51 of 63 DONE 2026-09-11. 12 left, and they need a human with a
-  page.** ⚠ **This entry used to say "a provenance job, not a reading job; it needs no pages
-  fed." That was wrong**: `source` is `{book, page}` and the page is the whole record. The
-  51 were extracted mechanically by `tools/find_background_sources.py`, which scores each
-  row's own `description` against the pasted sources; the page convention was calibrated
-  against 81 known-good Merit citations (74 exact). **The residue is not more of the same
-  job** — `status/backgrounds.md` lists all 12 with their scores. Two are Lunar and have no
-  page-marked text on this machine at all. ⚠ **Do not lower the matcher threshold to clear
-  them**; that threshold is what stopped ten Mountain Folk rows being written into the
-  wrong book. A row with no `source` is honest; a confident wrong one is not.
+    `Character` into `app.storage.user` succeeds at the line that does it; the
+    `TypeError` arrives later as a logged ERROR. Only a `caplog` assertion catches it.
+    Tier 1 is still **unused**.
+  - ⚠ **`ctx` is a PROTOTYPE**, copied per session by `session_context_factory`. An edit
+    to the caller's dict after registration lands where no session sees it.
+- **Backgrounds `source` — 51 of 63 DONE. 12 left, and they need a human with a page.**
+  `status/backgrounds.md` lists all 12 with their scores. Two are Lunar and have no
+  page-marked text on this machine at all. ⚠ **Do not lower the matcher threshold to
+  clear them**; that threshold is what stopped ten Mountain Folk rows being written into
+  the wrong book. A row with no `source` is honest; a confident wrong one is not.
 - **Roll initiative for the whole table — BLOCKED** on the party holding real characters.
-  That is now phase **P3** of `docs/plans/vtt.md`, so it is scheduled rather than stuck.
+  That is phase **P3** of `docs/plans/vtt.md`, so it is scheduled rather than stuck.
   Stays a one-off: initiative's +1d10 is a printed fixed count. Do not generalise it.
 - **A content-fidelity SCRIPT** (`tools/`) — diff authored descriptions against pasted
-  source and REPORT differences, across Charms and spells too. ⚠ **An option, not a debt.**
-  Nothing is blocked on it and it must never go back into the suite.
+  source and REPORT differences. ⚠ **An option, not a debt.** Nothing is blocked on it
+  and it must never go back into the suite.
 - ⚠ **The duplicated Custom Merit/Flaw sentence.** Byte-identical in `qt/advantages.py`
   and `ui/advantages.py`, with nothing stopping them drifting. `ui/view.py` owns every
   other shared string and should own this one. A real refactor, not a one-liner.
 
 ## ⚠ Traps still live — all carried, none fixed this session
 
-**The stale server wears a healthy port.** `ui/builder.py` runs `reload=False`; a `kill` on
-the PID from `pgrep … | tail -1` kills the WRAPPER, not the listener, and `curl` still
+**`builder.save()`'s two-way branch is silently wrong for a third deployment.** Native
+gets a dialog, everything else downloads to the browser. The fix was built and **reverted
+in full** (`hosting-per-instance.md`). ⚠ **This session's row did NOT address it** — it
+is still the live save and P2 still hits it.
+
+**The stale server wears a healthy port.** `ui/builder.py` runs `reload=False`; a `kill`
+on the PID from `pgrep … | tail -1` kills the WRAPPER, not the listener, and `curl` still
 answers **200** off the old build. Get the PID from `ss -ltnp | grep 8080`. **Cost two
 sessions.** ⚠ A long-running hosted process makes this worse.
+
+**Any future `ui.run` that registers these routes must pass a `storage_secret`, and
+nothing enforces it.** `session_key()` raises without one, on purpose — there is no
+fallback key. This already bit `ui/gm.py:main()`.
 
 **The width budget** — `_BOXES_PER_ROW`, the tracker box sizes and `_RAIL_WIDTH` are ONE
 budget, and no test can see it. Measure `page._scroll.widget().minimumSizeHint().width()`
@@ -231,56 +143,44 @@ build?"* becomes a support question with no answer. Pair it with the launcher tr
 entry PINS to the first frozen binary that ever ran. ⚠ Check the DATES before blaming the
 build; the stale-binary theory has been wrong twice.
 
-**`builder.save()`'s two-way branch is silently wrong for a third deployment.** Native gets
-a dialog, everything else downloads to the browser — so a hosted Save shows a green
-*"Downloading …"* toast over an empty volume. The fix was built and **reverted in full**
-(`hosting-per-instance.md`). Whoever adds the third deployment must add the third branch,
-and nothing in the code will warn them. ⚠ **P2 hits this.**
-
 ## 🖱 Not browser-verified — what a human should click
 
-Almost nothing this session has a UI surface. Two things do:
+**Nothing in the builder changed behaviour, and that is the cheap claim to check.** The
+seven Save buttons that did change are the per-screen dev entry points, which a player
+never opens.
 
-0. **The app still launches, and the three `main()`s now carry a secret.** No test runs
-   `main()`. Checked headlessly at `efd55c1`: the server starts, `/` returns 200 at 507 KB
-   and `/gm` 200 at 71 KB **to two separate cookie jars**, two distinct session ids are
-   issued, and the log holds no error. ⚠ **That proves it serves, and nothing more**
-   (`feedback_serve_and_grep_is_not_verification`). Unrun: the **native** branch
-   (`--native`, PySide-backed window), the **frozen** build, `ui/gm.py:main()` as a
-   standalone party run, and the `v*` tag's four release assets.
+1. `python -m exalted_builder.ui.editor <file>` → **Save**. It must still write the file
+   and show *"Saved to &lt;path&gt;"*. Same for `advantages`, `picker`, `combos`, `play`,
+   `storyteller`. ⚠ **`play` and `storyteller` previously said *"Saved &lt;name&gt;"***
+   and now say *"Saved to &lt;path&gt;"* — one wording, on purpose.
+2. **Nothing on the builder's own Save, Load, New or Print.** They were not touched.
 
-0b. ⚠ **THE ONE THING MOST WORTH A HUMAN AT A BROWSER: open the app in two browsers.**
-   Every claim in this session's headline rests on a test harness that fakes two clients.
-   Two real browsers on one server, each editing a name, then **`/gm` → Builder in one of
-   them** — the second must keep its own character. And a **second tab of the SAME
-   browser** must show the *same* character, because the key is per browser by ruling
-   (`vtt.md` §8 Q1), not per tab. That last one is the case the suite cannot express at
-   all.
+**Carried from the previous session, still owed and still the most valuable:**
 
+0b. ⚠ **OPEN THE APP IN TWO BROWSERS.** Every claim in the last session's headline rests
+   on a test harness that fakes two clients. Two real browsers on one server, each editing
+   a name, then **`/gm` → Builder in one of them** — the second must keep its own
+   character. And a **second tab of the SAME browser** must show the *same* character,
+   because the key is per browser by ruling (`vtt.md` §8 Q1), not per tab. **That last
+   case the suite cannot express at all.**
 
-1. **GM page → a member card → the "Builder" button.** It gained
-   `.mark(f"open-in-builder-{index}")`, following the `mark("batch-roll")` convention
-   already on that page. `.mark()` sets a CSS marker class. Confirm the button still looks
-   and behaves as before **with two or more party members** — the marker is per-index, and
-   a wrong index would be a wrong-member handoff. 265 party/GM/adversary tests pass and not
-   one of them looks at a real display.
-
-2. **Nothing for the Backgrounds work.** `source` on a Background has **no read site** —
-   checked, not assumed: the four `row.get("source")` sites in `ui/view.py` (4105, 4245,
-   4309, 4552) are the homebrew authoring forms for Charms, spells, rituals and gear, and
-   they read a custom library row, never `data/backgrounds.json`. ⚠ That is also why a
-   wrong citation is invisible: no test and no screen can report one.
+1. **GM page → a member card → the "Builder" button**, with two or more party members.
+   It carries `.mark(f"open-in-builder-{index}")`; the marker is per-index and a wrong
+   index would be a wrong-member handoff.
 
 ## ❓ Open for the human
 
-- **Nothing is waiting on the human.** All seven of the plan's open questions are ruled.
-- **No open RULES questions.** Everything this session is either the human's explicit
-  ruling of 2026-09-11 or page-cited.
+- **Nothing is waiting on the human.** All seven of `vtt.md`'s open questions are ruled.
+- **No open RULES questions.** This session touched no game values.
+- ⚠ **The `close-out` skill is stale about CLAUDE.md.** Its step 3 names four edits to a
+  `## Status` heading and a Done/Next TODO. **CLAUDE.md has none of them** — it was
+  converted to a pure index, and its own §1 forbids status, counts and dates. Three of
+  the four steps describe sections that no longer exist. Worth a fix to the skill.
 
 ## Still deferred, still NOT gaps
 
 The Mist numina and Cult Abyssals (both indefinitely), the one martial-arts absence
-(`enlightenment`), and Haltan pets. Training times are still a no. The other splats' Charms
-were explicitly left as they are (human, 2026-09-01). The caste/aspect-book Background
-sweep is closed for planning on the human's hedge of 2026-09-11 — ⚠ a hedge, not authority
-to author one.
+(`enlightenment`), and Haltan pets. Training times are still a no. The other splats'
+Charms were explicitly left as they are (human, 2026-09-01). The caste/aspect-book
+Background sweep is closed for planning on the human's hedge of 2026-09-11 — ⚠ a hedge,
+not authority to author one.

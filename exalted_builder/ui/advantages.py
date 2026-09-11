@@ -45,6 +45,7 @@ from ..models.rules import RuleSet, VirtueName
 from . import catalogue as cataloguemod
 from . import theme
 from . import view as viewmod
+from .saving import SaveFn, save_to_path
 from .editor import DescribedSelect, _opts_with, dot_track, panel_card
 
 _PKG = Path(__file__).resolve().parents[1]
@@ -57,7 +58,7 @@ _tier_label = viewmod.merit_tier_label
 _merit_label = viewmod.merit_option_label
 
 
-def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
+def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                      *, with_header: bool = True) -> None:
     """Render the Advantages tab — Backgrounds and Merits & Flaws, in whichever regime
     the character's lock state calls for."""
@@ -1304,8 +1305,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             _chargen_merits(b)
 
     def save() -> None:
-        persistence.save_character(character, save_path)
-        ui.notify(f"Saved to {save_path}", type="positive")
+        save_fn(character)
 
     # ---- layout ----------------------------------------------------------- #
     if with_header:
@@ -1315,7 +1315,8 @@ def build_advantages(ruleset: RuleSet, character: Character, save_path: Path,
             if with_header:
                 with ui.row().classes("w-full items-center justify-between"):
                     ui.label("Advantages").classes("text-xl font-bold")
-                    ui.button("Save", icon="save", on_click=save).props(f"color={pal.button}")
+                    ui.button("Save", icon="save", on_click=save).props(
+                        f"color={pal.button}").mark("tab-save")
             body()
         with ui.column().classes("w-80 gap-2 sticky top-4"):
             with ui.card().classes(f"w-full p-3 {pal.card}"):
@@ -1345,7 +1346,7 @@ def main() -> None:
 
     @ui.page("/")
     def index() -> None:
-        build_advantages(ruleset, character, path)
+        build_advantages(ruleset, character, save_to_path(path))
 
     ui.run(title=f"Exalted 1e — advantages: {character.name or path.stem}",
            reload=False, show=args.show, port=args.port)

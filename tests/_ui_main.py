@@ -26,6 +26,15 @@ from exalted_builder.ui import (builder, combos, custom, editor, gm, picker,
 
 RS = rules_db.load_ruleset(Path("exalted_builder/data"))
 
+
+def _no_save(character: Character) -> None:
+    """The save callback that these pages give their tab. It does nothing.
+
+    These pages test what a tab RENDERS. A real save would write a file into the
+    working directory on each click. `tests/test_tab_save_fn.py` is the test that
+    the Save button calls this callback.
+    """
+
 # (a) a fresh character carrying off-catalog (custom) gear/nature — the "reload" path
 CHAR_CUSTOM = Character(id="t", name="Test", caste="dawn", nature="Wanderer")
 CHAR_CUSTOM.weapons.append(Weapon(name="My Custom Blade", accuracy=2, damage=5))
@@ -53,23 +62,23 @@ CHAR_DB.backgrounds.append(BackgroundEntry(name="", rating=1))       # a Backgro
 
 @ui.page('/custom')
 def page_custom():
-    editor.build_editor(RS, CHAR_CUSTOM, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_CUSTOM, _no_save, with_header=False)
 
 # Off-catalogue gear renders on the GEAR tab now — the crash this guards against (a
 # `ui.select` whose stored value is not in its options) followed the panels there.
 @ui.page('/custom-gear')
 def page_custom_gear():
-    gear.build_gear(RS, CHAR_CUSTOM, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_CUSTOM, _no_save, with_header=False)
 
 @ui.page('/blank')
 def page_blank():
-    editor.build_editor(RS, CHAR_BLANK, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_BLANK, _no_save, with_header=False)
 
 # The same character's GEAR tab. Equipment moved off Edit on 2026-08-13, so a test
 # about weapons, armour or goods opens this route and one about traits opens the other.
 @ui.page('/blank-gear')
 def page_blank_gear():
-    gear.build_gear(RS, CHAR_BLANK, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_BLANK, _no_save, with_header=False)
 
 # (f) one weapon that prints an attunement cost and one that does not — the toggle is
 # offered per ITEM, so a page needs both to show it is a condition and not a constant.
@@ -88,15 +97,15 @@ gear_actions_engine.add_artifact(RS, CHAR_ATTUNE_ART, "Daiklave")
 
 @ui.page('/attune-artifacts')
 def page_attune_artifacts():
-    gear.build_gear(RS, CHAR_ATTUNE_ART, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ATTUNE_ART, _no_save, with_header=False)
 
 @ui.page('/attune-gear')
 def page_attune_gear():
-    gear.build_gear(RS, CHAR_ATTUNE, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ATTUNE, _no_save, with_header=False)
 
 @ui.page('/play')
 def page_play():
-    play.build_play(RS, CHAR_PLAY, Path("x.json"), with_header=False)
+    play.build_play(RS, CHAR_PLAY, _no_save, with_header=False)
 
 # (f) the dice-pool calculator (decision 0016) gets its OWN route and character:
 # it reads the character's CONTENT (weapons, armour, specialties, marked damage), so
@@ -112,7 +121,7 @@ CHAR_POOLS.play = PlayState(health=[Damage.BASHING, Damage.LETHAL])
 
 @ui.page('/pools')
 def page_pools():
-    play.build_play(RS, CHAR_POOLS, Path("x.json"), with_header=False)
+    play.build_play(RS, CHAR_POOLS, _no_save, with_header=False)
 
 # (g) the click test MUTATES its character's health marks, so it gets its own copy —
 # a shared fixture whose CONTENT a test changes makes the next reader pass alone and
@@ -122,7 +131,7 @@ CHAR_POOLS_CLICK.id = "dpc"
 
 @ui.page('/pools-click')
 def page_pools_click():
-    play.build_play(RS, CHAR_POOLS_CLICK, Path("x.json"), with_header=False)
+    play.build_play(RS, CHAR_POOLS_CLICK, _no_save, with_header=False)
 
 # (h) accumulated armour fatigue (p.332) — its own character, because the points
 # subtract from every pool and would move every other route's expected total.
@@ -132,7 +141,7 @@ CHAR_POOLS_FATIGUE.play = PlayState(fatigue=2)
 
 @ui.page('/pools-fatigue')
 def page_pools_fatigue():
-    play.build_play(RS, CHAR_POOLS_FATIGUE, Path("x.json"), with_header=False)
+    play.build_play(RS, CHAR_POOLS_FATIGUE, _no_save, with_header=False)
 
 # (i) the empty shape: a Mortal with no weapons, no armour, no specialties and no
 # marked damage — every optional control in the calculator absent at once.
@@ -140,7 +149,7 @@ CHAR_POOLS_BARE = Character(id="dpb", name="Peasant", exalt_type="Mortal", caste
 
 @ui.page('/pools-bare')
 def page_pools_bare():
-    play.build_play(RS, CHAR_POOLS_BARE, Path("x.json"), with_header=False)
+    play.build_play(RS, CHAR_POOLS_BARE, _no_save, with_header=False)
 
 # (i2) the dumb roller (decision 0019). Its own character and route: the roller's
 # transcript lives in the page's closure, and a route another test drives would
@@ -149,35 +158,35 @@ CHAR_ROLLER = Character(id="rlr", name="Roller", caste="dawn")
 
 @ui.page('/roller')
 def page_roller():
-    play.build_play(RS, CHAR_ROLLER, Path("x.json"), with_header=False)
+    play.build_play(RS, CHAR_ROLLER, _no_save, with_header=False)
 
 @ui.page('/xp')
 def page_xp():
-    editor.build_editor(RS, CHAR_XP, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_XP, _no_save, with_header=False)
 
 @ui.page('/xp-gear')
 def page_xp_gear():
-    gear.build_gear(RS, CHAR_XP, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_XP, _no_save, with_header=False)
 
 @ui.page('/db')
 def page_db():
-    editor.build_editor(RS, CHAR_DB, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_DB, _no_save, with_header=False)
 
 # Backgrounds live on the Advantages tab, so the splat-aware autofill list is checked
 # there — a Dragon-Blooded gains Breeding/Connections and loses Contacts.
 @ui.page('/db-advantages')
 def page_db_advantages():
-    advantages.build_advantages(RS, CHAR_DB, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_DB, _no_save, with_header=False)
 
 @ui.page('/custom-advantages')
 def page_custom_advantages():
-    advantages.build_advantages(RS, CHAR_CUSTOM, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_CUSTOM, _no_save, with_header=False)
 
 @ui.page('/dbpicker')
 def page_dbpicker():
     # the charm-tree picker themed for a Dragon-Blooded character (red palette).
     # CHAR_DB holds no Immaculate Charm → the picker shows the STANDARD path banner.
-    picker.build_picker(RS, CHAR_DB, Path("x.json"), with_header=True)
+    picker.build_picker(RS, CHAR_DB, _no_save, with_header=True)
 
 # (e2) a Dragon-Blooded already on the Immaculate path (holds Dragon-style Charms)
 CHAR_DB_IMMACULATE = Character(id="di", name="Immaculate", exalt_type="Dragon-Blooded",
@@ -186,7 +195,7 @@ CHAR_DB_IMMACULATE.charms = ["dragonblooded.air-dragon.air-dragons-sight"]
 
 @ui.page('/dbpicker-immaculate')
 def page_dbpicker_immaculate():
-    picker.build_picker(RS, CHAR_DB_IMMACULATE, Path("x.json"), with_header=True)
+    picker.build_picker(RS, CHAR_DB_IMMACULATE, _no_save, with_header=True)
 
 @ui.page('/dbsheet')
 def page_dbsheet():
@@ -216,7 +225,7 @@ CHAR_AB = Character(id="ab", name="Ash", exalt_type="Abyssal", caste="dusk", ori
 
 @ui.page('/abpicker')
 def page_abpicker():
-    picker.build_picker(RS, CHAR_AB, Path("x.json"), with_header=True)
+    picker.build_picker(RS, CHAR_AB, _no_save, with_header=True)
 
 # (h2) a modern Dragon-King — the Paths page (breed ★ + favoured ✚ + a rating), the
 # breed soak/health, and the sheet's Paths / sectioned-charms panels.
@@ -234,7 +243,7 @@ def page_dksheet():
 
 @ui.page('/dkpicker')
 def page_dkpicker():
-    picker.build_picker(RS, CHAR_DK, Path("x.json"), with_header=True)
+    picker.build_picker(RS, CHAR_DK, _no_save, with_header=True)
 
 # (h2b) a modern Dragon-King exercising the p.175 effective-over-5 attribute cap: a
 # stored Dexterity 5 on the Pterok's +2 breed reads as an effective 7 on the sheet
@@ -263,16 +272,16 @@ CHAR_INPLAY.xp_earned = 50
 # One route per Charm, so a test never has to reach back into this module.
 @ui.page('/inplay-picker')
 def page_inplay_picker():
-    picker.build_picker(RS, CHAR_INPLAY, Path("x.json"), with_header=True)
+    picker.build_picker(RS, CHAR_INPLAY, _no_save, with_header=True)
 
 @ui.page('/inplay-picker-buy')       # an available Charm — shows its XP price
 def page_inplay_picker_buy():
-    picker.build_picker(RS, CHAR_INPLAY, Path("x.json"),
+    picker.build_picker(RS, CHAR_INPLAY, _no_save,
                         with_header=True)("solar.melee.hungry-tiger-technique")
 
 @ui.page('/inplay-picker-known')     # a Charm already known — no Remove in play
 def page_inplay_picker_known():
-    picker.build_picker(RS, CHAR_INPLAY, Path("x.json"),
+    picker.build_picker(RS, CHAR_INPLAY, _no_save,
                         with_header=True)("solar.melee.excellent-strike")
 
 # (j) its own fresh character for the lock-swaps-the-tab-bar test
@@ -284,7 +293,7 @@ def page_builder_lock():
 
 @ui.page('/inplay-combos')
 def page_inplay_combos():
-    combos.build_combos(RS, CHAR_INPLAY, Path("x.json"), with_header=False)
+    combos.build_combos(RS, CHAR_INPLAY, _no_save, with_header=False)
 
 # (k) the GM party page. A @ui.page route builds once per session, so each GM test
 # gets its OWN party and context — never a shared one — or one test's clicks leak
@@ -457,7 +466,7 @@ CHAR_SID_XP.xp_earned = 40
 
 @ui.page('/sidxp')
 def page_sid_xp():
-    editor.build_editor(RS, CHAR_SID_XP, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_SID_XP, _no_save, with_header=False)
 
 # (g) an Illuminated Solar (Cult of the Illuminated) — the editor's Training Camp +
 # Calling panel, the ✧ Calling marks on the Abilities panel, the granted-Charm rows on
@@ -482,7 +491,7 @@ CHAR_ILL_EDIT = _illuminated("i1")
 
 @ui.page('/ill-editor')
 def page_ill_editor():
-    editor.build_editor(RS, CHAR_ILL_EDIT, Path("i.json"), with_header=False)
+    editor.build_editor(RS, CHAR_ILL_EDIT, _no_save, with_header=False)
 
 CHAR_ILL_SHEET = _illuminated("i2")
 
@@ -507,7 +516,7 @@ CHAR_ILL_TAB.abilities[AbilityName.PRESENCE] = 3
 
 @ui.page('/ill-editor-tabernacle')
 def page_ill_editor_tab():
-    editor.build_editor(RS, CHAR_ILL_TAB, Path("i3.json"), with_header=False)
+    editor.build_editor(RS, CHAR_ILL_TAB, _no_save, with_header=False)
 
 # A Cult DRAGON-BLOODED (Cult p.96) — the second splat to own training camps, and the
 # first flat-pool grant ("three Charms from five styles or Ox-Body Technique", picked
@@ -540,7 +549,7 @@ CHAR_CULT_DB.granted_charms = (
 
 @ui.page('/cult-db-editor')
 def page_cult_db_editor():
-    editor.build_editor(RS, CHAR_CULT_DB, Path("cdb1.json"), with_header=False)
+    editor.build_editor(RS, CHAR_CULT_DB, _no_save, with_header=False)
 
 # The crash shape: a Dragon-Blooded holding the SOLAR Cult's camp id. `camp_for`
 # resolves it against the whole table, so the select would be handed a value none of
@@ -550,7 +559,7 @@ CHAR_CULT_DB_CROSSED.calling = "deacon"
 
 @ui.page('/cult-db-crossed')
 def page_cult_db_crossed():
-    editor.build_editor(RS, CHAR_CULT_DB_CROSSED, Path("cdb2.json"), with_header=False)
+    editor.build_editor(RS, CHAR_CULT_DB_CROSSED, _no_save, with_header=False)
 
 # A plain Solar, for the test that the Origin dropdown renders at all and offers the
 # Illuminated option — it was missing from _SPLAT_ORIGINS on the first pass, which made
@@ -559,7 +568,7 @@ CHAR_SOLAR_ORIGIN = Character(id="so", name="Plain Solar", exalt_type="Solar", c
 
 @ui.page('/solar-origin')
 def page_solar_origin():
-    editor.build_editor(RS, CHAR_SOLAR_ORIGIN, Path("so.json"), with_header=False)
+    editor.build_editor(RS, CHAR_SOLAR_ORIGIN, _no_save, with_header=False)
 
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run()
@@ -578,7 +587,7 @@ CHAR_LOOKSHY.abilities[AbilityName.SAIL] = 2
 
 @ui.page('/lookshy-editor')
 def page_lookshy_editor():
-    editor.build_editor(RS, CHAR_LOOKSHY, Path("lk.json"), with_header=False)
+    editor.build_editor(RS, CHAR_LOOKSHY, _no_save, with_header=False)
 
 CHAR_LOOKSHY_SHEET = Character(id="lk2", name="Karal Fire Orchid",
                                exalt_type="Dragon-Blooded", caste="air",
@@ -603,7 +612,7 @@ CHAR_THAUM = _thaumaturge("th1")
 
 @ui.page('/thaum-picker')
 def page_thaum_picker():
-    picker.build_picker(RS, CHAR_THAUM, Path("th.json"), with_header=True,
+    picker.build_picker(RS, CHAR_THAUM, _no_save, with_header=True,
                         initial_group="thaum")
 
 # A thaumaturge who already holds one of each kind, so the owned-row controls (drop,
@@ -619,7 +628,7 @@ CHAR_THAUM_OWNED.thaumaturgy = ThaumaturgyState(
 
 @ui.page('/thaum-picker-owned')
 def page_thaum_picker_owned():
-    picker.build_picker(RS, CHAR_THAUM_OWNED, Path("th2.json"), with_header=True,
+    picker.build_picker(RS, CHAR_THAUM_OWNED, _no_save, with_header=True,
                         initial_group="thaum")
 
 # Locked + XP in hand: the page switches from bonus points to experience.
@@ -629,7 +638,7 @@ CHAR_THAUM_INPLAY.xp_earned = 40
 
 @ui.page('/thaum-picker-inplay')
 def page_thaum_picker_inplay():
-    picker.build_picker(RS, CHAR_THAUM_INPLAY, Path("th3.json"), with_header=True,
+    picker.build_picker(RS, CHAR_THAUM_INPLAY, _no_save, with_header=True,
                         initial_group="thaum")
 
 # "Magic for Everyone" on, at Occult 4 -> a 2-purchase free grant, which the page
@@ -639,7 +648,7 @@ CHAR_THAUM_MFE.house_rules = HouseRules(magic_for_everyone=True)
 
 @ui.page('/thaum-picker-mfe')
 def page_thaum_picker_mfe():
-    picker.build_picker(RS, CHAR_THAUM_MFE, Path("th4.json"), with_header=True,
+    picker.build_picker(RS, CHAR_THAUM_MFE, _no_save, with_header=True,
                         initial_group="thaum")
 
 # --- Storyteller options tab ------------------------------------------------ #
@@ -647,7 +656,7 @@ CHAR_ST = Character(id="st1", name="Table Rules", caste="dawn")
 
 @ui.page('/st-options')
 def page_st_options():
-    storyteller.build_storyteller(RS, CHAR_ST, Path("st.json"), with_header=False)
+    storyteller.build_storyteller(RS, CHAR_ST, _no_save, with_header=False)
 
 # An Eclipse: the per-character foreign-Charm permission actually bites here, so it
 # renders without the "no effect" note that a Dawn gets.
@@ -655,7 +664,7 @@ CHAR_ST_ECLIPSE = Character(id="st2", name="Eclipse", caste="eclipse")
 
 @ui.page('/st-options-eclipse')
 def page_st_options_eclipse():
-    storyteller.build_storyteller(RS, CHAR_ST_ECLIPSE, Path("st2.json"), with_header=False)
+    storyteller.build_storyteller(RS, CHAR_ST_ECLIPSE, _no_save, with_header=False)
 
 # Locked: the toggles are frozen into the chargen snapshot, so the tab is read-only.
 CHAR_ST_LOCKED = Character(id="st3", name="Locked Table", caste="dawn")
@@ -663,7 +672,7 @@ lifecycle.lock_chargen(CHAR_ST_LOCKED)
 
 @ui.page('/st-options-locked')
 def page_st_options_locked():
-    storyteller.build_storyteller(RS, CHAR_ST_LOCKED, Path("st3.json"), with_header=False)
+    storyteller.build_storyteller(RS, CHAR_ST_LOCKED, _no_save, with_header=False)
 
 
 # A thaumaturge's read-only sheet, and their XP ledger. Thaumaturgy is cross-splat,
@@ -700,7 +709,7 @@ picker.add_thaum_orientation(RS, CHAR_THAUM_XP, "ritual",
 
 @ui.page('/thaum-xp')
 def page_thaum_xp():
-    editor.build_editor(RS, CHAR_THAUM_XP, Path("th6.json"), with_header=False)
+    editor.build_editor(RS, CHAR_THAUM_XP, _no_save, with_header=False)
 
 
 # Its own character for the ST-tab test, so clicking a toggle here cannot leak into
@@ -709,7 +718,7 @@ CHAR_BUILDER_ST = Character(id="bst", name="Table", caste="dawn")
 
 @ui.page('/builder-st')
 def page_builder_st():
-    builder.build_app(RS, CHAR_BUILDER_ST, Path("bst.json"))
+    builder.build_app(RS, CHAR_BUILDER_ST, Path("x.json"))
 
 
 # --------------------------------------------------------------------------- #
@@ -756,7 +765,7 @@ CHAR_MORTAL = Character(id="mt", name="Nine Cups", exalt_type="Mortal", caste=""
 
 @ui.page('/mortal')
 def page_mortal():
-    editor.build_editor(RS, CHAR_MORTAL, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_MORTAL, _no_save, with_header=False)
 
 @ui.page('/mortal-sheet')
 def page_mortal_sheet():
@@ -769,7 +778,7 @@ def page_mortal_sheet():
 # rendered blank).
 @ui.page('/mortalpicker')
 def page_mortalpicker():
-    picker.build_picker(RS, CHAR_MORTAL, Path("x.json"), with_header=False)
+    picker.build_picker(RS, CHAR_MORTAL, _no_save, with_header=False)
 
 # A mortal holding Merits: the editor's Merits panel and the sheet's block must both
 # render, including the variable-cost row (Oathbound Magic) whose tier/arena controls
@@ -786,7 +795,7 @@ CHAR_MERITS.merits_flaws = [
 
 @ui.page('/merits')
 def page_merits():
-    advantages.build_advantages(RS, CHAR_MERITS, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MERITS, _no_save, with_header=False)
 
 # The Essence dot row's Merit-override pips (2026-08-06 regression fix): post-lock the
 # row is capped by the splat ceiling UNLESS the calc's essence_cap_override lifts it —
@@ -813,15 +822,15 @@ lifecycle.lock_chargen(CHAR_MORTAL_PLAIN, RS)
 
 @ui.page('/essence-cap-mortal')
 def page_essence_cap_mortal():
-    editor.build_editor(RS, CHAR_MORTAL_ESS, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_MORTAL_ESS, _no_save, with_header=False)
 
 @ui.page('/essence-cap-gb')
 def page_essence_cap_gb():
-    editor.build_editor(RS, CHAR_GB_AWAKENED, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_GB_AWAKENED, _no_save, with_header=False)
 
 @ui.page('/essence-cap-plain')
 def page_essence_cap_plain():
-    editor.build_editor(RS, CHAR_MORTAL_PLAIN, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_MORTAL_PLAIN, _no_save, with_header=False)
 
 # The OTHER mortal picker shape: a mortal whose Merits reopen part of the Charm bar.
 # `/mortalpicker` proves the pages vanish when there is nothing to show; these two
@@ -841,7 +850,7 @@ CHAR_MASTERY = _mastery_mortal("mm", "Unbound")
 
 @ui.page('/mastery-picker')
 def page_mastery_picker():
-    picker.build_picker(RS, CHAR_MASTERY, Path("x.json"), with_header=False)
+    picker.build_picker(RS, CHAR_MASTERY, _no_save, with_header=False)
 
 CHAR_MASTERY_XP = _mastery_mortal("mm2", "Unbound Veteran")
 lifecycle.lock_chargen(CHAR_MASTERY_XP, RS)
@@ -849,7 +858,7 @@ CHAR_MASTERY_XP.xp_earned = 60
 
 @ui.page('/mastery-picker-xp')
 def page_mastery_picker_xp():
-    picker.build_picker(RS, CHAR_MASTERY_XP, Path("x.json"), with_header=False)
+    picker.build_picker(RS, CHAR_MASTERY_XP, _no_save, with_header=False)
 
 # A mortal at the Essence-3 human ceiling with an unlocked pool. The editor shows
 # PG p.114's "limit of human potential — mortals that exceed Essence 3 become gods"
@@ -862,13 +871,13 @@ lifecycle.lock_chargen(CHAR_GOD_CEILING, RS)
 
 @ui.page('/editor-god-ceiling')
 def page_editor_god_ceiling():
-    editor.build_editor(RS, CHAR_GOD_CEILING, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_GOD_CEILING, _no_save, with_header=False)
 
 CHAR_MASTERY_EDITOR = _mastery_mortal("mm3", "Unbound Below")
 
 @ui.page('/editor-mastery-mortal')
 def page_editor_mastery_mortal():
-    editor.build_editor(RS, CHAR_MASTERY_EDITOR, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_MASTERY_EDITOR, _no_save, with_header=False)
 
 # The wrong-field regression: Awareness-only, pool unlocked but no cap override, its
 # free-setter dot track clicked to 3 pre-lock. The god-transition clause must NOT
@@ -879,7 +888,7 @@ CHAR_AWARENESS_ONLY.merits_flaws = [MeritFlawPurchase(merit_id="thaum.essence-aw
 
 @ui.page('/editor-awareness-only')
 def page_editor_awareness_only():
-    editor.build_editor(RS, CHAR_AWARENESS_ONLY, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_AWARENESS_ONLY, _no_save, with_header=False)
 
 # A6: a Solar holding Heir Apparent (whose purchase records STIPULATIONS, a control no
 # other entry gets) and Innocuous' veiled tier (which caps Allies and closes Cult, so
@@ -900,7 +909,7 @@ CHAR_BG_MERITS.backgrounds = [
 
 @ui.page('/merits-backgrounds')
 def page_merits_backgrounds():
-    advantages.build_advantages(RS, CHAR_BG_MERITS, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_BG_MERITS, _no_save, with_header=False)
 
 # The same character, locked — the per-row Background descriptions print in play too,
 # where the rows swap the dot track for a plain number.
@@ -910,7 +919,7 @@ CHAR_BG_MERITS_XP.chargen_locked = True
 
 @ui.page('/backgrounds-description-xp')
 def page_backgrounds_description_xp():
-    advantages.build_advantages(RS, CHAR_BG_MERITS_XP, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_BG_MERITS_XP, _no_save, with_header=False)
 
 # A7: an Abyssal whose Resonance track is BOTH renamed and shortened, who has a
 # permanent Resonance counter, and who holds both luck pools at once.
@@ -925,7 +934,7 @@ CHAR_PLAY_MERITS.merits_flaws = [
 
 @ui.page('/merits-play')
 def page_merits_play():
-    play.build_play(RS, CHAR_PLAY_MERITS, Path("x.json"), with_header=False)
+    play.build_play(RS, CHAR_PLAY_MERITS, _no_save, with_header=False)
 
 # The same character, locked, so the XP tab's permanent-Resonance panel renders — the
 # tracker tells the ST to come here, so this must actually exist.
@@ -936,7 +945,7 @@ CHAR_RESONANCE_XP.xp_earned = 20
 
 @ui.page('/merits-resonance-xp')
 def page_merits_resonance_xp():
-    editor.build_editor(RS, CHAR_RESONANCE_XP, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_RESONANCE_XP, _no_save, with_header=False)
 
 # Ruling 1 of the Advantages plan: the shared bonus-point readout. A Solar with a
 # 5-point Merit has spent bonus points on THIS tab, and the total must be visible here
@@ -948,11 +957,11 @@ CHAR_ADV_BP.merits_flaws = [MeritFlawPurchase(merit_id="mf.legendary-attribute",
 
 @ui.page('/advantages-bp')
 def page_advantages_bp():
-    advantages.build_advantages(RS, CHAR_ADV_BP, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_ADV_BP, _no_save, with_header=False)
 
 @ui.page('/advantages-bp-edit')
 def page_advantages_bp_edit():
-    editor.build_editor(RS, CHAR_ADV_BP, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_ADV_BP, _no_save, with_header=False)
 
 # A save whose structured detail is off-list — "strength", not "Strength". validate
 # accepts it (it title-cases before comparing), so nothing else in the build objects,
@@ -966,7 +975,7 @@ CHAR_ADV_ODD.merits_flaws = [
 
 @ui.page('/advantages-odd-detail')
 def page_advantages_odd_detail():
-    advantages.build_advantages(RS, CHAR_ADV_ODD, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_ADV_ODD, _no_save, with_header=False)
 
 # Render-matrix shapes for the Advantages tab. A CASTELESS splat (Mortal) unlocked —
 # every caste-keyed lookup on this tab takes `character.caste == ""` — and a save
@@ -979,7 +988,7 @@ CHAR_ADV_MORTAL.merits_flaws = [MeritFlawPurchase(merit_id="thaum.essence-awaren
 
 @ui.page('/advantages-mortal')
 def page_advantages_mortal():
-    advantages.build_advantages(RS, CHAR_ADV_MORTAL, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_ADV_MORTAL, _no_save, with_header=False)
 
 CHAR_ADV_UNKNOWN = Character(id="advu", name="Stranger", exalt_type="Solar",
                              caste="dawn", essence_rating=1)
@@ -989,7 +998,7 @@ CHAR_ADV_UNKNOWN.backgrounds = [BackgroundEntry(name="A Thing Nobody Authored", 
 
 @ui.page('/advantages-unknown')
 def page_advantages_unknown():
-    advantages.build_advantages(RS, CHAR_ADV_UNKNOWN, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_ADV_UNKNOWN, _no_save, with_header=False)
 
 CHAR_ADV_UNKNOWN_XP = CHAR_ADV_UNKNOWN.model_copy(deep=True)
 CHAR_ADV_UNKNOWN_XP.id = "advux"
@@ -998,7 +1007,7 @@ CHAR_ADV_UNKNOWN_XP.xp_earned = 20
 
 @ui.page('/advantages-unknown-xp')
 def page_advantages_unknown_xp():
-    advantages.build_advantages(RS, CHAR_ADV_UNKNOWN_XP, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_ADV_UNKNOWN_XP, _no_save, with_header=False)
 
 @ui.page('/merits-sheet')
 def page_merits_sheet():
@@ -1014,7 +1023,7 @@ CHAR_MF_XP.chargen_locked = True
 
 @ui.page('/mf-xp')
 def page_mf_xp():
-    advantages.build_advantages(RS, CHAR_MF_XP, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MF_XP, _no_save, with_header=False)
 
 
 # A Solar holding a two-sided entry (Eternal Vow, "3-PT. MERIT OR 1-PT. FLAW"). The
@@ -1027,7 +1036,7 @@ CHAR_MF_SIDE.merits_flaws = [MeritFlawPurchase(merit_id="mf.eternal-vow")]
 
 @ui.page('/mf-side')
 def page_mf_side():
-    advantages.build_advantages(RS, CHAR_MF_SIDE, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MF_SIDE, _no_save, with_header=False)
 
 
 # The same entry on the XP tab, locked and in funds, so the gain card renders its
@@ -1038,7 +1047,7 @@ CHAR_MF_SIDE_XP.chargen_locked = True
 
 @ui.page('/mf-side-xp')
 def page_mf_side_xp():
-    advantages.build_advantages(RS, CHAR_MF_SIDE_XP, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MF_SIDE_XP, _no_save, with_header=False)
 
 
 # A LOCKED character holding a player-authored "Custom" M&F row (2026-08-10). The
@@ -1053,7 +1062,7 @@ CHAR_MF_CUSTOM_XP.chargen_locked = True
 
 @ui.page('/mf-custom-xp')
 def page_mf_custom_xp():
-    advantages.build_advantages(RS, CHAR_MF_CUSTOM_XP, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MF_CUSTOM_XP, _no_save, with_header=False)
 
 
 # 14 points of Flaws against the 10-point cap (p.17), so both surfaces have to say
@@ -1068,7 +1077,7 @@ CHAR_MF_CAPPED.merits_flaws = [
 
 @ui.page('/mf-capped')
 def page_mf_capped():
-    advantages.build_advantages(RS, CHAR_MF_CAPPED, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MF_CAPPED, _no_save, with_header=False)
 
 
 # The same overload on the XP tab, locked, where the cap truncates the XP AWARD.
@@ -1078,7 +1087,7 @@ CHAR_MF_CAPPED_XP.chargen_locked = True
 
 @ui.page('/mf-capped-xp')
 def page_mf_capped_xp():
-    advantages.build_advantages(RS, CHAR_MF_CAPPED_XP, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MF_CAPPED_XP, _no_save, with_header=False)
 
 
 # The XP tab's trait rows against Merit-RAISED ceilings. Reported by a player
@@ -1099,7 +1108,7 @@ CHAR_XP_CAPS.xp_earned = 200
 
 @ui.page('/xp-caps')
 def page_xp_caps():
-    editor.build_editor(RS, CHAR_XP_CAPS, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_XP_CAPS, _no_save, with_header=False)
 
 
 # Decision 0013 / P1: the editor rendered POST-LOCK, where its dot tracks are steppers
@@ -1113,7 +1122,7 @@ CHAR_EDIT_XP.xp_earned = 100
 
 @ui.page('/editor-locked')
 def page_editor_locked():
-    editor.build_editor(RS, CHAR_EDIT_XP, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_EDIT_XP, _no_save, with_header=False)
 
 # The downward-click dialog itself, built for each of the three states it can be in.
 # A render test cannot reach it — it exists only in response to a click on a pip — and
@@ -1128,7 +1137,7 @@ def page_editor_lower_both():
     from exalted_builder.engine import advancement as adv
     if adv.refundable_depth(CHAR_DIALOG, "attributes.strength") == 0:
         adv.raise_to(RS, CHAR_DIALOG, "attributes.strength", 4)
-    open_dialog = editor.build_editor(RS, CHAR_DIALOG, Path("x.json"), with_header=False)
+    open_dialog = editor.build_editor(RS, CHAR_DIALOG, _no_save, with_header=False)
     open_dialog("attributes.strength", 4, 3, lambda: None)
 
 # A chargen dot with nothing bought on top: refund is impossible, a curse is not.
@@ -1138,7 +1147,7 @@ lifecycle.lock_chargen(CHAR_DIALOG_CURSE, RS)
 
 @ui.page('/editor-lower-curse-only')
 def page_editor_lower_curse_only():
-    open_dialog = editor.build_editor(RS, CHAR_DIALOG_CURSE, Path("x.json"),
+    open_dialog = editor.build_editor(RS, CHAR_DIALOG_CURSE, _no_save,
                                       with_header=False)
     open_dialog("attributes.strength", 3, 2, lambda: None)
 
@@ -1153,7 +1162,7 @@ CHAR_COL_CLEAN.xp_earned = 40
 
 @ui.page('/column-clean')
 def page_column_clean():
-    editor.build_editor(RS, CHAR_COL_CLEAN, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_COL_CLEAN, _no_save, with_header=False)
 
 CHAR_COL_BROKEN = Character(id="col2", name="Cursed Veteran", caste="dawn")
 CHAR_COL_BROKEN.abilities[AbilityName.MELEE] = 3
@@ -1167,7 +1176,7 @@ def page_column_broken():
     from exalted_builder.engine import advancement as adv
     if CHAR_COL_BROKEN.abilities[AbilityName.MELEE] > 1:
         adv.lower_to(CHAR_COL_BROKEN, "abilities.melee", 1, "a curse")
-    editor.build_editor(RS, CHAR_COL_BROKEN, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_COL_BROKEN, _no_save, with_header=False)
 
 # The Undo control. A read-only log has no per-row undo button, so this is the ONLY
 # way to reverse a Charm/Combo/spell/specialty purchase — traits have their dot-track
@@ -1182,7 +1191,7 @@ def page_column_undo():
     from exalted_builder.engine import advancement as adv
     if not CHAR_COL_UNDO.charms:
         adv.learn_charm(RS, CHAR_COL_UNDO, "solar.melee.excellent-strike")
-    editor.build_editor(RS, CHAR_COL_UNDO, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_COL_UNDO, _no_save, with_header=False)
 
 
 # Chargen choices frozen at the lock. An Illuminated Solar, so the Training Camp and
@@ -1199,7 +1208,7 @@ CHAR_FROZEN.xp_earned = 40
 
 @ui.page('/identity-frozen')
 def page_identity_frozen():
-    editor.build_editor(RS, CHAR_FROZEN, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_FROZEN, _no_save, with_header=False)
 
 CHAR_UNFROZEN = Character(id="ufz", name="Still Building", caste="dawn",
                           origin="illuminated")
@@ -1207,7 +1216,7 @@ CHAR_UNFROZEN.camp = "sequestered-tabernacle"
 
 @ui.page('/identity-open')
 def page_identity_open():
-    editor.build_editor(RS, CHAR_UNFROZEN, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_UNFROZEN, _no_save, with_header=False)
 
 
 # P3 rehoming: an Abyssal with Death's Taint (permanent Resonance track) and Weak
@@ -1221,7 +1230,7 @@ CHAR_REHOMED.xp_earned = 60
 
 @ui.page('/rehomed')
 def page_rehomed():
-    editor.build_editor(RS, CHAR_REHOMED, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_REHOMED, _no_save, with_header=False)
 
 
 # P5 render matrix for the merged trait surface: the two splat shapes that have
@@ -1235,7 +1244,7 @@ CHAR_MORTAL_LOCKED.xp_earned = 30
 
 @ui.page('/editor-locked-mortal')
 def page_editor_locked_mortal():
-    editor.build_editor(RS, CHAR_MORTAL_LOCKED, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_MORTAL_LOCKED, _no_save, with_header=False)
 
 CHAR_ALCH_LOCKED = Character(id="alk", name="Locked Alchemical",
                              exalt_type="Alchemical", caste="orichalcum")
@@ -1244,7 +1253,7 @@ CHAR_ALCH_LOCKED.xp_earned = 30
 
 @ui.page('/editor-locked-alchemical')
 def page_editor_locked_alchemical():
-    editor.build_editor(RS, CHAR_ALCH_LOCKED, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_ALCH_LOCKED, _no_save, with_header=False)
 
 
 # P4: the sheet's read-only copy of the ledger. Built from the SheetView alone, so
@@ -1275,7 +1284,7 @@ CHAR_LUNAR_LOCKED.xp_earned = 30
 
 @ui.page('/editor-locked-lunar')
 def page_editor_locked_lunar():
-    editor.build_editor(RS, CHAR_LUNAR_LOCKED, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_LUNAR_LOCKED, _no_save, with_header=False)
 
 CHAR_ODD_LOCKED = Character(id="odd", name="Odd Kit", caste="dawn",
                             nature="Not In The Catalog")
@@ -1286,11 +1295,11 @@ CHAR_ODD_LOCKED.xp_earned = 30
 
 @ui.page('/editor-locked-odd')
 def page_editor_locked_odd():
-    editor.build_editor(RS, CHAR_ODD_LOCKED, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_ODD_LOCKED, _no_save, with_header=False)
 
 @ui.page('/editor-locked-odd-gear')
 def page_editor_locked_odd_gear():
-    gear.build_gear(RS, CHAR_ODD_LOCKED, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ODD_LOCKED, _no_save, with_header=False)
 
 
 # Essence and trait ceilings (Player's Guide pp.258-259): the first characters in the
@@ -1306,7 +1315,7 @@ CHAR_ELDER.abilities[AbilityName.MELEE] = 7
 
 @ui.page('/editor-elder')
 def page_editor_elder():
-    editor.build_editor(RS, CHAR_ELDER, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_ELDER, _no_save, with_header=False)
 
 @ui.page('/sheet-elder')
 def page_sheet_elder():
@@ -1320,7 +1329,7 @@ CHAR_ELDER_DB.essence_rating = 7
 
 @ui.page('/editor-elder-terrestrial')
 def page_editor_elder_terrestrial():
-    editor.build_editor(RS, CHAR_ELDER_DB, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_ELDER_DB, _no_save, with_header=False)
 
 
 # The p.259 downtime calculator, on its OWN character: the Grant button mutates the
@@ -1332,7 +1341,7 @@ lifecycle.lock_chargen(CHAR_DOWNTIME, RS)
 
 @ui.page('/editor-downtime')
 def page_editor_downtime():
-    editor.build_editor(RS, CHAR_DOWNTIME, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_DOWNTIME, _no_save, with_header=False)
 
 # The read-only half of the same panel, on its own character and route: a route builds
 # once per session, so the test that GRANTS must not share one with the test that only
@@ -1342,7 +1351,7 @@ lifecycle.lock_chargen(CHAR_DOWNTIME_VIEW, RS)
 
 @ui.page('/editor-downtime-view')
 def page_editor_downtime_view():
-    editor.build_editor(RS, CHAR_DOWNTIME_VIEW, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_DOWNTIME_VIEW, _no_save, with_header=False)
 
 
 # --- Ghosts (E:Ab) ---------------------------------------------------------- #
@@ -1367,15 +1376,15 @@ CHAR_GHOST = _ghost("gh", "Sighing Reed")
 
 @ui.page('/ghost-advantages')
 def page_ghost_advantages():
-    advantages.build_advantages(RS, CHAR_GHOST, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_GHOST, _no_save, with_header=False)
 
 @ui.page('/ghost-editor')
 def page_ghost_editor():
-    editor.build_editor(RS, CHAR_GHOST, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_GHOST, _no_save, with_header=False)
 
 @ui.page('/ghost-picker')
 def page_ghost_picker():
-    picker.build_picker(RS, CHAR_GHOST, Path("x.json"), with_header=False)
+    picker.build_picker(RS, CHAR_GHOST, _no_save, with_header=False)
 
 @ui.page('/ghost-sheet')
 def page_ghost_sheet():
@@ -1387,14 +1396,14 @@ CHAR_GHOST_IMM.backgrounds = [BackgroundEntry(name="Ancestor Cult", rating=3)]
 
 @ui.page('/ghost-advantages-immaculate')
 def page_ghost_advantages_immaculate():
-    advantages.build_advantages(RS, CHAR_GHOST_IMM, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_GHOST_IMM, _no_save, with_header=False)
 
 # The mundane dead — the other origin, and the smaller budgets.
 CHAR_GHOST_MUNDANE = _ghost("ghm", "Nobody", origin="mundane")
 
 @ui.page('/ghost-editor-mundane')
 def page_ghost_editor_mundane():
-    editor.build_editor(RS, CHAR_GHOST_MUNDANE, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_GHOST_MUNDANE, _no_save, with_header=False)
 
 # LOCKED: the post-lock half of both panels — the Fetter buy controls and the Shift
 # Passion control, neither of which exists pre-lock.
@@ -1404,7 +1413,7 @@ CHAR_GHOST_XP.xp_earned = 100
 
 @ui.page('/ghost-advantages-xp')
 def page_ghost_advantages_xp():
-    advantages.build_advantages(RS, CHAR_GHOST_XP, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_GHOST_XP, _no_save, with_header=False)
 
 @ui.page('/ghost-sheet-xp')
 def page_ghost_sheet_xp():
@@ -1423,7 +1432,7 @@ lifecycle.lock_chargen(CHAR_GHOST_EMPTY, RS)
 
 @ui.page('/ghost-advantages-empty')
 def page_ghost_advantages_empty():
-    advantages.build_advantages(RS, CHAR_GHOST_EMPTY, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_GHOST_EMPTY, _no_save, with_header=False)
 
 @ui.page('/ghost-sheet-empty')
 def page_ghost_sheet_empty():
@@ -1436,7 +1445,7 @@ CHAR_GHOST_APP = _ghost("gha", "Tab Test")
 
 @ui.page('/ghost-app')
 def page_ghost_app():
-    builder.build_app(RS, CHAR_GHOST_APP, Path("gha.json"))
+    builder.build_app(RS, CHAR_GHOST_APP, Path("x.json"))
 
 # --------------------------------------------------------------------------- #
 # Rated artifacts (E:Ab p.131) — a loyal Abyssal with all three kinds of artifact
@@ -1459,14 +1468,14 @@ CHAR_ARTIFACTS.merits_flaws.append(
 
 @ui.page('/artifacts-advantages')
 def page_artifacts_advantages():
-    gear.build_gear(RS, CHAR_ARTIFACTS, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACTS, _no_save, with_header=False)
 
 # The same character's ADVANTAGES tab. Damaged Artifact is a Merit, so its per-item
 # picker stayed with M&F when the artifacts themselves moved to Gear — one character,
 # two tabs, and the tests that read each need their own route.
 @ui.page('/artifacts-merits')
 def page_artifacts_merits():
-    advantages.build_advantages(RS, CHAR_ARTIFACTS, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_ARTIFACTS, _no_save, with_header=False)
 
 @ui.page('/artifacts-sheet')
 def page_artifacts_sheet():
@@ -1481,7 +1490,7 @@ CHAR_ARTIFACTS_XP.xp_earned = 20
 
 @ui.page('/artifacts-advantages-xp')
 def page_artifacts_advantages_xp():
-    gear.build_gear(RS, CHAR_ARTIFACTS_XP, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACTS_XP, _no_save, with_header=False)
 
 # The merit-gated plot devices (human's ruling 2026-08-13). Two shapes, because the
 # whole mechanism is "the offer moves with the permission": WITH the Legendary Artifact
@@ -1495,7 +1504,7 @@ CHAR_LEGENDARY.artifacts.append(ArtifactEntry(name="Mantle of Brigid", rating=5,
 
 @ui.page('/legendary-gear')
 def page_legendary_gear():
-    gear.build_gear(RS, CHAR_LEGENDARY, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_LEGENDARY, _no_save, with_header=False)
 
 # The same artifact with no Merit behind it — the bar, on the tab that shows it.
 CHAR_LEGENDARY_BARE = CHAR_LEGENDARY.model_copy(deep=True)
@@ -1504,7 +1513,7 @@ CHAR_LEGENDARY_BARE.merits_flaws = []
 
 @ui.page('/legendary-gear-bare')
 def page_legendary_gear_bare():
-    gear.build_gear(RS, CHAR_LEGENDARY_BARE, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_LEGENDARY_BARE, _no_save, with_header=False)
 
 # A splat with no budget table: the panel still edits artifacts, but prints no budget.
 CHAR_ARTIFACTS_SOLAR = Character(id="arts", name="Velgash", caste="dawn")
@@ -1513,7 +1522,7 @@ CHAR_ARTIFACTS_SOLAR.artifacts.append(ArtifactEntry(name="Tattered Wings", ratin
 
 @ui.page('/artifacts-advantages-solar')
 def page_artifacts_advantages_solar():
-    gear.build_gear(RS, CHAR_ARTIFACTS_SOLAR, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACTS_SOLAR, _no_save, with_header=False)
 
 # The same Solar past the lock, where the Background rating control is a NUMBER input
 # (the unlocked regime draws dots, which a test can only click one pip at a time). The
@@ -1525,12 +1534,12 @@ lifecycle.lock_chargen(CHAR_ARTIFACT_HEADER, RS)
 
 @ui.page('/artifact-header-sync')
 def page_artifact_header_sync():
-    gear.build_gear(RS, CHAR_ARTIFACT_HEADER, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACT_HEADER, _no_save, with_header=False)
 
 # …and its ADVANTAGES side, where the Artifact Background row states what its dots buy.
 @ui.page('/artifact-background-note')
 def page_artifact_background_note():
-    advantages.build_advantages(RS, CHAR_ARTIFACT_HEADER, Path("x.json"),
+    advantages.build_advantages(RS, CHAR_ARTIFACT_HEADER, _no_save,
                                 with_header=False)
 
 # Picking an artifact that is ALSO a weapon must grant the stat line, linked, so the
@@ -1542,13 +1551,13 @@ CHAR_ARTIFACT_GRANT.backgrounds.append(BackgroundEntry(name="Artifact", rating=3
 
 @ui.page('/artifact-grant')
 def page_artifact_grant():
-    gear.build_gear(RS, CHAR_ARTIFACT_GRANT, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACT_GRANT, _no_save, with_header=False)
 
 # The equipment surface for the SAME character, so a test can pick an artifact on one
 # page and see the granted stat line on the other without reaching into module state.
 @ui.page('/artifact-grant-editor')
 def page_artifact_grant_editor():
-    gear.build_gear(RS, CHAR_ARTIFACT_GRANT, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACT_GRANT, _no_save, with_header=False)
 
 # A LOCKED character who bought an artifact with cash (Manacle and Coin pp.122-125) —
 # the acquisition control exists only post-lock, and the budget must not charge for it.
@@ -1561,7 +1570,7 @@ lifecycle.lock_chargen(CHAR_ARTIFACT_BOUGHT, RS)
 
 @ui.page('/artifact-bought')
 def page_artifact_bought():
-    gear.build_gear(RS, CHAR_ARTIFACT_BOUGHT, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACT_BOUGHT, _no_save, with_header=False)
 
 # The same shape UNLOCKED, where the control must not exist at all.
 CHAR_ARTIFACT_UNLOCKED = Character(id="artu", name="Fresh", exalt_type="Solar",
@@ -1571,7 +1580,7 @@ CHAR_ARTIFACT_UNLOCKED.artifacts.append(ArtifactEntry(name="Tattered Wings", rat
 
 @ui.page('/artifact-unlocked')
 def page_artifact_unlocked():
-    gear.build_gear(RS, CHAR_ARTIFACT_UNLOCKED, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_ARTIFACT_UNLOCKED, _no_save, with_header=False)
 
 # Damaged Artifact held by a character owning NO artifacts — the empty-options case
 # for the artifact picker, which is the NiceGUI build-time crash class (a ui.select
@@ -1583,7 +1592,7 @@ CHAR_ARTIFACTS_NONE.merits_flaws.append(
 
 @ui.page('/artifacts-advantages-none')
 def page_artifacts_advantages_none():
-    advantages.build_advantages(RS, CHAR_ARTIFACTS_NONE, Path("x.json"),
+    advantages.build_advantages(RS, CHAR_ARTIFACTS_NONE, _no_save,
                                 with_header=False)
 
 # ...and one whose stored key resolves to nothing, because the artifact was renamed.
@@ -1597,7 +1606,7 @@ CHAR_ARTIFACTS_STALE.merits_flaws.append(
 
 @ui.page('/artifacts-advantages-stale')
 def page_artifacts_advantages_stale():
-    advantages.build_advantages(RS, CHAR_ARTIFACTS_STALE, Path("x.json"),
+    advantages.build_advantages(RS, CHAR_ARTIFACTS_STALE, _no_save,
                                 with_header=False)
 
 
@@ -1619,15 +1628,15 @@ CHAR_GODBLOODED = _godblooded("gdb", "Sighing Willow")
 
 @ui.page('/godblooded-advantages')
 def page_godblooded_advantages():
-    advantages.build_advantages(RS, CHAR_GODBLOODED, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_GODBLOODED, _no_save, with_header=False)
 
 @ui.page('/godblooded-editor')
 def page_godblooded_editor():
-    editor.build_editor(RS, CHAR_GODBLOODED, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_GODBLOODED, _no_save, with_header=False)
 
 @ui.page('/godblooded-picker')
 def page_godblooded_picker():
-    picker.build_picker(RS, CHAR_GODBLOODED, Path("x.json"), with_header=False)
+    picker.build_picker(RS, CHAR_GODBLOODED, _no_save, with_header=False)
 
 @ui.page('/godblooded-sheet')
 def page_godblooded_sheet():
@@ -1647,15 +1656,15 @@ CHAR_HALF_CASTE = _half_caste("hc", "Golden Child", "Solar")
 
 @ui.page('/godblooded-halfcaste-advantages')
 def page_godblooded_halfcaste_advantages():
-    advantages.build_advantages(RS, CHAR_HALF_CASTE, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_HALF_CASTE, _no_save, with_header=False)
 
 @ui.page('/godblooded-halfcaste-editor')
 def page_godblooded_halfcaste_editor():
-    editor.build_editor(RS, CHAR_HALF_CASTE, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_HALF_CASTE, _no_save, with_header=False)
 
 @ui.page('/godblooded-halfcaste-picker')
 def page_godblooded_halfcaste_picker():
-    picker.build_picker(RS, CHAR_HALF_CASTE, Path("x.json"), with_header=False)
+    picker.build_picker(RS, CHAR_HALF_CASTE, _no_save, with_header=False)
 
 @ui.page('/godblooded-halfcaste-sheet')
 def page_godblooded_halfcaste_sheet():
@@ -1683,15 +1692,15 @@ CHAR_FAE_COMMONER_2X.merits_flaws.append(
 
 @ui.page('/godblooded-fae-advantages')
 def page_godblooded_fae_advantages():
-    advantages.build_advantages(RS, CHAR_FAE_NOBLE, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_FAE_NOBLE, _no_save, with_header=False)
 
 @ui.page('/godblooded-fae-editor')
 def page_godblooded_fae_editor():
-    editor.build_editor(RS, CHAR_FAE_NOBLE, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_FAE_NOBLE, _no_save, with_header=False)
 
 @ui.page('/godblooded-fae-picker')
 def page_godblooded_fae_picker():
-    picker.build_picker(RS, CHAR_FAE_NOBLE, Path("x.json"), with_header=False)
+    picker.build_picker(RS, CHAR_FAE_NOBLE, _no_save, with_header=False)
 
 @ui.page('/godblooded-fae-sheet')
 def page_godblooded_fae_sheet():
@@ -1699,7 +1708,7 @@ def page_godblooded_fae_sheet():
 
 @ui.page('/godblooded-fae-commoner-2x-advantages')
 def page_godblooded_fae_commoner_2x_advantages():
-    advantages.build_advantages(RS, CHAR_FAE_COMMONER_2X, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_FAE_COMMONER_2X, _no_save, with_header=False)
 
 # Review repro (Fix 1): a Fae-Blooded SAVED with a stale origin — the Half-Caste's
 # "Solar" parent, and a blank — must render the editor, not raise ValueError on the
@@ -1710,11 +1719,11 @@ CHAR_FAE_NO_ORIGIN = _fae("fae-none", "Originless Changeling", "")
 
 @ui.page('/godblooded-fae-stale-origin-editor')
 def page_godblooded_fae_stale_origin_editor():
-    editor.build_editor(RS, CHAR_FAE_STALE_ORIGIN, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_FAE_STALE_ORIGIN, _no_save, with_header=False)
 
 @ui.page('/godblooded-fae-no-origin-editor')
 def page_godblooded_fae_no_origin_editor():
-    editor.build_editor(RS, CHAR_FAE_NO_ORIGIN, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_FAE_NO_ORIGIN, _no_save, with_header=False)
 
 
 def _god_blooded(cid: str, name: str, origin: str) -> Character:
@@ -1751,15 +1760,15 @@ CHAR_DEMON_BLOODED = _demon_blooded("dbd", "Silver-Tongued Apostate")
 
 @ui.page('/godblooded-god-advantages')
 def page_godblooded_god_advantages():
-    advantages.build_advantages(RS, CHAR_GOD_BLOODED, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_GOD_BLOODED, _no_save, with_header=False)
 
 @ui.page('/godblooded-god-editor')
 def page_godblooded_god_editor():
-    editor.build_editor(RS, CHAR_GOD_BLOODED, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_GOD_BLOODED, _no_save, with_header=False)
 
 @ui.page('/godblooded-god-picker')
 def page_godblooded_god_picker():
-    picker.build_picker(RS, CHAR_GOD_BLOODED, Path("x.json"), with_header=False)
+    picker.build_picker(RS, CHAR_GOD_BLOODED, _no_save, with_header=False)
 
 @ui.page('/godblooded-god-sheet')
 def page_godblooded_god_sheet():
@@ -1767,15 +1776,15 @@ def page_godblooded_god_sheet():
 
 @ui.page('/godblooded-demon-advantages')
 def page_godblooded_demon_advantages():
-    advantages.build_advantages(RS, CHAR_DEMON_BLOODED, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_DEMON_BLOODED, _no_save, with_header=False)
 
 @ui.page('/godblooded-demon-editor')
 def page_godblooded_demon_editor():
-    editor.build_editor(RS, CHAR_DEMON_BLOODED, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_DEMON_BLOODED, _no_save, with_header=False)
 
 @ui.page('/godblooded-demon-picker')
 def page_godblooded_demon_picker():
-    picker.build_picker(RS, CHAR_DEMON_BLOODED, Path("x.json"), with_header=False)
+    picker.build_picker(RS, CHAR_DEMON_BLOODED, _no_save, with_header=False)
 
 @ui.page('/godblooded-demon-sheet')
 def page_godblooded_demon_sheet():
@@ -1801,7 +1810,7 @@ CHAR_ELEMENTAL_GODBLOODED = _elemental_godblooded("egb", "Aegis of the East Wind
 
 @ui.page('/godblooded-elemental-picker')
 def page_godblooded_elemental_picker():
-    picker.build_picker(RS, CHAR_ELEMENTAL_GODBLOODED, Path("x.json"), with_header=False)
+    picker.build_picker(RS, CHAR_ELEMENTAL_GODBLOODED, _no_save, with_header=False)
 
 # Locked + XP in hand: the elemental page switches from BP to XP pricing (14 per
 # power) and the owned power reprices as an XP purchase.
@@ -1811,7 +1820,7 @@ CHAR_ELEMENTAL_INPLAY.xp_earned = 40
 
 @ui.page('/godblooded-elemental-picker-inplay')
 def page_godblooded_elemental_picker_inplay():
-    picker.build_picker(RS, CHAR_ELEMENTAL_INPLAY, Path("eg2.json"), with_header=False,
+    picker.build_picker(RS, CHAR_ELEMENTAL_INPLAY, _no_save, with_header=False,
                         initial_group="elemental")
 
 # No powers owned: the Owned section is absent, all nine still list as available.
@@ -1820,7 +1829,7 @@ CHAR_ELEMENTAL_EMPTY.elemental_powers = []
 
 @ui.page('/godblooded-elemental-picker-empty')
 def page_godblooded_elemental_picker_empty():
-    picker.build_picker(RS, CHAR_ELEMENTAL_EMPTY, Path("eg3.json"), with_header=False,
+    picker.build_picker(RS, CHAR_ELEMENTAL_EMPTY, _no_save, with_header=False,
                         initial_group="elemental")
 
 # The Sheet's Charms & Sorcery band must head an Elemental Powers section for a
@@ -1845,7 +1854,7 @@ CHAR_DK_2FLAG.artifacts.append(ArtifactEntry(name="Wyld-Cutting Blade", rating=5
 def page_dk_artifacts_2flag_advantages():
     # The artifacts panel and its readout moved to Gear on 2026-08-13; the route name
     # is kept so the test's history stays greppable.
-    gear.build_gear(RS, CHAR_DK_2FLAG, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_DK_2FLAG, _no_save, with_header=False)
 
 @ui.page('/dk-artifacts-2flag-sheet')
 def page_dk_artifacts_2flag_sheet():
@@ -1861,7 +1870,7 @@ CHAR_BG_RUNG.backgrounds = [BackgroundEntry(name="Allies", rating=2)]
 
 @ui.page('/backgrounds-rung')
 def page_backgrounds_rung():
-    advantages.build_advantages(RS, CHAR_BG_RUNG, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_BG_RUNG, _no_save, with_header=False)
 
 CHAR_BG_RUNG_XP = CHAR_BG_RUNG.model_copy(deep=True)
 CHAR_BG_RUNG_XP.id = "bgrungx"
@@ -1869,7 +1878,7 @@ CHAR_BG_RUNG_XP.chargen_locked = True
 
 @ui.page('/backgrounds-rung-xp')
 def page_backgrounds_rung_xp():
-    advantages.build_advantages(RS, CHAR_BG_RUNG_XP, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_BG_RUNG_XP, _no_save, with_header=False)
 
 # The Background catalogue DIALOG's ladder rendering. Its own character again: the
 # dialog test reads the full text of the Allies entry, and the description tests
@@ -1881,7 +1890,7 @@ CHAR_BG_DIALOG.backgrounds = [BackgroundEntry(name="Allies", rating=1)]
 
 @ui.page('/backgrounds-ladder-dialog')
 def page_backgrounds_ladder_dialog():
-    advantages.build_advantages(RS, CHAR_BG_DIALOG, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_BG_DIALOG, _no_save, with_header=False)
 
 # --------------------------------------------------------------------------- #
 # The rating-control ceilings come from the engine (R5 of briefs-background-rules).
@@ -1908,7 +1917,7 @@ CHAR_MF_ART.backgrounds = [BackgroundEntry(name="Artifact", rating=3)]
 
 @ui.page('/mf-artifact-chargen')
 def page_mf_artifact_chargen():
-    advantages.build_advantages(RS, CHAR_MF_ART, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MF_ART, _no_save, with_header=False)
 
 # A Mountain Folk holding the capped Resources Background, for the effective-rating
 # note on the row. Its own character because the test reads this row's CONTENT.
@@ -1918,7 +1927,7 @@ CHAR_MF_RES.backgrounds = [BackgroundEntry(name="Resources", rating=3)]
 
 @ui.page('/mf-resources')
 def page_mf_resources():
-    advantages.build_advantages(RS, CHAR_MF_RES, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MF_RES, _no_save, with_header=False)
 
 # The mundane-goods section and the services price list (M&C p.123). Its own character
 # because the goods test MUTATES the list, and its own Resources rating so the
@@ -1929,7 +1938,7 @@ CHAR_GOODS.backgrounds = [BackgroundEntry(name="Resources", rating=3)]
 
 @ui.page('/goods')
 def page_goods():
-    gear.build_gear(RS, CHAR_GOODS, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_GOODS, _no_save, with_header=False)
 
 # The inventory VIEW: one character owning something of every kind at once, including
 # the overlap that makes the filters non-exclusive (an artifact daiklave is a weapon
@@ -1947,7 +1956,7 @@ CHAR_INV.gear.append(GearEntry(name="Fine clothes", resources_cost=2))
 
 @ui.page('/inventory')
 def page_inventory():
-    gear.build_gear(RS, CHAR_INV, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_INV, _no_save, with_header=False)
 
 # An artifact and the stat line `grant_gear` stamped for it: ONE object, ONE row. Its
 # OWN route, not a second read of CHAR_INV — a test that reads a shared module-level
@@ -1963,7 +1972,7 @@ CHAR_INV_MERGED.weapons.append(Weapon(
 
 @ui.page('/inventory-merged')
 def page_inventory_merged():
-    gear.build_gear(RS, CHAR_INV_MERGED, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_INV_MERGED, _no_save, with_header=False)
 
 CHAR_MF_ART_PLAY = CHAR_MF_ART.model_copy(deep=True)
 CHAR_MF_ART_PLAY.id = "mfartx"
@@ -1971,7 +1980,7 @@ lifecycle.lock_chargen(CHAR_MF_ART_PLAY, RS)
 
 @ui.page('/mf-artifact-play')
 def page_mf_artifact_play():
-    advantages.build_advantages(RS, CHAR_MF_ART_PLAY, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MF_ART_PLAY, _no_save, with_header=False)
 
 CHAR_SOLAR_ART = Character(id="solart", name="Aurora", exalt_type="Solar", caste="dawn",
                            essence_rating=1, attributes=_CHAR_ATTRIBUTES_1)
@@ -1979,7 +1988,7 @@ CHAR_SOLAR_ART.backgrounds = [BackgroundEntry(name="Artifact", rating=3)]
 
 @ui.page('/solar-artifact-chargen')
 def page_solar_artifact_chargen():
-    advantages.build_advantages(RS, CHAR_SOLAR_ART, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_SOLAR_ART, _no_save, with_header=False)
 
 CHAR_SOLAR_ART_PLAY = CHAR_SOLAR_ART.model_copy(deep=True)
 CHAR_SOLAR_ART_PLAY.id = "solartx"
@@ -1987,7 +1996,7 @@ lifecycle.lock_chargen(CHAR_SOLAR_ART_PLAY, RS)
 
 @ui.page('/solar-artifact-play')
 def page_solar_artifact_play():
-    advantages.build_advantages(RS, CHAR_SOLAR_ART_PLAY, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_SOLAR_ART_PLAY, _no_save, with_header=False)
 
 # Three more rating-ceiling shapes the four routes above do not produce, each a
 # different way the engine-supplied ceiling can be wrong on screen:
@@ -2003,7 +2012,7 @@ CHAR_SID_CONN.backgrounds = [BackgroundEntry(name="Connections", rating=3)]
 
 @ui.page('/sidereal-connections-chargen')
 def page_sidereal_connections_chargen():
-    advantages.build_advantages(RS, CHAR_SID_CONN, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_SID_CONN, _no_save, with_header=False)
 
 CHAR_MORTAL_ART = Character(id="mortart", name="Hopeful", exalt_type="Mortal", caste="",
                             origin="heroic", essence_rating=1,
@@ -2012,7 +2021,7 @@ CHAR_MORTAL_ART.backgrounds = [BackgroundEntry(name="Artifact", rating=2)]
 
 @ui.page('/mortal-artifact-barred-chargen')
 def page_mortal_artifact_barred_chargen():
-    advantages.build_advantages(RS, CHAR_MORTAL_ART, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MORTAL_ART, _no_save, with_header=False)
 
 CHAR_SID_OVER = Character(id="sidover", name="Overhoused", exalt_type="Sidereal",
                           caste="journeys", essence_rating=2,
@@ -2022,7 +2031,7 @@ CHAR_SID_OVER.chargen_locked = True
 
 @ui.page('/sidereal-over-ceiling-play')
 def page_sidereal_over_ceiling_play():
-    advantages.build_advantages(RS, CHAR_SID_OVER, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_SID_OVER, _no_save, with_header=False)
 
 # The Resources affordability hint on the gear dialogs (core p.325). Resources 2 puts
 # the three bows on the three printed cases at once — Self Bow 1 under, Long Bow 2
@@ -2033,7 +2042,7 @@ CHAR_RESOURCES_2.backgrounds = [BackgroundEntry(name="Resources", rating=2)]
 
 @ui.page('/gear-resources')
 def page_gear_resources():
-    gear.build_gear(RS, CHAR_RESOURCES_2, Path("x.json"), with_header=False)
+    gear.build_gear(RS, CHAR_RESOURCES_2, _no_save, with_header=False)
 
 # A chargen character sitting on the transient over-cap state the editor creates every
 # time a specialty row is appended: `add_spec` writes the row on Melee and the player
@@ -2046,7 +2055,7 @@ CHAR_SPEC_STALE.specialties = [
 
 @ui.page('/specialty-retarget')
 def page_specialty_retarget():
-    editor.build_editor(RS, CHAR_SPEC_STALE, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_SPEC_STALE, _no_save, with_header=False)
 
 # A character holding a Manse, for the Hearthstone picker. Its own route because the
 # test reads this character's Background list and note text.
@@ -2056,7 +2065,7 @@ CHAR_MANSE.backgrounds = [BackgroundEntry(name="Manse", rating=3),
 
 @ui.page('/manse-hearthstones')
 def page_manse_hearthstones():
-    advantages.build_advantages(RS, CHAR_MANSE, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_MANSE, _no_save, with_header=False)
 
 # Picking a Hearthstone MUTATES the character, so it needs a character of its own — a
 # @ui.page route builds once per session and a shared global leaks between render
@@ -2067,7 +2076,7 @@ CHAR_MANSE_PICK.backgrounds = [BackgroundEntry(name="Manse", rating=3)]
 
 @ui.page('/manse-pick')
 def page_manse_pick():
-    advantages.build_advantages(RS, CHAR_MANSE_PICK, Path("x.json"),
+    advantages.build_advantages(RS, CHAR_MANSE_PICK, _no_save,
                                 with_header=False)
 
 # Raising the Manse rating must move the DENOMINATOR of the running total. Its own
@@ -2083,7 +2092,7 @@ CHAR_MANSE_RAISE.backgrounds = [BackgroundEntry(
 
 @ui.page('/manse-raise')
 def page_manse_raise():
-    advantages.build_advantages(RS, CHAR_MANSE_RAISE, Path("x.json"),
+    advantages.build_advantages(RS, CHAR_MANSE_RAISE, _no_save,
                                 with_header=False)
 
 # A Manse row flipped to Demesne: it keeps the toggle (so it can be flipped back) but
@@ -2093,7 +2102,7 @@ CHAR_DEMESNE.backgrounds = [BackgroundEntry(name="Manse", rating=3, is_demesne=T
 
 @ui.page('/manse-demesne')
 def page_manse_demesne():
-    advantages.build_advantages(RS, CHAR_DEMESNE, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_DEMESNE, _no_save, with_header=False)
 
 # A TIERED Manse allowance (Abyssal / Dragon-Blooded ladders), which is a different
 # code path from the linear one — it carries a printed tier label and a per-stone
@@ -2106,7 +2115,7 @@ CHAR_MANSE_TIERED.backgrounds = [BackgroundEntry(
 
 @ui.page('/manse-tiered')
 def page_manse_tiered():
-    advantages.build_advantages(RS, CHAR_MANSE_TIERED, Path("x.json"),
+    advantages.build_advantages(RS, CHAR_MANSE_TIERED, _no_save,
                                 with_header=False)
 
 # A STRANDED stone: one held on a row that grows none, which is what renaming a Manse
@@ -2119,7 +2128,7 @@ CHAR_STRANDED.backgrounds = [BackgroundEntry(
 
 @ui.page('/manse-stranded')
 def page_manse_stranded():
-    advantages.build_advantages(RS, CHAR_STRANDED, Path("x.json"), with_header=False)
+    advantages.build_advantages(RS, CHAR_STRANDED, _no_save, with_header=False)
 
 # An archer carrying arrows, for the nocked-arrow control on the Play tab. Its own
 # route because the test reads this character's weapon list.
@@ -2134,7 +2143,7 @@ CHAR_ARCHER.weapons.append(Weapon(name="Frog Crotch Arrow", damage=4, damage_typ
 
 @ui.page('/archer-pools')
 def page_archer_pools():
-    play.build_play(RS, CHAR_ARCHER, Path("x.json"), with_header=False)
+    play.build_play(RS, CHAR_ARCHER, _no_save, with_header=False)
 
 # A Solar with a flawed Valor, for the sample-Flaw dropdown.
 CHAR_VFLAW = Character(id="vf", name="Cursed", exalt_type="Solar", caste="dawn")
@@ -2142,7 +2151,7 @@ CHAR_VFLAW.virtue_flaw = VirtueFlaw(virtue=VirtueName.VALOR)
 
 @ui.page('/virtue-flaw')
 def page_virtue_flaw():
-    editor.build_editor(RS, CHAR_VFLAW, Path("x.json"), with_header=False)
+    editor.build_editor(RS, CHAR_VFLAW, _no_save, with_header=False)
 
 # (z) the martial-arts STYLE preamble panel (docs/plans/martial-arts-styles.md).
 # A Solar landed directly on an AUTHORED style's tree, and — as the negative
@@ -2152,13 +2161,13 @@ CHAR_STYLE = Character(id="ms", name="Stylist", exalt_type="Solar", caste="dawn"
 
 @ui.page('/style-authored')
 def page_style_authored():
-    picker.build_picker(RS, CHAR_STYLE, Path("x.json"), with_header=False,
+    picker.build_picker(RS, CHAR_STYLE, _no_save, with_header=False,
                         initial_group="styles",
                         initial_category="martial_arts:righteous-devil")
 
 @ui.page('/style-unauthored')
 def page_style_unauthored():
-    picker.build_picker(RS, CHAR_STYLE, Path("x.json"), with_header=False,
+    picker.build_picker(RS, CHAR_STYLE, _no_save, with_header=False,
                         initial_group="styles",
                         initial_category="martial_arts:enlightenment")
 
@@ -2173,6 +2182,6 @@ def page_style_unauthored():
 # than red when its subject stops having the shape.
 @ui.page('/style-rules-only')
 def page_style_rules_only():
-    picker.build_picker(RS, CHAR_STYLE, Path("x.json"), with_header=False,
+    picker.build_picker(RS, CHAR_STYLE, _no_save, with_header=False,
                         initial_group="styles",
                         initial_category="martial_arts:ebon-shadow")

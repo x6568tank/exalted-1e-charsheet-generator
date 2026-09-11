@@ -40,7 +40,7 @@ from . import gear as gear_mod
 from . import app as sheet_app
 from . import combos as combos_mod
 from . import custom as custom_mod
-from . import editor, pdf, picker, theme
+from . import editor, pdf, picker, saving, theme
 from . import play as play_mod
 from . import storyteller as st_mod
 from . import view as viewmod
@@ -184,10 +184,39 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
               *, ctx: dict | None = None) -> None:
     """Render the single-character builder. `ctx` is the shared app context; when
     omitted (running this module standalone) a private one is created, so the
-    builder still works with no party involved."""
+    builder still works with no party involved.
+
+    ⚠ `save_path` builds the fallback context and nothing else. It is not the save
+    seam. The tabs receive `tab_save`, which reads the CURRENT `ctx["path"]`. This
+    function keeps a path because it owns the file dialogs; a tab does not. See
+    hosting-state-model.md section 3.5.
+    """
+    # ⚠ The seven tabs take a callback here and this function takes a path. That
+    # asymmetry is deliberate, and it misleads: a caller that passes a save
+    # callback gets an `os.PathLike` error from inside NiceGUI, in a page handler,
+    # with no reference to this call. Name the mistake instead.
+    if callable(save_path):
+        raise TypeError(
+            "build_app takes a save_path, not a save callback. The tabs take a "
+            "callback; this function owns the file dialogs and needs the path. "
+            "See hosting-state-model.md section 3.5a.")
     if ctx is None:
         ctx = make_context(character, save_path)
     state: dict = {"tab": "Edit", "select": None, "syncing": False}
+
+    def tab_save(target: Character) -> None:
+        """Write `target` to the path that this session points at now.
+
+        The path changes when the user loads a file, starts a new character, or
+        saves to a new name. Thus this function reads `ctx` at each call. A
+        callback that captured the path would write to the previous file.
+
+        ⚠ The tabs are built with `with_header=False`, thus none of them shows a
+        Save button and none of them calls this today. The Save control of the
+        app is `save()` below, which adds the file dialogs. Keep both correct:
+        section 3.7's auto-save calls this one.
+        """
+        saving.save_to_path(ctx["path"])(target)
 
     def _pal():
         """The palette for the current character's splat (red for Dragon-Blooded,
@@ -204,25 +233,25 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
     @ui.refreshable
     def content() -> None:
-        char, path = ctx["char"], ctx["path"]
+        char = ctx["char"]
         _apply_chrome()          # keep the header/background in sync with the splat
         _sync_tabs()             # Edit ⇄ XP swap follows the lock
         if state["tab"] == "Edit":
-            editor.build_editor(ruleset, char, path, with_header=False,
+            editor.build_editor(ruleset, char, tab_save, with_header=False,
                                 on_theme_change=_apply_chrome)
         elif state["tab"] == "Gear":
-            gear_mod.build_gear(ruleset, char, path, with_header=False)
+            gear_mod.build_gear(ruleset, char, tab_save, with_header=False)
         elif state["tab"] == "Advantages":
-            advantages.build_advantages(ruleset, char, path, with_header=False)
+            advantages.build_advantages(ruleset, char, tab_save, with_header=False)
         elif state["tab"] == "Charms":
             state["select"] = picker.build_picker(
-                ruleset, char, path, with_header=False, register_events=False)
+                ruleset, char, tab_save, with_header=False, register_events=False)
         elif state["tab"] == "Combos":
-            combos_mod.build_combos(ruleset, char, path, with_header=False)
+            combos_mod.build_combos(ruleset, char, tab_save, with_header=False)
         elif state["tab"] == "Play":
-            play_mod.build_play(ruleset, char, path, with_header=False)
+            play_mod.build_play(ruleset, char, tab_save, with_header=False)
         elif state["tab"] == "ST":
-            st_mod.build_storyteller(ruleset, char, path, with_header=False)
+            st_mod.build_storyteller(ruleset, char, tab_save, with_header=False)
         elif state["tab"] == "Custom":
             # Rule-set editing, not character editing: it takes no Character and is
             # the one tab whose edits outlive the open save. It mutates `ruleset` in

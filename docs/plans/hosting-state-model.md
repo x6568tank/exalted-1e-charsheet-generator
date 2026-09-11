@@ -323,6 +323,70 @@ merged there is also `qt/main_window.py:593`. It is out of scope for hosting —
 app keeps filesystem saves — but a `save_fn` refactor that assumes 8 will leave it
 uncompiling if the signature is shared.
 
+### 3.5a The refactor, as shipped 2026-09-11
+
+`exalted_builder/ui/saving.py` is new. It holds the `SaveFn` type and
+`save_to_path(path)`, which is the desktop callback: it writes the file and it shows the
+notification. **Seven `build_*` tabs take `save_fn: SaveFn` as their third positional
+argument** — editor, gear, advantages, picker, combos, play, storyteller. A tab can no
+longer see a path, thus a tab can no longer assume a file system.
+
+Four things were decided at the keyboard and correct the section above.
+
+**1. ⚠ The 9th-save-site warning was wrong, and in a useful direction.** `qt/` imports
+only `ui.theme` and `ui.view`; it calls no `build_*`. `qt/main_window.py:593` is a save
+SITE, not a `save_path` PARAMETER, and it was untouched. The signature change is confined
+to `ui/` and `tests/`. **The count that mattered was not 8 or 9 but 160** — the
+`build_*` call sites in `tests/_ui_main.py`, which no estimate mentioned.
+
+**2. 🐞 The tab-level `save_path` was DEAD in the hosted path, and that is why this was
+cheap.** Each tab used it in exactly one place: a `save()` wired to a Save button that
+renders only under `with_header=True`. The builder passes `with_header=False` to all
+seven. So the parameter that §3.5 calls "the persistence seam" was reachable only from
+the seven per-screen dev entry points. **The live save is `builder.save()`**, which is
+the two-way branch and still has no third deployment. ⚠ Do not read this refactor as
+having fixed hosted saving. It removed a false affordance; it did not add a write path.
+
+**3. `build_app` keeps `save_path`, on purpose.** It is the app shell, not a tab: it owns
+the file dialogs and it builds the fallback context. It now derives `tab_save` from the
+LIVE `ctx["path"]` and hands that to each tab, so a load, a New, or a Save-As is picked
+up without a refresh. That is the callback §3.7's auto-save should call.
+
+⚠ **That asymmetry bit within the hour, and it will bite again.** "Every `build_*` takes
+a callback now" is false for exactly one function, and the mechanical sweep converted
+four `build_app` call sites in `tests/_ui_main.py` along with the rest. **The failure did
+not name the argument, the function, or the call**: NiceGUI raised *"argument should be a
+str or an os.PathLike object … not 'function'"* from inside a page handler, six tests
+deep. `build_app` now rejects a callable with a TypeError that says which of the two
+contracts the caller wanted, and `test_build_app_rejects_a_save_callback` holds it. This
+is `feedback_turn_a_repeated_warning_into_a_mechanism`: the ⚠ in the docstring was
+already there and was not enough.
+
+**4. The two notification wordings are now one.** Five tabs said `Saved to {path}` and
+play/storyteller said `Saved {path.name}`. `save_to_path` says the first. This is
+visible only on the dev entry points.
+
+#### 🐞 Seven wirings, seven chances for the house bug
+
+⚠ **Before this change, no test in the suite clicked Save.** A tab could have dropped its
+third argument entirely and the suite stayed green. `tests/test_tab_save_fn.py` is the
+guard: one parametrised case per tab, each asserting the callback ran **once** and
+received that tab's character **by identity** — a count alone passes when a tab saves the
+wrong character, which a party of several members makes reachable. Plus a control that
+rendering a tab saves nothing.
+
+**The negative control was run per tab, and it is the reason to trust the seven cases.**
+Replacing `save_fn(character)` with a no-op in one tab reddens exactly that tab's case
+and leaves the other six green. Seven for seven. One shared assertion would have hidden
+six of them.
+
+⚠ **The runpy trap cost a cycle and will cost the next one too.** The harness executes
+the `main_file` by PATH, so it becomes a module object that is *not* the one the test
+imports. The first version of this test recorded calls into a module-level list in
+`_save_fn_main.py` and read an always-empty list — **all seven failed for a reason that
+was not the defect.** Shared state must live in a third module that both sides import by
+name (`tests/_save_fn_state.py`; `tests/_isolation_names.py` exists for the same reason).
+
 ### 3.6 What must not change
 
 Unchanged from the original plan and still correct: `engine/`, `models/`, `ui/view.py`,
@@ -375,8 +439,8 @@ suite.
 | ✅ `server/session.py` — registry, rehydrate, eviction | 1 day — **DONE 2026-09-11** |
 | ✅ Isolation tests (3.8), written first | 1 day — **DONE (P0), still `xfail`** |
 | ✅ `register_pages` → per-request ctx resolution | 1 day — **DONE 2026-09-11** |
-| `save_path` → `save_fn` across 8 signatures + call sites | 1–2 days — **NEXT** |
-| Debounced auto-save helper | Half a day |
+| ✅ `save_path` → `save_fn` across 7 tab signatures + call sites | 1–2 days — **DONE 2026-09-11** |
+| Debounced auto-save helper | Half a day — **NEXT** |
 | **§3 total** | **~5 days part-time** |
 
 The original plan budgeted **half a day** for this section (Option C, "path construction

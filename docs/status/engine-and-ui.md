@@ -387,3 +387,94 @@ Almost nothing has a UI surface. One thing does:
    looks and behaves as before with **two or more** party members — the marker is
    per-index and a stale index would be a wrong-member handoff. 265 party/GM/adversary
    tests pass, and none of them look at a real display.
+
+## The tab save seam — `save_path` → `save_fn`, 2026-09-11
+
+Phase P2 of `docs/plans/vtt.md`, row 4 of `hosting-state-model.md` §3.9. The design and
+the corrections to it are §3.5a of that file; this section records what changed here and
+what the work turned up. Suite at the time: **3,482 passed · 1 skipped · 0 failed**
+(11m23s). **Not browser-verified** — see the click note below.
+
+`exalted_builder/ui/saving.py` is new: the `SaveFn` type, and `save_to_path(path)`, which
+writes the file and shows the notification. Seven `build_*` tabs — editor, gear,
+advantages, picker, combos, play, storyteller — take `save_fn: SaveFn` as their third
+positional argument in place of `save_path: Path`. A tab cannot see a path, thus a tab
+cannot assume a file system. The six standalone dev entry points build their callback
+with `save_to_path`.
+
+`build_app` keeps a path: it owns the file dialogs and it builds the fallback context. It
+derives `tab_save` from the **live** `ctx["path"]` and hands that down, so a Load, a New
+or a Save-As is picked up without depending on a content refresh.
+
+### 🐞 The parameter being replaced was already dead in the app
+
+Each tab used `save_path` in exactly one place: a `save()` wired to a Save button that
+renders **only under `with_header=True`**. `build_app` passes `with_header=False` to all
+seven. So the argument that §3.5 calls "the persistence seam" was reachable only from the
+seven per-screen dev entry points, and never from the builder or from hosting.
+
+⚠ **Read the scope precisely: this removed a false affordance, it did not add a write
+path.** The live save is still `builder.save()` and its two-way branch still has no third
+deployment. A hosted Save still shows a green *"Downloading …"* toast over an empty
+volume.
+
+### 🐞 No test in the suite had ever clicked Save
+
+Seven tabs, seven save wirings, zero coverage. A tab could have dropped its third
+argument entirely and the suite stayed green — `CLAUDE.md` §7, a rule in a place where
+nothing observes it.
+
+`tests/test_tab_save_fn.py` is the guard: one parametrised case per tab, each asserting
+the callback ran **once** and received **that tab's character by identity**. ⚠ The
+identity assertion is the part that matters — a test that only counts the calls passes
+when a tab saves the wrong character, which a party of several members makes reachable.
+Plus a control that rendering a tab saves nothing.
+
+**Negative-controlled per tab, and that is the reason to trust the seven cases.**
+Replacing `save_fn(character)` with a no-op in one tab reddens exactly that tab's case and
+leaves the other six green. Seven for seven. One shared assertion would have hidden six
+of them.
+
+### 🐞 `build_app` and the tabs now take different contracts, and it sprang the same day
+
+"Every `build_*` takes a callback now" is false for exactly one function. The mechanical
+sweep converted four `build_app` call sites in `tests/_ui_main.py` with the rest, and
+**the failure named nothing useful**: NiceGUI raised *"argument should be a str or an
+os.PathLike object … not 'function'"* from inside a page handler, six test files deep,
+mentioning neither `build_app` nor the argument.
+
+⚠ **A ⚠ in the docstring did not prevent the mistake it described — it was written an
+hour before it was made.** `build_app` now rejects a callable with a TypeError naming
+which of the two contracts the caller wanted, held by
+`test_build_app_rejects_a_save_callback`.
+
+### Two corrections to the plan's estimate
+
+- ⚠ **The "9th save site" warning was wrong.** `qt/` imports only `ui.theme` and
+  `ui.view`; it calls no `build_*`. `qt/main_window.py:593` is a save **site**, not a
+  `save_path` **parameter**, and nothing in `qt/` was touched. The signature change is
+  confined to `ui/` and `tests/`.
+- **The count that mattered was neither 8 nor 9 but 160** — the `build_*` call sites in
+  `tests/_ui_main.py`. No estimate mentioned them, and they are most of the diff.
+
+### ⚠ The runpy trap, which will re-bite any future harness
+
+The NiceGUI harness executes a `nicegui_main_file` **by path**, so it becomes a module
+object that is *not* the one the test imports. The first version of this test recorded
+calls into a module-level list in `_save_fn_main.py` and read an always-empty list:
+**all seven cases failed for a reason that was not the defect.** Shared state must live
+in a third module that both sides import by name — here `tests/_save_fn_state.py`, and
+`tests/_isolation_names.py` exists for the same reason.
+
+### What a human should click
+
+**Nothing in the builder changed behaviour**, and that is the claim to check cheaply. The
+seven Save buttons that did change are the per-screen dev entry points, which a player
+never opens:
+
+1. `python -m exalted_builder.ui.editor <file>` → **Save**. It must still write the file
+   and show *"Saved to &lt;path&gt;"*. The same for `advantages`, `picker`, `combos`,
+   `play`, `storyteller`. ⚠ **`play` and `storyteller` previously said
+   *"Saved &lt;name&gt;"*** and now say *"Saved to &lt;path&gt;"* — one wording, on
+   purpose.
+2. Nothing on the builder's own Save, Load, New or Print. They were not touched.

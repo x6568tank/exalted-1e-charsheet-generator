@@ -23,11 +23,9 @@ Presentation only. Every derived list comes from `ui/view.py` and every rule fro
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from nicegui import ui
 
-from .. import custom_content as customs, persistence, rules_db
+from .. import custom_content as customs, rules_db
 from ..engine import artifacts as artifactsmod, derive, gear_actions, validate
 from ..models.character import Character
 from ..models.rules import RuleSet
@@ -35,9 +33,10 @@ from . import catalogue as cataloguemod
 from . import theme
 from . import view as viewmod
 from .editor import DescribedSelect, _opts_with, panel_card
+from .saving import SaveFn
 
 
-def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
+def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                *, with_header: bool = True) -> None:
     """Render the Gear tab — the inventory, the per-kind editors, and the price list."""
     rs = ruleset
@@ -698,8 +697,7 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
         _artifacts_panel()
 
     def save() -> None:
-        persistence.save_character(character, save_path)
-        ui.notify(f"Saved to {save_path}", type="positive")
+        save_fn(character)
 
     # ---- layout ------------------------------------------------------------ #
     if with_header:
@@ -710,7 +708,7 @@ def build_gear(ruleset: RuleSet, character: Character, save_path: Path,
                 with ui.row().classes("w-full items-center justify-between"):
                     ui.label("Gear").classes("text-xl font-bold")
                     ui.button("Save", icon="save", on_click=save
-                              ).props(f"color={pal.button}")
+                              ).props(f"color={pal.button}").mark("tab-save")
             body()
         with ui.column().classes("w-80 gap-2 sticky top-4"):
             with ui.card().classes(f"w-full p-3 {pal.card}"):

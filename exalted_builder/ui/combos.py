@@ -31,13 +31,14 @@ from ..models.character import Character
 from ..models.rules import RuleSet
 from . import theme
 from . import view as viewmod
+from .saving import SaveFn, save_to_path
 
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
 _EXAMPLE = _PKG.parent / "examples" / "ashes-of-dawn.character.json"
 
 
-def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
+def build_combos(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                  *, with_header: bool = True) -> None:
     """Render the Combo builder for `character`. With `with_header=False` the
     title/Save bar is omitted (the embedding app provides one)."""
@@ -354,8 +355,7 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
                     ui.label(f"• {msg}").classes("text-xs text-red-600")
 
     def save() -> None:
-        persistence.save_character(character, save_path)
-        ui.notify(f"Saved to {save_path}", type="positive")
+        save_fn(character)
 
     # ---- layout ----------------------------------------------------------- #
     if with_header:
@@ -374,7 +374,8 @@ def build_combos(ruleset: RuleSet, character: Character, save_path: Path,
                          "(at most one Simple, at most one Extra Action).").classes(
                     "text-xs text-gray-500")
                 if with_header:
-                    ui.button("Save", icon="save", on_click=save).props(f"color={pal.button}")
+                    ui.button("Save", icon="save", on_click=save).props(
+                        f"color={pal.button}").mark("tab-save")
             if arrays:
                 arrays_panel()
             else:
@@ -403,7 +404,7 @@ def main() -> None:
 
     @ui.page("/")
     def index() -> None:
-        build_combos(ruleset, character, path)
+        build_combos(ruleset, character, save_to_path(path))
 
     ui.run(title=f"Exalted 1e — combos: {character.name or path.stem}",
            reload=False, show=args.show, port=args.port)

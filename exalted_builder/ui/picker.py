@@ -38,6 +38,7 @@ from ..models.character import AnimalForm, Character, PathRating
 from ..models.rules import Orientation, RuleSet, circle_kind
 from . import theme
 from . import view as viewmod
+from .saving import SaveFn, save_to_path
 from .assets import cytoscape_head_html
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -126,7 +127,7 @@ from ..engine.thaum_actions import (  # noqa: F401  (re-export for existing call
 # and the wrapped come to be confused for each other.
 
 
-def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
+def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                  *, with_header: bool = True, register_events: bool = True,
                  initial_group: str = "", initial_category: str = ""):
     """Render the picker. Returns its `toggle(charm_id)` so an embedding app can
@@ -2014,8 +2015,7 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
             set_category(fallback)
 
     def save() -> None:
-        persistence.save_character(character, save_path)
-        ui.notify(f"Saved to {save_path}", type="positive")
+        save_fn(character)
 
     if register_events:
         ui.on("charm_select", lambda e: select(e.args["id"]))
@@ -2079,7 +2079,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_path: Path,
                             on_change=lambda e: set_circle(e.value)).classes("w-48")
                         widgets["circle"].set_visibility(state["group"] == "spells")
                 if with_header:
-                    ui.button("Save", icon="save", on_click=save).props(f"color={pal.button}")
+                    ui.button("Save", icon="save", on_click=save).props(
+                        f"color={pal.button}").mark("tab-save")
             widgets["legend"] = ui.row().classes("w-full gap-4 text-xs items-center justify-between")
             with widgets["legend"]:
                 with ui.row().classes("gap-4 items-center"):
@@ -2139,7 +2140,7 @@ def main() -> None:
 
     @ui.page("/")
     def index() -> None:
-        build_picker(ruleset, character, path)
+        build_picker(ruleset, character, save_to_path(path))
 
     ui.run(title=f"Exalted 1e — charms: {character.name or path.stem}",
            reload=False, show=args.show, port=args.port)
