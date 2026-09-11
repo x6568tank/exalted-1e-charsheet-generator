@@ -1,4 +1,4 @@
-# Session handoff — 2026-09-11 (P2 row 4 done: the tabs no longer hold a path)
+# Session handoff — 2026-09-11 (P2 row 4 committed; §3.7 re-specified before coding)
 
 # 👉 YOU ARE HERE
 
@@ -9,9 +9,9 @@ dependency — see `docs/testing.md`, and do not reconcile this against another 
 **The arithmetic lands.** 3473 (previous) **+ 9** the new `tests/test_tab_save_fn.py`
 = **3482**. Nothing else moved.
 
-⚠ **Working tree: NOT clean. This work is UNCOMMITTED as of writing.** Four new files
-and ten modified ones — `git status` will show them. ⚠ Three handoffs in a row now have
-made a tree claim; **run `git status` and `git log` yourself before acting on this line.**
+**Working tree: clean as of 2026-09-11.** The `save_fn` row is committed as `68bca45`.
+⚠ Four handoffs in a row have now made a tree claim; **run `git status` and `git log`
+yourself before acting on this line.**
 
 ## ✅ SHIPPED this session — `save_path` → `save_fn` across the seven tabs
 
@@ -81,12 +81,37 @@ third module both sides import by name (`tests/_save_fn_state.py`;
 
 ## 👉 NEXT — in rough order of what would bite
 
-- **P2 §3.7 — the debounced auto-save helper. THE NEXT PIECE, and the last of §3.**
-  Half a day. Every tab funnels mutations through `changed()`, so this is one helper, not
-  eight. It calls `build_app`'s `tab_save`, which already reads the live `ctx["path"]`.
-  ⚠ **Do not save on every `changed()` call — the dot tracks fire it per click.**
-  ⚠ It is what makes eviction safe: once a session can be evicted, *"your edits are on
-  the server until you press Save"* stops being true.
+- **P2 §3.7 — per-session store + write-through auto-save. THE NEXT PIECE, and the last
+  of §3.** 1–1½ days. **§3.7 was rewritten on 2026-09-11 and is the spec — read it, do
+  not work from this summary.** What changed and why it matters before you start:
+  - 🐞 **Every session shares one save path.**
+    `session_context_factory` copies `prototype["path"]` and `["dir"]` verbatim
+    (`ui/builder.py:160`). 3.4a isolated the Character, **not the destination**.
+    ⚠ Auto-save on today's `tab_save` = **N browsers writing one file on a timer**, no
+    error. Invisible only because `with_header=False` leaves no tab save reachable — and
+    **auto-save is the live caller that makes it reachable.** Fix the path first.
+  - ⚠ **The plan's "one helper on `changed()`" was FALSE — three of seven tabs define
+    `changed()`.** The rest funnel through `combos.refresh()` and direct
+    `body.refresh()` / `detail.refresh()` calls (~10, ~1, ~12 sites). Hooking `changed()`
+    = live in three tabs, silent in four, all green. **The house bug, in the plan that
+    warns about it.** Use a dirty-hash `ui.timer` in `build_app` instead — measured
+    0.015 ms per poll, and it cannot be wired to the wrong phase because it is not wired
+    to a phase. ⚠ Load and New must reset the baseline hash.
+  - **Shape: RAM stays a cache, the store becomes the truth.** Write-through, then
+    eviction costs a re-read and §3.7's motivation is discharged. ⚠ **Do not port the
+    mainstream stateless read-per-request mechanism** — it assumes a fat browser client,
+    and NiceGUI is the inverse. It would force tabs to take an id (**§3.6 forbids this**)
+    and destroy `open_member`'s by-reference identity (**§3.6 names this, no test
+    catches it**).
+  - **Where: `<root>/<session_key>/…` now, a SQLite row when auth lands in §5.** `<root>`
+    belongs in `server/config.py`. ⚠ The destination is swappable for free — the seven
+    tabs see only `save_fn`, which is what the 3.5a refactor bought.
+  - **Test first: two sessions get two destinations.** Assert on the factory, not on the
+    file; a write-then-read-back test passes when both sessions share one file.
+  - ⚠ **Unverified, check before building:** that the play-tab state (`willpower_spent`,
+    fatigue, health boxes) lives on the `Character` and not beside it. The dirty hash
+    sees only what serializes.
+
   Carried findings still live for the rest of P2:
   - ⚠ **Run one worker.** The registry holds live `Character` objects, so it can never be
     JSON, so it can never cross processes. Redis is not an alternative — it makes *every*

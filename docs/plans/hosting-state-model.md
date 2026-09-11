@@ -398,17 +398,147 @@ Unchanged from the original plan and still correct: `engine/`, `models/`, `ui/vi
 - **`open_member`'s by-reference semantics.** Copying instead of sharing would silently
   break the party-card live update, which has no test that would catch it.
 
-### 3.7 Auto-save
+### 3.7 Per-session store, and write-through auto-save
+
+⚠ **This section was re-specified on 2026-09-11, before any code was written. Two of its
+three original claims were false. Read 3.7a for what they were — the retraction is the
+useful part.**
 
 Manual save buttons stay; they are the honest UX and they already work. But see the
 eviction hazard in 3.4: once a session can be evicted, "your edits are on the server
 until you press Save" stops being true.
 
-Recommendation: **debounced auto-save on the existing `changed()` callback** — at most
-once per N seconds after the last mutation, via `ui.timer`. Every tab already funnels
-mutations through `changed()`, so this is one helper, not eight.
+**This is one row, not two.** The debounce is the cheap half. The half that makes the
+debounce mean anything is that a session must have somewhere of its own to write.
 
-⚠ Do **not** save on every `changed()` call. The dot tracks fire it per click.
+#### 🐞 The blocker: every session shares one save path
+
+`ui/builder.py:session_context_factory` copies the prototype's path verbatim:
+
+```python
+return {"char": char, "path": prototype["path"], "dir": prototype["dir"], ...}
+```
+
+The isolation fix of 3.4a isolated the **Character**. It did not isolate the
+**destination**. Every session on a hosted server therefore points at one file, and the
+collision does not depend on the character's name — the path is literally the same
+object. (The name only matters for `open_member`, which recomputes the filename from the
+shared `ctx["dir"]`.)
+
+⚠ **Auto-save wired to `tab_save` as it stands today would have N browsers writing one
+file on a timer, last-writer-wins, with no error.** Nothing reports it. This is invisible
+right now only because `with_header=False` means no tab save is reachable in the app
+(3.5a finding 2), so the defect has no live caller yet. **Auto-save is the live caller.**
+
+**`path` is a third thing the factory must produce per session**, alongside `char` and
+`party`. That is the row.
+
+#### The shape: RAM is a cache, the store is the truth
+
+The mainstream web answer to "what if a session is evicted" is *there is nothing to
+lose* — the store holds the truth and server memory is a cache. Adopt that **property**.
+Do not adopt the **mechanism** that usually delivers it.
+
+⚠ **The mechanism does not port, and the reason is worth keeping.** Google Docs, Figma
+and Foundry can use stateless read-per-request handlers because the live document model
+sits in the *browser* and the server is persistence plus broadcast. NiceGUI is the exact
+inverse: the Python process holds the widget tree and the domain objects, and the browser
+is a thin renderer. During an editing session there are no requests to be stateless
+between. Porting it literally would mean tabs taking an **id** instead of a `Character` —
+which is the tab-contract widening that **3.6 forbids**, and which breaks the desktop and
+Qt callers — and it would destroy `open_member`'s by-reference identity, **which 3.6 also
+names and which no test would catch**.
+
+Write-through gets the property without either cost:
+
+1. The registry keeps holding live objects. Unchanged.
+2. Auto-save writes to a per-session destination.
+3. Eviction discards RAM only. `on_evict` already exists for this.
+4. The next request rehydrates from the store.
+
+The registry stops being the **sole** copy. It does not stop holding live objects — that
+distinction is the whole of the fix, and an earlier note in this session got it wrong by
+conflating them.
+
+Residual exposure is **one debounce interval** of unsaved edits. That is also Google
+Docs' exposure. It is accepted.
+
+#### Where it writes
+
+**A per-session directory now; a SQLite row when auth lands in §5.**
+
+`<root>/<session_key>/<name>.character.json`, with `<root>` from `server/config.py` —
+which already owns the environment-derived deployment settings and already carries the
+"no default in a file" discipline this needs.
+
+Reasons, in order:
+
+- `session_key()` exists and is already the registry's key. The directory falls out of
+  what is built.
+- It reuses `persistence` unchanged. No schema, no new dependency, no `[server]` extra.
+- It is what `on_evict` needs to rehydrate **from**. Today nothing writes, so there is
+  nothing to rehydrate from, which is why 3.4's rehydrate path has never run for real.
+- ⚠ **The destination is swappable for free, and that is what the 3.5a refactor bought.**
+  The seven tabs see only `save_fn`. Replacing a directory with a DB row touches none of
+  them. Do not let the cheap choice here feel permanent.
+
+⚠ **Anonymous-session ownership is standard practice, not a compromise** — CodePen,
+JSFiddle and Figma anonymous files all key work to a cookie session and re-key it on
+signup. Note for §5 that re-keying a **row** is an owner-column update, while re-keying a
+**directory** is a move; that is a mild argument for the DB, and not a reason to build it
+first.
+
+#### The trigger: poll a dirty hash. Do NOT hook `changed()`.
+
+⚠ **The original "one helper on `changed()`" recommendation was false. Only three of the
+seven tabs define `changed()`** — editor, gear, advantages. The others funnel elsewhere:
+`combos.refresh()`, and `play`, `storyteller` and `picker` calling `body.refresh()` /
+`detail.refresh()` directly at roughly ten, one and twelve sites. **Hooking `changed()`
+gives auto-save in three tabs and silence in four, with nothing red** — which is
+`CLAUDE.md` §7's house bug exactly, in the plan that warns about it.
+
+Use instead: **one `ui.timer` in `build_app` that compares a hash of
+`ctx["char"].model_dump_json()` and calls `tab_save` when it differs.**
+
+- Measured at **0.015 ms** for a 3 KB character (2026-09-11). The poll is free.
+- ⚠ **It cannot be wired to the wrong phase, because it is not wired to a phase.** A
+  mutation site added later is covered with no action. That immunity is the reason to
+  prefer it, and it is worth more here than the per-tab provability of the alternative.
+- ⚠ **The trigger is definitionally correct**: it fires when the bytes that would be
+  written differ. A funnel call is a lossy proxy — `readout.refresh()` after a *failed*
+  purchase would write a byte-identical file.
+- ⚠ **It sees only what serializes.** Confirm the play-tab state (`willpower_spent`,
+  fatigue, health boxes) is on the `Character` and not beside it. **Not verified.**
+- ⚠ **Load and New must reset the baseline hash.** They repoint `ctx["char"]`, which
+  reads as one enormous diff, and the timer would immediately write the just-loaded file
+  back over itself. Harmless, but it is the one place this design can go wrong, and it is
+  a third touchpoint in `build_app` beyond the timer itself.
+
+⚠ The original warning still stands and generalises: **do not save per mutation.** The
+dot tracks fire their funnel per click.
+
+#### Write this test FIRST
+
+Per 3.8's rule, and the failure mode here is specific: **two sessions must get two
+destinations.** Assert it on the factory, not on the file — a test that writes and reads
+one file back passes when both sessions share it.
+
+⚠ The ⚠ in 3.5a's docstring was written an hour before it failed to prevent the mistake
+it described. A warning is not a mechanism. See
+`feedback_turn_a_repeated_warning_into_a_mechanism`.
+
+### 3.7a What this section said before, and why it was wrong
+
+Kept because both errors are the project's recurring shapes, not slips.
+
+1. **"Every tab already funnels mutations through `changed()`, so this is one helper,
+   not eight."** Three of seven. The plan asserted a uniformity that the code never had,
+   and building on it would have produced a rule that runs in three places and is absent
+   in four — with every test green. **A plan can carry a house bug before a line of code
+   exists.**
+2. **"Half a day."** True for the debounce alone, and the debounce alone does nothing —
+   it would have written every session's edits into one shared file. The estimate priced
+   the visible half. See `feedback_plan_estimates_are_not_wall_clock`.
 
 ### 3.8 Write this test FIRST
 
@@ -440,8 +570,13 @@ suite.
 | ✅ Isolation tests (3.8), written first | 1 day — **DONE (P0), still `xfail`** |
 | ✅ `register_pages` → per-request ctx resolution | 1 day — **DONE 2026-09-11** |
 | ✅ `save_path` → `save_fn` across 7 tab signatures + call sites | 1–2 days — **DONE 2026-09-11** |
-| Debounced auto-save helper | Half a day — **NEXT** |
-| **§3 total** | **~5 days part-time** |
+| Per-session save destination + write-through auto-save (3.7) | 1–1½ days — **NEXT** |
+| **§3 total** | **~5½ days part-time** |
+
+⚠ **That row was "half a day" until 2026-09-11.** It was re-estimated before any code was
+written, when the shared-path blocker in 3.7 was found. The debounce is still half a day;
+it is the per-session destination underneath it that was never priced. **Nothing was
+built against the old number.**
 
 The original plan budgeted **half a day** for this section (Option C, "path construction
 only"). That is the single largest correction to the estimate.
