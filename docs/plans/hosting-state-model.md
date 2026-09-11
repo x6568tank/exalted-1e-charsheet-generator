@@ -184,10 +184,13 @@ navigating. It is *pointers*, never objects.
 **Tier 2 — a server-side registry holding the live `ctx`, keyed by session.**
 
 ✅ **BUILT 2026-09-11** — `exalted_builder/server/session.py`, with
-`tests/test_session_registry.py` (12 tests). ⚠ **Nothing imports it yet.** It is
-deliberately additive: the wiring is the next row of 3.9's table, and the P0 isolation
-tests stay `xfail` until that lands. **A green registry suite is not evidence that the app
-is isolated.**
+`tests/test_session_registry.py` (12 tests).
+
+✅ **WIRED 2026-09-11** — `ui/builder.py:register_pages` now builds one registry per
+process and both routes resolve their context in the page **body**. The two P0 isolation
+tests XPASSed on the wiring commit and their `xfail` markers are deleted; they are live
+tests now. **A green registry suite was never evidence that the app was isolated — the
+isolation suite is.**
 
 The shipped API differs from this sketch in two ways, both deliberate:
 
@@ -254,6 +257,46 @@ Three traps cost time and will cost it again:
    because the harness executes it with `runpy.run_path(run_name='__main__')`.
 3. An `async` page body runs **after** the HTTP response. `user.find(...)` immediately
    after `user.open(...)` finds an empty page; `await user.should_see(...)` first.
+
+### 3.4a The wiring, as shipped 2026-09-11
+
+`register_pages(ruleset, ctx)` keeps its signature and now returns the registry. Three
+things about it were decided at the keyboard and are not in the sketch above.
+
+**1. The caller's `ctx` became a PROTOTYPE, not the live state.** This is the whole of the
+change and it is a semantic reversal, not a plumbing detail. `builder.session_context_factory(prototype)`
+returns `factory(key)`, and the registry calls it per session: a deep copy of the Character
+and of the Party, the same paths, and the **same** adversary catalogue (read-only rules
+data — §3.3 already says it is genuinely shareable). Desktop behaviour is unchanged because
+a desktop run has exactly one session.
+
+⚠ **The copy has one invariant and nothing else in the suite would have caught it.**
+Inside one context `ctx["char"]` can *be* a party member's character, by identity —
+`open_member` points it there by reference and `close_member` leaves it there with
+`member` back to None. Copying `char` and `party` independently silently severs that, and
+the party card stops following the builder's edits. The factory finds the member by `is`
+and points at the copy. `tests/test_session_context_factory.py` covers it in both
+`member` states, and the mutation was run: removing the identity branch fails exactly
+those two cases and nothing else.
+
+**2. The session key is `app.storage.browser["id"]`, and there is no fallback.** That is
+the id NiceGUI writes into the signed session cookie: shared across the tabs of one
+browser, and it survives a navigation — which is the ruling in `vtt.md` §8 Q1 and is why
+this is not `tab`. ⚠ `builder.session_key()` **raises** when `ui.run` got no
+`storage_secret`. A constant fallback would hand every browser one context, which is the
+defect being removed, and no test would report it. A loud failure at the first page load
+is the cheaper outcome.
+
+**3. `ui/gm.py:main()` needed the secret too, and the earlier census missed it.** The
+additive commit added `storage_secret()` to three `ui.run` call sites and recorded that
+"the nine per-screen dev entry points are untouched; they use no storage." That was true
+then and false the moment the routes read a cookie: `gm.py:main()` calls
+`register_pages`, so both its pages would have raised at load. ⚠ **Any future `ui.run`
+that registers these routes must pass a secret.** Nothing enforces it.
+
+**Not done in this row, on purpose:** the idle `sweep()` is unwired. The registry is still
+bounded by `max_sessions`, so this is not a leak; the sweep needs an app-wide timer and
+belongs with the long-lived server in §5, next to the auto-save that `on_evict` feeds.
 
 ### 3.5 The seam is the `ctx` lifetime, not `save_path`
 
@@ -331,8 +374,8 @@ suite.
 |---|---|
 | ✅ `server/session.py` — registry, rehydrate, eviction | 1 day — **DONE 2026-09-11** |
 | ✅ Isolation tests (3.8), written first | 1 day — **DONE (P0), still `xfail`** |
-| `register_pages` → per-request ctx resolution | 1 day — **NEXT, and the first invasive one** |
-| `save_path` → `save_fn` across 8 signatures + call sites | 1–2 days |
+| ✅ `register_pages` → per-request ctx resolution | 1 day — **DONE 2026-09-11** |
+| `save_path` → `save_fn` across 8 signatures + call sites | 1–2 days — **NEXT** |
 | Debounced auto-save helper | Half a day |
 | **§3 total** | **~5 days part-time** |
 
@@ -364,13 +407,22 @@ This is the structural fix for §3, and it is easy to get subtly wrong:
 def register_server_pages(ruleset: RuleSet) -> None:
     @ui.page("/builder")
     def builder_page() -> None:
-        user_id = require_auth()                      # redirects if absent
-        ctx = session.ctx_for(session_key(), user_id) # per-request, NOT closed over
+        require_auth()                                # redirects if absent
+        ctx = sessions.ctx_for(builder.session_key()) # per-request, NOT closed over
         build_app(ruleset, ctx["char"], ctx["save_fn"], ctx=ctx)
 ```
 
 The difference from today is one line and the whole bug: `ctx` is **resolved in the body**
 rather than captured by the closure. `ruleset` stays captured — it is genuinely shared.
+
+✅ **`ui/builder.py:register_pages` already has this shape** (§3.4a). What `server/main.py`
+adds over it is the auth gate and a factory that rehydrates from the DB instead of copying
+a prototype. ⚠ Note the shipped `ctx_for` takes the key **only**; mapping a cookie to a
+user is the factory's closure, not the registry's business.
+
+✅ **Constraint 1's cost did not land.** The pages stayed **sync**. `app.storage.browser`
+reads the request cookie and needs no socket connection — only `app.storage.tab` does, and
+tier 2 does not use it.
 
 Routes: `/login`, `/` (character index), `/builder`, `/gm`.
 

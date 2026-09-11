@@ -1,21 +1,21 @@
-"""Two browser sessions must not share one Character. Today they do.
+"""Two browser sessions must not share one Character.
 
-⚠ THE TWO ISOLATION TESTS FAIL on the current tree. That is their purpose, thus
-they carry `xfail(strict=True)` and the suite stays green.
-`ui/builder.py:register_pages` builds one `ctx` in `main()` and both route handlers
-close over it, thus every connection edits the same Character object. The tests
-record the defect and become the gate for the session refactor.
-
-⚠ `strict=True` is the load-bearing part. When the session refactor makes a test
-pass, pytest reports XPASS and FAILS the run. The person who fixes the defect must
-then delete the marker. A non-strict xfail would go quietly green and the suite
-would never report that the work was done.
+✅ **These tests are LIVE as of 2026-09-11.** They were written first, they failed
+on the tree of that day, and they carried `xfail(strict=True)` until
+`register_pages` resolved one context for each session. The XPASS was the gate,
+and the markers are deleted.
 
 ⚠ Do not "fix" a failure here by changing an assertion. These tests describe the
-target state, not the current state.
+contract. A failure means two browsers share a Character again.
+
+⚠ The negative control, run on 2026-09-11: make `session_key` return a constant.
+Both tests go red again. Use that mutation, and not a reading of the code, to
+confirm that these tests still see the property they name. The copy rule they
+depend on has its own file, `tests/test_session_context_factory.py`.
 
 This is phase P0 of `docs/plans/vtt.md`. The design is section 3.8 of
-`docs/plans/hosting-state-model.md`. The defect is section 3.1 of the same file.
+`docs/plans/hosting-state-model.md`. The defect it removed is section 3.1 of the
+same file.
 
 ⚠ Read `test_the_harness_gives_two_independent_sessions` first. A shared harness
 client makes the other two tests fail for a reason that is not the defect, and a
@@ -37,9 +37,6 @@ from ._isolation_names import EDIT_NAME, MEMBER_NAME, START_NAME
 
 MAIN = "tests/_isolation_main.py"
 
-XFAIL_REASON = ("Sessions share one ctx. Delete this marker when "
-                "hosting-state-model.md section 3.4 is implemented.")
-
 
 def _name_box(user: User) -> Input:
     """The Identity 'Name' field of the Edit tab. See ui/editor.py:762."""
@@ -50,10 +47,11 @@ def _name_box(user: User) -> Input:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_harness_gives_two_independent_sessions(create_user) -> None:
-    """The control. It must pass while the other two fail.
+    """The control. It says that the harness gives two clients.
 
     ⚠ Without it, a red run below is ambiguous: a harness that hands both users one
     client produces the same failure as an app that hands both users one Character.
+    Read this test first when one of the other two fails.
     """
     a, b = create_user(), create_user()
     await a.open("/")
@@ -65,7 +63,6 @@ async def test_the_harness_gives_two_independent_sessions(create_user) -> None:
     )
 
 
-@pytest.mark.xfail(strict=True, reason=XFAIL_REASON)
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_a_second_session_does_not_see_the_first_sessions_edit(create_user) -> None:
@@ -83,7 +80,6 @@ async def test_a_second_session_does_not_see_the_first_sessions_edit(create_user
     )
 
 
-@pytest.mark.xfail(strict=True, reason=XFAIL_REASON)
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_gm_navigation_does_not_repoint_another_session(create_user) -> None:

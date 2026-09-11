@@ -1,8 +1,9 @@
 """Main file for the session-isolation test. It uses PRODUCTION wiring on purpose.
 
-`register_pages` builds one `ctx` and both routes close over it, which is what
-`ui/builder.py:main()` does. The property under test is that wiring, thus the test
-cannot use a fixture that supplies its own per-page state.
+`register_pages` takes the context below as a PROTOTYPE and gives each browser
+session a copy of it, which is what `ui/builder.py:main()` does. The property
+under test is that wiring, thus the test cannot use a fixture that supplies its
+own per-page state.
 
 ⚠ Do not import `tests/_ui_main.py` here. That file builds shared module-level
 characters. A shared character makes the test report sharing that the app did not

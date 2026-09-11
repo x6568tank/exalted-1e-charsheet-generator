@@ -34,6 +34,7 @@ from ..engine import derive, dice
 from ..models.character import Character, Damage, PlayState, new_character_id
 from ..models.party import Party, PartyMember
 from ..models.rules import RuleSet
+from ..server.config import storage_secret
 from . import adversaries as adversaries_mod
 from . import app as sheet_app
 from . import builder as builder_mod
@@ -735,7 +736,10 @@ def main() -> None:
 
     # Register both routes, so "Open in builder" works from a standalone party run.
     builder_mod.register_pages(ruleset, ctx)
-    ui.run(title="Exalted 1e — Party", reload=False, show=args.show, port=args.port)
+    # The routes above resolve one context for each browser session, thus they
+    # read the session cookie. ⚠ Without a secret both pages raise at load.
+    ui.run(title="Exalted 1e — Party", reload=False, show=args.show, port=args.port,
+           storage_secret=storage_secret())
 
 
 if __name__ in {"__main__", "__mp_main__"}:

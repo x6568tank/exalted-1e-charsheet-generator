@@ -23,6 +23,7 @@ Run:
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 from pathlib import Path
 
 from nicegui import app, ui
@@ -33,6 +34,7 @@ from ..models.character import Character, new_character_id
 from ..models.party import Party
 from ..models.rules import RuleSet
 from ..server.config import storage_secret
+from ..server.session import SessionRegistry
 from . import advantages
 from . import gear as gear_mod
 from . import app as sheet_app
@@ -92,9 +94,12 @@ class _NullDialog:
 
 
 def make_context(character: Character, save_path: Path) -> dict:
-    """The app's shared, mutable context. Held outside any one page so the builder
-    ('/') and the GM party page ('/gm') work on the same objects — see
-    `register_pages`.
+    """One browser session's mutable context. The builder ('/') and the GM party
+    page ('/gm') of ONE session work on the same objects — see `register_pages`,
+    which holds one of these for each session.
+
+    ⚠ The context that a caller gives to `register_pages` is a PROTOTYPE. Each
+    session gets a copy of it. See `session_context_factory`.
 
     `char` is whichever character the builder is currently pointed at; `dir` is the
     folder saves land in (the filename is derived from the character's name at save
@@ -126,6 +131,53 @@ def close_member(ctx: dict) -> None:
     """Forget which party member the builder is pointed at. The character object
     itself is left alone — it is still in the party."""
     ctx["member"] = None
+
+
+def session_context_factory(prototype: dict) -> Callable[[str], dict]:
+    """Return a factory that makes one context for each browser session.
+
+    The factory takes a session key, ignores it, and returns a copy of
+    `prototype`: a deep copy of the Character and of the Party, the same paths,
+    and the SAME adversary catalogue. The catalogue is read-only rules data, thus
+    a copy of it costs memory and buys nothing.
+
+    `SessionRegistry` calls this. The factory makes a new context on each call;
+    the registry, not the factory, gives one key one context.
+
+    ⚠ Inside one context, `char` can BE a party member's character, by identity.
+    `open_member` points it there by reference, and the party card then follows
+    the builder's edits with no syncing code. This function keeps that identity.
+    A copy of `char` and of `party` that is made separately breaks it, and no
+    other test fails. See hosting-state-model.md section 3.6.
+    """
+    def factory(key: str) -> dict:
+        party = prototype["party"].model_copy(deep=True)
+        member_of = next(
+            (index for index, member in enumerate(prototype["party"].members)
+             if member.character is prototype["char"]), None)
+        char = (party.members[member_of].character if member_of is not None
+                else prototype["char"].model_copy(deep=True))
+        return {"char": char, "path": prototype["path"], "dir": prototype["dir"],
+                "party": party, "party_path": prototype["party_path"],
+                "member": prototype["member"],
+                "adversary_catalog": prototype["adversary_catalog"]}
+
+    return factory
+
+
+def session_key() -> str:
+    """The id of the browser session of the current request.
+
+    NiceGUI writes this id into the signed session cookie, thus it is the same
+    for all tabs of one browser and it survives a navigation. See
+    hosting-state-model.md section 3.4: the registry is keyed per browser, not
+    per tab.
+
+    ⚠ This raises if `ui.run` receives no `storage_secret`. There is no fallback
+    key on purpose. A constant fallback gives every browser one context, which is
+    the defect that the registry removes, and no test reports it.
+    """
+    return app.storage.browser["id"]
 
 
 def build_app(ruleset: RuleSet, character: Character, save_path: Path,
@@ -454,11 +506,25 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
     content()
 
 
-def register_pages(ruleset: RuleSet, ctx: dict) -> None:
-    """Register the app's routes over one shared context: '/' the single-character
-    builder, '/gm' the Storyteller's party page. Both close over the same ctx, so
-    "Open in builder" and "back to Party" move between them without re-loading
-    anything — the party member and the builder's character are one object.
+def register_pages(ruleset: RuleSet, ctx: dict) -> SessionRegistry:
+    """Register the app's routes: '/' the single-character builder, '/gm' the
+    Storyteller's party page. Return the registry of the session contexts.
+
+    `ctx` is the PROTOTYPE. Each browser session gets its own copy of it, from
+    `session_context_factory`, and the two routes resolve that copy per request.
+    Thus "Open in builder" and "back to Party" move between the two pages of ONE
+    session without re-loading anything — the party member and the builder's
+    character stay one object — and two browsers never share a Character.
+
+    `ruleset` stays in the closure. It is read-only and it is genuinely shared.
+
+    ⚠ Resolve the context in the page BODY. A context in the closure is the
+    defect of hosting-state-model.md section 3.1: every browser then edits one
+    Character, and every functional test still passes.
+
+    ⚠ Each caller of this function must give `ui.run` a `storage_secret`. The
+    session key comes from the session cookie, which needs one. See
+    `session_key` and server/config.py.
 
     Both entry points (this module's main() and pack/run_app.py) call this, so the
     route set is declared exactly once.
@@ -474,13 +540,20 @@ def register_pages(ruleset: RuleSet, ctx: dict) -> None:
     if not ctx.get("adversary_catalog"):
         ctx["adversary_catalog"] = rules_db.load_adversary_catalog(_DATA_DIR)
 
+    # One registry for this process. It is bounded by count; the idle sweep needs
+    # a timer and belongs to the deployment that runs a long-lived server.
+    sessions = SessionRegistry(factory=session_context_factory(ctx))
+
     @ui.page("/")
     def index() -> None:
-        build_app(ruleset, ctx["char"], ctx["path"], ctx=ctx)
+        session_ctx = sessions.ctx_for(session_key())
+        build_app(ruleset, session_ctx["char"], session_ctx["path"], ctx=session_ctx)
 
     @ui.page("/gm")
     def party_page() -> None:
-        gm_mod.build_gm(ruleset, ctx)
+        gm_mod.build_gm(ruleset, sessions.ctx_for(session_key()))
+
+    return sessions
 
 
 def load(character_path: Path | str | None = None) -> tuple[RuleSet, Character, Path]:
