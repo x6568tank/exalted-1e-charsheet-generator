@@ -51,6 +51,11 @@ failure was `test_pdf.py` looking for a Print BUTTON, which is now in the ⋮ me
 test was pointed at the menu entry and its file re-run (46 passed): **3721 + 1 skipped
 computed.**
 
+9. **P3 is fully ruled** (`vtt.md` §9.10): a copy per join, ST grants XP, a leaver keeps
+   the copy as solo, six-character codes with no expiry, a table folder of its own,
+   spectating by the same code as a way of OPENING the table, several characters per
+   member. No P3 code yet.
+
 **Next:** deploy (item 8 is local until the human says), then whatever the friends'
 feedback brings, then P3 (campaigns: `tables`, `memberships`, the join code, ST
 approval) — `vtt.md` §2 and §9.6.

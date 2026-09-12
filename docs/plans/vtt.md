@@ -944,3 +944,30 @@ a local server, adjusted over four rounds of the human's screenshots, then appro
 
 **Not done:** a Charm name in the picker does not link to its wiki entry (item 4 of the
 proposal, left out as bigger than a spike). The base page still has no Print.
+
+### 9.10 P3 rulings — asked 2026-09-12, before any P3 code
+
+The human, answering five open P3 questions:
+
+| Question | Ruling |
+|---|---|
+| How a character enters a campaign | **A campaign copy is made when you join.** The player picks a base; the copy is created with the table's `table_id`. An existing solo copy is not moved in. |
+| XP awards | **A table mechanism: the Storyteller grants XP to characters.** Not a request the player accepts. |
+| A player leaves, or is removed | **The copy stays with the player** — it becomes a solo copy (`table_id` cleared). |
+| Join codes | **Six letters/digits, no expiry.** |
+| Where the campaign-wide data lives (the table homebrew layer, the adversary roster, the TABLE-WIDE `HouseRules`) | **Option A: a folder of its own**, `<root>/table-<id>/` with `custom/` (the table layer), `adversaries.json` and `house_rules.json`; the DB holds the table row. Chosen over a folder inside the Storyteller's account. A table gets its own 10 MB from the existing quota (first folder below the root), and can change hands with no file move. |
+| Spectating — how a spectator gets in | **The same way as a player:** the join code, then the Storyteller's approval. |
+| Spectating — what a spectator sees | **Everything players see.** Never the ST-only surface (the adversary roster, the TABLE-WIDE switches). |
+| Several characters in one campaign | **Yes.** A member can have more than one copy in a table (two PCs, a replacement after a death). Bringing another base is a request the Storyteller approves, as a join is. |
+| Spectating — player or spectator | **Chosen when you open the campaign:** a member opens it as one of their characters in it, or as a spectator. So "spectator" is a way of OPENING the table, not a kind of membership. |
+
+⚠ **What 9.10 changes in the §9.3 sketch.**
+* A membership no longer implies a character: a member can be in a table with no copy
+  and only ever spectate. Ruling 1 ("a copy is made when you join") therefore reads as
+  *joining as a player makes a copy*; joining to watch makes none.
+* The TABLE-WIDE `HouseRules` fields move off the characters in a table and onto
+  `house_rules.json`: the table's values override on every copy in it. `CLAUDE.md` §13
+  already marks each field TABLE-WIDE or PER-CHARACTER, which is the split this uses.
+* The table's homebrew layer is a second overlay: book → table → (the character's carried
+  copies). `rules_db.with_custom_layer` composes; `CUSTOM_POOLS` is the list to keep
+  honest.
