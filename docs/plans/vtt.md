@@ -585,3 +585,115 @@ the human on 2026-09-11 and six are now ruled.
 
 **Only Q5** — whether the board ships at all — and §0 establishes that it is free to defer
 until after P3. **Everything needed to start is ruled.**
+
+---
+
+## 9. The landing page and the wiki — asked for and ruled 2026-09-12
+
+The human, after the auth click-through passed:
+
+> *"We'll need a landing page after login, where people can pick to make a new
+> character/campaign or to go to one, or to join an existing campaign. Along with that an
+> exalted.x6568tank.com/wiki would probably be a good idea — and there's no need for it to
+> be behind a login wall i think, since it'd just be a wiki of charms & powers & rules and
+> such."*
+
+"Campaign" in the human's words is the **`Table`** of §1.3. This document keeps `Table` as
+the code name; the UI can say "campaign".
+
+### 9.1 Rulings
+
+| Question | Ruling |
+|---|---|
+| Characters per account | **Several.** The landing page lists them. The §5.1d ruling (*"two devices of one account see one character"*) survives **per character**: two devices on the same character share it; two devices can open two different ones. |
+| One character in several campaigns? | **The human's own shape: a base character.** *"Would it be possible to have a base 'character' created when chargen is locked that can then be used in campaigns?"* — see 9.2. |
+| Joining a campaign | **Code, and the ST approves.** The player enters a code; the request waits until the Storyteller accepts it. Not an open invite link. |
+| Wiki visibility | **Public, no login, and indexed by search engines.** Chosen over `noindex` with the trade stated in the question (discoverable, including by the publisher). |
+
+### 9.2 The base character — yes, and it is the shape the engine already has
+
+Decision [0004](../decisions/0004-chargen-and-advancement-are-different-shapes.md) already
+splits a character at the lock: `lock_chargen()` deep-copies every purchasable collection
+into a `ChargenSnapshot`, and everything after is the append-only `xp_log`. **A base
+character is a locked character with an empty log.** Using it in a campaign is a copy of
+it, with its own log and its own play state, that advances on its own.
+
+* The base never takes XP. XP belongs to a **campaign copy**, because XP is awarded by a
+  campaign's Storyteller.
+* Two campaigns → two copies → two independent XP logs. Nothing is shared after the
+  copy, so no edit in one game can move the other — the hazard the "several campaigns"
+  option carried is gone by construction.
+* A copy records the base it came from (a `base_id`), so the landing page can group them.
+* Carried homebrew ([0012](../decisions/0012-homebrew-library-plus-carried-copies.md)) goes
+  with the copy for free: a save already embeds the definitions it references.
+* ⚠ **The copy must go through the table-layer consent rule of §1.3** — a character
+  joining a table never absorbs its homebrew into the table's mod without the ST.
+* ⚠ **Not yet ruled, and a default is not a ruling:** whether a base can be changed after
+  a copy exists (`unlock_chargen()` is the escape hatch). The safe default is that
+  changing a base changes only **future** copies. Ask before building the edit path.
+* ⚠ **Not yet ruled:** whether a copy can exist with **no** campaign (solo play, the
+  desktop's shape today). Ask.
+
+### 9.3 What this does to piece 4 (the DB)
+
+This is why it had to be asked **before** the layout. Piece 4 was going to add one
+`characters` table beside `users`. It now needs, at a sketch level:
+
+* `characters` — owner, kind (**draft** before the lock, **base**, **campaign copy**),
+  `base_id`, `table_id`.
+* `tables` — the Storyteller's user id, the join code.
+* `memberships` — table, user, state (**pending** until the ST approves, then
+  **member**). ⚠ **The membership check is server side** (§1.3, *"visible-by-default is a
+  ruling about the UI, not a licence to drop authorisation"*). A pending member sees
+  nothing of the table.
+* The registry key moves from `user-<id>` to one key per **character**. `ctx` is still
+  resolved per request (§5.1 of `hosting-state-model.md`); only the key changes.
+
+⚠ **The §5.3 measurement still comes first.** Per-user rulesets and the table-layer mod
+both multiply `RuleSet` objects; measure one before fixing the layout.
+
+### 9.4 The landing page
+
+`/` becomes the landing page; the builder moves to a per-character route. The §5.1 sketch
+already said *"`/` (character index), `/builder`"*, so this is the planned shape, grown.
+
+* **Characters** — drafts and bases, with **New character**.
+* **Campaigns** — the tables the player runs or belongs to, each with the player's copy in
+  it; **New campaign**; **Join a campaign** (enter a code); pending requests shown as
+  pending.
+* ⚠ `auth.safe_target` sends a login with no `redirect_to` to `/`. That stays right — `/`
+  is the landing page. **The `/gm` → login → `/gm` round trip is the pattern to keep** for
+  any deep link to a character or a table.
+* ⚠ **`/gm` dissolves into the table view at P3** (§1.3). The landing page is where the
+  way into a table lives; do not build a second way into `/gm`.
+
+### 9.5 The wiki
+
+`exalted.x6568tank.com/wiki` — public, read-only, the book content.
+
+* ⚠ **Book data only. Never the custom layer.** `rules_db.load_app_ruleset` merges the
+  process-wide custom library over the book (`hosting-state-model.md` §5.3). A wiki that
+  reads that `RuleSet` publishes every player's homebrew to the open web. The wiki needs a
+  **book-only** `RuleSet`, and a test that authors a `custom.` Charm and asserts the wiki
+  cannot show it.
+* ⚠ **The gate is exact-match today** (`auth.OPEN_PATHS`, plus two NiceGUI prefixes).
+  `/wiki` needs a prefix exception, and the route-enumeration test (§5.1d control 3) needs
+  to know the wiki routes are public **on purpose** — otherwise the next person "fixes" it.
+* **Indexed → plain server-rendered HTML, not NiceGUI pages.** A NiceGUI page draws its
+  content over the websocket after load; a crawler sees very little, and every anonymous
+  visitor would hold a live client and socket on the server. Plain FastAPI routes that
+  return HTML are crawlable, cacheable, and cost nothing per visitor. **A recommendation,
+  not a ruling.**
+* ⚠ **"Rules and such" is bounded by `data/`.** The wiki shows what is authored: Charms,
+  spells, martial-arts styles, Merits and Flaws, Backgrounds, trait text, the ST screen
+  tables. **No rules prose is written for the wiki from memory** (`CLAUDE.md` §4).
+* The repo stays private regardless (§8 Q7). The human's exposure ruling is about the
+  service; this ruling extends it to anonymous and indexed.
+
+### 9.6 Where it goes in the phasing
+
+* The **landing page with Characters** and the **base character** land with **piece 4**
+  (P2) — they are the DB's first consumers.
+* **Campaigns, the join code and approval** are **P3** — they are the `Table`.
+* The **wiki** depends on nothing above. It needs only the book `RuleSet` and one gate
+  exception, so it can ship at any point.

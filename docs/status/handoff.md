@@ -1,6 +1,14 @@
-# Session handoff — 2026-09-11 (§5 piece 3: auth — the login gate)
+# Session handoff — 2026-09-12 (auth click-through PASSED; landing page + wiki ruled)
 
 # 👉 YOU ARE HERE
+
+**2026-09-12, docs only, no code:** the human clicked through auth — **all eleven steps
+passed** (`hosting-state-model.md` §5.1d has the record). Then the human asked for a
+**landing page** and a **public wiki**, and ruled on four questions: several characters
+per account, a **base character** made at the lock and copied into campaigns, join by
+**code + ST approval**, and the wiki **public and indexed**. **`vtt.md` §9 is the record**,
+and §9.3 is what it does to piece 4's DB layout. Suite not run — no code changed; the
+counts below are from 2026-09-11.
 
 Last FULL suite: **3636 passed + 1 skipped** — observed after the second round of the auth
 work. The third round (the cookie) added one case to `test_server_main.py`, run on its own
@@ -13,11 +21,11 @@ it, `test_user_db.py`, `test_auth_gate.py` and `test_users_cli.py` skip (58 case
 3636 after round two (observed): +7 `test_user_db`, +5 `test_auth_gate`, +11
 `test_login_throttle`, +12 `test_folder_quota`, +6 `test_users_cli`.
 
-**Working tree: CLEAN.** All the auth work is committed as `af0edf9`; this line was
-corrected in the commit after it. Not pushed. Check `git status` before acting on this
-line.
+**Working tree:** the 2026-09-12 doc edits are committed in the commit that carries this
+line. `main` was 5 ahead of `origin` before it; **not pushed**. Check `git status`
+before acting on this line.
 
-## ✅ SHIPPED (not browser-verified) — §5 piece 3, auth
+## ✅ SHIPPED and BROWSER-VERIFIED 2026-09-12 — §5 piece 3, auth
 
 **§5.1d of `docs/plans/hosting-state-model.md` is the record** — the rulings, the
 mechanics, the five negative controls and the known limits. What a reader needs first:
@@ -78,11 +86,17 @@ of a table.
 
 ## 👉 NEXT — in rough order of what would bite
 
-- **Click through auth** (below) and commit.
+- **Push** — `main` is ahead of `origin` and auth is now verified.
 - **§5 piece 4 — the DB, and §5.3's per-user rulesets.** ⚠ **Measure one merged `RuleSet`
   in memory BEFORE fixing the DB layout.** §5.3 reverses the original plan (per-user is
   *easier* than shared, because shared needs the `load_character` write hazard solved and
   per-user dissolves it) and that reversal has to be decided before the layout, not after.
+  ⚠ **The layout grew on 2026-09-12** — several characters, base characters, tables,
+  pending memberships: `vtt.md` §9.3. Two base-character questions are **still unruled**
+  (§9.2): can a base change after a copy exists, and can a copy exist with no campaign.
+  Ask them before building the edit path.
+- **The public wiki** (`vtt.md` §9.5) — independent of everything else. ⚠ **Book-only
+  `RuleSet`**, never the merged one, or every player's homebrew goes public.
 - **Backgrounds `source` — 51 of 63 DONE. 12 left, and they need a human with a page.**
   `status/backgrounds.md` lists all 12 with their scores. Two are Lunar and have no
   page-marked text on this machine at all. ⚠ **Do not lower the matcher threshold to
@@ -137,24 +151,11 @@ before blaming the build; the stale-binary theory has been wrong twice.
 
 ## 🖱 Not browser-verified — what a human should click
 
-1. **Auth, on the hosted server.** Run with all three variables:
-   `EXALTED_STORAGE_SECRET=… EXALTED_SESSION_ROOT=… EXALTED_DB_PATH=… python -m exalted_builder.server.main`.
-   ⚠ **Browse to `http://localhost:8080`, not `127.0.0.1`.** The cookie is Secure;
-   browsers exempt `localhost`. If a correct login lands straight back on the login
-   page, the browser refused the cookie — report which browser and address.
-   * Open `/` with no login → the login page. Make an account → the builder opens.
-   * A wrong password → "Wrong username or password.", and still gated.
-   * Open `/gm` logged out → log in → you land on `/gm`, not `/`.
-   * **A private window, same account** → the same character (the ruling). A second
-     account → a different, empty one.
-   * **Log out** on `/` and on `/gm` → the login page; `/` is gated again.
-   * Restart the server → still logged in (secret and `.nicegui/` unchanged).
-   * Log in as `Harmonious` when the account is `harmonious` → refused (case ruling).
-   * Five wrong passwords → the sixth, even correct, says *"Too many failed attempts"*.
-   * With `EXALTED_ADMIN_CONTACT` set, the login page shows the address.
-   * `python -m exalted_builder.server.users reset <name>` in a terminal → the new
-     password works, the old one does not.
-2. **Save on the DESKTOP still opens the filename prompt and downloads** (carried).
+✅ **Auth — PASSED 2026-09-12**, all eleven steps (§5.1d). ⚠ For the next hosted
+click-through: browse to `http://localhost:8080`, not `127.0.0.1` (Secure cookie), and
+hand `users reset` over for a real terminal (`getpass`).
+
+1. **Save on the DESKTOP still opens the filename prompt and downloads** (carried).
    Run `python -m exalted_builder.ui.builder`. Confirm the hosted-only buttons —
    **now three: Download a copy, Log out, and the party's Download a copy** — are
    absent there.
@@ -164,6 +165,8 @@ before blaming the build; the stale-binary theory has been wrong twice.
 ## ❓ Open for the human
 
 - **No open RULES questions.** This session touched no game values.
+- **Two product questions on the base character** (`vtt.md` §9.2): can a base be changed
+  after a campaign copy exists, and can a copy exist outside any campaign?
 - **Design choices made without asking, all reversible:**
   - **Rate-limit numbers:** 5 free, 30 s doubling to 15 min, forget after 1 h.
   - **`DEFAULT_HOST` stays loopback** now that `--public` is gone.

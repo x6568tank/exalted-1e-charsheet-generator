@@ -1022,6 +1022,21 @@ enumeration found `/` and `/gm`.
   after the test had typed the correct password — and logged in. The loop now waits for
   the field to be cleared.
 
+#### ✅ Browser click-through — PASSED 2026-09-12, all eleven steps
+
+The human, on `http://localhost:8080`, with all four env vars set and a fresh DB: the
+gate on `/` and `/docs`; the admin address on `/login`; signup; **one account in a
+private window sees the same character, with an edit made in the other window** (the
+ruling); a second account sees a different, empty one; log out on `/` and on `/gm`;
+`Harmonious` refused against `harmonious`; `/gm` typed while logged out → login → lands
+on `/gm`; five wrong passwords, then the correct one refused; **still logged in after a
+server restart** (same secret, same `.nicegui/`); `users reset` in a terminal → the new
+password works and the old one is refused.
+
+⚠ **`users reset` was run in a real terminal, not through an agent session's `!`
+prefix.** It asks with `getpass`; whether `!` can feed a no-echo prompt was not tested.
+Hand the operator the command for a terminal.
+
 #### Known limits — not solved, recorded so nobody assumes they are
 
 * **The session id does not change at login.** Since the third round the `__Host-`
@@ -1118,8 +1133,8 @@ auth gate and per-request resolution are the additions), plus whatever 5.3's rul
 | 1. `server/main.py` — the switch | ✅ done, §5.1a |
 | 2. the third save branch (both sites) | ✅ done, §5.1b |
 | 2b. "Download a copy" on a hosted run | ✅ done, §5.1c — browser-verified |
-| 3. Auth — `/login`, the gate, `bcrypt`, the `[server]` extra | ✅ done, §5.1d — not browser-verified |
-| 4. The DB, and §5.3's per-user rulesets | ❌ not started; **measure one merged `RuleSet` before fixing the layout** |
+| 3. Auth — `/login`, the gate, `bcrypt`, the `[server]` extra | ✅ done, §5.1d — **browser-verified 2026-09-12** |
+| 4. The DB, and §5.3's per-user rulesets | ❌ not started; **measure one merged `RuleSet` before fixing the layout**. ⚠ **The layout grew on 2026-09-12**: several characters per account, base characters, tables and pending memberships — `vtt.md` §9.3 |
 
 ⚠ Piece 1 shipped **without** piece 2, so a hosted run now persists edits by timer while
 the Save button still downloads to the browser. That is a better failure than losing the
