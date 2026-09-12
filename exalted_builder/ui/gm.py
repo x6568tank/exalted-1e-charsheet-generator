@@ -463,12 +463,18 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
             ui.label("Load a party").classes("text-lg font-bold")
             ui.upload(label="Choose a .party.json file", auto_upload=True,
                       on_upload=lambda e: _on_party_upload(e, dialog)).classes("w-96")
-            ui.label("…or load by path:").classes("text-xs text-gray-600 mt-2")
-            path_input = ui.input("Path to .party.json",
-                                  value=str(ctx["party_path"] or "")).classes("w-96")
+            # ⚠ Desktop only: a hosted path is a path on the SERVER. See the same
+            # note in builder._open_browser_load_dialog.
+            if not hosted:
+                ui.label("…or load by path:").classes("text-xs text-gray-600 mt-2")
+                path_input = ui.input("Path to .party.json",
+                                      value=str(ctx["party_path"] or "")) \
+                    .classes("w-96").mark("load-by-path")
             with ui.row():
                 ui.button("Cancel", on_click=dialog.close).props("flat")
-                ui.button("Load path", on_click=lambda: do_load_party(path_input.value, dialog))
+                if not hosted:
+                    ui.button("Load path",
+                              on_click=lambda: do_load_party(path_input.value, dialog))
         dialog.open()
 
     # ---- adding a character to the party ---------------------------------- #
@@ -532,10 +538,14 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
             else:
                 ui.upload(label="Choose a .character.json file", auto_upload=True,
                           on_upload=lambda e: _on_character_upload(e, dialog)).classes("w-96")
-                ui.label("…or add by path:").classes("text-xs text-gray-600 mt-2")
-                path_input = ui.input("Path to .character.json").classes("w-96")
-                ui.button("Add path", icon="add",
-                          on_click=lambda: do_add_from_path(path_input.value, dialog)).props("flat")
+                # ⚠ Desktop only: a hosted path is a path on the SERVER.
+                if not hosted:
+                    ui.label("…or add by path:").classes("text-xs text-gray-600 mt-2")
+                    path_input = ui.input("Path to .character.json").classes("w-96") \
+                        .mark("load-by-path")
+                    ui.button("Add path", icon="add",
+                              on_click=lambda: do_add_from_path(path_input.value, dialog)
+                              ).props("flat")
 
             ui.separator()
             if not in_party(open_char):
@@ -717,7 +727,8 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
                          on_change=lambda e: setattr(p, "name", e.value)
                          ).props("dense outlined").classes("w-64")
                 ui.space()
-                ui.button("Add character", icon="person_add", on_click=add_to_party).props("flat")
+                ui.button("Add character", icon="person_add", on_click=add_to_party).props(
+                    "flat").mark("gm-add-character")
                 ui.button("Save party", icon="save",
                           on_click=save_party).props("flat").mark("gm-save-party")
                 if hosted:
@@ -726,7 +737,8 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
                               on_click=lambda: _party_download_copy(
                                   persistence.suggested_party_filename(party()))
                               ).props("flat").mark("gm-download-party")
-                ui.button("Load party", icon="folder_open", on_click=load_party).props("flat")
+                ui.button("Load party", icon="folder_open", on_click=load_party).props(
+                    "flat").mark("gm-load-party")
                 ui.button("Print all", icon="picture_as_pdf",
                           on_click=lambda: export_pdf()).props("flat").tooltip(
                     "Export every member's sheet as one PDF, one per page")

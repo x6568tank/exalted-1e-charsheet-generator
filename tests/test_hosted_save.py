@@ -340,6 +340,53 @@ async def test_download_buttons_are_absent_on_the_desktop(create_user) -> None:
 
 
 # --------------------------------------------------------------------------- #
+# Load by path — the server's file system is not the player's
+# --------------------------------------------------------------------------- #
+#
+# 🐞 Found 2026-09-12, live on the deployed server. Each browser Load dialog had a
+# path field. On a hosted run a player could type the save path of a different
+# account: the builder opened that character and pointed the auto-save at the
+# file, thus the player could read and overwrite it. The field showed the
+# player's own server path as its default, which gave the folder names.
+#
+# ⚠ Each case settles on the upload control first. It shows that the dialog
+# rendered, thus the absence of the path field is meaningful.
+
+_PATH_DIALOGS = [
+    # (route, button mark, text the dialog shows)
+    ("/", "top-bar-load", "Choose a .character.json file"),
+    ("/gm", "gm-load-party", "Choose a .party.json file"),
+    ("/gm", "gm-add-character", "Choose a .character.json file"),
+]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+@pytest.mark.parametrize("route,button,upload_text", _PATH_DIALOGS)
+async def test_a_hosted_load_dialog_takes_no_server_path(
+        create_user, route, button, upload_text) -> None:
+    user = create_user()
+    await user.open(route)
+    user.find(button).click()
+    await user.should_see(upload_text)
+    await user.should_not_see(marker="load-by-path")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+@pytest.mark.parametrize("route,button,upload_text", _PATH_DIALOGS)
+async def test_the_desktop_load_dialog_keeps_its_path_field(
+        create_user, route, button, upload_text) -> None:
+    """The control. Without it, the hosted cases pass against a mark that is on
+    no element."""
+    user = create_user()
+    await user.open({"/": "/desktop", "/gm": "/desktop-gm"}[route])
+    user.find(button).click()
+    await user.should_see(upload_text)
+    await user.should_see(marker="load-by-path")
+
+
+# --------------------------------------------------------------------------- #
 # The one-switch rule
 # --------------------------------------------------------------------------- #
 

@@ -1037,6 +1037,25 @@ password works and the old one is refused.
 prefix.** It asks with `getpass`; whether `!` can feed a no-echo prompt was not tested.
 Hand the operator the command for a terminal.
 
+#### 🐞 Closed 2026-09-12 — "Load path" reached every account
+
+Found while tracing the custom-library call sites for piece 4, **on the deployed
+server**. The browser Load dialog of the builder, the party Load dialog and the party's
+Add-character dialog each had a free-text **path** field, a fallback from the desktop.
+On a hosted run that path is a path on the server. A logged-in player could type the
+save of another account (`<root>/user-<id>/…`; the ids are small integers). The builder
+then opened that character and set `ctx["path"]` to it, so **the auto-save wrote
+to the other account's file**. The quota did not stop it, because the write lands in
+the victim's folder. The field also showed the player's own server path as its default,
+which gave the layout away.
+
+Fixed: the three fields and their buttons render on the desktop only (`if not hosted`).
+Upload stays. `tests/test_hosted_save.py` has a hosted case and a desktop control for
+each dialog. Mutation-checked.
+
+⚠ **Any new control that takes a path from the browser is this bug again.** On a hosted
+run the only file sources are an upload and the session's own folder.
+
 #### Known limits — not solved, recorded so nobody assumes they are
 
 * **The session id does not change at login.** Since the third round the `__Host-`

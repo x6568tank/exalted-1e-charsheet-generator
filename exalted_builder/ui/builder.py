@@ -596,11 +596,18 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             ui.label("Load a character").classes("text-lg font-bold")
             ui.upload(label="Choose a .character.json file", auto_upload=True,
                       on_upload=lambda e: _on_upload(e, dialog)).classes("w-96")
-            ui.label("…or load by path:").classes("text-xs text-gray-600 mt-2")
-            path_input = ui.input("Path to .character.json", value=str(ctx["path"])).classes("w-96")
+            # ⚠ Desktop only. On a hosted run the path is a path on the SERVER: a
+            # player could open the save of a different account, and the auto-save
+            # then writes to it. See tests/test_hosted_save.py.
+            if not hosted:
+                ui.label("…or load by path:").classes("text-xs text-gray-600 mt-2")
+                path_input = ui.input("Path to .character.json", value=str(ctx["path"])) \
+                    .classes("w-96").mark("load-by-path")
             with ui.row():
                 ui.button("Cancel", on_click=dialog.close).props("flat")
-                ui.button("Load path", on_click=lambda: do_load(path_input.value, dialog)).props(f"color={_pal().button}")
+                if not hosted:
+                    ui.button("Load path", on_click=lambda: do_load(path_input.value, dialog)
+                              ).props(f"color={_pal().button}")
         dialog.open()
 
     def finish() -> None:
@@ -639,7 +646,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
                           on_click=lambda: _download_copy(
                               persistence.suggested_filename(ctx["char"]))
                           ).props("flat color=white").mark("top-bar-download")
-            ui.button("Load", icon="folder_open", on_click=open_load).props("flat color=white")
+            ui.button("Load", icon="folder_open", on_click=open_load).props(
+                "flat color=white").mark("top-bar-load")
             ui.button("Print", icon="picture_as_pdf", on_click=export_pdf).props(
                 "flat color=white").tooltip("Export a print-ready PDF character sheet")
             ui.button("Finish & Lock", icon="lock", on_click=finish).props("flat color=white")
