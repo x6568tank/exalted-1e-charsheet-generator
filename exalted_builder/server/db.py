@@ -40,6 +40,20 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- The characters of each account. Section 5 piece 4; docs/plans/vtt.md 9.3a.
+-- The character is a file. This row holds what the file cannot: the owner, the
+-- copy flag, the base of a copy, and the table of a copy (P3, NULL until then).
+-- A delete of a base keeps its copies and clears their base_id (ruled 2026-09-12).
+CREATE TABLE IF NOT EXISTS characters (
+    id TEXT PRIMARY KEY,
+    owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    is_copy INTEGER NOT NULL DEFAULT 0,
+    base_id TEXT REFERENCES characters(id) ON DELETE SET NULL,
+    table_id TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS characters_owner ON characters(owner_id);
 """
 
 

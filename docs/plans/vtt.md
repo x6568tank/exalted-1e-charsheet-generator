@@ -653,6 +653,15 @@ This is why it had to be asked **before** the layout. Piece 4 was going to add o
 ⚠ **The §5.3 measurement still comes first.** Per-user rulesets and the table-layer mod
 both multiply `RuleSet` objects; measure one before fixing the layout.
 
+### 9.3a The layout rulings — asked 2026-09-12, before the layout
+
+| Question | Ruling |
+|---|---|
+| Where does a hosted character live? | **A file in the account folder, plus a DB index.** Each character stays a `.character.json`, named by its id. The DB row holds the owner, whether it is a campaign copy, and the base a copy came from. The quota, the auto-save, Download and the data-folder backups stay as they are. Chosen over the JSON in SQLite. |
+| The one character each account has from the one-character build | **Start clean.** No import. Players bring an old character back by upload. (Adopting it once was the alternative. It needed permission under `CLAUDE.md` §10, and was declined.) |
+| Delete from `/home` | **Yes, with a confirm, and copies survive.** A copy whose base is deleted keeps its data and shows that the base is gone. |
+| The Party page (`/gm`) on the hosted site until P3 | **Hidden.** No Party button on the hosted builder and no `/gm` route on the server. P3's table view replaces it. The desktop keeps it. (It edits members through the builder over ONE shared context, which per-character pages do not have.) |
+
 ### 9.4 The site map, and the landing page
 
 **RULED 2026-09-12** (human: *"Looks good"*, on a proposal answering the human's own
