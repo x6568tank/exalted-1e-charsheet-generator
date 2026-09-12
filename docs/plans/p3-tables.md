@@ -137,14 +137,28 @@ Today a character's context gets `AccountRulesets.for_account(owner)`: book + th
 library. For a copy in a table it becomes **book → table layer → owner's library?** — and
 the last arrow is **open question Q1 (§13)**. The mechanics either way:
 
-* The table layer is `<table folder>/custom`, merged with `rules_db.with_custom_layer` —
-  which **composes**: `with_custom_layer(with_custom_layer(book, table_dir), account_dir)`.
-  ⚠ The inner result must get its own dicts before the outer merge writes into them;
-  `with_custom_layer` copies `CUSTOM_POOLS` on every call, so this holds, but it needs a
-  test that authors into the account layer and asserts the table's RuleSet is untouched.
-* Precedence on an id clash (both layers carry `custom.x`): **the table wins**, by the same
-  logic as `absorb_definitions`' "the recipient's own version wins" — the table is the
-  shared agreement. Needs a test; it is the order of the two calls.
+* The table layer is `<table folder>/custom`. ⚠ **`with_custom_layer` does NOT compose
+  as it stands.** `reload_custom_layer` first deletes *every* row flagged `custom` (and
+  every gear row tagged `custom`), then merges one folder. So
+  `with_custom_layer(with_custom_layer(book, table_dir), account_dir)` wipes the table
+  layer in the outer call and leaves only the account's. (Found re-reading this design,
+  2026-09-12. It is the reason the fifth mutation of §5.3 passed at first — the same
+  delete-first behaviour, seen from the other side.)
+* **So step 6 teaches the loader LAYERS**: `with_custom_layers(book, [table_dir, ...])`
+  and `reload_custom_layers(ruleset, [dirs])`, which clear once and merge each folder in
+  order. Each merged row records its layer (a `custom_layer` value, or the folder), so a
+  reload of one layer — the ST editing the table's Custom page — can rebuild the whole
+  stack instead of dropping the other layer. Tests: author into each layer, reload each,
+  assert the other layer's rows survive.
+* Precedence on an id clash (both layers carry `custom.x`): **the table wins** — the table
+  is the shared agreement, by the same logic as `absorb_definitions`' "the recipient's own
+  version wins". The loader keeps the first definition it sees, so this is the ORDER of
+  the folders. Needs a test, and a problem message that names the losing layer (today's
+  message says "defined twice in the library", which would be wrong across layers).
+* ⚠ **The Custom tab reloads the RuleSet it is handed** (`reload_custom_layer(ruleset,
+  root)`). A campaign copy's RuleSet is a stack; the account's Custom page must never be
+  handed it, or a save on the Homebrew tab rebuilds the stack from one folder. The
+  account RuleSet and each table's RuleSet stay separate objects.
 * A `TableRulesets` cache keyed by table id, next to `AccountRulesets`. The table view and
   every copy in the table read it; the ST's edits on the table's Custom page reload it in
   place, so every member sees a new table Charm at once — the same behaviour the account
@@ -320,7 +334,7 @@ Steps 1–4 need no further ruling.
 | Adjust XP editable on a copy | 3 | absent on campaign copies, keyed on `table_id` |
 | XP grant written behind an open page | 1 | grant through the live context when open; a test with the copy open that the auto-save keeps the grant |
 | Table layer written by a join | — | `absorb_custom=False` on every table path; the empty-`custom/` test |
-| The two layers sharing dicts | — | the composed-overlay test (§4) |
+| The two layers sharing dicts, or one reload dropping the other layer | 2 | `with_custom_layers` clears once and merges in order; a test per layer that reloading it keeps the other (§4) |
 | A spectator reaching an ST handler | — | the ST check is `access() == "storyteller"`, never "not a spectator" — spectator is a way of opening, not a role |
 | A table context made for a non-member | — | `access()` before the table registry, as `owned` before the character registry |
 
