@@ -5,11 +5,14 @@ The human set the limit on 2026-09-11: 10 MB for each person. A character file i
 some kilobytes.
 
 `FolderQuota` is a write guard for `persistence.atomic_write`. Each write of the
-server goes through that function: Save, the auto-save, the save of a tab and Save
-party. Thus one check covers each write site, and each new one.
+server goes through that function: Save, the auto-save, the save of a tab, Save
+party, and each write to the homebrew library. Thus one check covers each write
+site, and each new one.
 
-⚠ The check applies to paths inside the session root only. The homebrew library is
-outside it and is one library for the process. Section 5.3 records that.
+The homebrew library of an account is `<account folder>/custom`, thus the limit
+of the account covers it. See hosting-state-model.md section 5.3.
+
+⚠ The check applies to paths inside the session root only.
 """
 
 from __future__ import annotations

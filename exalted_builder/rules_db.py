@@ -913,6 +913,28 @@ def reload_custom_layer(ruleset: RuleSet, custom_dir: str | Path | None = None) 
     return problems
 
 
+# The RuleSet dicts that the custom layer writes. `with_custom_layer` copies these
+# and shares all other fields with the book.
+# ⚠ A new custom-authorable collection goes in this list. If it is not in the
+# list, a reload in one account writes into the book and into each other account.
+CUSTOM_POOLS = ("charms", "spells", "thaum_rituals", "weapon_catalog",
+                "armor_catalog", "gear_catalog", "artifact_catalog")
+
+
+def with_custom_layer(book: RuleSet, custom_dir: str | Path) -> RuleSet:
+    """Return a RuleSet of `book` with the library at `custom_dir` merged over it.
+
+    The result has its own copy of each dict in `CUSTOM_POOLS`. It shares each
+    other field and each row with `book`. Thus `book` does not change, and a
+    `reload_custom_layer` on the result changes the result only. The cost is about
+    0.1 MB plus the homebrew. See hosting-state-model.md section 5.3.
+    """
+    ruleset = book.model_copy(
+        update={name: dict(getattr(book, name)) for name in CUSTOM_POOLS})
+    reload_custom_layer(ruleset, custom_dir)
+    return ruleset
+
+
 def load_adversary_catalog(data_dir: str | Path) -> dict[str, Adversary]:
     """Load the Storyteller's adversary templates (data/adversaries.json).
 

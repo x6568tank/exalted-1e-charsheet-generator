@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from exalted_builder import persistence
+from exalted_builder import custom_content, persistence
 from exalted_builder.models.character import Character
 from exalted_builder.models.party import Party
 from exalted_builder.server.quota import FolderQuota, QuotaExceeded, folder_size
@@ -82,7 +82,7 @@ def test_one_account_does_not_use_the_space_of_another(root: Path) -> None:
 
 
 def test_a_path_outside_the_root_is_not_checked(root: Path, tmp_path: Path) -> None:
-    """The homebrew library and the desktop saves are outside the session root."""
+    """The desktop library and the desktop saves are outside the session root."""
     FolderQuota(root, limit=LIMIT)(tmp_path / "custom" / "charms.json", 10 * LIMIT)
 
 
@@ -127,6 +127,21 @@ def test_a_party_save_past_the_limit_is_refused(root: Path, guard) -> None:
 
     with pytest.raises(QuotaExceeded):
         persistence.save_party(Party(id="circle", name="Circle"), root / "user-1" / "circle.party.json")
+
+
+def test_a_homebrew_row_past_the_limit_is_refused(root: Path, guard) -> None:
+    """The library of an account is `<account folder>/custom` (section 5.3), thus
+    the quota of the account covers it. Before 2026-09-12 the library was one
+    folder for the process, outside the root, with no limit."""
+    _fill(root / "user-1" / "old.json", LIMIT - 10)
+
+    with pytest.raises(QuotaExceeded):
+        custom_content.save_charm(
+            {"id": "custom.big", "name": "Big", "category": "melee",
+             "type": "Supplemental", "description": "x" * 1000},
+            custom_dir=root / "user-1" / "custom")
+
+    assert custom_content.library_charms(root / "user-1" / "custom") == []
 
 
 def test_no_guard_means_no_limit(root: Path) -> None:

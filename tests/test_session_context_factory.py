@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 
-from exalted_builder import persistence
+from exalted_builder import persistence, rules_db
 from exalted_builder.models.character import Character
 from exalted_builder.models.party import Party, PartyMember
 from exalted_builder.ui import builder
@@ -36,6 +36,31 @@ def _prototype() -> dict:
     ])
     ctx["adversary_catalog"] = {"bandit": object()}
     return ctx
+
+
+def test_a_hosted_session_gets_its_own_library_and_ruleset(tmp_path: Path) -> None:
+    """Section 5.3, ruled 2026-09-12: one homebrew library for each account, in
+    the account's own folder. The RuleSet of the session merges that library and
+    no other. The book RuleSet is never a session's own."""
+    book = rules_db.load_ruleset(Path("exalted_builder/data"))
+    factory = builder.session_context_factory(_prototype(), tmp_path, ruleset=book)
+
+    a, b = factory("session-a"), factory("session-b")
+
+    assert a["custom_dir"] == a["home_dir"] / "custom"
+    assert a["custom_dir"] != b["custom_dir"]
+    assert a["ruleset"] is not b["ruleset"]
+    assert a["ruleset"] is not book and b["ruleset"] is not book
+    assert a["ruleset"].charms is not book.charms
+
+
+def test_a_desktop_session_uses_the_shared_ruleset_and_the_default_library() -> None:
+    """The desktop has one user. `custom_dir` None means the default library."""
+    ruleset = object()
+    ctx = builder.session_context_factory(_prototype(), ruleset=ruleset)("session-a")
+
+    assert ctx["custom_dir"] is None
+    assert ctx["ruleset"] is ruleset
 
 
 def test_two_keys_get_two_characters() -> None:

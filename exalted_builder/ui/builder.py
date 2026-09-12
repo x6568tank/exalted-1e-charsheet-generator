@@ -118,9 +118,14 @@ def make_context(character: Character, save_path: Path) -> dict:
     not call `persistence.default_save_dir()` in a handler. That function is
     process-wide, thus it takes a hosted session out of its own directory and into
     one that every session shares. See `session_context_factory`.
+
+    `custom_dir` is the homebrew library of this session. None is the default
+    library, which is correct for the desktop only. ⚠ Give this field to each
+    call that reads or writes the library. A call with no folder uses the
+    default library, and the hosted server refuses that.
     """
     return {"char": character, "path": save_path, "dir": Path(save_path).parent,
-            "home_dir": persistence.default_save_dir(),
+            "home_dir": persistence.default_save_dir(), "custom_dir": None,
             "party": Party(id="party.new"), "party_path": None, "member": None,
             "adversary_catalog": {}}
 
@@ -168,7 +173,8 @@ def session_dirname(key: str) -> str:
 
 
 def session_context_factory(prototype: dict,
-                            session_root: Path | None = None) -> Callable[[str], dict]:
+                            session_root: Path | None = None,
+                            ruleset: RuleSet | None = None) -> Callable[[str], dict]:
     """Return a factory that makes one context for each browser session.
 
     The factory takes a session key and returns a copy of `prototype`: a deep
@@ -192,6 +198,15 @@ def session_context_factory(prototype: dict,
     `SessionRegistry` calls this. The factory makes a new context on each call;
     the registry, not the factory, gives one key one context.
 
+    The context also holds the homebrew library of the session and its RuleSet.
+    With a `session_root`, the library is `<session directory>/custom` and the
+    RuleSet is `ruleset` with that library merged over it
+    (`rules_db.with_custom_layer`). With no root, `custom_dir` is None, which is
+    the default library, and the RuleSet is `ruleset` itself.
+
+    ⚠ A hosted `ruleset` must be the BOOK. A merged one gives each account the
+    homebrew of its library. See hosting-state-model.md section 5.3.
+
     ⚠ Inside one context, `char` can BE a party member's character, by identity.
     `open_member` points it there by reference, and the party card then follows
     the builder's edits with no syncing code. This function keeps that identity.
@@ -208,6 +223,7 @@ def session_context_factory(prototype: dict,
         if session_root is None:
             directory, path = prototype["dir"], prototype["path"]
             home = prototype["home_dir"]
+            custom_dir, session_rules = None, ruleset
         else:
             directory = session_root / session_dirname(key)
             path = directory / persistence.suggested_filename(char)
@@ -215,7 +231,11 @@ def session_context_factory(prototype: dict,
             # upload handlers rebuild the destination from it, thus a prototype
             # copy here takes the session back out of its directory.
             home = directory
+            custom_dir = directory / custom_content.CUSTOM_DIR_NAME
+            session_rules = (None if ruleset is None
+                             else rules_db.with_custom_layer(ruleset, custom_dir))
         return {"char": char, "path": path, "dir": directory, "home_dir": home,
+                "custom_dir": custom_dir, "ruleset": session_rules,
                 "party": party, "party_path": prototype["party_path"],
                 "member": prototype["member"],
                 "adversary_catalog": prototype["adversary_catalog"]}
@@ -289,7 +309,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         Save button and none of them calls this today. The Save control of the
         app is `save()` below, which adds the file dialogs.
         """
-        saving.save_to_path(ctx["path"])(target)
+        saving.save_to_path(ctx["path"], custom_dir=ctx["custom_dir"])(target)
 
     def _quiet_save(target: Character) -> None:
         """Write `target` to the current path and show no notification.
@@ -297,7 +317,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         The auto-save timer calls this. It reads `ctx` at each call, for the same
         reason that `tab_save` does.
         """
-        saving.save_to_path(ctx["path"], notify=False)(target)
+        saving.save_to_path(ctx["path"], notify=False,
+                            custom_dir=ctx["custom_dir"])(target)
 
     # Made for each session, and before the handlers that reset it. The digest of
     # a 3 KB character costs 0.015 ms, thus the poll is free.
@@ -333,7 +354,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             editor.build_editor(ruleset, char, tab_save, with_header=False,
                                 on_theme_change=_apply_chrome)
         elif state["tab"] == "Gear":
-            gear_mod.build_gear(ruleset, char, tab_save, with_header=False)
+            gear_mod.build_gear(ruleset, char, tab_save, with_header=False,
+                                custom_dir=ctx["custom_dir"])
         elif state["tab"] == "Advantages":
             advantages.build_advantages(ruleset, char, tab_save, with_header=False)
         elif state["tab"] == "Charms":
@@ -349,7 +371,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             # Rule-set editing, not character editing: it takes no Character and is
             # the one tab whose edits outlive the open save. It mutates `ruleset` in
             # place, so every other tab sees new homebrew without a restart.
-            custom_mod.build_custom(ruleset, with_header=False)
+            custom_mod.build_custom(ruleset, custom_dir=ctx["custom_dir"],
+                                    with_header=False)
         else:
             sheet_app.render_sheet(viewmod.build_sheet_view(ruleset, char))
 
@@ -374,7 +397,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         """
         target = ctx["path"]
         try:
-            persistence.save_character(ctx["char"], target)
+            persistence.save_character(ctx["char"], target,
+                                       custom_dir=ctx["custom_dir"])
         except Exception as ex:                     # noqa: BLE001 - surface write errors
             ui.notify(f"Save failed: {ex}", type="negative")
             return
@@ -411,7 +435,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
                 return
             target = Path(chosen if isinstance(chosen, str) else chosen[0])
             try:
-                persistence.save_character(ctx["char"], target)
+                persistence.save_character(ctx["char"], target,
+                                           custom_dir=ctx["custom_dir"])
             except Exception as ex:                     # noqa: BLE001 - surface write errors
                 ui.notify(f"Save failed: {ex}", type="negative")
                 return
@@ -508,9 +533,9 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         it uses, and absorbing them into this machine's library is what makes those
         Charms resolve instead of showing as ⚠ rows. Both load paths pass
         `absorb_custom=False` so the count is still ours to report."""
-        imported = custom_content.absorb_definitions(loaded)
+        imported = custom_content.absorb_definitions(loaded, custom_dir=ctx["custom_dir"])
         if imported:
-            rules_db.reload_custom_layer(ruleset)
+            rules_db.reload_custom_layer(ruleset, ctx["custom_dir"])
             ui.notify(f"Imported {len(imported)} homebrew definition(s) from this save",
                       type="info")
         ctx["char"] = loaded
@@ -529,7 +554,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
     def do_load(path_str: str, dialog) -> None:
         try:
-            loaded = persistence.load_character(path_str, absorb_custom=False)
+            loaded = persistence.load_character(path_str, absorb_custom=False,
+                                                custom_dir=ctx["custom_dir"])
         except Exception as ex:                       # noqa: BLE001 - surface any load error to the user
             ui.notify(f"Load failed: {ex}", type="negative")
             return
@@ -724,7 +750,9 @@ def register_pages(ruleset: RuleSet, ctx: dict,
     session without re-loading anything — the party member and the builder's
     character stay one object — and two browsers never share a Character.
 
-    `ruleset` stays in the closure. It is read-only and it is genuinely shared.
+    `ruleset` is the RuleSet of the desktop. A hosted run gives the BOOK, and each
+    session reads its own `ctx["ruleset"]`, which merges the library of the
+    account. See `session_context_factory`.
 
     ⚠ Resolve the context in the page BODY. A context in the closure is the
     defect of hosting-state-model.md section 3.1: every browser then edits one
@@ -754,7 +782,8 @@ def register_pages(ruleset: RuleSet, ctx: dict,
 
     # One registry for this process. It is bounded by count; the idle sweep needs
     # a timer and belongs to the deployment that runs a long-lived server.
-    sessions = SessionRegistry(factory=session_context_factory(ctx, session_root))
+    sessions = SessionRegistry(
+        factory=session_context_factory(ctx, session_root, ruleset=ruleset))
 
     @ui.page(builder_path)
     def index() -> None:
@@ -762,15 +791,16 @@ def register_pages(ruleset: RuleSet, ctx: dict,
         # ⚠ Auto-save is enabled by the same value that isolates the destination.
         # Thus the hazardous pair — a timer plus a shared path — cannot be
         # configured. Do not give these two their own switches. See section 3.7.
-        build_app(ruleset, session_ctx["char"], session_ctx["path"], ctx=session_ctx,
-                  hosted=session_root is not None)
+        build_app(session_ctx["ruleset"], session_ctx["char"], session_ctx["path"],
+                  ctx=session_ctx, hosted=session_root is not None)
 
     @ui.page("/gm")
     def party_page() -> None:
         # ⚠ `/gm` takes the SAME hosted bit as '/'. `gm.save_party` carried the
         # identical two-way branch, so a hosted Storyteller got a download and the
         # server kept no roster. One page fixed and one not is the house bug.
-        gm_mod.build_gm(ruleset, sessions.ctx_for(key()),
+        session_ctx = sessions.ctx_for(key())
+        gm_mod.build_gm(session_ctx["ruleset"], session_ctx,
                         hosted=session_root is not None, builder_path=builder_path)
 
     return sessions

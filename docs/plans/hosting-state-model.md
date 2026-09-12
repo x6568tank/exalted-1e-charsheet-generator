@@ -1081,8 +1081,9 @@ run the only file sources are an upload and the session's own folder.
 * **Signup is not rate-limited and the account count is not capped.** The quota bounds
   each account's disk, not the number of accounts.
 * **No account delete, and no password change by the player.**
-* **The homebrew library is outside the quota** — it is one process-wide library
-  (§5.3, piece 4), and a loaded save still writes its homebrew into it.
+* ~~**The homebrew library is outside the quota**~~ — ✅ **closed 2026-09-12** by §5.3:
+  the library is now `<account folder>/custom`, and every library write goes through
+  `atomic_write`. `test_folder_quota.py::test_a_homebrew_row_past_the_limit_is_refused`.
 * **Two devices of one account share one live `Character`.** Saves are consistent; the
   view that did not make an edit is stale until it reloads. This is the ruling's cost.
 
@@ -1167,6 +1168,57 @@ complete list today. ⚠ **If a new collection becomes custom-authorable, it joi
 list, or the overlay leaks between users.** That needs a test that authors into the new
 collection for one user and asserts that a second user cannot see it.
 
+#### ✅ BUILT 2026-09-12 — one library per account
+
+Built on the ruling (open question 2 below) and on the measurement above.
+
+* **Where:** `<session root>/user-<id>/custom/`, the same file shapes as the desktop
+  `custom/`. The account quota covers it.
+* **The RuleSet:** `rules_db.with_custom_layer(book, custom_dir)`, made in
+  `builder.session_context_factory`. The context carries it as `ctx["ruleset"]`,
+  beside the new `ctx["custom_dir"]`. Both pages resolve it per request, the same way
+  they resolve `char`. `rules_db.CUSTOM_POOLS` names the seven copied dicts.
+* **The server gives the builder the BOOK** (`load_ruleset`, not `load_app_ruleset`).
+  The wiki keeps its own separate book object, so a session reload can never reach a
+  public page.
+* **The desktop is unchanged:** `ctx["custom_dir"]` is None (the default library) and
+  `ctx["ruleset"]` is the one shared RuleSet.
+* **The switch:** `main()` calls `custom_content.require_explicit_dir(True)`. On the
+  server, `custom_data_dir()` then raises `NoDefaultLibrary`, so a call site that
+  forgets its account's folder fails loudly instead of writing to a library every
+  account shares.
+
+**The wiring, and what guards each part:**
+
+| Site | Guard |
+|---|---|
+| Custom tab, Save, Save party, "Save to my library" (gear) | `test_account_homebrew.py` runs the real page wiring with the switch ON, and asserts the default library stays empty |
+| Upload import, auto-save timer, native dialogs (no harness can click them) | the same file's AST check: every library call in `ui/builder.py`, `gm.py`, `gear.py`, `saving.py`, `custom.py` names its folder, except the desktop entry points `main` and `load` |
+| Two overlays never share a dict | `test_custom_content.py::test_a_reload_in_one_account_reaches_no_other`, one row of each kind |
+| `build_server` reads no default library | `test_server_main.py`, with the switch on during `build_server` |
+
+Mutation-checked, five ways: the factory handing out the shared RuleSet, the Custom
+tab with no folder, the hosted Save with no folder, `CUSTOM_POOLS` missing the gear
+dicts, and `build_server` back on `load_app_ruleset`.
+
+🐞 **The fifth mutation passed at first, and it was the house bug, type 2.** With
+`build_server` on `load_app_ruleset`, no session saw the process library anyway:
+`reload_custom_layer` deletes every custom row before it merges, so each session's
+overlay wiped the process rows by accident. The test asserted the effect. It now runs
+`build_server` with the switch on, so reading the default library raises.
+
+**Not done, recorded:**
+* **"Download a copy" does not re-embed.** It sends `character_to_json` as it is. The
+  auto-save embeds within 5 s of any change, so a stale copy needs a Charm bought
+  inside that window. The party download has the same shape.
+* **The hosted party upload and add-by-upload absorb no homebrew** (they parse, they
+  do not call `absorb_definitions`). That is older than this row. The builder's upload
+  does absorb, into the account library.
+* **Nothing to migrate.** The deployed server's shared library was `/data/custom`
+  (the Dockerfile's `EXALTED_CUSTOM_DIR`), and on 2026-09-12 that folder did not exist
+  on `gilserver`: nobody had authored homebrew there. The env var is gone from the
+  Dockerfile; the switch would refuse it anyway.
+
 ### 5.4 Smaller corrections
 
 - **SQLite needs WAL** (`PRAGMA journal_mode=WAL`) with concurrent writers, plus a busy
@@ -1187,7 +1239,7 @@ auth gate and per-request resolution are the additions), plus whatever 5.3's rul
 | 2. the third save branch (both sites) | ✅ done, §5.1b |
 | 2b. "Download a copy" on a hosted run | ✅ done, §5.1c — browser-verified |
 | 3. Auth — `/login`, the gate, `bcrypt`, the `[server]` extra | ✅ done, §5.1d — **browser-verified 2026-09-12** |
-| 4. The DB, and §5.3's per-user rulesets | ❌ not started; the `RuleSet` measurement is **done** (§5.3, 2026-09-12: the shared-book overlay costs ~0.1 MB plus the homebrew). ⚠ **The layout grew on 2026-09-12**: several characters per account, base characters, tables and pending memberships — `vtt.md` §9.3 |
+| 4. The DB, and §5.3's per-user rulesets | 🟡 **§5.3 per-account homebrew DONE 2026-09-12** (measured, ruled, built). The DB tables, the landing page on `/home` and the base character are not started. ⚠ **The layout grew on 2026-09-12**: several characters per account, base characters, tables and pending memberships — `vtt.md` §9.3 |
 
 ⚠ Piece 1 shipped **without** piece 2, so a hosted run now persists edits by timer while
 the Save button still downloads to the browser. That is a better failure than losing the

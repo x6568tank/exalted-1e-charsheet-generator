@@ -30,7 +30,8 @@ SaveFn = Callable[[Character], None]
 AUTOSAVE_SECONDS = 5.0
 
 
-def save_to_path(save_path: Path | str, *, notify: bool = True) -> SaveFn:
+def save_to_path(save_path: Path | str, *, notify: bool = True,
+                 custom_dir: Path | None = None) -> SaveFn:
     """Return a save function that writes a character to `save_path`.
 
     The function writes the file. With `notify`, it also shows a positive
@@ -39,12 +40,15 @@ def save_to_path(save_path: Path | str, *, notify: bool = True) -> SaveFn:
     Use `notify=False` for a write that the user did not ask for. The auto-save
     timer does, because a toast for each interval hides the real messages.
 
+    `custom_dir` is the homebrew library that the save copies definitions from.
+    None is the default library. A hosted session gives its own.
+
     This is the desktop behaviour. Use it for a run that owns a file system.
     """
     target = Path(save_path)
 
     def save_fn(character: Character) -> None:
-        persistence.save_character(character, target)
+        persistence.save_character(character, target, custom_dir=custom_dir)
         if notify:
             ui.notify(f"Saved to {target}", type="positive")
 

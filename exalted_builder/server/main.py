@@ -33,7 +33,7 @@ from pathlib import Path
 
 from nicegui import ui
 
-from .. import persistence, rules_db
+from .. import custom_content, persistence, rules_db
 from ..models.character import Character, new_character_id
 from ..server import auth, config, db, public, quota, wiki
 from ..server.session import SessionRegistry
@@ -96,16 +96,20 @@ def build_server(session_root: Path | None = None,
     the public front page. Key each context on the logged-in account, thus each
     device of one player sees one character.
 
-    ⚠ The wiki gets a BOOK ruleset from `load_ruleset`, not the merged ruleset of
-    the builder. The merged ruleset holds the homebrew of the process, and the
-    wiki is public. See docs/plans/vtt.md section 9.5.
+    The builder gets a BOOK ruleset. Each session merges the homebrew library of
+    its account over it. See `builder.session_context_factory` and
+    hosting-state-model.md section 5.3.
+
+    ⚠ The wiki gets a SEPARATE book ruleset. The wiki is public. A session that
+    reloads its library into a shared object then publishes that homebrew. See
+    docs/plans/vtt.md section 9.5.
 
     ⚠ This does not run a server and does not install the gate. `main` does both.
     """
     root = config.session_root() if session_root is None else session_root
     database = config.db_path() if db_path is None else db_path
     db.init_db(database)
-    ruleset = rules_db.load_app_ruleset(_DATA_DIR)
+    ruleset = rules_db.load_ruleset(_DATA_DIR)
     auth.register_auth_pages(database)
     public.register_public_pages()
     wiki.register_wiki(rules_db.load_ruleset(_DATA_DIR))
@@ -136,6 +140,10 @@ def main() -> None:
     # The 10 MB limit of each account folder. Each hosted write goes through
     # `persistence.atomic_write`, thus this one guard covers each write site.
     persistence.set_write_guard(quota.FolderQuota(root))
+
+    # Each account has its own homebrew library, and there is no library of the
+    # process. A call that gives no folder then raises. Section 5.3.
+    custom_content.require_explicit_dir(True)
 
     # ⚠ `reload=False`. A reload makes a second process, and the registry holds
     # live objects that cannot cross one. See the module docstring.

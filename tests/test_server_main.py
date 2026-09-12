@@ -21,7 +21,7 @@ import sys
 
 import pytest
 
-from exalted_builder import persistence
+from exalted_builder import custom_content, persistence
 from exalted_builder.server import auth, config, main
 
 
@@ -69,6 +69,34 @@ def test_the_server_saves_inside_the_session_root(root: Path, database: Path) ->
     assert path.is_relative_to(root), (
         f"The session saves to {path}, which is outside {root}."
     )
+
+
+def test_the_hosted_builder_does_not_load_the_default_library(
+        root: Path, database: Path, tmp_path: Path, monkeypatch) -> None:
+    """Section 5.3: each account has its own library, and there is no library of
+    the process. A Charm in the default library must reach no session.
+
+    ⚠ The first assertion is the discriminator. A build_server that calls
+    `load_app_ruleset` reads the default library, and the switch makes that raise.
+    The second assertion alone does not find it: each session reloads its own
+    library, and the reload removes each custom row first, thus a session hides
+    the default library by accident. That is the second type of the house bug."""
+    default = tmp_path / "default-library"
+    (default / "charms").mkdir(parents=True)
+    (default / "charms" / "x.json").write_text(
+        '[{"id": "custom.process-wide", "name": "Process Wide", "category": "melee",'
+        ' "type": "Supplemental"}]')
+    monkeypatch.setenv(custom_content.CUSTOM_DIR_ENV, str(default))
+
+    custom_content.require_explicit_dir(True)
+    try:
+        registry = main.build_server(session_root=root, db_path=database)
+        ruleset = registry.ctx_for("alpha")["ruleset"]
+    finally:
+        custom_content.require_explicit_dir(False)
+
+    assert "custom.process-wide" not in ruleset.charms
+    assert "melee" in {c.category for c in ruleset.charms.values()}   # the book is there
 
 
 def test_the_prototype_path_is_outside_the_root(root: Path) -> None:
@@ -194,6 +222,8 @@ def test_main_installs_the_gate_and_the_quota_before_the_server_runs(root: Path,
     monkeypatch.setattr(auth, "install_gate", lambda: calls.append("gate"))
     monkeypatch.setattr(persistence, "set_write_guard",
                         lambda guard: (calls.append("quota"), guards.append(guard)))
+    monkeypatch.setattr(custom_content, "require_explicit_dir",
+                        lambda on: calls.append(f"library={on}"))
     run_kwargs: dict = {}
     monkeypatch.setattr(main.ui, "run", lambda *args, **kwargs: (
         calls.append("run"), run_kwargs.update(kwargs)))
@@ -204,9 +234,9 @@ def test_main_installs_the_gate_and_the_quota_before_the_server_runs(root: Path,
 
     main.main()
 
-    assert calls == ["gate", "quota", "run"], (
+    assert calls == ["gate", "quota", "library=True", "run"], (
         f"main made the calls {calls}. It must install the gate and the quota, "
-        "then run.")
+        "switch off the default homebrew library, then run.")
     assert guards[0].root == root, "The quota guards a folder that is not the root."
     assert guards[0].limit == 10 * 1024 * 1024
     assert run_kwargs.get("session_middleware_kwargs") is main.SESSION_COOKIE, (

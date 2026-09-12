@@ -5,14 +5,14 @@
 # docs/plans/hosting-state-model.md section 3.4.
 #
 # ⚠ Each piece of state is under /data, which is a volume: the accounts, the
-# characters, the homebrew library and the NiceGUI storage. The image holds none.
+# characters (each account's homebrew library is inside its folder) and the
+# NiceGUI storage. The image holds none.
 
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    NICEGUI_STORAGE_PATH=/data/nicegui \
-    EXALTED_CUSTOM_DIR=/data/custom
+    NICEGUI_STORAGE_PATH=/data/nicegui
 
 WORKDIR /app
 

@@ -83,9 +83,36 @@ class CustomContentError(Exception):
     already taken by the rulebook. Carries a message meant for the user."""
 
 
+class NoDefaultLibrary(RuntimeError):
+    """A call found no library folder, and this process has no default library."""
+
+
+# True on the hosted server. Each account has its own library there, thus a call
+# that gives no folder is a defect. See `require_explicit_dir`.
+_EXPLICIT_DIR_ONLY = False
+
+
+def require_explicit_dir(on: bool) -> None:
+    """Set whether a call must name its library folder.
+
+    With `on`, `custom_data_dir` raises `NoDefaultLibrary`. The hosted server sets
+    it, because each account has its own library. ⚠ A call site that forgets the
+    folder of its account then fails. Without the switch, it reads and writes a
+    library that all accounts share. See hosting-state-model.md section 5.3.
+    """
+    global _EXPLICIT_DIR_ONLY
+    _EXPLICIT_DIR_ONLY = on
+
+
 def custom_data_dir() -> Path:
     """Where the user's custom rules data lives. Not created, and not guaranteed to
-    exist — an absent library is the normal case and simply means no homebrew."""
+    exist — an absent library is the normal case and simply means no homebrew.
+
+    Raises `NoDefaultLibrary` on the hosted server. See `require_explicit_dir`."""
+    if _EXPLICIT_DIR_ONLY:
+        raise NoDefaultLibrary(
+            "This server has one homebrew library for each account and no default "
+            "library. The call must give the folder of the account.")
     override = os.environ.get(CUSTOM_DIR_ENV, "").strip()
     if override:
         return Path(override).expanduser()

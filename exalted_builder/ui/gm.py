@@ -298,7 +298,7 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
         target = ctx["party_path"] or (
             ctx["dir"] / persistence.suggested_party_filename(party()))
         try:
-            persistence.save_party(party(), target)
+            persistence.save_party(party(), target, custom_dir=ctx["custom_dir"])
         except Exception as ex:                         # noqa: BLE001 - surface write errors
             ui.notify(f"Save failed: {ex}", type="negative")
             return
@@ -321,7 +321,7 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
             return
         target = Path(chosen if isinstance(chosen, str) else chosen[0])
         try:
-            persistence.save_party(party(), target)
+            persistence.save_party(party(), target, custom_dir=ctx["custom_dir"])
         except Exception as ex:                         # noqa: BLE001 - surface write errors
             ui.notify(f"Save failed: {ex}", type="negative")
             return
@@ -428,7 +428,7 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
 
     def do_load_party(path_str: str, dialog) -> None:
         try:
-            loaded = persistence.load_party(path_str)
+            loaded = persistence.load_party(path_str, custom_dir=ctx["custom_dir"])
         except Exception as ex:                         # noqa: BLE001 - surface any load error
             ui.notify(f"Load failed: {ex}", type="negative")
             return
@@ -480,7 +480,7 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
     # ---- adding a character to the party ---------------------------------- #
     def do_add_from_path(path_str: str, dialog) -> None:
         try:
-            loaded = persistence.load_character(path_str)
+            loaded = persistence.load_character(path_str, custom_dir=ctx["custom_dir"])
         except Exception as ex:                         # noqa: BLE001 - surface any load error
             ui.notify(f"Load failed: {ex}", type="negative")
             return

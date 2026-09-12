@@ -299,6 +299,23 @@ def test_custom_data_dir_honours_the_env_override(tmp_path, monkeypatch):
     assert custom_content.custom_data_dir() == tmp_path / "elsewhere"
 
 
+def test_a_hosted_run_has_no_default_library(tmp_path, monkeypatch):
+    """The hosted server switches the default off. A call site that forgets its
+    account's library then fails, and does not write to a library of the process.
+    The desktop default comes back when the switch is off."""
+    monkeypatch.setenv(custom_content.CUSTOM_DIR_ENV, str(tmp_path))
+    custom_content.require_explicit_dir(True)
+    try:
+        with pytest.raises(custom_content.NoDefaultLibrary):
+            custom_content.custom_data_dir()
+        with pytest.raises(custom_content.NoDefaultLibrary):
+            custom_content.library_charms()
+        assert custom_content.library_charms(tmp_path) == []     # explicit still works
+    finally:
+        custom_content.require_explicit_dir(False)
+    assert custom_content.custom_data_dir() == tmp_path
+
+
 def test_custom_data_dir_defaults_beside_the_saves(tmp_path, monkeypatch):
     monkeypatch.delenv(custom_content.CUSTOM_DIR_ENV, raising=False)
     monkeypatch.chdir(tmp_path)
@@ -737,6 +754,62 @@ def test_reload_re_merges_the_gear_catalogues_too(tmp_path):
     assert "custom.singing-edge" in rs.weapon_catalog
     # Tagged, not flagged: WeaponType is frozen and shared with the book data.
     assert "custom" in rs.weapon_catalog["custom.singing-edge"].tags
+
+
+# --------------------------------------------------------------------------- #
+# with_custom_layer — one RuleSet per hosted account over one shared book
+# (hosting-state-model.md section 5.3)
+# --------------------------------------------------------------------------- #
+
+def _author_one_of_each(mine: Path, tag: str) -> None:
+    """Write one Charm, spell, ritual and weapon, each with `tag` in its id."""
+    _custom_charms(mine, [_charm(f"custom.{tag}-charm")])
+    (mine / "spells.json").write_text(json.dumps([
+        {"id": f"custom.{tag}-spell", "name": f"{tag} spell", "circle": "Terrestrial"}]))
+    (mine / "rituals.json").write_text(json.dumps([
+        {"id": f"custom.{tag}-ritual", "name": f"{tag} ritual", "level": 1}]))
+    custom_content.save_gear_row("weapons", {
+        "id": f"custom.{tag}-blade", "name": f"{tag} blade", "accuracy": 1, "damage": 2},
+        custom_dir=mine)
+
+
+def _custom_ids(rs) -> set[str]:
+    return ({i for i, c in rs.charms.items() if c.custom}
+            | {i for i, s in rs.spells.items() if s.custom}
+            | {i for i, r in rs.thaum_rituals.items() if r.custom}
+            | {i for i, w in rs.weapon_catalog.items() if "custom" in w.tags})
+
+
+def test_an_account_ruleset_has_its_homebrew_and_the_book_does_not(tmp_path):
+    book_dir, mine = tmp_path / "data", tmp_path / "a"
+    _write_clean_set(book_dir)
+    _author_one_of_each(mine, "a")
+    book = load_ruleset(book_dir)
+
+    account = rules_db.with_custom_layer(book, mine)
+
+    assert _custom_ids(account) == {"custom.a-charm", "custom.a-spell",
+                                    "custom.a-ritual", "custom.a-blade"}
+    assert _custom_ids(book) == set()
+    assert account.charms["t"] is book.charms["t"]        # the book rows are shared
+
+
+def test_a_reload_in_one_account_reaches_no_other(tmp_path):
+    """⚠ `reload_custom_layer` edits a RuleSet IN PLACE. An account RuleSet that
+    shares a dict with the book, or with a second account, gets the rows of the
+    other. Each kind of row is authored, because each is a separate dict."""
+    book_dir, dir_a, dir_b = tmp_path / "data", tmp_path / "a", tmp_path / "b"
+    _write_clean_set(book_dir)
+    book = load_ruleset(book_dir)
+    a = rules_db.with_custom_layer(book, dir_a)
+    b = rules_db.with_custom_layer(book, dir_b)
+
+    _author_one_of_each(dir_a, "a")
+    rules_db.reload_custom_layer(a, dir_a)
+
+    assert len(_custom_ids(a)) == 4
+    assert _custom_ids(b) == set()
+    assert _custom_ids(book) == set()
 
 
 def test_reload_drops_a_deleted_gear_row(tmp_path):

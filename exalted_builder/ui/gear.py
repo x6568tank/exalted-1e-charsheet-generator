@@ -23,6 +23,8 @@ Presentation only. Every derived list comes from `ui/view.py` and every rule fro
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from nicegui import ui
 
 from .. import custom_content as customs, rules_db
@@ -37,8 +39,11 @@ from .saving import SaveFn
 
 
 def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
-               *, with_header: bool = True) -> None:
-    """Render the Gear tab — the inventory, the per-kind editors, and the price list."""
+               *, with_header: bool = True, custom_dir: Path | None = None) -> None:
+    """Render the Gear tab — the inventory, the per-kind editors, and the price list.
+
+    `custom_dir` is the homebrew library that "Save to my library" writes to. None
+    is the default library. A hosted session gives its own."""
     rs = ruleset
     pal = theme.palette(character.exalt_type)
 
@@ -379,6 +384,7 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         """Put this row in the user's library so every future character can buy it."""
         try:
             customs.save_gear_row(kind, gear_actions.library_payload(kind, item),
+                                  custom_dir=custom_dir,
                                   reserved_ids=gear_actions.reserved_ids(rs))
         except customs.CustomContentError as ex:
             ui.notify(str(ex), type="warning")
@@ -386,7 +392,7 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         extra = " (armour weight defaults to Light)" if kind == "armor" else ""
         # ⚠ Re-merge NOW — see the same comment in qt/gear.py. The restart this used to
         # ask for was `reload_custom_layer` skipping the gear catalogues.
-        rules_db.reload_custom_layer(rs)
+        rules_db.reload_custom_layer(rs, custom_dir)
         ui.notify(f"Saved {item.name} to your library{extra}. It is in Buy now, and on "
                   f"the Custom tab's Gear list.", type="positive")
 

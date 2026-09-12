@@ -1,6 +1,32 @@
-# Session handoff — 2026-09-12 (the public pages: front page, About, wiki — tests green)
+# Session handoff — 2026-09-12 (third session: §5 piece 4 begun — one homebrew library per account)
 
 # 👉 YOU ARE HERE
+
+**2026-09-12, third session: §5 piece 4 is HALF begun.** Done this session, in order:
+
+1. **The §5.3 measurement** — a full per-user `RuleSet` is ~15 MB; an overlay that
+   shares the book is ~0.1 MB plus the homebrew. `hosting-state-model.md` §5.3.
+2. **Ruled: one homebrew library per account** (open question 2 of that file).
+3. **Export .json** on the Custom page (`1d95c04`), and the Rituals JSON pane fix.
+   `status/custom-content.md`.
+4. 🐞 **SECURITY, deployed and human-checked:** the hosted Load dialogs took a server
+   path, so a player could open and auto-save over another account's character
+   (`beda3ec`). §5.1d "Closed 2026-09-12" is the record. ⚠ **A hosted control must
+   never take a path from the browser.**
+5. **Per-account homebrew BUILT** — `<account folder>/custom`, `ctx["ruleset"]` per
+   session, `custom_content.require_explicit_dir` on the server. §5.3 "BUILT" has the
+   wiring table and the five mutations. Closes the "homebrew outside the quota" limit.
+   **Not deployed** — the Dockerfile lost `EXALTED_CUSTOM_DIR`, so the human rebuilds.
+
+**Full suite 3699 passed + 1 skipped — OBSERVED** after item 5, before one more quota
+case: **3700 computed.** Arithmetic: 3671 + 5 (export) + 6 (load path) + 17 (item 5) = 3699.
+
+**Next in piece 4:** the DB tables of `vtt.md` §9.3 (`characters` with draft / base /
+copy), the landing page on `/home`, the base character. `/home` is still the builder.
+
+---
+
+## The session before — the public pages
 
 **2026-09-12, second session: the public pages SHIPPED, tests green. The human approved
 the LOOK (*"a lot more in line with the rest of the site, I like it"*); the functional
@@ -126,10 +152,8 @@ of a table.
 - **Wiki sections not yet shown**, all in `data/`, same pattern: trait text, the
   ST-screen tables, artifacts, thaumaturgy, the Dragon-King Paths. Plus `robots.txt` and a
   sitemap once the public base URL is settled, and a Wiki link in the logged-in builder.
-- **§5 piece 4 — the DB, and §5.3's per-user rulesets.** ⚠ **Measure one merged `RuleSet`
-  in memory BEFORE fixing the DB layout.** §5.3 reverses the original plan (per-user is
-  *easier* than shared, because shared needs the `load_character` write hazard solved and
-  per-user dissolves it) and that reversal has to be decided before the layout, not after.
+- **§5 piece 4 — the DB.** ✅ §5.3's per-account homebrew is measured, ruled and
+  built (this session, top of file). What is left is the DB layout itself.
   ⚠ **The layout grew on 2026-09-12** — several characters, base characters, tables,
   pending memberships: `vtt.md` §9.3. Both base-character questions are ruled (§9.2):
   a base change reaches **later copies only**, and a copy **can** exist with no campaign.
