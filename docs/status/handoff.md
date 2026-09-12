@@ -4,7 +4,7 @@
 
 **2026-09-12, second session: the public pages SHIPPED, tests green. The human approved
 the LOOK (*"a lot more in line with the rest of the site, I like it"*); the functional
-click-through steps below are not yet confirmed.** `/` (front page), `/about` (⚠ DRAFT text) and `/wiki` (Charms, Martial
+click-through steps below are not yet confirmed.** `/` (front page), `/about` (Lorem Ipsum for now) and `/wiki` (Charms, Martial
 Arts, Spells, Merits & Flaws, Backgrounds — list + entry pages, search, filters) are plain
 server-rendered HTML with no login. The hosted builder moved to **`/home`**, and a login
 with no target lands there. **`vtt.md` §9.7 is the record.** Earlier the same day: the auth
@@ -46,8 +46,8 @@ files; HEAD). Not pushed. Check `git status`.
   tinted cards, Roboto/Material icons from NiceGUI's own fonts, per-splat palette); §9.7
   has both rounds of the human's feedback. ⚠ A new `Palette.fam` needs a row in
   `server/site._FAMILY`.
-* ⚠ **The About text is a draft** (`server/public.py`). The human approves it before any
-  deployment shows it.
+* The About prose is **Lorem Ipsum by the human's choice** (*"feel free to change it to Lorem Ipsum for now"*, 2026-09-12); the contact line and the
+  unofficial-fan-site notice are real. The human writes the text.
 * A book `RuleSet` measured **~15 MB traced / 0.07 s** — the first number for §5.3.
 
 ## ✅ SHIPPED and BROWSER-VERIFIED 2026-09-12 — §5 piece 3, auth
@@ -111,11 +111,12 @@ of a table.
 
 ## 👉 NEXT — in rough order of what would bite
 
-- 👉 **The human: click through the public pages and approve (or rewrite) the About
-  text.** See "Not browser-verified" below.
+- **The About text** is Lorem Ipsum until the human writes it (`server/public.py`).
 - ✅ **DEPLOYED 2026-09-12 to `https://exalted.x6568tank.com`** (commit `7cd594f`,
-  checked from outside). ⚠ Not yet seen: a real signup in a browser, which is the proof
-  that NiceGUI's websocket crosses the Cloudflare Tunnel. The About draft is live.
+  checked from outside). ✅ **A real signup in the human's browser worked**, and a
+  name change survived leaving — so the websocket crosses the Cloudflare Tunnel and the
+  hosted save writes through. `claude` now logs in to the server by key
+  (`~/.ssh/id_ed25519_gilserver_claude` on the dev machine).
 - **Deploy to `gilserver`** — `docs/deploy/homeserver.md` has every step. `Dockerfile` +
   `.dockerignore` are new and the image was built and probed locally (front page, wiki,
   `/home` → login, `__Host-` cookie, database owned by uid 1000). HTTPS is the existing
@@ -193,7 +194,7 @@ Charm page links its prerequisite; the dropdowns filter on change; search finds
 builder's Lunar palette; at phone width the header buttons shrink to icons and tables
 become stacked rows. Then log in: it lands on `/home` (the builder); `/` now says **Your characters**;
 the builder's **Party** → `/gm` → **Builder** returns to `/home`; **Log out** lands on
-`/`. Read `/about` — it is a draft for the human's approval.
+`/`.
 
 ✅ **Auth — PASSED 2026-09-12**, all eleven steps (§5.1d). ⚠ For the next hosted
 click-through: browse to `http://localhost:8080`, not `127.0.0.1` (Secure cookie), and

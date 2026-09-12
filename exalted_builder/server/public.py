@@ -4,8 +4,8 @@ server/public.py — the front page and the About page of the hosted server.
 Section 9.4 of `docs/plans/vtt.md`. `/` and `/about` need no login. The builder is
 at `auth.HOME_PATH` on the hosted server, because `/` is this front page.
 
-⚠ The About text is a DRAFT. The human owns it (vtt.md 9.4) and must approve it
-before a deployment shows it.
+⚠ The About text is Lorem Ipsum, by the human's choice (2026-09-12), until the human
+writes it. The contact line and the unofficial-fan-site notice are real.
 """
 
 from __future__ import annotations
@@ -42,19 +42,18 @@ def _about_page():
     contact = config.admin_contact()
     contact_html = (f'<p>Write to <a href="mailto:{esc(contact)}">{esc(contact)}</a>.</p>'
                     if contact else "<p>No contact address is set on this server.</p>")
-    # ⚠ DRAFT — the human approves this text before it is deployed. See the module
-    # docstring.
+    # ⚠ PLACEHOLDER. The human asked for Lorem Ipsum in place of the draft on
+    # 2026-09-12. The human writes the text. The contact line and the notice stay.
     body = (
         '<article class="card narrow prose">'
         '<p class="card-title">About this site</p>'
-        '<p class="card-title">What it is</p>'
-        "<p>This site builds and checks characters for the First Edition of Exalted. "
-        "It counts the points of character creation, records experience after it, "
-        "and prints a character sheet. The wiki shows the Charms, spells, martial-arts "
-        "styles, Merits and Flaws, and Backgrounds that the builder knows.</p>"
-        "<p>It uses First Edition rules only.</p>"
-        '<p class="card-title" style="margin-top:14px">Who runs it</p>'
-        "<p>One fan runs this site for their own games and for their friends.</p>"
+        "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
+        "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, "
+        "quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo "
+        "consequat.</p>"
+        "<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore "
+        "eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt "
+        "in culpa qui officia deserunt mollit anim id est laborum.</p>"
         '<p class="card-title" style="margin-top:14px">Contact</p>'
         f"{contact_html}"
         '<p class="card-title" style="margin-top:14px">Not an official product</p>'

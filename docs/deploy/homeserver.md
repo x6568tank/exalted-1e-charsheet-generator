@@ -6,7 +6,7 @@ commit `7cd594f`. Checked from outside through Cloudflare: the public pages and 
 200, `/home` and `/gm` send a visitor to the login page, and the session cookie arrives as
 `__Host-exalted-session; path=/; httponly; samesite=lax; secure`. The first `curl -I` gave
 405 (FastAPI adds no HEAD to a GET route) — fixed in `7cd594f`. Step 6 (the backup
-snapshot) is the human's to add. Steps marked **(gil)** need the `docker` or `sudo` group;
+snapshot) is the human's to add; `claude` cannot write `backup.sh`. Steps marked **(gil)** need the `docker` or `sudo` group;
 `claude` has neither, on purpose.
 
 ## What the server already looks like
@@ -137,6 +137,8 @@ at most the edit in flight, and logs in again only if the secret changed.
 
 ## Running it
 
+* **`claude` logs in by key**: `ssh -i ~/.ssh/id_ed25519_gilserver_claude claude@192.168.1.2`
+  from the dev machine.
 * **Reset a password** (the reset is manual by design — `hosting-state-model.md` §5.1d):
   `docker exec -it exalted python -m exalted_builder.server.users reset <username>`
   (and `… users list`). It asks for the new password on the terminal.
@@ -146,8 +148,8 @@ at most the edit in flight, and logs in again only if the secret changed.
 
 ## Before it is public
 
-* ⚠ **The About text is a draft** (`exalted_builder/server/public.py`) until the human
-  approves it.
+* The About prose is **Lorem Ipsum by the human's choice** (*"feel free to change it to Lorem Ipsum for now"*, 2026-09-12) (`exalted_builder/server/public.py`).
+* ✅ A real browser signup worked through the tunnel (the human, 2026-09-12).
 * The known limits of the login gate are in `docs/plans/hosting-state-model.md` §5.1d
   (a reset does not end existing logins; signup is not rate-limited; no account delete;
   homebrew is outside the quota).

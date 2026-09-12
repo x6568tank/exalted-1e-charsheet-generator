@@ -818,10 +818,9 @@ page is the first read site.
 `source_label` replaces the inline copy in `style_for_category`; `merit_price` comes out of
 `merit_option_label`. The wiki reads these rather than growing sibling formatters.
 
-**⚠ The About text is a DRAFT** (`server/public.py`, marked). It says what the site is,
-"One fan runs this site", the `EXALTED_ADMIN_CONTACT` address, and an unofficial-fan-site
-notice that names no owner. The human approves or rewrites it before a deployment shows
-it.
+**The About prose is **Lorem Ipsum by the human's choice** (*"feel free to change it to Lorem Ipsum for now"*, 2026-09-12).** The first draft was deployed briefly; the
+contact line (`EXALTED_ADMIN_CONTACT`) and the unofficial-fan-site notice, which names no
+owner, stay real. The human writes the text.
 
 **Not done, deliberately.** No `robots.txt` / `sitemap.xml` — a sitemap needs the public
 base URL, which behind the reverse proxy is not `request.base_url`; crawlers follow the
