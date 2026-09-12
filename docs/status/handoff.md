@@ -13,10 +13,9 @@ it, `test_user_db.py`, `test_auth_gate.py` and `test_users_cli.py` skip (58 case
 3636 after round two (observed): +7 `test_user_db`, +5 `test_auth_gate`, +11
 `test_login_throttle`, +12 `test_folder_quota`, +6 `test_users_cli`.
 
-**Working tree: DIRTY, UNCOMMITTED.** `git status` at the time of writing: 10 modified
-(including `persistence.py`), 12 new — `server/{auth,db,quota,throttle,users}.py`,
-`tests/_auth_main.py`, `tests/_auth_state.py`, and five `tests/test_*.py`. Last commit
-`78848e1`. Check `git status` before acting on this line.
+**Working tree: CLEAN.** All the auth work is committed as `af0edf9`; this line was
+corrected in the commit after it. Not pushed. Check `git status` before acting on this
+line.
 
 ## ✅ SHIPPED (not browser-verified) — §5 piece 3, auth
 
