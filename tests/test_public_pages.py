@@ -214,7 +214,7 @@ async def test_the_front_page_knows_a_login(user: User, homebrew_library) -> Non
     user.find(marker="signup-password").type(homebrew_library.PASSWORD)
     user.find(marker="signup-confirm").type(homebrew_library.PASSWORD)
     user.find(marker="signup-submit").click()
-    await user.should_see("Identity")
+    await user.should_see(marker="home-new")
 
     response = await user.http_client.get("/")
 
@@ -224,22 +224,23 @@ async def test_the_front_page_knows_a_login(user: User, homebrew_library) -> Non
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
-async def test_the_party_page_returns_to_the_hosted_builder(user: User,
-                                                            homebrew_library) -> None:
-    """🐞 The house-bug shape. The builder moved to `/home`, and "/" is the public
-    front page. A party page that still went to "/" would leave the builder."""
+async def test_the_character_page_returns_to_home(user: User, homebrew_library) -> None:
+    """🐞 The house-bug shape. "/" is the public front page, thus a way back that
+    still went to "/" would leave the logged-in pages. The Party page had that
+    trap; piece 4 removed it from the server and the Home button has it now."""
     pytest.importorskip("bcrypt")
     await user.open("/signup")
     user.find(marker="signup-username").type("Harmonious")
     user.find(marker="signup-password").type(homebrew_library.PASSWORD)
     user.find(marker="signup-confirm").type(homebrew_library.PASSWORD)
     user.find(marker="signup-submit").click()
+    await user.should_see(marker="home-new")
+    user.find(marker="home-new").click()
     await user.should_see("Identity")
 
-    await user.open("/gm")
-    user.find(marker="gm-builder").click()
+    user.find(marker="top-bar-home").click()
 
-    await user.should_see("Identity")
+    await user.should_see(marker="home-new")
 
 
 @pytest.mark.asyncio

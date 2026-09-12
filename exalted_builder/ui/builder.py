@@ -259,7 +259,9 @@ def session_key() -> str:
 
 
 def build_app(ruleset: RuleSet, character: Character, save_path: Path,
-              *, ctx: dict | None = None, hosted: bool = False) -> None:
+              *, ctx: dict | None = None, hosted: bool = False,
+              home_path: str | None = None,
+              on_lock: Callable[[], None] | None = None) -> None:
     """Render the single-character builder. `ctx` is the shared app context; when
     omitted (running this module standalone) a private one is created, so the
     builder still works with no party involved.
@@ -284,6 +286,14 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
     ⚠ The default is the desktop. `build_app` is embedded by the per-screen dev
     entry points and by the tests; a default of True makes each of them write.
+
+    `home_path` says that the page shows ONE stored character of the hosted server
+    (`server/home.py`). The top bar then has Home in place of Party, New and Load:
+    the home page makes and imports characters, and the Party page is hidden until
+    P3 (docs/plans/vtt.md 9.3a).
+
+    `on_lock` runs after Finish & Lock. The hosted server shows a locked base on a
+    page of its own, thus it saves and goes there.
     """
     # ⚠ The seven tabs take a callback here and this function takes a path. That
     # asymmetry is deliberate, and it misleads: a caller that passes a save
@@ -643,6 +653,9 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             ui.notify(f"Locked with {len(errors)} unresolved error(s) — see the Sheet", type="warning")
         else:
             ui.notify("Chargen finished and locked", type="positive")
+        if on_lock is not None:
+            on_lock()
+            return
         select_tab("Sheet")
 
     # ---- top bar + tabs --------------------------------------------------- #
@@ -655,12 +668,19 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
     with ui.header().classes("items-center justify-between px-4") as header_el:
         title_label = ui.label("Exalted 1e — Builder").classes("text-lg font-bold text-white")
         with ui.row().classes("items-center gap-2"):
-            # Always present: the party page is where characters are ADDED to a
-            # party, so gating this on a non-empty party would make an empty one
-            # unreachable — the only way in would be typing the URL.
-            ui.button("Party", icon="groups", on_click=go_to_party).props(
-                "flat color=white").tooltip("Storyteller view — track the whole party at once")
-            ui.button("New", icon="note_add", on_click=confirm_new).props("flat color=white")
+            if home_path is not None:
+                ui.button("Home", icon="home",
+                          on_click=lambda: ui.navigate.to(home_path)).props(
+                    "flat color=white").mark("top-bar-home")
+            else:
+                # Always present: the party page is where characters are ADDED to a
+                # party, so gating this on a non-empty party would make an empty one
+                # unreachable — the only way in would be typing the URL.
+                ui.button("Party", icon="groups", on_click=go_to_party).props(
+                    "flat color=white").mark("top-bar-party").tooltip(
+                    "Storyteller view — track the whole party at once")
+                ui.button("New", icon="note_add", on_click=confirm_new).props(
+                    "flat color=white").mark("top-bar-new")
             # ⚠ The mark is the handle a test clicks. `find("Save")` also matches
             # "Save As" and the dialog buttons, and `find(...).elements` is an
             # unordered set, thus the click would be ambiguous.
@@ -672,11 +692,13 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
                           on_click=lambda: _download_copy(
                               persistence.suggested_filename(ctx["char"]))
                           ).props("flat color=white").mark("top-bar-download")
-            ui.button("Load", icon="folder_open", on_click=open_load).props(
-                "flat color=white").mark("top-bar-load")
+            if home_path is None:
+                ui.button("Load", icon="folder_open", on_click=open_load).props(
+                    "flat color=white").mark("top-bar-load")
             ui.button("Print", icon="picture_as_pdf", on_click=export_pdf).props(
                 "flat color=white").tooltip("Export a print-ready PDF character sheet")
-            ui.button("Finish & Lock", icon="lock", on_click=finish).props("flat color=white")
+            ui.button("Finish & Lock", icon="lock", on_click=finish).props(
+                "flat color=white").mark("top-bar-lock")
             ui.button("Unlock", icon="lock_open", on_click=unlock).props("flat color=white")
             if hosted:
                 # The server registers `/logout`. See server/auth.py.

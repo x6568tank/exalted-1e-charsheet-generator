@@ -5,7 +5,8 @@ Section 5 piece 3 of `docs/plans/hosting-state-model.md`, recorded in section 5.
 ⚠ The subject is each ROUTE, not the pages that exist today. The gate is a
 middleware so that a new route is gated with no change. Thus the first case
 enumerates the routes of the app and does not name them. Its guard asserts that
-the enumeration found the builder and '/gm', thus an empty list cannot pass it.
+the enumeration found `/home` and the character page, thus an empty list cannot
+pass it.
 The public routes ARE named, in `PUBLIC_ROUTES`, because each is a ruling.
 
 ⚠ The main file is production wiring. A gate that a test fixture installs proves
@@ -23,7 +24,9 @@ from nicegui.testing import User
 
 pytest.importorskip("bcrypt")
 
+from exalted_builder.models.character import Character  # noqa: E402
 from exalted_builder.server import auth, config, db  # noqa: E402
+from exalted_builder.server.characters import CharacterStore  # noqa: E402
 from exalted_builder.server.throttle import LoginThrottle  # noqa: E402
 
 from . import _auth_state as state  # noqa: E402
@@ -104,9 +107,10 @@ async def test_each_route_that_is_not_named_public_sends_a_visitor_to_the_login_
     The enumeration reads the routes of the app, not a list of pages. Thus a new
     route is in it with no change here, a plain FastAPI route too."""
     paths = _app_routes()
-    assert {auth.HOME_PATH, "/gm", "/", "/wiki/charms/{entry_id}"} <= paths, (
-        f"The enumeration found {sorted(paths)}. It must find the builder, the "
-        "party page and the public pages, or this case covers nothing.")
+    assert {auth.HOME_PATH, "/character/{character_id}", "/",
+            "/wiki/charms/{entry_id}"} <= paths, (
+        f"The enumeration found {sorted(paths)}. It must find the home page, the "
+        "character page and the public pages, or this case covers nothing.")
 
     for path in sorted(paths - PUBLIC_ROUTES - {"/favicon.ico"}):
         response = await user.http_client.get(_concrete(path), follow_redirects=False)
@@ -177,46 +181,53 @@ async def test_the_nicegui_assets_are_open(user: User) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
-async def test_signup_logs_in_and_opens_the_builder(user: User) -> None:
+async def test_signup_logs_in_and_opens_the_home_page(user: User) -> None:
     await _sign_up(user, "Harmonious")
-    await user.should_see("Identity")
+    await user.should_see(marker="home-new")
 
     user_id = db.authenticate(state.DB, "Harmonious", state.PASSWORD)
     assert user_id is not None, "Signup made no account."
 
 
+async def _new_character(user: User) -> dict:
+    """Press New character on /home. Return the context of the new character."""
+    await user.should_see(marker="home-new")
+    before = set(state.REGISTRY.keys())
+    user.find(marker="home-new").click()
+    await user.should_see("Identity")
+    (key,) = set(state.REGISTRY.keys()) - before
+    return state.REGISTRY.ctx_for(key)
+
+
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_save_folder_is_the_account_folder(user: User) -> None:
-    """The ruling of 2026-09-11: the context and the save folder belong to the
-    account, not to the browser."""
+    """The ruling of 2026-09-11: the save folder belongs to the account, not to
+    the browser. Piece 4 puts each character in `characters/` below it."""
     await _sign_up(user, "Harmonious")
-    await user.should_see("Identity")
+    ctx = await _new_character(user)
 
     user_id = db.authenticate(state.DB, "Harmonious", state.PASSWORD)
-    key = auth.user_key(user_id)
-
-    assert state.REGISTRY.keys() == [key], (
-        f"The registry holds {state.REGISTRY.keys()}, not the account key {key}.")
-    ctx = state.REGISTRY.ctx_for(key)
-    assert ctx["path"].parent == state.ROOT / key
+    assert ctx["path"].parent == state.ROOT / f"user-{user_id}" / "characters"
 
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
-async def test_two_browsers_of_one_account_share_one_context(create_user) -> None:
-    """The discriminator for the account key. With the browser key, two browsers
-    get two contexts and two folders, and a player's phone shows no character."""
+async def test_two_browsers_of_one_character_share_one_context(create_user) -> None:
+    """Section 9.1: two devices on the same character share it. With a context
+    for each browser, the phone would edit a second copy and the last save wins."""
     db.create_user(state.DB, "Harmonious", state.PASSWORD)
 
     laptop, phone = create_user(), create_user()
     await _log_in(laptop, "Harmonious")
-    await laptop.should_see("Identity")
+    ctx = await _new_character(laptop)
     await _log_in(phone, "Harmonious")
+    await phone.should_see(marker="home-new")
+    await phone.open(f"/character/{ctx['char'].id}")
     await phone.should_see("Identity")
 
     assert len(state.REGISTRY.keys()) == 1, (
-        f"One account made {len(state.REGISTRY.keys())} contexts.")
+        f"One character made {len(state.REGISTRY.keys())} contexts.")
 
 
 @pytest.mark.asyncio
@@ -229,14 +240,12 @@ async def test_two_accounts_get_two_contexts(create_user) -> None:
 
     first, second = create_user(), create_user()
     await _log_in(first, "Harmonious")
-    await first.should_see("Identity")
+    one = await _new_character(first)
     await _log_in(second, "Radiant")
-    await second.should_see("Identity")
+    two = await _new_character(second)
 
-    keys = state.REGISTRY.keys()
-    assert len(keys) == 2
-    paths = {state.REGISTRY.ctx_for(key)["path"].parent for key in keys}
-    assert len(paths) == 2, f"Two accounts save in one folder: {paths}."
+    assert one is not two
+    assert one["home_dir"] != two["home_dir"], "Two accounts save in one folder."
 
 
 @pytest.mark.asyncio
@@ -263,15 +272,18 @@ async def test_a_refused_signup_shows_the_reason(user: User) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_login_returns_to_the_page_that_was_asked_for(user: User) -> None:
-    db.create_user(state.DB, "Harmonious", state.PASSWORD)
+    """A deep link to a character survives the login (docs/plans/vtt.md 9.4)."""
+    user_id = db.create_user(state.DB, "Harmonious", state.PASSWORD)
+    row = CharacterStore(db_path=state.DB, root=state.ROOT).create(
+        user_id, Character(id="x", name="Deep Linked"))
 
-    await user.open("/gm")
+    await user.open(f"/character/{row.id}")
     await user.should_see(marker="login-submit")
     user.find(marker="login-username").type("Harmonious")
     user.find(marker="login-password").type(state.PASSWORD)
     user.find(marker="login-submit").click()
 
-    await user.should_see(marker="gm-save-party")
+    await user.should_see(marker="top-bar-save")
 
 
 @pytest.mark.asyncio
@@ -359,9 +371,8 @@ async def test_save_in_a_full_account_folder_is_refused(user: User) -> None:
     """The quota through a real click. A full folder refuses Save with a message,
     and the character file is not written."""
     await _sign_up(user, "Harmonious")
-    await user.should_see("Identity")
-
-    ctx = state.REGISTRY.ctx_for(state.REGISTRY.keys()[0])
+    ctx = await _new_character(user)
+    ctx["path"].unlink()
     ctx["path"].parent.mkdir(parents=True, exist_ok=True)
     (ctx["path"].parent / "filler.bin").write_bytes(b"x" * (10 * 1024 * 1024))
 

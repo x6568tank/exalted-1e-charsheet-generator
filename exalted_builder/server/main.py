@@ -35,7 +35,7 @@ from nicegui import ui
 
 from .. import custom_content, persistence, rules_db
 from ..models.character import Character, new_character_id
-from ..server import auth, config, db, public, quota, wiki
+from ..server import auth, characters, config, db, home, public, quota, wiki
 from ..server.session import SessionRegistry
 from ..ui import builder
 
@@ -91,14 +91,14 @@ def build_server(session_root: Path | None = None,
     is absent; there is no default, because one shared directory is the defect
     that section 3.7 removes.
 
-    Make the account tables. Register the login pages, the public front page,
-    About and the wiki. Register the builder at `auth.HOME_PATH`, because "/" is
-    the public front page. Key each context on the logged-in account, thus each
-    device of one player sees one character.
+    Make the account and character tables. Register the login pages, the public
+    front page, About, the wiki, and the pages of `server/home.py`: `/home` lists
+    the characters of the account and `/character/<id>` opens one. Each character
+    has its own context; each account has its own homebrew library and RuleSet.
+    There is no `/gm` on the server until P3 (docs/plans/vtt.md 9.3a).
 
-    The builder gets a BOOK ruleset. Each session merges the homebrew library of
-    its account over it. See `builder.session_context_factory` and
-    hosting-state-model.md section 5.3.
+    The character pages get a BOOK ruleset. Each account merges its library over
+    it. See hosting-state-model.md section 5.3.
 
     ⚠ The wiki gets a SEPARATE book ruleset. The wiki is public. A session that
     reloads its library into a shared object then publishes that homebrew. See
@@ -109,12 +109,13 @@ def build_server(session_root: Path | None = None,
     root = config.session_root() if session_root is None else session_root
     database = config.db_path() if db_path is None else db_path
     db.init_db(database)
-    ruleset = rules_db.load_ruleset(_DATA_DIR)
+    book = rules_db.load_ruleset(_DATA_DIR)
     auth.register_auth_pages(database)
     public.register_public_pages()
     wiki.register_wiki(rules_db.load_ruleset(_DATA_DIR))
-    return builder.register_pages(ruleset, prototype_context(root), session_root=root,
-                                  key=auth.current_user_key, builder_path=auth.HOME_PATH)
+    return home.register_character_pages(
+        characters.CharacterStore(db_path=database, root=root), book,
+        auth.current_user_id, rules_db.load_adversary_catalog(_DATA_DIR))
 
 
 def main() -> None:

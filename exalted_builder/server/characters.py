@@ -58,7 +58,7 @@ class CharacterRow:
 
 def is_locked(character: Character) -> bool:
     """Return True if the chargen of `character` is locked."""
-    return character.chargen_snapshot is not None
+    return character.chargen_locked
 
 
 @dataclass(frozen=True)

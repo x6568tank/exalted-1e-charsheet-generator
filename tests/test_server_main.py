@@ -22,7 +22,8 @@ import sys
 import pytest
 
 from exalted_builder import custom_content, persistence
-from exalted_builder.server import auth, config, main
+from exalted_builder.models.character import Character
+from exalted_builder.server import auth, characters, config, db, main
 
 
 @pytest.fixture
@@ -42,44 +43,53 @@ def database(tmp_path: Path) -> Path:
 # --------------------------------------------------------------------------- #
 
 
-def test_two_sessions_of_the_server_get_two_directories(root: Path, database: Path) -> None:
-    """The dormancy check. `build_server` must hand `register_pages` a root.
+def _character_ctx(registry, database: Path, root: Path, user_id: int) -> dict:
+    """Make account `user_id` and one character of it. Return the character's context.
 
-    Delete the `session_root=` argument in `server/main.py` and this is the case
-    that reddens.
-    """
+    The account row goes in by SQL: this file does not need bcrypt."""
+    with db.connect(database) as connection:
+        connection.execute(
+            "INSERT OR IGNORE INTO users (id, username, password_hash) VALUES (?, ?, 'x')",
+            (user_id, f"user{user_id}"))
+    row = characters.CharacterStore(db_path=database, root=root).create(
+        user_id, Character(id="x", name=f"Hero {user_id}"))
+    return registry.ctx_for(row.id)
+
+
+def test_two_accounts_of_the_server_get_two_folders(root: Path, database: Path) -> None:
+    """The dormancy check. `build_server` must hand the pages its root, and each
+    account must get its own folder below it."""
     registry = main.build_server(session_root=root, db_path=database)
 
-    alpha = registry.ctx_for("alpha")
-    beta = registry.ctx_for("beta")
+    alpha = _character_ctx(registry, database, root, 1)
+    beta = _character_ctx(registry, database, root, 2)
 
-    assert alpha["path"].parent != beta["path"].parent, (
-        f"Both sessions save under {alpha['path'].parent}. The hosted entry point "
-        "passed no session root, thus every browser writes one file on the "
-        "auto-save timer."
-    )
+    assert alpha["home_dir"] != beta["home_dir"], (
+        f"Both accounts save under {alpha['home_dir']}. Every account then writes "
+        "one folder, under one quota.")
+    assert alpha["path"].parent != beta["path"].parent
 
 
 def test_the_server_saves_inside_the_session_root(root: Path, database: Path) -> None:
-    """The destination comes from the root, not from the prototype."""
     registry = main.build_server(session_root=root, db_path=database)
 
-    path = registry.ctx_for("alpha")["path"]
+    ctx = _character_ctx(registry, database, root, 1)
 
-    assert path.is_relative_to(root), (
-        f"The session saves to {path}, which is outside {root}."
-    )
+    assert ctx["path"].is_relative_to(ctx["home_dir"])
+    assert ctx["home_dir"] == root / "user-1", (
+        f"The account folder is {ctx['home_dir']}, not {root / 'user-1'}. The quota "
+        "counts the first folder below the root.")
 
 
 def test_the_hosted_builder_does_not_load_the_default_library(
         root: Path, database: Path, tmp_path: Path, monkeypatch) -> None:
     """Section 5.3: each account has its own library, and there is no library of
-    the process. A Charm in the default library must reach no session.
+    the process. A Charm in the default library must reach no character.
 
-    ⚠ The first assertion is the discriminator. A build_server that calls
+    ⚠ The switch is the discriminator. A build_server that calls
     `load_app_ruleset` reads the default library, and the switch makes that raise.
-    The second assertion alone does not find it: each session reloads its own
-    library, and the reload removes each custom row first, thus a session hides
+    The ruleset assertion alone does not find it: each account reloads its own
+    library, and the reload removes each custom row first, thus an account hides
     the default library by accident. That is the second type of the house bug."""
     default = tmp_path / "default-library"
     (default / "charms").mkdir(parents=True)
@@ -91,43 +101,12 @@ def test_the_hosted_builder_does_not_load_the_default_library(
     custom_content.require_explicit_dir(True)
     try:
         registry = main.build_server(session_root=root, db_path=database)
-        ruleset = registry.ctx_for("alpha")["ruleset"]
+        ruleset = _character_ctx(registry, database, root, 1)["ruleset"]
     finally:
         custom_content.require_explicit_dir(False)
 
     assert "custom.process-wide" not in ruleset.charms
     assert "melee" in {c.category for c in ruleset.charms.values()}   # the book is there
-
-
-def test_the_prototype_path_is_outside_the_root(root: Path) -> None:
-    """The negative control for the case above.
-
-    ⚠ Without this, `is_relative_to(root)` proves nothing: a prototype that already
-    lives in the root satisfies it with no isolation at all.
-    """
-    proto = main.prototype_context(root)
-
-    assert not proto["path"].is_relative_to(root), (
-        f"The prototype path {proto['path']} is inside {root}. The isolation "
-        "assertions above then pass whether or not the session was isolated."
-    )
-
-
-def test_the_session_home_is_the_session_directory(root: Path, database: Path) -> None:
-    """🐞 The handler trap of section 3.7b.
-
-    `new_character` and the upload branch rebuild the destination from
-    `ctx["home_dir"]`. A home outside the session directory takes the session back
-    out of its own folder on the first click of New.
-    """
-    registry = main.build_server(session_root=root, db_path=database)
-
-    ctx = registry.ctx_for("alpha")
-
-    assert ctx["home_dir"] == ctx["path"].parent, (
-        f"home_dir is {ctx['home_dir']} but the session saves in "
-        f"{ctx['path'].parent}. A New character leaves the session directory."
-    )
 
 
 def test_the_server_reads_the_root_from_the_environment(root: Path, database: Path,
@@ -139,7 +118,7 @@ def test_the_server_reads_the_root_from_the_environment(root: Path, database: Pa
 
     registry = main.build_server()
 
-    assert registry.ctx_for("alpha")["path"].is_relative_to(root)
+    assert _character_ctx(registry, database, root, 1)["path"].is_relative_to(root)
 
 
 def test_the_server_refuses_to_start_without_a_root(monkeypatch) -> None:
