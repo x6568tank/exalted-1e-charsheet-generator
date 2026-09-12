@@ -334,6 +334,7 @@ the primary trap.
 | The `engine/validate/` split | `plans/validate-refactor.md` |
 | The Qt port. Read the standing rules first. | `plans/qt-port.md` |
 | The hosted table and the board. Read before any hosting work. | `plans/vtt.md` |
+| Deploying to the home server: the container, the tunnel, the backups | `deploy/homeserver.md` |
 | Variant-menu Charms | `plans/variant-menu-charms.md` |
 | Why the Mist numina are deferred: there is no effect list to author | `status/mist-numina.md` |
 | The full multi-splat plan | `~/.claude/plans/should-we-plan-out-encapsulated-crab.md` |
