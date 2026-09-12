@@ -342,7 +342,11 @@ Steps 1–4 need no further ruling.
 
 ## 13. Open questions — new, found while designing
 
-These are the human's. Each has a recommendation; none is decided here.
+**Answers, 2026-09-12:** **Q1 no** (a campaign copy does not see the owner's library).
+**Q2 the ST.** **Q3 yes.** **Q5 "Maybe? Probably."** — build it as removed, and flag it at the
+click-through. **Q4 and Q6 came back as questions** — see the notes under each.
+
+These are the human's. Each has a recommendation.
 
 **Q1. May a player use their OWN homebrew library on a campaign copy?** Today a copy's
 RuleSet includes the owner's account library. In a campaign that means a player can author
@@ -368,6 +372,10 @@ leaving; deletion is every player leaving at once. *Recommendation:* **yes**, th
 it for free (the ST is a user and can bring a base). *Recommendation:* **yes**, and it needs
 nothing. (Co-Storytellers are a separate, later question — not designed.)
 
+*Human, 2026-09-12: "Yes; isn't that what the Adversary system is for?"* — The adversary
+roster covers the ST's NPCs (stat blocks; an `Adversary` is not a `Character`, `CLAUDE.md`
+§13). Q4 is only about a full builder-made character, a GMPC. Asked back.
+
 **Q5. Is Adjust XP removed from campaign copies?** It follows from ruling 2, but it removes
 something a player can do today. *Recommendation:* **yes**.
 
@@ -375,3 +383,12 @@ something a player can do today. *Recommendation:* **yes**.
 copy with an XP log is how a player could re-spend creation points mid-campaign.
 *Recommendation:* **ST only** on a campaign copy (a button on the table view); the player's
 Unlock is absent there. Solo copies unchanged.
+
+⚠ **Found while explaining Q6 to the human: unlock after XP has no policy anywhere.**
+`lifecycle.unlock_chargen` drops the snapshot and nothing else; its own docstring says
+*"No XP layer exists yet; if one is added, unlocking after XP has been spent will need an
+explicit policy."* The XP layer exists (decisions 0004, 0013) and the policy was never set.
+So on ANY character with a non-empty `xp_log` — desktop and solo copies too — Unlock turns
+the XP-bought dots into creation dots while the log still records them as spent, and a
+re-lock snapshots the inflated state as the character's creation. A rules-engine question
+for the human, bigger than P3.
