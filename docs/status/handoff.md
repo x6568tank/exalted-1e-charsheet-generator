@@ -4,7 +4,7 @@
 
 **2026-09-12, docs only, no code:** the human clicked through auth — **all eleven steps
 passed** (`hosting-state-model.md` §5.1d has the record). Then the human asked for a
-**landing page** and a **public wiki**, and ruled on four questions: several characters
+**landing page** and a **public wiki**, and ruled on four questions (then two more, and a public site map — §9.2, §9.4): several characters
 per account, a **base character** made at the lock and copied into campaigns, join by
 **code + ST approval**, and the wiki **public and indexed**. **`vtt.md` §9 is the record**,
 and §9.3 is what it does to piece 4's DB layout. Suite not run — no code changed; the
@@ -22,7 +22,7 @@ it, `test_user_db.py`, `test_auth_gate.py` and `test_users_cli.py` skip (58 case
 `test_login_throttle`, +12 `test_folder_quota`, +6 `test_users_cli`.
 
 **Working tree:** the 2026-09-12 doc edits are committed in the commit that carries this
-line. `main` was 5 ahead of `origin` before it; **not pushed**. Check `git status`
+line. **Pushed to `origin` 2026-09-12**. Check `git status`
 before acting on this line.
 
 ## ✅ SHIPPED and BROWSER-VERIFIED 2026-09-12 — §5 piece 3, auth
@@ -86,7 +86,6 @@ of a table.
 
 ## 👉 NEXT — in rough order of what would bite
 
-- **Push** — `main` is ahead of `origin` and auth is now verified.
 - **§5 piece 4 — the DB, and §5.3's per-user rulesets.** ⚠ **Measure one merged `RuleSet`
   in memory BEFORE fixing the DB layout.** §5.3 reverses the original plan (per-user is
   *easier* than shared, because shared needs the `load_character` write hazard solved and
@@ -94,8 +93,10 @@ of a table.
   ⚠ **The layout grew on 2026-09-12** — several characters, base characters, tables,
   pending memberships: `vtt.md` §9.3. Both base-character questions are ruled (§9.2):
   a base change reaches **later copies only**, and a copy **can** exist with no campaign.
-- **The public wiki** (`vtt.md` §9.5) — independent of everything else. ⚠ **Book-only
-  `RuleSet`**, never the merged one, or every player's homebrew goes public.
+- **The public front page, About, and wiki** (`vtt.md` §9.4 site map, §9.5) — independent
+  of everything else. `/` goes public, the login default moves to `/home`. ⚠ **Book-only
+  `RuleSet`**, never the merged one, or every player's homebrew goes public. The About
+  text is the human's — draft it, do not publish it unapproved.
 - **Backgrounds `source` — 51 of 63 DONE. 12 left, and they need a human with a page.**
   `status/backgrounds.md` lists all 12 with their scores. Two are Lunar and have no
   page-marked text on this machine at all. ⚠ **Do not lower the matcher threshold to

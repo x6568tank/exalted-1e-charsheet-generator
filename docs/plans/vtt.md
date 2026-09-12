@@ -653,18 +653,45 @@ This is why it had to be asked **before** the layout. Piece 4 was going to add o
 ⚠ **The §5.3 measurement still comes first.** Per-user rulesets and the table-layer mod
 both multiply `RuleSet` objects; measure one before fixing the layout.
 
-### 9.4 The landing page
+### 9.4 The site map, and the landing page
 
-`/` becomes the landing page; the builder moves to a per-character route. The §5.1 sketch
-already said *"`/` (character index), `/builder`"*, so this is the planned shape, grown.
+**RULED 2026-09-12** (human: *"Looks good"*, on a proposal answering the human's own
+question — *"Should the base site, exalted.x6568tank.com, be a more general landing? With
+a link to the Wiki, an About, and a Login page?"*):
+
+| Route | Gated? | What it is |
+|---|---|---|
+| `/` | **No** | The front page: a short blurb, **Wiki**, **About**, **Log in / Sign up**. A logged-in visitor sees **"Your characters"** in place of Log in. |
+| `/wiki/…` | **No** | The book content (§9.5). |
+| `/about` | **No** | What the site is, who runs it, the admin contact, and **an unofficial-fan-site notice** — the site shows transcribed book text to anyone, so it says it is not affiliated with the publisher. The About text is the human's; a draft goes to the human for approval. |
+| `/login`, `/signup` | **No** | As shipped in §5.1d. |
+| `/home` | **Yes** | The landing page below. |
+| `/character/<id>`, `/table/<id>` | **Yes** | The builder and the table view. |
+
+Why: an indexed wiki brings visitors who have never heard of the app, and a login page is
+no place for them to land. Players pay nothing — a login goes to `/home`, not `/`.
+
+* ⚠ **`/` changes from gated to public.** Today the gate sends `/` to `/login`, and
+  `auth.safe_target` sends a login with no `redirect_to` to `/`. **Both change:** the
+  default login target becomes `/home`. The route-enumeration test (§5.1d control 3)
+  must list `/`, `/about` and `/wiki` as public **on purpose**, and must still fail when
+  any other route opens.
+* **`/`, `/about` and `/wiki` are plain server-rendered HTML**, for the same reasons as
+  §9.5: crawlable, and an anonymous visitor holds no NiceGUI client or socket.
+  ⚠ The one exception is the "Your characters" swap on `/`, which reads the login state;
+  a plain route must read it from the session cookie without creating a NiceGUI client.
+
+**The landing page (`/home`).** The builder moves to a per-character route. The §5.1
+sketch already said *"`/` (character index), `/builder`"*; this is that shape, grown and
+moved off `/`.
 
 * **Characters** — drafts and bases, with **New character**.
 * **Campaigns** — the tables the player runs or belongs to, each with the player's copy in
   it; **New campaign**; **Join a campaign** (enter a code); pending requests shown as
   pending.
-* ⚠ `auth.safe_target` sends a login with no `redirect_to` to `/`. That stays right — `/`
-  is the landing page. **The `/gm` → login → `/gm` round trip is the pattern to keep** for
-  any deep link to a character or a table.
+* ⚠ A login with no `redirect_to` goes to **`/home`** (the site map above changes it from
+  `/`). **The `/gm` → login → `/gm` round trip is the pattern to keep** for any deep link
+  to a character or a table.
 * ⚠ **`/gm` dissolves into the table view at P3** (§1.3). The landing page is where the
   way into a table lives; do not build a second way into `/gm`.
 
@@ -696,5 +723,6 @@ already said *"`/` (character index), `/builder`"*, so this is the planned shape
 * The **landing page with Characters** and the **base character** land with **piece 4**
   (P2) — they are the DB's first consumers.
 * **Campaigns, the join code and approval** are **P3** — they are the `Table`.
-* The **wiki** depends on nothing above. It needs only the book `RuleSet` and one gate
-  exception, so it can ship at any point.
+* The **wiki**, the **front page** and **About** depend on nothing above. They need only
+  the book `RuleSet` and the gate exceptions, so they can ship at any point — together,
+  because `/` going public and the login default moving to `/home` is one change.
