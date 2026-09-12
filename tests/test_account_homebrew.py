@@ -82,6 +82,15 @@ def _show_tab(user: User, name: str) -> None:
     bar.set_value(name)
 
 
+async def _show_homebrew(user: User) -> None:
+    """Open /home and select its Homebrew tab."""
+    await user.open("/home")
+    await user.should_see(marker="home-new")
+    bar = next(e for e in user.client.elements.values()
+               if isinstance(e, ui.tabs) and e.value == "characters")
+    bar.set_value("homebrew")
+
+
 def _author(ctx: dict, name: str) -> str:
     """Write a Charm into the library of `ctx` and merge it. Return its id."""
     charm_id = custom_content.make_id(name)
@@ -105,15 +114,17 @@ async def test_the_library_is_in_the_account_folder(create_user) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
-async def test_the_custom_tab_shows_the_accounts_own_homebrew_only(create_user) -> None:
+async def test_the_homebrew_tab_shows_the_accounts_own_homebrew_only(create_user) -> None:
+    """The library is on /home since 2026-09-12: it belongs to the account, not
+    to one character, thus the character page has no Custom tab."""
     user_a, ctx_a = await _open(create_user)
     user_b, ctx_b = await _open(create_user)
     charm_id = _author(ctx_a, "Alpha Only Strike")
 
-    _show_tab(user_a, "Custom")
+    await _show_homebrew(user_a)
     await user_a.should_see("Alpha Only Strike")
 
-    _show_tab(user_b, "Custom")
+    await _show_homebrew(user_b)
     await user_b.should_see("Custom content")
     await user_b.should_not_see("Alpha Only Strike")
     assert charm_id in ctx_a["ruleset"].charms

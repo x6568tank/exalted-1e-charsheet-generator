@@ -76,6 +76,11 @@ def _style(pal: theme.Palette) -> list[dict]:
         # custom external prerequisite still reads as custom.
         {"selector": "node.custom", "style": {
             "border-color": "#6d28d9", "border-width": 4, "border-style": "double"}},
+        # The Charm on the Custom page's form, drawn into its tree (the preview of
+        # `view.custom_charm_preview`). Listed after .custom so it wins.
+        {"selector": "node.draft", "style": {
+            "background-color": pal.accent, "border-color": pal.accent_dark,
+            "border-width": 4, "border-style": "solid", "width": 50, "height": 50}},
         {"selector": "edge", "style": {
             "width": 2, "line-color": "#9ca3af", "target-arrow-color": "#9ca3af",
             "target-arrow-shape": "triangle", "curve-style": "bezier", "arrow-scale": 1.1}},

@@ -4384,6 +4384,97 @@ CUSTOM_KINDS: dict[str, CustomKind] = {
 }
 
 
+def charm_tree_title(category: str) -> str:
+    """Return the name of the tree of `category`: "Melee", "War", "Snake Style"."""
+    if category.startswith("martial_arts:"):
+        return category.split(":", 1)[1].replace("-", " ").title() + " Style"
+    return category.replace("_", " ").title()
+
+
+def custom_prerequisite_options(ruleset: RuleSet, form: dict, editing: str) -> dict[str, str]:
+    """Return the prerequisite choices for the Charm on `form`, as {id: label}.
+
+    The choices are the Charms of the splat of the form, by the filter of the
+    picker's splat page (`charm_on_splat_page`). The Charms of the tree of the
+    form come first. The other trees of the splat follow only if
+    `form["prereq_other_trees"]` is set, each label with its tree name. A book
+    Charm can require a Charm of another tree, thus they stay available.
+
+    ⚠ Each id already in `form["prerequisites"]` is in the result, filter or not.
+    A NiceGUI select raises at build time when its value is not in its options.
+    Virtual rows and the Charm `editing` itself are never choices.
+    """
+    payload = custom_charm_payload(form)
+    splat, category = payload["exalt_type"], payload["category"]
+    reader = Character(id="preview", exalt_type=splat)
+
+    def label(charm) -> str:
+        name = f"✎ {charm.name}" if charm.custom else charm.name
+        return name if charm.category == category else (
+            f"{name} — {charm_tree_title(charm.category)}")
+
+    splat_charms = [c for c in ruleset.charms.values()
+                    if not c.virtual and c.id != editing
+                    and charm_on_splat_page(ruleset, reader, c, splat)]
+    tree = sorted((c for c in splat_charms if c.category == category), key=lambda c: c.name)
+    others = (sorted((c for c in splat_charms if c.category != category),
+                     key=lambda c: (charm_tree_title(c.category), c.name))
+              if form.get("prereq_other_trees") else [])
+    options = {c.id: label(c) for c in tree + others}
+    for charm_id in form.get("prerequisites") or []:
+        if charm_id not in options:
+            charm = ruleset.charms.get(charm_id)
+            options[charm_id] = label(charm) if charm is not None else charm_id
+    return options
+
+
+# The node of a Charm that is on the form and not saved yet.
+DRAFT_NODE_ID = "custom.__draft__"
+
+
+def custom_charm_preview(ruleset: RuleSet, form: dict, editing: str) -> CharmGraph:
+    """Return the tree that the Charm on `form` joins, with that Charm drawn in.
+
+    The tree is the category and the splat of the form, book and homebrew both,
+    from `build_charm_graph` for a blank character of that splat. The node states
+    are cleared: no character is being built, thus owned and available mean
+    nothing here. The form is one node with state "draft". Its id is `editing`,
+    or `DRAFT_NODE_ID` for a new Charm.
+
+    An edit replaces the saved node of `editing`: its old prerequisite edges go,
+    and the edges to the Charms that require it stay. A prerequisite from another
+    tree is added as an external node.
+    """
+    payload = custom_charm_payload(form)
+    splat = payload["exalt_type"]
+    graph = build_charm_graph(ruleset, Character(id="preview", exalt_type=splat),
+                              payload["category"], splat)
+    draft_id = editing or DRAFT_NODE_ID
+
+    nodes = [CharmNode(n.id, n.label, "", n.min_ability, n.min_essence,
+                       external=n.external, count_requirement=n.count_requirement,
+                       custom=n.custom)
+             for n in graph.nodes if n.id != draft_id]
+    present = {n.id for n in nodes}
+    for group in payload.get("prerequisites", []):
+        for req in group:
+            charm = ruleset.charms.get(req)
+            if req not in present and charm is not None and req != draft_id:
+                nodes.append(CharmNode(req, charm.name, "", charm.min_ability,
+                                       charm.min_essence, external=True,
+                                       custom=charm.custom))
+                present.add(req)
+    nodes.append(CharmNode(draft_id, payload["name"] or "(new Charm)", "draft",
+                           payload["min_ability"], payload["min_essence"], custom=True))
+
+    edges = [(src, dst) for src, dst in graph.edges if dst != draft_id]
+    edges += [(req, draft_id) for group in payload.get("prerequisites", [])
+              for req in group if req in present]
+    has_parent = {dst for _, dst in edges}
+    roots = [n.id for n in nodes if n.id not in has_parent]
+    return CharmGraph(category=payload["category"], nodes=nodes, edges=edges, roots=roots)
+
+
 def custom_export(kind: str, custom_dir) -> tuple[str, str] | None:
     """Give the file that exports each `kind` row of the library at `custom_dir`.
 

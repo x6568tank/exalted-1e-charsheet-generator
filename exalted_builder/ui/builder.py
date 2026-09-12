@@ -607,14 +607,27 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         close_member(ctx)
         ui.navigate.to("/gm")
 
-    with ui.header().classes("items-center justify-between px-4") as header_el:
-        title_label = ui.label("Exalted 1e — Builder").classes("text-lg font-bold text-white")
-        with ui.row().classes("items-center gap-2"):
+    def _stage() -> str:
+        row = ctx.get("row")
+        if row is not None and row.is_copy:
+            return "Campaign copy"
+        return "Locked" if ctx["char"].chargen_locked else "Draft"
+
+    with ui.header().classes("items-center justify-between px-4 no-wrap") as header_el:
+        # The left side says WHICH character this is. With several characters an
+        # account cannot tell the pages apart by the splat alone.
+        with ui.row().classes("items-center gap-1 no-wrap min-w-0"):
             if home_path is not None:
-                ui.button("Home", icon="home",
+                ui.button("Home", icon="chevron_left",
                           on_click=lambda: ui.navigate.to(home_path)).props(
-                    "flat color=white").mark("top-bar-home")
-            else:
+                    "flat dense no-caps color=white").mark("top-bar-home")
+                ui.label("›").classes("text-white opacity-70")
+            title_label = ui.label().classes("text-lg font-bold text-white truncate")
+            title_label.bind_text_from(
+                ctx, "char", backward=lambda c: c.name or "Unnamed character")
+            subtitle_label = ui.label().classes("text-xs text-white opacity-80 ml-2")
+        with ui.row().classes("items-center gap-2 no-wrap"):
+            if home_path is None:
                 # Always present: the party page is where characters are ADDED to a
                 # party, so gating this on a non-empty party would make an empty one
                 # unreachable — the only way in would be typing the URL.
@@ -628,25 +641,29 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             # unordered set, thus the click would be ambiguous.
             ui.button("Save", icon="save",
                       on_click=save).props("flat color=white").mark("top-bar-save")
-            if hosted:
-                # On the desktop, Save is already the download. Section 5.1c.
-                ui.button("Download a copy", icon="download",
-                          on_click=lambda: _download_copy(
-                              persistence.suggested_filename(ctx["char"]))
-                          ).props("flat color=white").mark("top-bar-download")
-            if home_path is None:
-                ui.button("Load", icon="folder_open", on_click=open_load).props(
-                    "flat color=white").mark("top-bar-load")
-            ui.button("Print", icon="picture_as_pdf", on_click=export_pdf).props(
-                "flat color=white").tooltip("Export a print-ready PDF character sheet")
-            ui.button("Finish & Lock", icon="lock", on_click=finish).props(
+            # Only the lock action that applies is shown. `_apply_chrome` switches
+            # them, because a lock and an unlock both refresh the content.
+            lock_button = ui.button("Finish & Lock", icon="lock", on_click=finish).props(
                 "flat color=white").mark("top-bar-lock")
-            ui.button("Unlock", icon="lock_open", on_click=unlock).props("flat color=white")
-            if hosted:
-                # The server registers `/logout`. See server/auth.py.
-                ui.button("Log out", icon="logout",
-                          on_click=lambda: ui.navigate.to("/logout")
-                          ).props("flat color=white").mark("top-bar-logout")
+            unlock_button = ui.button("Unlock", icon="lock_open", on_click=unlock).props(
+                "flat color=white").mark("top-bar-unlock")
+            # The file actions that are not Save, in one menu.
+            with ui.button(icon="more_vert").props("flat round color=white").tooltip(
+                    "More: download, load, print" + (", log out" if hosted else "")):
+                with ui.menu():
+                    if hosted:
+                        # On the desktop, Save is already the download. Section 5.1c.
+                        ui.menu_item("Download a copy", on_click=lambda: _download_copy(
+                            persistence.suggested_filename(ctx["char"]))
+                        ).mark("top-bar-download")
+                    if home_path is None:
+                        ui.menu_item("Load…", on_click=open_load).mark("top-bar-load")
+                    ui.menu_item("Print a PDF sheet…", on_click=export_pdf).mark("top-bar-print")
+                    if hosted:
+                        ui.separator()
+                        # The server registers `/logout`. See server/auth.py.
+                        ui.menu_item("Log out", on_click=lambda: ui.navigate.to("/logout")
+                                     ).mark("top-bar-logout")
 
     def _apply_chrome() -> None:
         """Paint the header bar, title and page background from the current
@@ -654,7 +671,9 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         tabs after changing the Exalt type re-themes the whole app."""
         pal = _pal()
         header_el.style(f"background:{pal.accent}")
-        title_label.set_text(f"Exalted 1e — {pal.splat_label} Builder")
+        subtitle_label.set_text(f"{pal.splat_label} · {_stage()}")
+        lock_button.set_visibility(not ctx["char"].chargen_locked)
+        unlock_button.set_visibility(ctx["char"].chargen_locked)
         ui.query("body").style(f"background:{pal.bg};color:{pal.ink}")
         # A Charm-Slot splat builds Arrays instead of Combos (p.89), so the tab is
         # relabelled for them. Only the LABEL changes — the tab keeps its "Combos"
@@ -683,7 +702,11 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         locked = ctx["char"].chargen_locked
         combos = viewmod.has_combos_tab(ruleset, ctx["char"])
         for name in _TABS:
-            tabs[name].set_visibility(name in visible_tabs(locked, combos=combos))
+            # ⚠ On a hosted character page the homebrew library is on /home: it
+            # belongs to the account, not to this character.
+            shown = name in visible_tabs(locked, combos=combos) and not (
+                name == "Custom" and home_path is not None)
+            tabs[name].set_visibility(shown)
         state["tab"] = resolve_tab(state["tab"], locked, combos=combos)
         if tab_bar.value != state["tab"]:
             state["syncing"] = True

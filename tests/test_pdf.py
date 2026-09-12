@@ -507,17 +507,17 @@ def test_unknown_paper_size_is_rejected(ruleset):
 
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_builder_offers_a_print_button_and_its_dialog(user) -> None:
-    """The Print button lives on the header bar, NOT on the Sheet tab:
-    `render_sheet` takes a SheetView and no callbacks, and a button inside it
+    """Print lives in the header bar's ⋮ menu (since 2026-09-12), NOT on the Sheet
+    tab: `render_sheet` takes a SheetView and no callbacks, and a button inside it
     would need one — which is what the GM party screen and the render tests
     depend on it not having."""
     await user.open("/builder")
-    await user.should_see("Print")
+    await user.should_see(marker="top-bar-save")
     # Negative control first: `should_see` will happily match text that was
     # already on the page, so a dialog assertion proves nothing unless the text
     # is absent beforehand.
     await user.should_not_see("Export character sheet")
-    user.find("Print").click()
+    user.find(marker="top-bar-print").click()
     await user.should_see("Export character sheet")
     # Paper size is asked here rather than stored — the human's ruling.
     await user.should_see("A4")

@@ -23,6 +23,7 @@ RuleSet for each ACCOUNT: all its characters see the homebrew of its library.
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 
 from nicegui import ui
 
@@ -33,6 +34,8 @@ from ..models.party import Party
 from ..models.rules import RuleSet
 from ..ui import app as sheet_app
 from ..ui import builder, theme
+from ..ui.assets import cytoscape_head_html
+from ..ui import custom as custom_mod
 from ..ui import view as viewmod
 from . import auth
 from .characters import CharacterRow, CharacterStore, CharacterStoreError
@@ -172,6 +175,8 @@ def _not_found() -> None:
 def _build_home(store: CharacterStore, rulesets: AccountRulesets,
                 sessions: SessionRegistry, user_id: int) -> None:
     pal = theme.palette(None)
+    # The Homebrew tab draws a Charm tree.
+    ui.add_head_html(cytoscape_head_html())
     with _header(pal, "Exalted 1e — Your characters"):
         ui.button("Wiki", icon="menu_book", on_click=lambda: ui.navigate.to("/wiki")).props(
             "flat color=white")
@@ -217,74 +222,150 @@ def _build_home(store: CharacterStore, rulesets: AccountRulesets,
                 ui.button("Delete", on_click=confirm, color="negative").mark("home-confirm-delete")
         dialog.open()
 
-    with ui.row().classes("w-full items-center gap-2 p-2"):
-        ui.button("New character", icon="person_add", on_click=new_character).props(
-            f"color={pal.button}").mark("home-new")
-        ui.upload(label="Import a .character.json", auto_upload=True, on_upload=on_import) \
-            .props("accept=.json flat dense").classes("max-w-[16rem]").mark("home-import")
+    ruleset = rulesets.for_account(user_id)
+
+    page = ui.column().classes("w-full px-4 py-2 gap-2")
+
+    # Two sections: the characters, and the homebrew library of the account. The
+    # library belongs to the account, not to one character, thus it is here and
+    # not a tab of the character page.
+    with page:
+        with ui.tabs(value="characters").classes("w-full") as section_tabs:
+            ui.tab("characters", label="Characters", icon="groups")
+            ui.tab("homebrew", label="Homebrew", icon="construction")
+        # ⚠ No slide animation: the two panels differ in width, and the slide
+        # drew both at once for its length.
+        with ui.tab_panels(section_tabs, value="characters", animated=False).classes(
+                "w-full bg-transparent"):
+            with ui.tab_panel("homebrew").classes("p-0"):
+                custom_mod.build_custom(ruleset, custom_dir=store.custom_dir(user_id),
+                                        with_header=False, show_path=False)
+            with ui.tab_panel("characters").classes("p-0"):
+                # The characters sit in a centred column; the homebrew form
+                # needs the full width.
+                characters_panel = ui.column().classes(
+                    "w-full max-w-5xl mx-auto gap-4")
+
+    with characters_panel:
+        # The upload control of Quasar draws a blue box with a progress readout.
+        # It stays hidden; the Import button opens its file picker.
+        upload = ui.upload(auto_upload=True, on_upload=on_import).props(
+            "accept=.json").classes("hidden").mark("home-import")
+        with ui.row().classes("w-full items-end justify-between gap-2 pt-2"):
+            with ui.column().classes("gap-0"):
+                ui.label("Your characters").classes("text-2xl font-bold").style(
+                    f"color:{pal.accent}")
+                ui.label("A draft becomes a base when you finish and lock it. Play "
+                         "a base through a campaign copy.").classes("text-sm opacity-70")
+            with ui.row().classes("gap-2"):
+                ui.button("Import from file", icon="upload_file",
+                          on_click=lambda: upload.run_method("pickFiles")).props(
+                    f"outline color={pal.button}")
+                ui.button("New character", icon="person_add", on_click=new_character).props(
+                    f"color={pal.button}").mark("home-new")
 
     @ui.refreshable
     def listing() -> None:
         rows = store.list_for(user_id)
-        entries = {row.id: _entry(store, row) for row in rows}
+        entries = {row.id: _entry(store, ruleset, row) for row in rows}
         characters = [row for row in rows if not row.is_copy]
         copies = [row for row in rows if row.is_copy]
 
-        with ui.card().classes(f"w-full p-3 gap-1 {pal.card}"):
-            ui.label(f"CHARACTERS ({len(characters)})").classes(
-                "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
-            if not characters:
-                ui.label("None yet. Press New character, or import a file.").classes(
-                    "text-xs text-gray-500")
+        def section(title: str, count: int) -> None:
+            ui.label(f"{title} ({count})").classes(
+                "text-xs font-bold tracking-widest pt-2").style(f"color:{pal.accent}")
+
+        section("CHARACTERS", len(characters))
+        if not characters:
+            with ui.card().classes(f"w-full p-8 items-center gap-1 {pal.card_soft}"):
+                ui.icon("person_add").classes("text-5xl opacity-40")
+                ui.label("No characters yet").classes("text-base font-bold")
+                ui.label("Start one with New character, or import a .character.json "
+                         "that you downloaded.").classes("text-sm opacity-70")
+        with _grid():
             for row in characters:
-                name, stage = entries[row.id]
-                with ui.row().classes("w-full items-center gap-2 no-wrap").mark(
-                        f"home-row-{row.id}"):
-                    ui.link(name, character_url(row.id)).classes("text-sm flex-1 min-w-0 truncate")
-                    ui.label(stage).classes("text-xs text-gray-600")
-                    if stage == "Base":
-                        ui.button("Make a campaign copy", icon="content_copy",
+                entry = entries[row.id]
+                with _character_card(entry, row):
+                    if entry.stage == "Base":
+                        ui.button("Campaign copy", icon="content_copy",
                                   on_click=lambda _=None, r=row: make_copy(r)).props(
-                            "flat dense size=sm").mark(f"home-copy-{row.id}")
-                    ui.button(icon="delete",
-                              on_click=lambda _=None, r=row, n=name: confirm_delete(r, n)
-                              ).props("flat dense size=sm color=negative").mark(
-                        f"home-delete-{row.id}")
+                            "flat dense no-caps size=sm").mark(f"home-copy-{row.id}") \
+                            .tooltip("Make a campaign copy to play and advance")
+                    _delete_button(row, entry.name)
 
-        with ui.card().classes(f"w-full p-3 gap-1 {pal.card}"):
-            ui.label(f"CAMPAIGN COPIES ({len(copies)})").classes(
-                "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
-            if not copies:
-                ui.label("A campaign copy is made from a locked base. It takes XP; the "
-                         "base does not.").classes("text-xs text-gray-500")
+        section("CAMPAIGN COPIES", len(copies))
+        if not copies:
+            ui.label("A campaign copy is made from a locked base. It takes XP; the "
+                     "base does not.").classes("text-sm opacity-70")
+        with _grid():
             for row in copies:
-                name, _stage = entries[row.id]
-                origin = (f"Copy of {entries[row.base_id][0]}" if row.base_id in entries
+                entry = entries[row.id]
+                origin = (f"Copy of {entries[row.base_id].name}" if row.base_id in entries
                           else "Its base is deleted")
-                with ui.row().classes("w-full items-center gap-2 no-wrap").mark(
-                        f"home-row-{row.id}"):
-                    ui.link(name, character_url(row.id)).classes("text-sm flex-1 min-w-0 truncate")
-                    ui.label(origin).classes("text-xs text-gray-600")
-                    ui.button(icon="delete",
-                              on_click=lambda _=None, r=row, n=name: confirm_delete(r, n)
-                              ).props("flat dense size=sm color=negative").mark(
-                        f"home-delete-{row.id}")
+                with _character_card(entry, row, detail=origin):
+                    _delete_button(row, entry.name)
 
-    listing()
+    def _delete_button(row: CharacterRow, name: str) -> None:
+        ui.button(icon="delete_outline",
+                  on_click=lambda _=None, r=row, n=name: confirm_delete(r, n)).props(
+            "flat dense round size=sm color=negative").mark(
+            f"home-delete-{row.id}").tooltip("Delete")
+
+    with characters_panel:
+        listing()
 
 
-def _entry(store: CharacterStore, row: CharacterRow) -> tuple[str, str]:
-    """Return the name and the stage ("Draft", "Base", "Copy") that the list shows.
+@dataclass(frozen=True)
+class _Entry:
+    """What a card on /home shows. The file gives all of it."""
 
-    The file gives both. A file that does not read is listed, so it can be deleted."""
+    name: str
+    stage: str               # "Draft", "Base", "Copy" or "Unreadable"
+    exalt_type: str | None
+    kind: str                # "Solar · Dawn", "Mortal", ...
+    essence: int | None
+
+
+def _grid():
+    """A grid of cards that fills the column and wraps."""
+    return ui.element("div").classes("grid gap-3 w-full").style(
+        "grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr))")
+
+
+def _character_card(entry: _Entry, row: CharacterRow, detail: str | None = None):
+    """Draw a card for one character, tinted by its splat. Return the row that
+    holds its action buttons. The name and the details are ONE link."""
+    cpal = theme.palette(entry.exalt_type)
+    card = ui.card().classes(f"p-0 gap-0 overflow-hidden {cpal.card}").mark(
+        f"home-row-{row.id}")
+    with card:
+        ui.element("div").classes("w-full h-1").style(f"background:{cpal.accent}")
+        with ui.link(target=character_url(row.id)).classes(
+                "w-full no-underline text-inherit px-3 pt-2 pb-1 hover:bg-black/5"):
+            with ui.row().classes("w-full items-start justify-between no-wrap gap-2"):
+                ui.label(entry.name).classes("text-base font-bold truncate min-w-0")
+                ui.badge(entry.stage).props("outline").style(f"color:{cpal.accent}")
+            ui.label(entry.kind).classes("text-sm opacity-80")
+            if entry.essence is not None:
+                ui.label(f"Essence {entry.essence}").classes("text-xs opacity-60")
+            if detail:
+                ui.label(detail).classes("text-xs opacity-70 pt-1")
+        actions = ui.row().classes("w-full items-center justify-end gap-1 px-2 pb-1")
+    return actions
+
+
+def _entry(store: CharacterStore, ruleset: RuleSet, row: CharacterRow) -> _Entry:
+    """Return what the card of `row` shows. A file that does not read is listed,
+    so that it can be deleted."""
     try:
         character = store.load(row)
     except Exception:                               # noqa: BLE001 - list it, do not crash the page
-        return f"(unreadable: {row.id})", "Unreadable"
-    name = character.name or "Unnamed character"
-    if row.is_copy:
-        return name, "Copy"
-    return name, "Base" if character.chargen_locked else "Draft"
+        return _Entry(f"(unreadable: {row.id})", "Unreadable", None, "", None)
+    caste = ruleset.castes.get(character.caste) if character.caste else None
+    kind = character.exalt_type + (f" · {caste.label}" if caste is not None else "")
+    stage = "Copy" if row.is_copy else ("Base" if character.chargen_locked else "Draft")
+    return _Entry(character.name or "Unnamed character", stage, character.exalt_type,
+                  kind, character.essence_rating)
 
 
 def _delete(store: CharacterStore, sessions: SessionRegistry, user_id: int,

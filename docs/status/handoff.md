@@ -1,8 +1,9 @@
-# Session handoff — 2026-09-12 (third session: §5 piece 4 DONE — tests green, not clicked)
+# Session handoff — 2026-09-12 (third session: §5 piece 4 DONE and clicked; navigation pass approved)
 
 # 👉 YOU ARE HERE
 
-**2026-09-12, third session: §5 piece 4 is DONE, tests green, NOT browser-verified.**
+**2026-09-12, third session: §5 piece 4 is DONE, deployed, and the human clicked it**
+(*"In any case, it looks good."*).
 `/home` lists an account's characters; each character has its own page; a locked base
 is read-only and makes campaign copies. **`vtt.md` §9.8 is the record**, rulings in
 §9.3a. Done this session, in order:
@@ -38,8 +39,21 @@ says. ⚠ **Deploying starts every account clean** (the ruling): the old
 `user-<id>/<name>.character.json` files stay on disk, listed nowhere. A player gets one
 back by Download a copy — **before** the deploy — then Import on `/home`.
 
-**Next:** the click-through below, then P3 (campaigns: `tables`, `memberships`, the
-join code, ST approval) — `vtt.md` §2 and §9.6.
+8. **The navigation and look pass** — asked by the human after the click-through,
+   spiked on a local server over four rounds of screenshots, **approved**: the top bar
+   names the character, one lock button, a ⋮ menu; `/home` cards and a Homebrew tab (the
+   library left the character page); the Custom page draws **the tree the Charm joins**
+   and filters Prerequisites by splat and tree. `vtt.md` §9.9. ⚠ The human expects more
+   changes once friends use it.
+
+**Full suite after item 8: 3720 passed + 1 failed + 1 skipped — OBSERVED;** the one
+failure was `test_pdf.py` looking for a Print BUTTON, which is now in the ⋮ menu. The
+test was pointed at the menu entry and its file re-run (46 passed): **3721 + 1 skipped
+computed.**
+
+**Next:** deploy (item 8 is local until the human says), then whatever the friends'
+feedback brings, then P3 (campaigns: `tables`, `memberships`, the join code, ST
+approval) — `vtt.md` §2 and §9.6.
 
 ---
 

@@ -76,6 +76,35 @@ async def test_the_prerequisite_dropdown_excludes_virtual_path_rows(user: User) 
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
+async def test_a_category_change_redraws_the_prerequisite_list(user: User) -> None:
+    """The list is this tree's Charms. ⚠ The Category select stored its value and
+    redrew nothing, thus a list built from it stayed on the first tree."""
+    from nicegui import ui as _ui
+
+    def prerequisites():
+        return next(e for e in user.client.elements.values()
+                    if isinstance(e, _ui.select) and e.props.get("label") == "Prerequisites")
+
+    await user.open('/custom-content')
+    assert "solar.melee.excellent-strike" in prerequisites().options
+
+    category = next(e for e in user.client.elements.values()
+                    if isinstance(e, _ui.select) and e.props.get("label") == "Category")
+    category.set_value("archery")
+    # ⚠ The redraw runs after the event loop turns. `should_see("Prerequisites")`
+    # returns at once on the OLD select, thus wait for the list itself.
+    import asyncio
+    for _ in range(40):
+        if "solar.archery.wise-arrow" in prerequisites().options:
+            break
+        await asyncio.sleep(0.05)
+
+    assert "solar.archery.wise-arrow" in prerequisites().options
+    assert "solar.melee.excellent-strike" not in prerequisites().options
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
 async def test_the_json_pane_offers_paste_and_upload(user: User) -> None:
     await user.open('/custom-content')
     await user.should_see("JSON")
@@ -118,6 +147,25 @@ async def test_export_and_the_json_pane_follow_the_kind_tab(user: User) -> None:
     response = await user.download.next()
 
     assert [r["id"] for r in json.loads(response.text)] == ["custom.salt-road-whisper"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_charm_form_shows_the_tree_it_joins(user: User) -> None:
+    """The preview panel is on the Charms kind and names the tree. ⚠ Its graph
+    container has a fixed height: a container with none draws at zero, and a
+    render test still passes (docs: harness-has-no-layout)."""
+    from nicegui import ui as _ui
+
+    await user.open('/custom-content')
+    await user.should_see("WHERE IT GOES — MELEE")
+    graph = [e for e in user.client.elements.values() if e.props.get("id") == "custom-graph"]
+    assert graph and "h-[28rem]" in graph[0].classes
+
+    tabs = next(e for e in user.client.elements.values() if isinstance(e, _ui.tabs))
+    tabs.set_value("ritual")
+    await user.should_see("Salt Road Whisper")
+    await user.should_not_see("WHERE IT GOES")
 
 
 @pytest.mark.asyncio

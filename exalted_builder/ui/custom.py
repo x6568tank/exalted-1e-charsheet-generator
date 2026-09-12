@@ -53,9 +53,13 @@ _DELETE_WARNING = (
 
 
 def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
-                 with_header: bool = True) -> None:
+                 with_header: bool = True, show_path: bool = True) -> None:
     """Render the authoring page against `ruleset`, which is updated IN PLACE as
-    rows are saved (see rules_db.reload_custom_layer)."""
+    rows are saved (see rules_db.reload_custom_layer).
+
+    `show_path` prints the folder of the library. ⚠ The hosted server gives
+    False: the folder is a path on the SERVER, and it shows the layout of the
+    account folders to the player."""
     pal = theme.palette(None)
     root = custom_dir if custom_dir is not None else custom_content.custom_data_dir()
 
@@ -229,7 +233,8 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
     with ui.row().classes("w-full items-center justify-between"):
         ui.label("Custom content").classes("text-lg font-bold").style(f"color:{pal.accent}")
         with ui.row().classes("items-center gap-2"):
-            ui.label(f"Library: {root}").classes("text-xs text-gray-500")
+            if show_path:
+                ui.label(f"Library: {root}").classes("text-xs text-gray-500")
             ui.button("New", icon="add", on_click=_new).props(f"color={pal.button}")
 
     with ui.tabs(value="charm").classes("w-full") as kind_tabs:
@@ -285,7 +290,7 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
                     json_pane.refresh()
                 return _set
 
-            with ui.card().classes(f"flex-1 p-3 gap-2 {pal.card}"):
+            with ui.card().classes(f"w-full p-3 gap-2 {pal.card}"):
                 ui.label("NEW " + state["kind"].upper() if not state["editing"]
                          else f"EDITING {state['editing']}").classes(
                     "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
@@ -308,7 +313,11 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
                 with ui.row().classes("w-full justify-end gap-2"):
                     ui.button("Save", icon="save", on_click=_save).props(f"color={pal.button}")
 
-        editor()
+        # The form and, below it, the tree it joins: one column, thus the tree is
+        # as wide as the form.
+        editor_column = ui.column().classes("flex-1 min-w-0 gap-2")
+        with editor_column:
+            editor()
 
         # ---- right: JSON in/out ------------------------------------------ #
         @ui.refreshable
@@ -325,8 +334,13 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
                 paste = ui.textarea("Paste a row, or an array of them").classes(
                     "w-full").props("rows=6")
                 with ui.row().classes("w-full justify-between items-center gap-2"):
-                    ui.upload(label="Import .json", on_upload=_upload, auto_upload=True) \
-                        .props("accept=.json flat dense").classes("max-w-[12rem]")
+                    # Quasar's upload control draws a blue box with a progress
+                    # readout. It stays hidden; the button opens its file picker.
+                    upload = ui.upload(on_upload=_upload, auto_upload=True) \
+                        .props("accept=.json").classes("hidden")
+                    ui.button("Import .json", icon="upload_file",
+                              on_click=lambda: upload.run_method("pickFiles")) \
+                        .props("flat dense").mark("custom-import")
                     ui.button("Export .json", icon="download", on_click=_export) \
                         .props("flat dense").mark("custom-export") \
                         .tooltip("Download every row of this tab as one file")
@@ -334,6 +348,85 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
                               on_click=lambda: _paste(paste.value or "")).props("flat dense")
 
         json_pane()
+
+    # ---- below: the tree the Charm joins -------------------------------------- #
+    # Redrawn by a poll of the fields that move the tree, not by a hook on each
+    # control: several controls rebuild the form, and a hook on each is a hook to
+    # forget on one.
+    with editor_column:
+        preview_card = ui.card().classes(f"w-full p-3 gap-1 {pal.card}")
+    with preview_card:
+        preview_title = ui.label().classes("text-xs font-bold tracking-widest").style(
+            f"color:{pal.accent}")
+        ui.label("The tree this Charm joins, with the Charm on the form drawn in (large "
+                 "node). Homebrew has a violet border; a dashed node is a prerequisite "
+                 "from another tree.").classes("text-xs text-gray-500")
+        # ⚠ A fixed height. A graph container with no height draws at zero.
+        ui.element("div").props('id="custom-graph"').classes("w-full h-[28rem]")
+
+    drawn: dict = {"signature": None}
+
+    def _preview_signature() -> tuple:
+        form = _form()
+        return (state["kind"], state["editing"], form.get("name"), form.get("category"),
+                form.get("style_name"), form.get("exalt_type"),
+                tuple(form.get("prerequisites") or ()), form.get("prereq_mode"),
+                len(ruleset.charms))
+
+    def _redraw_preview() -> None:
+        signature = _preview_signature()
+        if signature == drawn["signature"]:
+            return
+        drawn["signature"] = signature
+        preview_card.set_visibility(state["kind"] == "charm")
+        if state["kind"] != "charm":
+            return
+        graph = viewmod.custom_charm_preview(ruleset, _form(), state["editing"])
+        preview_title.set_text(
+            f"WHERE IT GOES — {viewmod.charm_tree_title(graph.category).upper()}")
+        _draw_graph("custom-graph", graph, pal)
+
+    _redraw_preview()
+    ui.timer(0.5, _redraw_preview)
+
+
+def _draw_graph(container_id: str, graph, pal) -> None:
+    """Draw `graph` with Cytoscape into the element `container_id`.
+
+    ⚠ The element can be in a hidden tab when this runs. The script waits until it
+    has a height, and a newer draw cancels an older one that is still waiting."""
+    from .picker import _elements, _style
+
+    ui.run_javascript(f"""
+    (function() {{
+      window.customCyGen = (window.customCyGen || 0) + 1;
+      var gen = window.customCyGen;
+      function go() {{
+        if (gen !== window.customCyGen) return;
+        var el = document.getElementById({json.dumps(container_id)});
+        if (!window.cytoscape || !el || el.offsetHeight === 0) return setTimeout(go, 250);
+        if (window.customCy) {{ window.customCy.destroy(); }}
+        window.customCy = cytoscape({{
+          container: el,
+          elements: {json.dumps(_elements(graph))},
+          style: {json.dumps(_style(pal))},
+          pixelRatio: Math.max(2, window.devicePixelRatio || 1),
+          wheelSensitivity: 0.25, minZoom: 0.3, maxZoom: 3,
+        }});
+        var lay = window.customCy.layout({{name: 'breadthfirst', directed: true,
+          roots: {json.dumps(graph.roots)}, spacingFactor: 1.4, padding: 30,
+          avoidOverlap: true, fit: false}});
+        lay.one('layoutstop', function() {{
+          window.customCy.fit(undefined, 30);
+          if (window.customCy.zoom() < 0.8) {{ window.customCy.zoom(0.8); }}
+          var draft = window.customCy.nodes('.draft');
+          if (draft.length) {{ window.customCy.center(draft); }}
+        }});
+        lay.run();
+      }}
+      go();
+    }})();
+    """)
 
 
 def _extra_requirements(form: dict, refresh) -> None:
@@ -486,9 +579,20 @@ def _charm_fields(form: dict, bind, ruleset: RuleSet, pal: theme.Palette,
     """The Charm-specific half of the form. Dropdowns wherever the model constrains
     the value, so an invalid category or Charm type is not typeable."""
     categories = viewmod.custom_category_options(ruleset)
+
+    def bind_and_redraw(key: str):
+        """Category and Splat choose the prerequisite list, thus they redraw the
+        form after they store the value."""
+        store = bind(key)
+
+        def _set(e) -> None:
+            store(e)
+            refresh()
+        return _set
+
     with ui.row().classes("w-full items-center gap-2 no-wrap"):
         ui.select(categories, value=form["category"], label="Category",
-                  on_change=bind("category")).classes("flex-1").props("dense")
+                  on_change=bind_and_redraw("category")).classes("flex-1").props("dense")
         ui.select({e.value: e.value for e in CharmType}, value=form["type"],
                   label="Type", on_change=bind("type")).classes("w-40").props("dense")
     if form["category"] == viewmod.NEW_STYLE:
@@ -498,7 +602,8 @@ def _charm_fields(form: dict, bind, ruleset: RuleSet, pal: theme.Palette,
 
     with ui.row().classes("w-full items-center gap-2 no-wrap"):
         ui.select({e: e for e in sorted(ruleset.exalts)}, value=form["exalt_type"],
-                  label="Splat", on_change=bind("exalt_type")).classes("flex-1").props("dense")
+                  label="Splat", on_change=bind_and_redraw("exalt_type")).classes(
+            "flex-1").props("dense")
         ui.number("Min ability", value=form["min_ability"], min=0, max=5, format="%d",
                   on_change=bind("min_ability")).classes("w-28")
         ui.number("Min essence", value=form["min_essence"], min=1, max=10, format="%d",
@@ -526,18 +631,22 @@ def _charm_fields(form: dict, bind, ruleset: RuleSet, pal: theme.Palette,
     _extra_requirements(form, refresh)
     _breadth_requirements(form, refresh)
 
-    # Prerequisites: every Charm in the rule set, homebrew included, so a custom tree
-    # can hang off a printed Charm or off another custom one. Virtual rows (the
-    # Dragon-King Path powers projected into the catalogue so Combos and the sheet
-    # can name them) are excluded — they are never learnable (`charm_matches_splat`
-    # rejects them first), so a prereq on one would be unsatisfiable.
-    prereq_opts = {c.id: (f"✎ {c.name}" if c.custom else c.name)
-                   for c in sorted(ruleset.charms.values(), key=lambda c: c.name)
-                   if not c.virtual}
+    # Prerequisites: the Charms of this splat, this tree first, homebrew included.
+    # See `view.custom_prerequisite_options`. Virtual rows are never choices.
+    prereq_opts = viewmod.custom_prerequisite_options(ruleset, form, form.get("id", ""))
+
+    def toggle_other_trees(e) -> None:
+        form["prereq_other_trees"] = e.value
+        refresh()
+
     with ui.row().classes("w-full items-center gap-2 no-wrap"):
         ui.select(prereq_opts, value=form["prerequisites"], label="Prerequisites",
                   multiple=True, with_input=True, on_change=bind("prerequisites")) \
             .classes("flex-1").props("dense use-chips")
+        ui.checkbox("Other trees", value=bool(form.get("prereq_other_trees")),
+                    on_change=toggle_other_trees).tooltip(
+            "Also list the Charms of this splat's other trees. A Charm can require "
+            "a Charm from another tree.")
         ui.select({"all": "all required", "any": "any one of them"},
                   value=form["prereq_mode"], label="Mode",
                   on_change=bind("prereq_mode")).classes("w-40").props("dense") \
@@ -594,6 +703,8 @@ def main() -> None:
 
     @ui.page("/")
     def index() -> None:
+        from .assets import cytoscape_head_html
+        ui.add_head_html(cytoscape_head_html())
         build_custom(ruleset)
 
     ui.run(title="Exalted 1e — Custom content", reload=False, show=args.show,

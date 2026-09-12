@@ -895,3 +895,52 @@ id-shape checks.
   reloads. The registry's eviction had this shape before piece 4.
 * **Campaigns** (the `tables`/`memberships` tables, the join code, ST approval) are P3.
   `table_id` is there, NULL, so P3 needs no migration.
+
+### 9.9 The navigation and look pass — asked and approved 2026-09-12
+
+The human, after the piece-4 click-through: *"Is there anyway we could make the UI not
+more 'modern' but better to navigate?"*, then of `/home`: *"It just looks like it was
+designed as the minimum it can be instead of what might look good."* Built as a spike on
+a local server, adjusted over four rounds of the human's screenshots, then approved:
+*"Looks good; I'll have more changes as I send this to friends but it's fine for now."*
+⚠ **More changes are expected** — this is a first pass, not a finished design.
+
+**The builder's top bar** (desktop and hosted):
+* The left side names the CHARACTER, not the splat: `‹ Home › <name>` on the hosted pages,
+  with `<Splat> · Draft / Locked / Campaign copy` beside it. The name follows typing
+  (`bind_text_from`).
+* **Only the lock action that applies** is shown — Finish & Lock on an unlocked character,
+  Unlock on a locked one. `_apply_chrome` switches them on every content refresh.
+* Download a copy, Load (desktop), Print and Log out (hosted) moved into one **⋮ menu**.
+  Save stays a button.
+
+**`/home`:**
+* Two tabs, **Characters** and **Homebrew**. ⚠ **The homebrew library moved here from the
+  character page**, because it belongs to the account: the hosted character page hides its
+  Custom tab (`home_path` set). The desktop keeps its Custom tab.
+* Characters are **cards in a grid**, each tinted by its splat's palette with an accent
+  strip: name, Draft/Base/Copy badge, "Solar · Dawn", Essence, "Copy of X". The card top
+  is one link. A heading, an empty state, and **Import from file** as a button (the
+  Quasar uploader is hidden; its `pickFiles` is called).
+* The characters sit in a centred `max-w-5xl` column; the Homebrew tab keeps the full
+  width. **No slide animation** on the tab panels (`animated=False`) — it drew both
+  panels, of different widths, at once.
+
+**The Custom page** (both shells):
+* **The tree the Charm joins**, under the form and as wide as it:
+  `view.custom_charm_preview` draws the form's category and splat, book and homebrew,
+  with the Charm on the form as a large `draft` node (an edit replaces its saved node and
+  keeps its children), foreign prerequisites dashed. Redrawn by a 0.5 s poll of the
+  fields that move the tree, not by hooks on the controls.
+* **The Prerequisites list is filtered**: the form's splat only
+  (`charm_on_splat_page`, as the picker), this tree first; an **Other trees** checkbox
+  adds the splat's other trees, labelled with the tree. Chosen ids always stay listed
+  (the `ui.select` build-time raise). A Charm is never its own prerequisite.
+* 🐞 **Category and Splat stored their value and redrew nothing** — which is also why
+  "New Martial Arts style…" never showed its name box. They now redraw the form.
+* 🐞 **The hosted Homebrew tab printed the library's SERVER path** (`…/sessions/user-1/
+  custom`). `build_custom(show_path=False)` on the server; tested, mutation-checked.
+* Import .json is a button, not the blue uploader.
+
+**Not done:** a Charm name in the picker does not link to its wiki entry (item 4 of the
+proposal, left out as bigger than a spike). The base page still has no Print.

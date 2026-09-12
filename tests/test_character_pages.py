@@ -115,6 +115,72 @@ async def test_a_character_page_has_home_and_no_party_new_or_load(user: User) ->
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
+async def test_the_homebrew_tab_prints_no_server_path(user: User) -> None:
+    """🐞 The desktop Custom page prints its library folder. On the server that is
+    a path on the SERVER, and it shows the layout of the account folders."""
+    from nicegui import ui as _ui
+
+    await _sign_up(user, "Harmonious")
+    texts = [e.text for e in user.client.elements.values() if isinstance(e, _ui.label)]
+
+    assert "Custom content" in texts, "The Homebrew tab did not render."
+    assert not [t for t in texts if str(state.ROOT) in t or "sessions" in t]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_top_bar_names_the_character_and_its_stage(user: User) -> None:
+    """With several characters the splat alone does not tell the pages apart."""
+    user_id = await _sign_up(user, "Harmonious")
+    row = _store().create(user_id, Character(id="x", name="Named In The Bar", caste="dawn"))
+
+    await user.open(home.character_url(row.id))
+
+    await user.should_see("Named In The Bar")
+    await user.should_see("Solar · Draft")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_only_the_lock_action_that_applies_is_shown(user: User) -> None:
+    """A draft shows Finish & Lock and no Unlock; a campaign copy, which is locked,
+    shows Unlock and no Finish & Lock. ⚠ `user.find` skips hidden elements, thus
+    the buttons are read from the page."""
+
+    def _marked(user: User, marker: str):
+        return next(e for e in user.client.elements.values()
+                    if marker in getattr(e, "_markers", []))
+
+    user_id = await _sign_up(user, "Harmonious")
+    store = _store()
+    draft = store.create(user_id, Character(id="x", name="Drafted"))
+    copy = store.make_copy(user_id, store.create(user_id, _locked("Based")).id)
+
+    await user.open(home.character_url(draft.id))
+    await user.should_see(marker="top-bar-save")
+    lock, unlock = _marked(user, "top-bar-lock"), _marked(user, "top-bar-unlock")
+    assert lock.visible and not unlock.visible
+
+    await user.open(home.character_url(copy.id))
+    await user.should_see("Campaign copy")
+    lock, unlock = _marked(user, "top-bar-lock"), _marked(user, "top-bar-unlock")
+    assert unlock.visible and not lock.visible
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_character_page_has_no_custom_tab(user: User) -> None:
+    """The homebrew library is on /home: it belongs to the account."""
+    await _sign_up(user, "Harmonious")
+    await _new_character(user)
+
+    tabs = [e for e in user.client.elements.values()
+            if type(e).__name__ == "Tab" and e.props.get("name") == "Custom"]
+    assert tabs and not tabs[0].visible
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
 async def test_the_party_page_is_not_on_the_server(user: User) -> None:
     await _sign_up(user, "Harmonious")
 

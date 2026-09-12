@@ -657,6 +657,125 @@ def test_an_export_holds_only_its_own_kind(tmp_path):
     assert [r["id"] for r in custom_content.parse_rows(text)] == ["custom.a-spell"]
 
 
+# --------------------------------------------------------------------------- #
+# The tree preview: where the Charm on the form goes
+# --------------------------------------------------------------------------- #
+
+def _preview_book(tmp_path) -> "RuleSet":
+    """Two Melee Charms in a chain, and one Occult Charm to be a foreign prerequisite."""
+    book, mine = tmp_path / "data", tmp_path / "custom"
+    _write_clean_set(book)
+    _custom_charms(book, [
+        _charm("m1", name="First Blade"),
+        _charm("m2", name="Second Blade", prerequisites=[["m1"]]),
+    ], stem="melee")
+    return load_ruleset(book, custom_dir=mine), mine
+
+
+def _form(**over) -> dict:
+    form = viewmod.custom_charm_form()
+    form.update(name="House Strike", category="melee", exalt_type="Solar")
+    form.update(over)
+    return form
+
+
+def test_the_preview_draws_the_draft_into_its_tree(tmp_path):
+    rs, _ = _preview_book(tmp_path)
+
+    graph = viewmod.custom_charm_preview(rs, _form(prerequisites=["m2"]), editing="")
+
+    ids = {n.id for n in graph.nodes}
+    assert {"m1", "m2", viewmod.DRAFT_NODE_ID} <= ids
+    assert ("m2", viewmod.DRAFT_NODE_ID) in graph.edges
+    draft = next(n for n in graph.nodes if n.id == viewmod.DRAFT_NODE_ID)
+    assert draft.label == "House Strike" and draft.state == "draft"
+
+
+def test_the_preview_shows_no_owned_or_available_state(tmp_path):
+    """No character is being built. Owned/available colours would mean nothing."""
+    rs, _ = _preview_book(tmp_path)
+
+    graph = viewmod.custom_charm_preview(rs, _form(), editing="")
+
+    assert {n.state for n in graph.nodes} <= {"", "draft"}
+
+
+def test_an_edit_replaces_the_saved_node_and_keeps_its_children(tmp_path):
+    """The saved Charm and the form are one Charm. Its old prerequisite edges go;
+    the Charms that require it still hang from it."""
+    rs, mine = _preview_book(tmp_path)
+    _custom_charms(mine, [
+        _charm("custom.house", name="House Strike", prerequisites=[["m1"]]),
+        _charm("custom.child", name="Child Strike", prerequisites=[["custom.house"]]),
+    ])
+    rules_db.reload_custom_layer(rs, mine)
+
+    graph = viewmod.custom_charm_preview(
+        rs, _form(id="custom.house", prerequisites=["m2"]), editing="custom.house")
+
+    assert [n.id for n in graph.nodes].count("custom.house") == 1
+    assert ("m1", "custom.house") not in graph.edges
+    assert ("m2", "custom.house") in graph.edges
+    assert ("custom.house", "custom.child") in graph.edges
+    assert next(n for n in graph.nodes if n.id == "custom.house").state == "draft"
+
+
+def test_a_prerequisite_from_another_tree_is_drawn_as_external(tmp_path):
+    rs, _ = _preview_book(tmp_path)
+
+    graph = viewmod.custom_charm_preview(rs, _form(prerequisites=["t"]), editing="")
+
+    occult = next(n for n in graph.nodes if n.id == "t")
+    assert occult.external
+    assert ("t", viewmod.DRAFT_NODE_ID) in graph.edges
+
+
+# --------------------------------------------------------------------------- #
+# The prerequisite dropdown: this splat, this tree first
+# --------------------------------------------------------------------------- #
+
+@pytest.fixture(scope="module")
+def book_rules():
+    return load_ruleset(Path("exalted_builder/data"))
+
+
+def test_the_prerequisites_are_this_trees_charms(book_rules):
+    opts = viewmod.custom_prerequisite_options(book_rules, _form(), editing="")
+
+    assert "solar.melee.excellent-strike" in opts
+    assert "solar.archery.wise-arrow" not in opts          # another tree
+    assert "abyssal.melee.furious-blade" not in opts       # another splat's Melee
+    assert "lunar.endurance.ox-body-technique" not in opts
+
+
+def test_other_trees_adds_the_rest_of_the_splat_with_a_tree_label(book_rules):
+    opts = viewmod.custom_prerequisite_options(
+        book_rules, _form(prereq_other_trees=True), editing="")
+
+    assert opts["solar.archery.wise-arrow"].endswith("— Archery")
+    assert not opts["solar.melee.excellent-strike"].endswith("— Melee")
+    assert list(opts).index("solar.melee.excellent-strike") < list(opts).index(
+        "solar.archery.wise-arrow"), "This tree's Charms come first."
+    assert "abyssal.melee.furious-blade" not in opts
+
+
+def test_a_chosen_prerequisite_stays_in_the_options(book_rules):
+    """⚠ A NiceGUI select raises at build time when its value is not in its
+    options. A prerequisite chosen before a Splat change must stay listed."""
+    form = _form(prerequisites=["lunar.endurance.ox-body-technique"])
+
+    opts = viewmod.custom_prerequisite_options(book_rules, form, editing="")
+
+    assert "lunar.endurance.ox-body-technique" in opts
+
+
+def test_a_charm_is_not_its_own_prerequisite(book_rules):
+    opts = viewmod.custom_prerequisite_options(
+        book_rules, _form(), editing="solar.melee.excellent-strike")
+
+    assert "solar.melee.excellent-strike" not in opts
+
+
 def test_an_empty_library_has_nothing_to_export(tmp_path):
     """`parse_rows` refuses an empty array, so an empty file could never come back in.
     The export gives None and the page says so instead of downloading it."""
