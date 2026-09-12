@@ -197,6 +197,142 @@ async def test_the_desktop_branch_downloads_and_writes_nothing(create_user) -> N
 
 
 # --------------------------------------------------------------------------- #
+# "Download a copy" — section 5.1c
+# --------------------------------------------------------------------------- #
+#
+# ⚠ THE TRAP. The desktop download helpers set `ctx["path"]` and
+# `ctx["party_path"]` from the downloaded filename. On a hosted run that moves the
+# destination of the auto-save timer. These cases assert that `ctx` is UNCHANGED.
+# A case that asserts only that a download happened passes with the trap present.
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_hosted_download_gives_the_character(create_user) -> None:
+    """The hosted character download delivers the current character."""
+    user = create_user()
+    await user.open("/")
+    await user.should_see("Identity")
+
+    ctx = _hosted_ctx()
+    ctx["char"].name = "DownloadedName"
+
+    user.find("top-bar-download").click()
+    response = await user.download.next()
+
+    assert persistence.character_from_json(response.text).name == "DownloadedName"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_hosted_download_does_not_move_the_save_destination(create_user) -> None:
+    """🐞 The trap. A download must leave `ctx["path"]` and `ctx["dir"]` alone.
+
+    ⚠ The name edit is what makes this case discriminate. The desktop helper sets
+    `ctx["path"]` to a name derived from the character. Without an edit, that name
+    is the one already in `ctx["path"]`, and a repoint is invisible.
+    """
+    user = create_user()
+    await user.open("/")
+    await user.should_see("Identity")
+
+    ctx = _hosted_ctx()
+    ctx["char"].name = "RenamedBeforeDownload"
+    path_before, dir_before = ctx["path"], ctx["dir"]
+    assert persistence.suggested_filename(ctx["char"]) != path_before.name, (
+        "The fixture cannot see a repoint: the downloaded name equals the "
+        "current destination."
+    )
+
+    user.find("top-bar-download").click()
+    await user.download.next()
+
+    assert ctx["path"] == path_before, (
+        f"The download moved the save destination from {path_before} to "
+        f"{ctx['path']}. The auto-save timer now writes to a name from a download."
+    )
+    assert ctx["dir"] == dir_before
+    written = list(dir_before.glob("*.json")) if dir_before.exists() else []
+    assert written in ([], [path_before]), (
+        f"The download wrote a file into the session directory: {written}."
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_hosted_party_download_gives_the_party(create_user) -> None:
+    """The SECOND site. A hosted Storyteller can take the party bundle out."""
+    user = create_user()
+    await user.open("/gm")
+    await user.should_see("Save party")
+
+    ctx = _hosted_ctx()
+    ctx["party"].name = "DownloadedParty"
+
+    user.find("gm-download-party").click()
+    response = await user.download.next()
+
+    assert persistence.party_from_json(response.text).name == "DownloadedParty"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_hosted_party_download_does_not_move_the_save_destination(
+        create_user) -> None:
+    """🐞 The trap at the second site. `ctx["party_path"]` must not change.
+
+    ⚠ It starts as None, and the desktop helper sets it to a path. Thus a repoint
+    is visible here with no edit.
+    """
+    user = create_user()
+    await user.open("/gm")
+    await user.should_see("Save party")
+
+    ctx = _hosted_ctx()
+    party_path_before, path_before = ctx["party_path"], ctx["path"]
+
+    user.find("gm-download-party").click()
+    await user.download.next()
+
+    assert ctx["party_path"] == party_path_before, (
+        f"The party download set the party save destination to "
+        f"{ctx['party_path']}. The next Save party writes to a download name."
+    )
+    assert ctx["path"] == path_before
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_download_buttons_are_present_hosted(create_user) -> None:
+    """The gate, first direction. Without this case, the absence cases below pass
+    against a button that never renders."""
+    user = create_user()
+    await user.open("/")
+    await user.should_see(marker="top-bar-download")
+
+    await user.open("/gm")
+    await user.should_see(marker="gm-download-party")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_download_buttons_are_absent_on_the_desktop(create_user) -> None:
+    """The gate, second direction. On the desktop, Save is already the download.
+
+    ⚠ The `should_see` of the Save mark comes first. It shows that the header
+    rendered, thus the absence of the download mark is meaningful.
+    """
+    user = create_user()
+    await user.open("/desktop")
+    await user.should_see(marker="top-bar-save")
+    await user.should_not_see(marker="top-bar-download")
+
+    await user.open("/desktop-gm")
+    await user.should_see(marker="gm-save-party")
+    await user.should_not_see(marker="gm-download-party")
+
+
+# --------------------------------------------------------------------------- #
 # The one-switch rule
 # --------------------------------------------------------------------------- #
 

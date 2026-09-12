@@ -336,12 +336,22 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
                           on_click=lambda: _party_download(name_input.value, dialog))
         dialog.open()
 
+    def _party_download_copy(filename: str) -> None:
+        """Send the party to the browser as `filename`. Do not change `ctx`.
+
+        The hosted "Download a copy" button calls this directly. See
+        hosting-state-model.md section 5.1c.
+        """
+        ui.download.content(persistence.party_to_json(party()).encode("utf-8"), filename)
+        ui.notify(f"Downloading {filename}", type="positive")
+
     def _party_download(name: str, dialog) -> None:
         filename = persistence.normalize_party_filename(name, party())
-        ui.download.content(persistence.party_to_json(party()).encode("utf-8"), filename)
+        _party_download_copy(filename)
+        # ⚠ Desktop only. Here the download IS the save, thus it sets the
+        # destination. On a hosted run this line moves the party save target.
         ctx["party_path"] = ctx["dir"] / filename
         dialog.close()
-        ui.notify(f"Downloading {filename}", type="positive")
 
     # ---- print / PDF export ----------------------------------------------- #
     def export_pdf(character: Character | None = None) -> None:
@@ -707,6 +717,12 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
                 ui.button("Add character", icon="person_add", on_click=add_to_party).props("flat")
                 ui.button("Save party", icon="save",
                           on_click=save_party).props("flat").mark("gm-save-party")
+                if hosted:
+                    # On the desktop, Save party is already the download. Section 5.1c.
+                    ui.button("Download a copy", icon="download",
+                              on_click=lambda: _party_download_copy(
+                                  persistence.suggested_party_filename(party()))
+                              ).props("flat").mark("gm-download-party")
                 ui.button("Load party", icon="folder_open", on_click=load_party).props("flat")
                 ui.button("Print all", icon="picture_as_pdf",
                           on_click=lambda: export_pdf()).props("flat").tooltip(

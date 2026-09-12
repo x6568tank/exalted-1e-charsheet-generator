@@ -431,12 +431,22 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
                           on_click=lambda: _browser_download(name_input.value, dialog)).props(f"color={_pal().button}")
         dialog.open()
 
+    def _download_copy(filename: str) -> None:
+        """Send the character to the browser as `filename`. Do not change `ctx`.
+
+        The hosted "Download a copy" button calls this directly. See
+        hosting-state-model.md section 5.1c.
+        """
+        ui.download.content(persistence.character_to_json(ctx["char"]).encode("utf-8"), filename)
+        ui.notify(f"Downloading {filename}", type="positive")
+
     def _browser_download(name: str, dialog) -> None:
         filename = persistence.normalize_save_filename(name, ctx["char"])
-        ui.download.content(persistence.character_to_json(ctx["char"]).encode("utf-8"), filename)
+        _download_copy(filename)
+        # ⚠ Desktop only. Here the download IS the save, thus it sets the
+        # destination. On a hosted run this line moves the auto-save target.
         ctx["path"] = ctx["dir"] / filename
         dialog.close()
-        ui.notify(f"Downloading {filename}", type="positive")
 
     # ---- print / PDF export ----------------------------------------------- #
     # The button lives HERE and not on the Sheet tab on purpose: `render_sheet`
@@ -623,6 +633,12 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             # unordered set, thus the click would be ambiguous.
             ui.button("Save", icon="save",
                       on_click=save).props("flat color=white").mark("top-bar-save")
+            if hosted:
+                # On the desktop, Save is already the download. Section 5.1c.
+                ui.button("Download a copy", icon="download",
+                          on_click=lambda: _download_copy(
+                              persistence.suggested_filename(ctx["char"]))
+                          ).props("flat color=white").mark("top-bar-download")
             ui.button("Load", icon="folder_open", on_click=open_load).props("flat color=white")
             ui.button("Print", icon="picture_as_pdf", on_click=export_pdf).props(
                 "flat color=white").tooltip("Export a print-ready PDF character sheet")

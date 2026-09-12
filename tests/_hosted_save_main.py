@@ -22,7 +22,7 @@ from nicegui import ui
 
 from exalted_builder import rules_db
 from exalted_builder.models.character import Character
-from exalted_builder.ui import builder
+from exalted_builder.ui import builder, gm
 
 # runpy executes this file by path, thus the repository root can be absent from
 # sys.path and `tests` is then not importable.
@@ -53,6 +53,13 @@ DESKTOP_CTX["adversary_catalog"] = {}
 def desktop_page() -> None:
     build = DESKTOP_CTX
     builder.build_app(RS, build["char"], build["path"], ctx=build)
+
+
+# The desktop control for the party page. It shows that the hosted-only buttons
+# on '/gm' are absent when the hosted bit is not set.
+@ui.page("/desktop-gm")
+def desktop_gm_page() -> None:
+    gm.build_gm(RS, DESKTOP_CTX)
 
 
 if __name__ in {"__main__", "__mp_main__"}:

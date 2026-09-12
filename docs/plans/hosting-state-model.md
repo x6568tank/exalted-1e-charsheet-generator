@@ -770,12 +770,13 @@ are downloads and uploads, which is what a hosted run wants. **Do not convert th
 owns; a sheet is an artefact the player keeps. A hosted export downloads, and that
 asymmetry is correct — do not "restore parity".
 
-### 5.1c "Download a copy" — RULED 2026-09-11, NOT BUILT
+### 5.1c "Download a copy" — RULED 2026-09-11, BUILT 2026-09-11
 
 Piece 2 left a hosted player with **no way to get their character JSON out**: Save writes
 server-side and the download branch became unreachable. **Human's ruling, 2026-09-11:
-*"They should have a way to download a copy."*** Scoped here; **not built** — it is the
-next session's row.
+*"They should have a way to download a copy."*** Scoped below, then built the same day —
+see **"What shipped"** at the end of this section. The scope is kept as written because
+the tests are built on it.
 
 **This is wiring, not a new mechanism.** Every part already exists and works on a hosted
 run — the PDF export downloads from a hosted page today, so `ui.download.content` is
@@ -855,6 +856,41 @@ already exist. Roughly ~15 lines across `ui/builder.py` and `ui/gm.py`, 4–6 te
 mechanism, no new dependency, no engine or data change. ⚠ **The real cost is one full suite
 run**, as for any row. The only thing that can make it expensive is the `ctx` trap above.
 
+#### What shipped
+
+Both sites, gated on the one `hosted` bit, both helpers split so the trap cannot be reached
+from the hosted button:
+
+* **`builder._download_copy(filename)`** sends the character and touches nothing in `ctx`.
+  `_browser_download` now calls it and **then** sets `ctx["path"]` itself, with a ⚠ comment
+  that the line is desktop-only. The hosted **"Download a copy"** button (mark
+  `top-bar-download`) calls `_download_copy` directly.
+* **`gm._party_download_copy(filename)`** — the same split for the party. Button mark
+  `gm-download-party`, beside Save party.
+* **No filename prompt.** The hosted button downloads straight away under
+  `suggested_filename` / `suggested_party_filename`. ⚠ A choice made without asking: a
+  prompt would be a second place a typed name could leak into `ctx`, and the browser can
+  rename the file anyway. Reversible if a prompt is wanted.
+
+`tests/test_hosted_save.py` gained six cases (13 in the file), and `_hosted_save_main.py`
+gained a `/desktop-gm` control route — the absent-when-not-hosted direction for the party
+page had no route to run on.
+
+⚠ **The character trap case edits the name first**, and asserts the fixture can see a
+repoint before it clicks. Without the edit, the desktop helper's repoint writes the SAME
+filename that is already in `ctx["path"]`, and the case passes against the trap.
+
+**Negative controls, all run, restored from a copy:**
+
+* `_download_copy` sets `ctx["path"]` → only the character trap case reddens.
+* `_party_download_copy` sets `ctx["party_path"]` → only the party trap case reddens.
+* Both gates forced open → the desktop-absence case reddens.
+* **The party gate alone forced open** → the same case reddens on `gm-download-party`.
+  Run separately because the case checks the builder first, so the both-at-once control
+  never reached the party half.
+
+Not browser-verified.
+
 ### 5.2 Correcting the original §5 on `app.storage.user`
 
 The original says:
@@ -920,7 +956,7 @@ auth gate and per-request resolution are the additions), plus whatever 5.3's rul
 |---|---|
 | 1. `server/main.py` — the switch | ✅ done, §5.1a |
 | 2. the third save branch (both sites) | ✅ done, §5.1b |
-| 2b. "Download a copy" on a hosted run | ⏭ **ruled, scoped, NOT built** — §5.1c. Small, severable, and the next row |
+| 2b. "Download a copy" on a hosted run | ✅ done, §5.1c — not browser-verified |
 | 3. Auth — `/login`, the gate, `bcrypt`, the `[server]` extra | ❌ not started |
 | 4. The DB, and §5.3's per-user rulesets | ❌ not started; **measure one merged `RuleSet` before fixing the layout** |
 
