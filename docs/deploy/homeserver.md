@@ -1,7 +1,12 @@
 # Deploying to the home server (`gilserver`, 192.168.1.2)
 
-Written 2026-09-12 from a read-only look at the server as the `claude` account. Nothing
-here has been applied yet. Steps marked **(gil)** need the `docker` or `sudo` group;
+Written 2026-09-12 from a read-only look at the server as the `claude` account.
+**APPLIED 2026-09-12** — the human ran steps 2–4; `https://exalted.x6568tank.com` serves
+commit `7cd594f`. Checked from outside through Cloudflare: the public pages and `HEAD` answer
+200, `/home` and `/gm` send a visitor to the login page, and the session cookie arrives as
+`__Host-exalted-session; path=/; httponly; samesite=lax; secure`. The first `curl -I` gave
+405 (FastAPI adds no HEAD to a GET route) — fixed in `7cd594f`. Step 6 (the backup
+snapshot) is the human's to add. Steps marked **(gil)** need the `docker` or `sudo` group;
 `claude` has neither, on purpose.
 
 ## What the server already looks like

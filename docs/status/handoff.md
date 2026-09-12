@@ -23,8 +23,8 @@ dot-segment case, three more redirect-target cases) = 3668.
 not reconcile this against another machine. ⚠ **`bcrypt` is optional**: without it the
 auth test files skip, and so does one case of `test_public_pages.py`.
 
-**Working tree:** committed 2026-09-12 in two commits (the public pages; the deploy
-files). Not pushed. Check `git status`.
+**Working tree:** committed 2026-09-12 in three commits (the public pages; the deploy
+files; HEAD). Not pushed. Check `git status`.
 
 ## ✅ SHIPPED 2026-09-12 — the public pages (§9.7 of `vtt.md`)
 
@@ -113,6 +113,9 @@ of a table.
 
 - 👉 **The human: click through the public pages and approve (or rewrite) the About
   text.** See "Not browser-verified" below.
+- ✅ **DEPLOYED 2026-09-12 to `https://exalted.x6568tank.com`** (commit `7cd594f`,
+  checked from outside). ⚠ Not yet seen: a real signup in a browser, which is the proof
+  that NiceGUI's websocket crosses the Cloudflare Tunnel. The About draft is live.
 - **Deploy to `gilserver`** — `docs/deploy/homeserver.md` has every step. `Dockerfile` +
   `.dockerignore` are new and the image was built and probed locally (front page, wiki,
   `/home` → login, `__Host-` cookie, database owned by uid 1000). HTTPS is the existing
