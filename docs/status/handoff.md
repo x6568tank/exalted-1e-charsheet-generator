@@ -56,9 +56,16 @@ computed.**
    spectating by the same code as a way of OPENING the table, several characters per
    member. No P3 code yet.
 
-**Next:** deploy (item 8 is local until the human says), then whatever the friends'
-feedback brings, then P3 (campaigns: `tables`, `memberships`, the join code, ST
-approval) — `vtt.md` §2 and §9.6.
+10. **The P3 design is written: `docs/plans/p3-tables.md`.** Schema (`tables`,
+    `memberships`, `join_requests`), the table folder, `TableStore`, the rules layers, the
+    house-rule sync, XP grants, the pages, the build order, and the house-bug traps.
+    ⚠ **Six new questions for the human (its §13, Q1–Q6)** — steps 1–4 of its build order
+    need none of them; steps 5 and 6 need Q2 and Q1.
+
+**Deployed:** `4a614bb` is on `gilserver` (the human recomposes). 
+
+**Next:** the human answers p3-tables.md §13 (or not yet), then build step 1 (`TableStore`
++ schema + codes + throttle, no UI). Friends' feedback on the new look may come first.
 
 ---
 
