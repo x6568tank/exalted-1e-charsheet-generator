@@ -1,17 +1,12 @@
 """server/main.py — the hosted entry point.
 
-Section 5.1 of `docs/plans/hosting-state-model.md`. This module is the caller that
-turns on the per-session state of section 3. The desktop entry points
-(`ui/builder.py:main` and `pack/run_app.py`) stay as they are, and they supply no
-session root.
+Section 5.1 of `docs/plans/hosting-state-model.md`. The desktop entry points
+(`ui/builder.py:main` and `pack/run_app.py`) call `builder.register_pages`. This
+module calls `server/home.py` instead: `/home` lists the characters of the
+account, and each character has its own page, context, file and auto-save.
 
-**What this module adds over the desktop entry points, and it is one argument.**
-`register_pages(ruleset, ctx, session_root=...)` gives each browser session its own
-save directory and its own auto-save timer. All three desktop callers pass no root.
-Thus section 3 was complete and unreachable until this file.
-
-Piece 3 adds the login gate. `build_server` registers the login pages and keys each
-context on the account; `main` installs the gate. See server/auth.py.
+Piece 3 adds the login gate. `build_server` registers the login pages; `main`
+installs the gate. See server/auth.py.
 
 ⚠ `main` installs the gate, not `build_server`. The tests call `build_server` in a
 process where the app can already run, and a middleware cannot be added then.
@@ -21,9 +16,8 @@ process where the app can already run, and a middleware cannot be added then.
 never be JSON, thus it can never cross a process boundary. Section 3.4 gives the
 evidence, and it shows that Redis is not an alternative.
 
-⚠ `ruleset` is shared between all sessions and is read-only. Section 5.3 records
-what the custom-content layer does to that, and it is not solved here: a hosted run
-still has one process-wide homebrew library.
+Each account has its own homebrew library and RuleSet (section 5.3), and `main`
+switches the default library off.
 """
 
 from __future__ import annotations
@@ -34,10 +28,8 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import custom_content, persistence, rules_db
-from ..models.character import Character, new_character_id
 from ..server import auth, characters, config, db, home, public, quota, wiki
 from ..server.session import SessionRegistry
-from ..ui import builder
 
 _DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
@@ -63,23 +55,6 @@ SESSION_COOKIE = {
     "path": "/",
     "same_site": "lax",
 }
-
-
-def prototype_context(session_root: Path) -> dict:
-    """Return the prototype context that each session copies.
-
-    The character is new and empty. `session_context_factory` deep-copies it for
-    each session and computes that session's own destination from the session key.
-
-    ⚠ The prototype path is OUTSIDE `session_root` on purpose, and it is never
-    used by a hosted session. It is a marker: a path that appears inside a session
-    directory shows that the factory returned the prototype's own path, which is
-    the defect of section 3.7. A prototype path inside the root would hide that,
-    and it would make the tests for it pass with no isolation.
-    """
-    character = Character(id=new_character_id())
-    path = session_root.parent / "prototype.character.json"
-    return builder.make_context(character, path)
 
 
 def build_server(session_root: Path | None = None,

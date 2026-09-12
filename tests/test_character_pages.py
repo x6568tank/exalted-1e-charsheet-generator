@@ -11,6 +11,7 @@ absence here follows a `should_see` of something that the same render draws.
 from __future__ import annotations
 
 import pytest
+from nicegui.elements.timer import Timer
 from nicegui.testing import User
 
 pytest.importorskip("bcrypt")
@@ -123,6 +124,116 @@ async def test_the_party_page_is_not_on_the_server(user: User) -> None:
 
 
 # --------------------------------------------------------------------------- #
+# Save, auto-save and download on a character page
+#
+# Moved here from test_hosted_save.py and test_session_destinations.py on
+# 2026-09-12, when the per-account builder they tested left the server. The
+# properties are the same; the wiring is the production wiring again.
+# --------------------------------------------------------------------------- #
+
+# The text of the desktop's browser download dialog.
+DOWNLOAD_PROMPT = "Downloads to your browser's download folder."
+
+
+async def _new_character(user: User) -> dict:
+    """Press New character on /home. Return the context of the new character."""
+    await user.should_see(marker="home-new")
+    before = set(state.REGISTRY.keys())
+    user.find(marker="home-new").click()
+    await user.should_see("Identity")
+    (key,) = set(state.REGISTRY.keys()) - before
+    return state.REGISTRY.ctx_for(key)
+
+
+def _timers(user: User) -> list[Timer]:
+    """The timers of the page of `user`. ⚠ Call `timer.callback()`; do not wait.
+    `saving.AUTOSAVE_SECONDS` is a real debounce."""
+    return [e for e in user.client.elements.values() if isinstance(e, Timer)]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_save_does_not_also_offer_a_download(user: User) -> None:
+    """⚠ Keep the `should_see` before the `should_not_see`. It waits for the
+    handler, and only then is the absence of the prompt meaningful."""
+    await _sign_up(user, "Harmonious")
+    await _new_character(user)
+
+    user.find(marker="top-bar-save").click()
+    await user.should_see("Saved")          # settles the handler; do not remove
+
+    await user.should_not_see(DOWNLOAD_PROMPT)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_auto_save_timer_writes_the_character_file(user: User) -> None:
+    """The page must CALL the auto-save. A correct mechanism with no call site is
+    this project's usual defect. ⚠ The auto-save is quiet: assert the file."""
+    await _sign_up(user, "Harmonious")
+    ctx = await _new_character(user)
+
+    ctx["char"].name = "AutoSavedName"
+    assert _timers(user), "The page registered no timer."
+    for timer in _timers(user):
+        timer.callback()
+
+    assert persistence.load_character(ctx["path"], absorb_custom=False).name == "AutoSavedName"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_two_accounts_auto_save_to_their_own_files(create_user) -> None:
+    """🐞 Section 3.7: the auto-save is the live caller that makes a shared
+    destination reachable. Two accounts editing at once make two files."""
+    a, b = create_user(), create_user()
+    await _sign_up(a, "Harmonious")
+    ctx_a = await _new_character(a)
+    await _sign_up(b, "Radiant")
+    ctx_b = await _new_character(b)
+    ctx_a["char"].name, ctx_b["char"].name = "AccountAName", "AccountBName"
+
+    for user in (a, b):
+        for timer in _timers(user):
+            timer.callback()
+
+    assert ctx_a["path"] != ctx_b["path"]
+    assert persistence.load_character(ctx_a["path"], absorb_custom=False).name == "AccountAName"
+    assert persistence.load_character(ctx_b["path"], absorb_custom=False).name == "AccountBName"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_download_gives_the_character_and_keeps_the_save_target(user: User) -> None:
+    """🐞 The trap of section 5.1c: the desktop download helpers move `ctx["path"]`
+    to the downloaded name. On the server that moves the auto-save target."""
+    await _sign_up(user, "Harmonious")
+    ctx = await _new_character(user)
+    path_before, dir_before = ctx["path"], ctx["dir"]
+    ctx["char"].name = "DownloadedName"
+
+    user.find(marker="top-bar-download").click()
+    response = await user.download.next()
+
+    assert persistence.character_from_json(response.text).name == "DownloadedName"
+    assert (ctx["path"], ctx["dir"]) == (path_before, dir_before)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_character_page_takes_no_path_from_the_browser(user: User) -> None:
+    """🐞 Closed 2026-09-12 (`beda3ec`): a Load dialog that took a server path let
+    a player open and auto-save over the save of another account. A character
+    page has no Load at all; import is on /home, by upload."""
+    await _sign_up(user, "Harmonious")
+    await _new_character(user)
+
+    await user.should_see(marker="top-bar-save")
+    await user.should_not_see(marker="top-bar-load")
+    await user.should_not_see(marker="load-by-path")
+
+
+# --------------------------------------------------------------------------- #
 # Ownership
 # --------------------------------------------------------------------------- #
 
@@ -176,6 +287,35 @@ async def test_a_base_page_has_no_editing_tabs(user: User) -> None:
     await user.should_see(marker="base-note")
     await user.should_not_see(marker="top-bar-save")
     await user.should_not_see(marker="top-bar-lock")
+
+
+# The shapes that broke a page before (preflight pass 3): casteless and Charmless
+# (Mortal), no ability-castes (Lunar), and a sample of the other splats.
+_SHAPES = [
+    {"exalt_type": "Solar", "caste": "dawn"},
+    {"exalt_type": "Mortal", "caste": "", "origin": "heroic", "essence_rating": 1},
+    {"exalt_type": "Lunar", "caste": "full-moon"},
+    {"exalt_type": "Dragon-Blooded", "caste": "air"},
+    {"exalt_type": "Alchemical", "caste": "orichalcum"},
+    {"exalt_type": "God-Blooded", "caste": "ghost-blooded"},
+]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+@pytest.mark.parametrize("shape", _SHAPES, ids=lambda shape: shape["exalt_type"])
+async def test_the_base_page_and_its_copy_render_for_each_shape(user: User, shape) -> None:
+    user_id = await _sign_up(user, "Harmonious")
+    character = Character(id="x", name="Shaped Hero", **shape)
+    lifecycle.lock_chargen(character)
+    base = _store().create(user_id, character)
+
+    await user.open(home.character_url(base.id))
+    await user.should_see(marker="base-note")
+    await user.should_see("Shaped Hero")
+
+    user.find(marker="base-copy").click()
+    await user.should_see(marker="top-bar-save")
 
 
 @pytest.mark.asyncio

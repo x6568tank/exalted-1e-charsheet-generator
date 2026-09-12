@@ -836,3 +836,62 @@ base URL, which behind the reverse proxy is not `request.base_url`; crawlers fol
 links meanwhile. The wiki does not show the trait text, the ST-screen tables, artifacts,
 thaumaturgy or the Dragon-King Paths yet — all in `data/`, all addable as sections by the
 same pattern. The logged-in builder has no link to the wiki.
+
+### 9.8 SHIPPED 2026-09-12 — `/home`, the character pages, the base and the copy (piece 4)
+
+Built on the rulings of 9.3a. **Tests green, NOT browser-verified.** Three commits:
+the store, the pages, and the removal of the old per-account hosted path.
+
+**The store — `server/characters.py`.** `CharacterStore(db_path, root)`. The
+`characters` table (in `db.SCHEMA`) holds `id`, `owner_id`, `is_copy`, `base_id`
+(`ON DELETE SET NULL`), `table_id` (NULL until P3) and `created_at`. The file is
+`<root>/user-<id>/characters/<id>.character.json`, named by the id so a rename never
+moves it. **Draft vs base is the lock state in the file**, not a column, so the two
+cannot disagree (decision 0003's grain). ⚠ **`owned(user_id, id)` is the authorisation
+check**: it refuses another account's id, and it refuses any id not shaped like
+`new_character_id()` before it opens the database. `create` always assigns a fresh id,
+so one upload twice, or by two accounts, never collides. `make_copy` refuses an unlocked
+character, a copy (XP would ride along as the copy's start), and another account's base.
+
+**The pages — `server/home.py`.**
+
+* `/home` — CHARACTERS (drafts and bases, with the stage) and CAMPAIGN COPIES ("Copy of
+  X", or "Its base is deleted"). **New character**, **Import a .character.json** (its
+  homebrew goes into the account library), **Make a campaign copy** on a base, and
+  **Delete** with a confirm.
+* `/character/<id>` — ⚠ `owned` runs in the page body **before** the registry, so another
+  account's character gets the same "There is no such character." as a missing one and
+  no context is ever made. A draft or a copy opens in the builder. **A locked base opens
+  on a read-only sheet page** (Make a campaign copy, Unlock to edit, Download a copy):
+  a base takes no XP by construction, because no builder is drawn for it.
+* **Finish & Lock on a draft saves and moves to the base page** — `build_app(on_lock=…)`.
+* **The builder's top bar on these pages** (`build_app(home_path=…)`): **Home** in place
+  of Party, New and Load. New and Import are on `/home`; Party is hidden (9.3a).
+* **One context per character**, keyed on its id — two devices on one character share
+  it (9.1). **One RuleSet per account** (`AccountRulesets`), so the Custom tab's reload
+  reaches every character of that account.
+* ⚠ **Delete clears `ctx["path"]` of an open page.** Its auto-save would otherwise write
+  the file back with no row. The stale page then shows "Save failed" — tested.
+
+**The old hosted path is gone.** `register_pages(session_root=…)`, the hosted branch of
+`session_context_factory`, `session_dirname`, `server/main.prototype_context`,
+`auth.current_user_key`/`user_key`, and the Party page's server-side save, download and
+logout had no production caller once `build_server` moved to `home.py`. Their tests
+called themselves "PRODUCTION wiring" while testing a path production no longer took —
+the trap `CLAUDE.md` §7 names. Every property they held (auto-save writes the right file;
+two accounts never share a file; Save does not also download; Download does not move
+the save target; no path from the browser) was **re-proved on the production pages** in
+`tests/test_character_pages.py` before the old tests were deleted.
+`test_hosted_save.py` keeps the desktop controls and the one-switch rule.
+
+**Mutation-checked:** no ownership check, no path reset on delete, no `on_lock`, no base
+page, `home_path` ignored, Home pointing at `/`, and the store's ownership, lock and
+id-shape checks.
+
+**Not done, recorded:**
+* The base page has no **Print**. The builder's PDF export lives inside `build_app`.
+* An **evicted** context is rebuilt from the file on its next request, while a page that
+  was open still holds the old object — two objects for one character until that page
+  reloads. The registry's eviction had this shape before piece 4.
+* **Campaigns** (the `tables`/`memberships` tables, the join code, ST approval) are P3.
+  `table_id` is there, NULL, so P3 needs no migration.

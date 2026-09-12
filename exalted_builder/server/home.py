@@ -240,7 +240,7 @@ def _build_home(store: CharacterStore, rulesets: AccountRulesets,
                 name, stage = entries[row.id]
                 with ui.row().classes("w-full items-center gap-2 no-wrap").mark(
                         f"home-row-{row.id}"):
-                    ui.link(name, character_url(row.id)).classes("text-sm flex-1")
+                    ui.link(name, character_url(row.id)).classes("text-sm flex-1 min-w-0 truncate")
                     ui.label(stage).classes("text-xs text-gray-600")
                     if stage == "Base":
                         ui.button("Make a campaign copy", icon="content_copy",
@@ -263,7 +263,7 @@ def _build_home(store: CharacterStore, rulesets: AccountRulesets,
                           else "Its base is deleted")
                 with ui.row().classes("w-full items-center gap-2 no-wrap").mark(
                         f"home-row-{row.id}"):
-                    ui.link(name, character_url(row.id)).classes("text-sm flex-1")
+                    ui.link(name, character_url(row.id)).classes("text-sm flex-1 min-w-0 truncate")
                     ui.label(origin).classes("text-xs text-gray-600")
                     ui.button(icon="delete",
                               on_click=lambda _=None, r=row, n=name: confirm_delete(r, n)

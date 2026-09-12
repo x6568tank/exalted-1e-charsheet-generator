@@ -1,17 +1,9 @@
-"""The hosted entry point supplies the session root.
+"""The hosted entry point: `server/main.py`.
 
-Section 3 of `docs/plans/hosting-state-model.md` built per-session destinations and
-write-through auto-save. Nothing reached them: all three production callers of
-`register_pages` are desktop and pass no root. `server/main.py` is the caller that
-turns them on, and this file is the discriminator for that.
-
-⚠ The property here is NOT "the factory isolates". That is
-`tests/test_session_context_factory.py`, and `tests/test_session_destinations.py`
-proves the pages use it. Both pass with `server/main.py` absent or with its
-`session_root` argument deleted. This file fails in that case, and only this file.
-
-⚠ The prototype path must stay OUTSIDE the root. A prototype inside the root makes
-`is_relative_to(root)` pass whether or not the session was isolated.
+`build_server` must give the character pages of `server/home.py` its session
+root, its database and a BOOK ruleset, and `main` must install the gate, the
+quota and the homebrew switch before the server runs. The pages themselves are
+`tests/test_character_pages.py`.
 """
 
 from __future__ import annotations

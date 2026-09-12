@@ -196,9 +196,9 @@ def test_shell_new_resets_the_character(ruleset, qtbot, monkeypatch):
     # already-imported class still works.
     #
     # ⚠ The failure is ORDERING-DEPENDENT and therefore invisible: it appears only
-    # when a main-file test sorts BEFORE this file. `test_session_isolation.py` and
-    # `test_session_destinations.py` both sort after; `test_hosted_save.py` does
-    # not, and that is what exposed it on 2026-09-11.
+    # when a main-file test sorts BEFORE this file. `test_session_isolation.py`
+    # sorts after; `test_hosted_save.py` does not, and that is what exposed it on
+    # 2026-09-11.
     from exalted_builder.qt import main_window as qt_main_window
     monkeypatch.setattr(qt_main_window.QMessageBox, "question",
                         staticmethod(lambda *a, **k: 16384))   # Yes

@@ -21,7 +21,7 @@ The hash has two properties that a funnel call does not:
 the play tab's spent Willpower, fatigue and health boxes are covered. A tracker
 kept BESIDE the Character would not be.
 
-The wiring into the page is `tests/test_session_destinations.py`; a correct
+The wiring into the page is `tests/test_character_pages.py`; a correct
 mechanism that nothing calls is this project's usual defect.
 """
 

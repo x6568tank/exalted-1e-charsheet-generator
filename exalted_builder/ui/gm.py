@@ -198,20 +198,16 @@ def party_palette(party: Party) -> theme.Palette:
 
 
 def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
-             hosted: bool = False, builder_path: str = "/") -> None:
+             builder_path: str = "/") -> None:
     """Render the party page over the shared app context (see builder.make_context).
     `ctx["party"]` is the roster; `ctx["party_path"]` is where it last saved.
 
     `builder_path` is the route of the builder. The two ways back to the builder
-    go there. The hosted server moves the builder off "/", which is public there.
+    go there.
 
-    `hosted` says that this session runs on a server and owns a directory there.
-    It selects the same third save branch that `builder.build_app` does. See
-    hosting-state-model.md section 5.1b.
-
-    ⚠ Only the party SAVE reads it. The party PDF export and the party LOAD stay
-    two-way on purpose: an export is an artefact the player keeps, and a load
-    comes from the player's own machine by upload."""
+    The party page is DESKTOP only. The hosted server has no `/gm` until P3, when
+    the table view replaces it (docs/plans/vtt.md 9.3a, ruled 2026-09-12). Its
+    server-side save branch was removed then; git history has it."""
 
     def party() -> Party:
         return ctx["party"]
@@ -281,36 +277,10 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
         ui.navigate.to(builder_path)
 
     # ---- party save / load ------------------------------------------------ #
-    # Deployment-aware in the same way as the builder's character Save/Load:
-    # hosted writes to the session's own directory, a native window gets the OS
-    # dialogs, and a plain browser gets download/upload.
-    def _hosted_party_save() -> None:
-        """Write the party into the directory that this session owns.
-
-        Use `ctx["party_path"]` if a previous save set one, and otherwise a name
-        derived from the party, inside `ctx["dir"]`.
-
-        ⚠ `ctx["dir"]` is the session's own folder on a hosted run. Do not call
-        `persistence.default_save_dir()` here: it is process-wide, and a handler
-        that reads it takes the session back out of its directory. See
-        hosting-state-model.md section 3.7b.
-        """
-        target = ctx["party_path"] or (
-            ctx["dir"] / persistence.suggested_party_filename(party()))
-        try:
-            persistence.save_party(party(), target, custom_dir=ctx["custom_dir"])
-        except Exception as ex:                         # noqa: BLE001 - surface write errors
-            ui.notify(f"Save failed: {ex}", type="negative")
-            return
-        ctx["party_path"] = target
-        ui.notify(f"Saved party to {target.name}", type="positive")
-
+    # A native window gets the OS dialogs, and a plain browser gets download/upload.
     async def save_party() -> None:
         win = builder_mod._native_window()
         default_name = persistence.suggested_party_filename(party())
-        if hosted:
-            _hosted_party_save()
-            return
         if win is None:
             _open_browser_party_save(default_name)
             return
@@ -339,20 +309,11 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
                           on_click=lambda: _party_download(name_input.value, dialog))
         dialog.open()
 
-    def _party_download_copy(filename: str) -> None:
-        """Send the party to the browser as `filename`. Do not change `ctx`.
-
-        The hosted "Download a copy" button calls this directly. See
-        hosting-state-model.md section 5.1c.
-        """
-        ui.download.content(persistence.party_to_json(party()).encode("utf-8"), filename)
-        ui.notify(f"Downloading {filename}", type="positive")
-
     def _party_download(name: str, dialog) -> None:
         filename = persistence.normalize_party_filename(name, party())
-        _party_download_copy(filename)
-        # ⚠ Desktop only. Here the download IS the save, thus it sets the
-        # destination. On a hosted run this line moves the party save target.
+        ui.download.content(persistence.party_to_json(party()).encode("utf-8"), filename)
+        ui.notify(f"Downloading {filename}", type="positive")
+        # Here the download IS the save, thus it sets the destination.
         ctx["party_path"] = ctx["dir"] / filename
         dialog.close()
 
@@ -463,18 +424,16 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
             ui.label("Load a party").classes("text-lg font-bold")
             ui.upload(label="Choose a .party.json file", auto_upload=True,
                       on_upload=lambda e: _on_party_upload(e, dialog)).classes("w-96")
-            # ⚠ Desktop only: a hosted path is a path on the SERVER. See the same
-            # note in builder._open_browser_load_dialog.
-            if not hosted:
-                ui.label("…or load by path:").classes("text-xs text-gray-600 mt-2")
-                path_input = ui.input("Path to .party.json",
-                                      value=str(ctx["party_path"] or "")) \
-                    .classes("w-96").mark("load-by-path")
+            # ⚠ Desktop only. A path from a browser on a server is a path on the
+            # SERVER (closed 2026-09-12, beda3ec). This page is not on the server.
+            ui.label("…or load by path:").classes("text-xs text-gray-600 mt-2")
+            path_input = ui.input("Path to .party.json",
+                                  value=str(ctx["party_path"] or "")) \
+                .classes("w-96").mark("load-by-path")
             with ui.row():
                 ui.button("Cancel", on_click=dialog.close).props("flat")
-                if not hosted:
-                    ui.button("Load path",
-                              on_click=lambda: do_load_party(path_input.value, dialog))
+                ui.button("Load path",
+                          on_click=lambda: do_load_party(path_input.value, dialog))
         dialog.open()
 
     # ---- adding a character to the party ---------------------------------- #
@@ -538,14 +497,13 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
             else:
                 ui.upload(label="Choose a .character.json file", auto_upload=True,
                           on_upload=lambda e: _on_character_upload(e, dialog)).classes("w-96")
-                # ⚠ Desktop only: a hosted path is a path on the SERVER.
-                if not hosted:
-                    ui.label("…or add by path:").classes("text-xs text-gray-600 mt-2")
-                    path_input = ui.input("Path to .character.json").classes("w-96") \
-                        .mark("load-by-path")
-                    ui.button("Add path", icon="add",
-                              on_click=lambda: do_add_from_path(path_input.value, dialog)
-                              ).props("flat")
+                # ⚠ Desktop only: a browser path on a server is a SERVER path.
+                ui.label("…or add by path:").classes("text-xs text-gray-600 mt-2")
+                path_input = ui.input("Path to .character.json").classes("w-96") \
+                    .mark("load-by-path")
+                ui.button("Add path", icon="add",
+                          on_click=lambda: do_add_from_path(path_input.value, dialog)
+                          ).props("flat")
 
             ui.separator()
             if not in_party(open_char):
@@ -731,23 +689,12 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
                     "flat").mark("gm-add-character")
                 ui.button("Save party", icon="save",
                           on_click=save_party).props("flat").mark("gm-save-party")
-                if hosted:
-                    # On the desktop, Save party is already the download. Section 5.1c.
-                    ui.button("Download a copy", icon="download",
-                              on_click=lambda: _party_download_copy(
-                                  persistence.suggested_party_filename(party()))
-                              ).props("flat").mark("gm-download-party")
                 ui.button("Load party", icon="folder_open", on_click=load_party).props(
                     "flat").mark("gm-load-party")
                 ui.button("Print all", icon="picture_as_pdf",
                           on_click=lambda: export_pdf()).props("flat").tooltip(
                     "Export every member's sheet as one PDF, one per page")
                 ui.button("New party", icon="group_add", on_click=confirm_new_party).props("flat")
-                if hosted:
-                    # The server registers `/logout`. See server/auth.py.
-                    ui.button("Log out", icon="logout",
-                              on_click=lambda: ui.navigate.to("/logout")
-                              ).props("flat").mark("gm-logout")
 
             _reference_panel(ruleset, pal)
 

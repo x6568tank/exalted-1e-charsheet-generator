@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import argparse
 from collections.abc import Callable
-import hashlib
 from pathlib import Path
 
 from nicegui import app, ui
@@ -146,66 +145,23 @@ def close_member(ctx: dict) -> None:
     ctx["member"] = None
 
 
-def session_dirname(key: str) -> str:
-    """Return a safe single directory name for the session key `key`.
-
-    Keep the letters, the digits, the hyphen and the underscore, and replace each
-    other character with an underscore. A key of this shape, which is what a
-    NiceGUI session id is, becomes itself.
-
-    Add a digest of the original key if a character changed. Thus two different
-    keys never get one directory.
-
-    ⚠ The result is one path component. `<root>/<key>` is a path traversal if the
-    key contains a separator or a parent reference. The key comes from a signed
-    cookie today, thus a client cannot choose it; the containment does not depend
-    on that staying true.
-
-    ⚠ Two keys that get one directory is the defect that this whole section
-    removes, one level down. Thus the replacement alone is not sufficient: it maps
-    `"a/b"` and `"a_b"` to one name. The digest is what makes the name unique.
-    """
-    safe = "".join(c if (c.isalnum() or c in "-_") else "_" for c in key)
-    if safe == key and safe:
-        return safe
-    tag = hashlib.sha256(key.encode("utf-8")).hexdigest()[:12]
-    return f"{safe[:64]}-{tag}" if safe else f"session-{tag}"
-
-
 def session_context_factory(prototype: dict,
-                            session_root: Path | None = None,
                             ruleset: RuleSet | None = None) -> Callable[[str], dict]:
-    """Return a factory that makes one context for each browser session.
+    """Return a factory that makes one context for each browser session of the
+    DESKTOP app.
 
     The factory takes a session key and returns a copy of `prototype`: a deep
-    copy of the Character and of the Party, its own save destination, and the
-    SAME adversary catalogue. The catalogue is read-only rules data, thus a copy
-    of it costs memory and buys nothing.
+    copy of the Character and of the Party, the prototype's save destination,
+    and the SAME adversary catalogue. The catalogue is read-only rules data, thus
+    a copy of it costs memory and buys nothing. One user owns the file system,
+    thus Save writes the file that the user opened. `custom_dir` is None, the
+    default library, and the RuleSet is `ruleset` itself.
 
-    With a `session_root`, the destination is `<session_root>/<key>/<filename>`.
-    The filename comes from the character, thus a rename still renames the file.
-
-    With no `session_root`, the destination is the prototype's path. This is the
-    desktop: one user owns the file system, thus Save writes the file that the
-    user opened. A hosted run must supply a root; `server/config.session_root`
-    raises when the environment gives none.
-
-    ⚠ A hosted run that shares one destination is the defect of
-    hosting-state-model.md section 3.7. Section 3.4a isolated the Character and
-    left the path a copy of one object. The auto-save timer is the live caller
-    that makes it N browsers writing one file, with no error.
+    The hosted server does not use this. It has one context for each stored
+    character (`server/home.py`) since section 5 piece 4.
 
     `SessionRegistry` calls this. The factory makes a new context on each call;
     the registry, not the factory, gives one key one context.
-
-    The context also holds the homebrew library of the session and its RuleSet.
-    With a `session_root`, the library is `<session directory>/custom` and the
-    RuleSet is `ruleset` with that library merged over it
-    (`rules_db.with_custom_layer`). With no root, `custom_dir` is None, which is
-    the default library, and the RuleSet is `ruleset` itself.
-
-    ⚠ A hosted `ruleset` must be the BOOK. A merged one gives each account the
-    homebrew of its library. See hosting-state-model.md section 5.3.
 
     ⚠ Inside one context, `char` can BE a party member's character, by identity.
     `open_member` points it there by reference, and the party card then follows
@@ -220,22 +176,8 @@ def session_context_factory(prototype: dict,
              if member.character is prototype["char"]), None)
         char = (party.members[member_of].character if member_of is not None
                 else prototype["char"].model_copy(deep=True))
-        if session_root is None:
-            directory, path = prototype["dir"], prototype["path"]
-            home = prototype["home_dir"]
-            custom_dir, session_rules = None, ruleset
-        else:
-            directory = session_root / session_dirname(key)
-            path = directory / persistence.suggested_filename(char)
-            # ⚠ `home_dir` must be the session's own folder too. The New and the
-            # upload handlers rebuild the destination from it, thus a prototype
-            # copy here takes the session back out of its directory.
-            home = directory
-            custom_dir = directory / custom_content.CUSTOM_DIR_NAME
-            session_rules = (None if ruleset is None
-                             else rules_db.with_custom_layer(ruleset, custom_dir))
-        return {"char": char, "path": path, "dir": directory, "home_dir": home,
-                "custom_dir": custom_dir, "ruleset": session_rules,
+        return {"char": char, "path": prototype["path"], "dir": prototype["dir"],
+                "home_dir": prototype["home_dir"], "custom_dir": None, "ruleset": ruleset,
                 "party": party, "party_path": prototype["party_path"],
                 "member": prototype["member"],
                 "adversary_catalog": prototype["adversary_catalog"]}
@@ -276,8 +218,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
       1. The write-through auto-save timer starts.
       2. Save writes to `ctx["path"]` instead of sending a download.
-      3. `register_pages` gives the session its own destination, which is the
-         same condition: it passes `hosted=session_root is not None`.
+      3. The session owns its destination: the hosted server gives each stored
+         character its own file (`server/home.py`), and only it passes True.
 
     ⚠ Do not separate these. Auto-save with a shared path is N browsers writing
     one file on a timer, last writer wins, with no error. A server-side Save with
@@ -752,19 +694,11 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
 
 def register_pages(ruleset: RuleSet, ctx: dict,
-                   session_root: Path | None = None,
-                   key: Callable[[], str] = session_key,
-                   builder_path: str = "/") -> SessionRegistry:
-    """Register the app's routes: `builder_path` the single-character builder, '/gm'
-    the Storyteller's party page. Return the registry of the session contexts.
+                   key: Callable[[], str] = session_key) -> SessionRegistry:
+    """Register the routes of the DESKTOP app: '/' the builder, '/gm' the
+    Storyteller's party page. Return the registry of the session contexts.
 
-    `builder_path` is "/" on the desktop. The hosted server gives "/home", because
-    "/" is its public front page. See docs/plans/vtt.md section 9.4.
-
-    `session_root` gives each session its own save directory. Omit it for the
-    desktop, which has one user and keeps the path that the user opened. A hosted
-    run must supply it, from `server/config.session_root`. See
-    `session_context_factory`, and hosting-state-model.md section 3.7.
+    The hosted server does not call this. It registers `server/home.py`.
 
     `ctx` is the PROTOTYPE. Each browser session gets its own copy of it, from
     `session_context_factory`, and the two routes resolve that copy per request.
@@ -772,17 +706,12 @@ def register_pages(ruleset: RuleSet, ctx: dict,
     session without re-loading anything — the party member and the builder's
     character stay one object — and two browsers never share a Character.
 
-    `ruleset` is the RuleSet of the desktop. A hosted run gives the BOOK, and each
-    session reads its own `ctx["ruleset"]`, which merges the library of the
-    account. See `session_context_factory`.
-
     ⚠ Resolve the context in the page BODY. A context in the closure is the
     defect of hosting-state-model.md section 3.1: every browser then edits one
     Character, and every functional test still passes.
 
     `key` returns the registry key of the current request. The default is the
-    browser key. The hosted server supplies `server/auth.current_user_key`, thus
-    each browser of one account gets one context and one save folder.
+    browser key.
 
     ⚠ Each caller of this function must give `ui.run` a `storage_secret`. The
     session key comes from the session cookie, which needs one. See
@@ -802,28 +731,18 @@ def register_pages(ruleset: RuleSet, ctx: dict,
     if not ctx.get("adversary_catalog"):
         ctx["adversary_catalog"] = rules_db.load_adversary_catalog(_DATA_DIR)
 
-    # One registry for this process. It is bounded by count; the idle sweep needs
-    # a timer and belongs to the deployment that runs a long-lived server.
-    sessions = SessionRegistry(
-        factory=session_context_factory(ctx, session_root, ruleset=ruleset))
+    sessions = SessionRegistry(factory=session_context_factory(ctx, ruleset=ruleset))
 
-    @ui.page(builder_path)
+    @ui.page("/")
     def index() -> None:
         session_ctx = sessions.ctx_for(key())
-        # ⚠ Auto-save is enabled by the same value that isolates the destination.
-        # Thus the hazardous pair — a timer plus a shared path — cannot be
-        # configured. Do not give these two their own switches. See section 3.7.
         build_app(session_ctx["ruleset"], session_ctx["char"], session_ctx["path"],
-                  ctx=session_ctx, hosted=session_root is not None)
+                  ctx=session_ctx)
 
     @ui.page("/gm")
     def party_page() -> None:
-        # ⚠ `/gm` takes the SAME hosted bit as '/'. `gm.save_party` carried the
-        # identical two-way branch, so a hosted Storyteller got a download and the
-        # server kept no roster. One page fixed and one not is the house bug.
         session_ctx = sessions.ctx_for(key())
-        gm_mod.build_gm(session_ctx["ruleset"], session_ctx,
-                        hosted=session_root is not None, builder_path=builder_path)
+        gm_mod.build_gm(session_ctx["ruleset"], session_ctx)
 
     return sessions
 

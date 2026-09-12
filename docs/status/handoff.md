@@ -1,8 +1,11 @@
-# Session handoff — 2026-09-12 (third session: §5 piece 4 begun — one homebrew library per account)
+# Session handoff — 2026-09-12 (third session: §5 piece 4 DONE — tests green, not clicked)
 
 # 👉 YOU ARE HERE
 
-**2026-09-12, third session: §5 piece 4 is HALF begun.** Done this session, in order:
+**2026-09-12, third session: §5 piece 4 is DONE, tests green, NOT browser-verified.**
+`/home` lists an account's characters; each character has its own page; a locked base
+is read-only and makes campaign copies. **`vtt.md` §9.8 is the record**, rulings in
+§9.3a. Done this session, in order:
 
 1. **The §5.3 measurement** — a full per-user `RuleSet` is ~15 MB; an overlay that
    shares the book is ~0.1 MB plus the homebrew. `hosting-state-model.md` §5.3.
@@ -18,11 +21,25 @@
    wiring table and the five mutations. Closes the "homebrew outside the quota" limit.
    **Not deployed** — the Dockerfile lost `EXALTED_CUSTOM_DIR`, so the human rebuilds.
 
-**Full suite 3699 passed + 1 skipped — OBSERVED** after item 5, before one more quota
-case: **3700 computed.** Arithmetic: 3671 + 5 (export) + 6 (load path) + 17 (item 5) = 3699.
+6. **Ruled 2026-09-12 (§9.3a):** files + a DB index; **start clean** (no import of the
+   old one-per-account files); delete keeps copies; **no `/gm` on the server until P3.**
+7. **The character store** (`ad68e96`), **the pages** (`7ab2395`), and **the old
+   per-account hosted path deleted**, its properties re-proved on the production pages.
 
-**Next in piece 4:** the DB tables of `vtt.md` §9.3 (`characters` with draft / base /
-copy), the landing page on `/home`, the base character. `/home` is still the builder.
+**Full suite 3701 passed + 1 skipped — OBSERVED** after item 7, before preflight added
+the six-shape render matrix to `test_character_pages.py`: **3707 computed.** (3699 after
+item 5; item 7 added the store, the pages and the ported cases, and deleted the
+old-path cases.) ⚠ The count moves by machine and by optional dependency
+(`docs/testing.md`); ⚠ **`bcrypt` is optional** and without it `test_character_pages.py`
+and `test_account_homebrew.py` skip whole.
+
+**Not deployed:** `c64a163` is pushed; the piece-4 commits are local until the human
+says. ⚠ **Deploying starts every account clean** (the ruling): the old
+`user-<id>/<name>.character.json` files stay on disk, listed nowhere. A player gets one
+back by Download a copy — **before** the deploy — then Import on `/home`.
+
+**Next:** the click-through below, then P3 (campaigns: `tables`, `memberships`, the
+join code, ST approval) — `vtt.md` §2 and §9.6.
 
 ---
 
@@ -216,9 +233,23 @@ before blaming the build; the stale-binary theory has been wrong twice.
 Charm page links its prerequisite; the dropdowns filter on change; search finds
 "ox body"; a Lunar Charm page (or the Exalt-type filter set to Lunar) re-themes to the
 builder's Lunar palette; at phone width the header buttons shrink to icons and tables
-become stacked rows. Then log in: it lands on `/home` (the builder); `/` now says **Your characters**;
-the builder's **Party** → `/gm` → **Builder** returns to `/home`; **Log out** lands on
-`/`.
+become stacked rows. Then log in: it lands on `/home`; `/` now says **Your characters**;
+**Log out** lands on `/`.
+
+**Piece 4 (new 2026-09-12)** — logged in, at `http://localhost:8080`:
+1. `/home` shows CHARACTERS (0) and CAMPAIGN COPIES (0). **New character** opens
+   `/character/<id>` in the builder; the top bar has **Home**, and no Party, New or Load.
+2. Name it, wait 5 s (auto-save) or press Save, press **Home**: it is listed as **Draft**.
+3. Open it, **Finish & Lock**: the page becomes the read-only **Base** page (sheet, no
+   tabs). **Make a campaign copy** opens the copy in the builder (locked, XP mode).
+4. `/home` lists the base as **Base** and the copy as **Copy of <name>**.
+5. **Unlock to edit** on the base returns it to the builder.
+6. **Import a .character.json** on `/home` (use a Download a copy file) makes a new
+   character; homebrew it carries appears on that character's Custom tab.
+7. **Delete** the base: the confirm names it; the copy stays, "Its base is deleted".
+8. A second account cannot open the first account's `/character/<id>` URL: "There is
+   no such character."
+9. `/gm` answers 404 on the server.
 
 ✅ **Auth — PASSED 2026-09-12**, all eleven steps (§5.1d). ⚠ For the next hosted
 click-through: browse to `http://localhost:8080`, not `127.0.0.1` (Secure cookie), and

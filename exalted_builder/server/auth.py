@@ -6,17 +6,17 @@ Section 5 piece 3 of `docs/plans/hosting-state-model.md`. It supplies:
   * `AuthGate`, a middleware that sends each request without a login to `/login`.
     The public pages are the exceptions: `/`, `/about` and `/wiki`.
   * The `/login`, `/signup` and `/logout` pages.
-  * `current_user_key`, the session key of the logged-in account. The registry of
-    `ui/builder.register_pages` keys the live context and the save folder on it.
+  * `current_user_id`, the account of the request. `server/home.py` gives each
+    page the characters of that account and no other.
 
 ⚠ The gate is a MIDDLEWARE, not a call in each page. A call in each page leaves
 open each route that does not make the call, and no test of an existing page
 reports it. The middleware covers each route, and each new route, by default.
 `OPEN_PATHS` is the list of exceptions.
 
-⚠ `current_user_key` raises when no account is logged in. Thus a page that the
-gate does not cover fails. It does not fall back to the browser key, which serves
-a context to a visitor with no account.
+⚠ The pages of `server/home.py` raise when `current_user_id` gives None. Thus a
+page that the gate does not cover fails. It does not fall back to the browser key,
+which serves a context to a visitor with no account.
 
 ⚠ The login state is in `app.storage.user`. NiceGUI keeps that store on the server
 and keys it on the signed session cookie. Thus a logout removes the login, and a
@@ -50,8 +50,8 @@ OPEN_PATHS = frozenset({"/", "/about", "/login", "/signup", "/logout", "/favicon
 # it, thus a new public route fails that test until it is named there too.
 WIKI_PATH = "/wiki"
 
-# The page after a login with no `redirect_to`. It is gated. On the hosted server
-# it is the builder until the landing page of section 9.4 exists.
+# The page after a login with no `redirect_to`. It is gated. It lists the
+# characters of the account (`server/home.py`, section 9.4).
 HOME_PATH = "/home"
 
 # The static files, the uploads and the socket of NiceGUI. A page needs them to
@@ -79,24 +79,6 @@ def current_user_id() -> int | None:
 def current_username() -> str | None:
     """Return the username of the account of the current request, or None."""
     return app.storage.user.get(USERNAME) if current_user_id() is not None else None
-
-
-def current_user_key() -> str:
-    """Return the session key of the logged-in account. Raise `PermissionError` if
-    no account is logged in.
-
-    The key is the same for each browser of one account. Thus a player sees one
-    character on each device.
-    """
-    user_id = current_user_id()
-    if user_id is None:
-        raise PermissionError("No account is logged in. The login gate did not run.")
-    return user_key(user_id)
-
-
-def user_key(user_id: int) -> str:
-    """Return the session key of account `user_id`."""
-    return f"user-{user_id}"
 
 
 def log_in(user_id: int, username: str) -> None:

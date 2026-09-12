@@ -1239,7 +1239,7 @@ auth gate and per-request resolution are the additions), plus whatever 5.3's rul
 | 2. the third save branch (both sites) | ✅ done, §5.1b |
 | 2b. "Download a copy" on a hosted run | ✅ done, §5.1c — browser-verified |
 | 3. Auth — `/login`, the gate, `bcrypt`, the `[server]` extra | ✅ done, §5.1d — **browser-verified 2026-09-12** |
-| 4. The DB, and §5.3's per-user rulesets | 🟡 **§5.3 per-account homebrew DONE 2026-09-12** (measured, ruled, built). The DB tables, the landing page on `/home` and the base character are not started. ⚠ **The layout grew on 2026-09-12**: several characters per account, base characters, tables and pending memberships — `vtt.md` §9.3 |
+| 4. The DB, and §5.3's per-user rulesets | ✅ **DONE 2026-09-12**, tests green, not browser-verified: §5.3 per-account homebrew (measured, ruled, built), and the `characters` table, `/home`, the character pages, the base and the copy — `vtt.md` §9.8. ⚠ **The layout grew on 2026-09-12**: several characters per account, base characters, tables and pending memberships — `vtt.md` §9.3 |
 
 ⚠ Piece 1 shipped **without** piece 2, so a hosted run now persists edits by timer while
 the Save button still downloads to the browser. That is a better failure than losing the
