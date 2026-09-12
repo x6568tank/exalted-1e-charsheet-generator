@@ -267,6 +267,17 @@ async def test_each_wiki_page_kind_opens(user: User) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
+async def test_each_public_page_answers_head(user: User) -> None:
+    """🐞 `curl -I` on the deployed server gave 405. FastAPI does not add HEAD to a
+    GET route, and link checkers and monitors send HEAD."""
+    for path in ("/", "/about", "/wiki", "/wiki/charms",
+                 "/wiki/charms/solar.melee.excellent-strike"):
+        response = await user.http_client.head(path, follow_redirects=False)
+        assert response.status_code == 200, f"HEAD {path} answered {response.status_code}."
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
 async def test_an_absent_entry_is_a_404(user: User) -> None:
     response = await user.http_client.get("/wiki/spells/spell.nothing")
 

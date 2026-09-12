@@ -44,8 +44,11 @@ def href(path: str, **params: object) -> str:
 
 
 def replace_route(path: str, endpoint, *, name: str) -> None:
-    """Add a GET route for `path` that returns HTML. Remove each earlier route of
-    `path` first.
+    """Add a GET and HEAD route for `path` that returns HTML. Remove each earlier
+    route of `path` first.
+
+    ⚠ HEAD is explicit. FastAPI does not add it to a GET route, and a monitor or a
+    link checker that sends HEAD then gets 405.
 
     ⚠ Starlette uses the FIRST route that matches. Each call of
     `server/main.build_server` registers the routes again, and the tests call it
@@ -53,7 +56,7 @@ def replace_route(path: str, endpoint, *, name: str) -> None:
     use. `ui.page` removes the earlier route in the same way.
     """
     app.remove_route(path)
-    app.add_api_route(path, endpoint, methods=["GET"], response_class=HTMLResponse,
+    app.add_api_route(path, endpoint, methods=["GET", "HEAD"], response_class=HTMLResponse,
                       name=name, include_in_schema=False)
 
 

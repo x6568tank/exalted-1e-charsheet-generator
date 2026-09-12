@@ -14,7 +14,8 @@ Last FULL suite: **3668 passed + 1 skipped** — OBSERVED 2026-09-12 after this 
 Preflight then added two cases to `test_public_pages.py` (the render sweep, and the
 party page's **Builder** → `/home` round trip, mutation-checked), run with the seam, gate
 and party-page files (546 passed). **3670 passed + 1 skipped OBSERVED** on the full
-suite after the restyle, before the commit.
+suite after the restyle, before the commit. Then `test_each_public_page_answers_head`
+(the deployed `curl -I` gave 405): **3671 computed.**
 **The arithmetic agrees:** 3637 (computed, previous handoff) + 20 `test_public_pages.py`
 + 11 net in `test_auth_gate.py` (two enumeration cases for one, six prefix cases, the
 dot-segment case, three more redirect-target cases) = 3668.

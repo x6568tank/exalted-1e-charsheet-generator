@@ -33,11 +33,15 @@ key on the server (the repo is private). `gil` runs the build, so the folder mus
 readable to `gil`:
 
 ```bash
-# from the dev machine, in the repo:
-rsync -a --delete --exclude-from=.dockerignore ./ claude@192.168.1.2:exalted-app/
-# on the server, as claude, once:
+# from the dev machine, in the repo — ship the COMMIT, not the working tree:
+E=$(mktemp -d) && git archive HEAD | tar -x -C "$E" && git rev-parse --short HEAD > "$E/DEPLOYED_COMMIT"
+rsync -a --delete --delete-excluded --exclude-from=.dockerignore "$E/" claude@192.168.1.2:exalted-app/
+rm -rf "$E"
+# on the server, as claude (the chmod 711 once; the a+rX after every sync):
 chmod 711 /home/claude && chmod -R a+rX /home/claude/exalted-app
 ```
+
+`cat /home/claude/exalted-app/DEPLOYED_COMMIT` says which commit the server builds.
 
 ### 2. The data folder and the secret (gil)
 
@@ -75,7 +79,7 @@ Then:
 
 ```bash
 cd ~/homelab && docker compose up -d --build exalted
-curl -sI http://127.0.0.1:8090/ | head -1        # expect: HTTP/1.1 200 OK
+curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8090/     # expect: 200
 ```
 
 ⚠ The port is published on `127.0.0.1` only, unlike the other services. That is on
@@ -120,7 +124,7 @@ To restore, stop the container and copy `exalted.snapshot.db` over `exalted.db`.
 
 ## Updating to a new build
 
-1. (claude) `rsync` the repo again, as in step 1.
+1. (claude) Commit, then sync as in step 1.
 2. (gil) `cd ~/homelab && docker compose up -d --build exalted`
 
 A restart drops the live sessions; hosted saves are written through, so a player loses
