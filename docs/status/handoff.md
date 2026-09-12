@@ -62,6 +62,12 @@ computed.**
     ⚠ **Six new questions for the human (its §13, Q1–Q6)** — steps 1–4 of its build order
     need none of them; steps 5 and 6 need Q2 and Q1.
 
+11. **Answers to p3-tables.md §13**: Q1 no, Q2 ST, Q3 yes, Q4 allow, Q5 probably (build
+    it removed, flag it), Q6 ST-only in campaigns. **Unlock after XP — ruled: allowed,
+    with a warning, everywhere.** Built in both shells (`view.unlock_warning`, a confirm
+    before `unlock_chargen`). The Qt toolbar now shows only the lock action that applies,
+    as the webapp has since `286e420`.
+
 **Deployed:** `4a614bb` is on `gilserver` (the human recomposes). 
 
 **Next:** the human answers p3-tables.md §13 (or not yet), then build step 1 (`TableStore`

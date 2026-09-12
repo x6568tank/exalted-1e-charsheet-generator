@@ -546,13 +546,32 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
                 ui.button("New character", on_click=lambda: new_character(dialog)).props(f"color={_pal().button}")
         dialog.open()
 
+    def _do_unlock() -> None:
+        lifecycle.unlock_chargen(ctx["char"])
+        ui.notify("Chargen unlocked — editable again.", type="positive")
+        select_tab("Edit")
+
     def unlock() -> None:
         if not ctx["char"].chargen_locked:
             ui.notify("Chargen is not locked.", type="info")
             return
-        lifecycle.unlock_chargen(ctx["char"])
-        ui.notify("Chargen unlocked — editable again.", type="positive")
-        select_tab("Edit")
+        warning = viewmod.unlock_warning(ctx["char"])
+        if not warning:
+            _do_unlock()
+            return
+        # Ruled 2026-09-12: an Unlock after XP is allowed, with a warning.
+        with ui.dialog() as dialog, ui.card().classes(f"w-[30rem] p-4 gap-2 {_pal().card_solid}"):
+            ui.label("Unlock a character that has spent XP?").classes("text-base font-bold")
+            ui.label(warning).classes("text-sm")
+            with ui.row().classes("w-full justify-end gap-2"):
+                ui.button("Cancel", on_click=dialog.close).props("flat")
+
+                def confirm() -> None:
+                    dialog.close()
+                    _do_unlock()
+
+                ui.button("Unlock", on_click=confirm, color="negative").mark("unlock-confirm")
+        dialog.open()
 
     async def open_load() -> None:
         """Native desktop window -> the OS "Open" dialog; plain browser -> a dialog

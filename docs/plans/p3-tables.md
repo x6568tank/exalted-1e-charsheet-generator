@@ -343,8 +343,10 @@ Steps 1–4 need no further ruling.
 ## 13. Open questions — new, found while designing
 
 **Answers, 2026-09-12:** **Q1 no** (a campaign copy does not see the owner's library).
-**Q2 the ST.** **Q3 yes.** **Q5 "Maybe? Probably."** — build it as removed, and flag it at the
-click-through. **Q4 and Q6 came back as questions** — see the notes under each.
+**Q2 the ST.** **Q3 yes.** **Q4 allow it** (a GMPC; nothing to build). **Q5 "Maybe? Probably."**
+— build it as removed, and flag it at the click-through. **Q6: in a campaign, unlocking is
+up to the ST** (ST-only, as recommended). **Unlock after XP, everywhere: allowed, with a
+warning** (ruled the same day; see the note under Q6).
 
 These are the human's. Each has a recommendation.
 

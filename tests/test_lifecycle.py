@@ -46,3 +46,26 @@ def test_unlock_reverts_the_lock_and_relives_willpower():
     assert c.wp_virtue_component is None
     # Willpower now recomputes live from the two highest Virtues (3 + 5 = 8).
     assert derive.willpower(c) == 8
+
+
+# --------------------------------------------------------------------------- #
+# Unlock after XP — ruled 2026-09-12: allowed, with a warning
+# --------------------------------------------------------------------------- #
+
+def test_no_warning_when_no_xp_is_spent():
+    from exalted_builder.ui import view
+    assert view.unlock_warning(Character(id="c")) == ""
+
+
+def test_the_warning_names_the_xp_spent_and_what_unlock_does():
+    """`unlock_chargen` drops the snapshot and nothing else, so XP-bought dots become
+    creation dots while the log still records them as spent."""
+    from exalted_builder.models.character import XpEntry
+    from exalted_builder.ui import view
+
+    character = Character(id="c")
+    character.xp_log.append(XpEntry(target="essence", from_rating=2, to_rating=3, cost=16))
+
+    warning = view.unlock_warning(character)
+
+    assert "16 XP" in warning and "creation" in warning

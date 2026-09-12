@@ -129,8 +129,10 @@ class MainWindow(QMainWindow):
         tb.addAction("Load", self._open_load)
         tb.addAction("Save", self._save)
         tb.addAction("Print", self._export_pdf)
-        tb.addAction("Finish && Lock", self._finish)
-        tb.addAction("Unlock", self._unlock)
+        # Only the action that applies is shown. `_sync_tabs` switches them, because
+        # it runs on every change of the lock state.
+        self._lock_action = tb.addAction("Finish && Lock", self._finish)
+        self._unlock_action = tb.addAction("Unlock", self._unlock)
         tb.addSeparator()
         party = tb.addAction("Party", self._party)
         party.setToolTip("The Storyteller's party window — members, adversaries and "
@@ -253,6 +255,9 @@ class MainWindow(QMainWindow):
         the current tab is no longer visible, move to its replacement."""
         combos = viewmod.has_combos_tab(self._ruleset, self._ctx["char"])
         visible = self._visible_rail_tabs()
+        locked = self._ctx["char"].chargen_locked
+        self._lock_action.setVisible(not locked)
+        self._unlock_action.setVisible(locked)
         self._syncing = True
         for name in _RAIL_TABS:
             self.rail.item(_RAIL_TABS.index(name)).setHidden(name not in visible)
@@ -629,6 +634,10 @@ class MainWindow(QMainWindow):
     def _unlock(self) -> None:
         if not self._ctx["char"].chargen_locked:
             self._notify("Chargen is not locked.", "info")
+            return
+        warning = viewmod.unlock_warning(self._ctx["char"])
+        if warning and QMessageBox.question(self, "Unlock a character that has spent XP?",
+                                            warning) != QMessageBox.StandardButton.Yes:
             return
         lifecycle.unlock_chargen(self._ctx["char"])
         self._notify("Chargen unlocked — editable again.", "info")

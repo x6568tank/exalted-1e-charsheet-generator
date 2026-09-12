@@ -169,6 +169,30 @@ async def test_only_the_lock_action_that_applies_is_shown(user: User) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
+async def test_unlock_after_xp_warns_before_it_unlocks(user: User) -> None:
+    """Ruled 2026-09-12: unlock after XP is allowed, with a warning."""
+    from exalted_builder.models.character import XpEntry
+
+    user_id = await _sign_up(user, "Harmonious")
+    store = _store()
+    copy = store.make_copy(user_id, store.create(user_id, _locked("Spent")).id)
+    character = store.load(copy)
+    character.xp_log.append(XpEntry(target="essence", from_rating=2, to_rating=3, cost=16))
+    store.save(copy, character)
+
+    await user.open(home.character_url(copy.id))
+    await user.should_see("Campaign copy")
+    user.find(marker="top-bar-unlock").click()
+    await user.should_see("16 XP")
+    assert state.REGISTRY.ctx_for(copy.id)["char"].chargen_locked, "Unlocked before the confirm."
+
+    user.find(marker="unlock-confirm").click()
+    await user.should_see(marker="top-bar-lock")
+    assert not state.REGISTRY.ctx_for(copy.id)["char"].chargen_locked
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
 async def test_the_character_page_has_no_custom_tab(user: User) -> None:
     """The homebrew library is on /home: it belongs to the account."""
     await _sign_up(user, "Harmonious")

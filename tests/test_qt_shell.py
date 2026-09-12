@@ -16,7 +16,7 @@ pytest.importorskip("PySide6", reason="the optional [qt] extra is not installed"
 
 from pathlib import Path
 
-from PySide6.QtGui import QPalette
+from PySide6.QtGui import QAction, QPalette
 
 from exalted_builder.engine import advancement, lifecycle
 from exalted_builder.models.character import Character
@@ -501,3 +501,54 @@ def test_no_argument_starts_a_blank_character(ruleset):
     character, save_path, complaint = open_character(["prog"])
     assert character.name == "" and complaint == ""
     assert save_path.suffix == ".json"
+
+
+# --------------------------------------------------------------------------- #
+# The lock actions (2026-09-12)
+# --------------------------------------------------------------------------- #
+
+
+def _actions(win) -> dict:
+    return {a.text(): a for a in win.findChildren(QAction)}
+
+
+def test_only_the_lock_action_that_applies_is_on_the_toolbar(ruleset, qtbot, monkeypatch):
+    """Finish & Lock on an unlocked character, Unlock on a locked one. `_sync_tabs`
+    runs on every lock-state change, thus it switches them.
+
+    ⚠ A blank character locks with errors, and `_notify` shows a warning as a MODAL
+    box. Unstubbed, the test waits for a click that never comes."""
+    from exalted_builder.qt import main_window as qt_main_window
+    monkeypatch.setattr(qt_main_window.QMessageBox, "warning", staticmethod(lambda *a, **k: None))
+    win = MainWindow(ruleset, Character(id="char.new"), Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    lock, unlock = _actions(win)["Finish && Lock"], _actions(win)["Unlock"]
+    assert lock.isVisible() and not unlock.isVisible()
+
+    win._finish()
+    assert unlock.isVisible() and not lock.isVisible()
+
+    win._unlock()
+    assert lock.isVisible() and not unlock.isVisible()
+
+
+def test_unlock_after_xp_asks_first(ruleset, qtbot, monkeypatch):
+    """Ruled 2026-09-12: allowed, with a warning. No leaves the character locked."""
+    from PySide6.QtWidgets import QMessageBox
+    from exalted_builder.models.character import XpEntry
+
+    char = _locked(ruleset)
+    char.xp_log.append(XpEntry(target="essence", from_rating=2, to_rating=3, cost=16))
+    win = MainWindow(ruleset, char, Path("/tmp/c.json"))
+    qtbot.addWidget(win)
+    from exalted_builder.qt import main_window as qt_main_window
+
+    monkeypatch.setattr(qt_main_window.QMessageBox, "question",
+                        staticmethod(lambda *a, **k: QMessageBox.StandardButton.No))
+    win._unlock()
+    assert win._ctx["char"].chargen_locked
+
+    monkeypatch.setattr(qt_main_window.QMessageBox, "question",
+                        staticmethod(lambda *a, **k: QMessageBox.StandardButton.Yes))
+    win._unlock()
+    assert not win._ctx["char"].chargen_locked

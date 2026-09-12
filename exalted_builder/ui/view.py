@@ -4384,6 +4384,21 @@ CUSTOM_KINDS: dict[str, CustomKind] = {
 }
 
 
+def unlock_warning(character: Character) -> str:
+    """Return the warning to show before an Unlock, or "" if none is needed.
+
+    Ruled 2026-09-12: an Unlock after XP is allowed, with a warning.
+    `lifecycle.unlock_chargen` drops the snapshot and nothing else. Thus the dots
+    bought with XP count as creation dots, and the XP log still records them."""
+    spent = advancement.xp_spent(character)
+    if not spent:
+        return ""
+    return (f"This character has spent {spent} XP. Unlocking reopens character "
+            "creation: the dots bought with XP then count as creation dots, and the XP "
+            "log still records them as spent. Locking again takes the build as it is "
+            "then as the character's creation.")
+
+
 def charm_tree_title(category: str) -> str:
     """Return the name of the tree of `category`: "Melee", "War", "Snake Style"."""
     if category.startswith("martial_arts:"):
