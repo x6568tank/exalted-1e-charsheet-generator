@@ -23,8 +23,8 @@ dot-segment case, three more redirect-target cases) = 3668.
 not reconcile this against another machine. ⚠ **`bcrypt` is optional**: without it the
 auth test files skip, and so does one case of `test_public_pages.py`.
 
-**Working tree:** committed 2026-09-12 in three commits (the public pages; the deploy
-files; HEAD). Not pushed. Check `git status`.
+**Working tree:** clean and **pushed** 2026-09-12 (`5dfa31e` and the doc commit after it).
+The server copy is `5dfa31e`; the human rebuilds to pick up the Lorem Ipsum About page. Check `git status`.
 
 ## ✅ SHIPPED 2026-09-12 — the public pages (§9.7 of `vtt.md`)
 

@@ -137,8 +137,10 @@ at most the edit in flight, and logs in again only if the secret changed.
 
 ## Running it
 
-* **`claude` logs in by key**: `ssh -i ~/.ssh/id_ed25519_gilserver_claude claude@192.168.1.2`
-  from the dev machine.
+* **`claude` logs in by key only**: `ssh -i ~/.ssh/id_ed25519_gilserver_claude claude@192.168.1.2`
+  from the dev machine. Its password is locked (`passwd -l`, the human, 2026-09-12). It
+  can read `/home/gil/homelab` (a read-only ACL) and nothing else of `gil`'s; it has no
+  `docker` or `sudo`, so builds, Compose and the tunnel stay the human's.
 * **Reset a password** (the reset is manual by design — `hosting-state-model.md` §5.1d):
   `docker exec -it exalted python -m exalted_builder.server.users reset <username>`
   (and `… users list`). It asks for the new password on the terminal.
