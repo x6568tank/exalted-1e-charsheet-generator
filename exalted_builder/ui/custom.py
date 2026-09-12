@@ -209,6 +209,15 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
             return
         _apply_rows(rows, label=e.name)
 
+    def _export() -> None:
+        # ⚠ Read the kind at the click, not when the button is built.
+        exported = viewmod.custom_export(state["kind"], root)
+        if exported is None:
+            ui.notify("Nothing to export yet", type="info")
+            return
+        filename, text = exported
+        ui.download.content(text.encode("utf-8"), filename)
+
     # ---- rendering -------------------------------------------------------- #
 
     if with_header:
@@ -304,8 +313,7 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
         # ---- right: JSON in/out ------------------------------------------ #
         @ui.refreshable
         def json_pane() -> None:
-            payload = (viewmod.custom_charm_payload(_form()) if state["kind"] == "charm"
-                       else viewmod.custom_spell_payload(_form()))
+            payload = viewmod.CUSTOM_KINDS[state["kind"]].payload(_form())
             if not state["editing"]:
                 payload["id"] = custom_content.make_id(_form().get("name", "")) or "(from the name)"
             with ui.card().classes(f"w-[26rem] p-3 gap-2 {pal.card}"):
@@ -319,6 +327,9 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
                 with ui.row().classes("w-full justify-between items-center gap-2"):
                     ui.upload(label="Import .json", on_upload=_upload, auto_upload=True) \
                         .props("accept=.json flat dense").classes("max-w-[12rem]")
+                    ui.button("Export .json", icon="download", on_click=_export) \
+                        .props("flat dense").mark("custom-export") \
+                        .tooltip("Download every row of this tab as one file")
                     ui.button("Load", icon="input",
                               on_click=lambda: _paste(paste.value or "")).props("flat dense")
 

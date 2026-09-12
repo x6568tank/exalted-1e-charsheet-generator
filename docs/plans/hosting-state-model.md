@@ -1114,6 +1114,40 @@ enhancement, not needed for v1." Per-user is *easier* than shared, because share
 Measure one before committing — if it is large, cache with an LRU keyed by user, or
 keep one shared read-only book ruleset and overlay per-user custom at request time.
 
+#### ✅ MEASURED 2026-09-12 — the overlay wins, and no LRU is needed
+
+Book: 1,921 Charms. The library was synthetic: book rows under `custom.` ids, with
+prerequisites cleared so every row loads. The script is in the session scratchpad and is
+not committed.
+
+| Shape | Library | Traced | Load time |
+|---|---|---|---|
+| **Full** `load_ruleset(data, custom_dir=…)` per user | none | 14.7 MB | 0.063 s |
+| | 50 Charms / 10 spells | 15.0 MB | 0.066 s |
+| | 500 Charms / 50 spells | 18.0 MB | 0.085 s |
+| **Overlay** — the book shared, per-user dicts only | none | **0.1 MB** | 0.001 s |
+| | 50 Charms / 10 spells | **0.4 MB** | 0.003 s |
+| | 500 Charms / 50 spells | **3.4 MB** | 0.020 s |
+
+Ten full loads grew max-RSS by **124 MB (12.4 MB each)**. With full loads the
+container's memory scales with the number of accounts. With the overlay it scales with
+the amount of homebrew.
+
+**The overlay:** `book.model_copy(update=…)` with **new dicts** for the seven collections
+that the custom layer writes (`charms`, `spells`, `thaum_rituals` and the four gear
+catalogues). Then `reload_custom_layer(copy, user_custom_dir)`. Every other collection,
+and every frozen row, is the book's own object. The script asserts that the book has no
+`custom` rows after the overlay.
+
+⚠ **This only works because the copy gets its own dicts.** `reload_custom_layer` changes
+the `RuleSet` **in place** (`del ruleset.charms[…]`, then `_load_custom_layer` writes
+into the same dicts). Hand two users the same book `RuleSet` and one user's reload deletes
+and rewrites the other user's Charms. A grep of `exalted_builder/` on 2026-09-12 found no
+module other than `rules_db.py` that writes to a `RuleSet`, so the seven dicts are the
+complete list today. ⚠ **If a new collection becomes custom-authorable, it joins that
+list, or the overlay leaks between users.** That needs a test that authors into the new
+collection for one user and asserts that a second user cannot see it.
+
 ### 5.4 Smaller corrections
 
 - **SQLite needs WAL** (`PRAGMA journal_mode=WAL`) with concurrent writers, plus a busy
@@ -1134,7 +1168,7 @@ auth gate and per-request resolution are the additions), plus whatever 5.3's rul
 | 2. the third save branch (both sites) | ✅ done, §5.1b |
 | 2b. "Download a copy" on a hosted run | ✅ done, §5.1c — browser-verified |
 | 3. Auth — `/login`, the gate, `bcrypt`, the `[server]` extra | ✅ done, §5.1d — **browser-verified 2026-09-12** |
-| 4. The DB, and §5.3's per-user rulesets | ❌ not started; **measure one merged `RuleSet` before fixing the layout**. ⚠ **The layout grew on 2026-09-12**: several characters per account, base characters, tables and pending memberships — `vtt.md` §9.3 |
+| 4. The DB, and §5.3's per-user rulesets | ❌ not started; the `RuleSet` measurement is **done** (§5.3, 2026-09-12: the shared-book overlay costs ~0.1 MB plus the homebrew). ⚠ **The layout grew on 2026-09-12**: several characters per account, base characters, tables and pending memberships — `vtt.md` §9.3 |
 
 ⚠ Piece 1 shipped **without** piece 2, so a hosted run now persists edits by timer while
 the Save button still downloads to the browser. That is a better failure than losing the
@@ -1145,8 +1179,11 @@ edits and it is still a failure.
 ## Open questions — these need your ruling, not a default
 
 1. **Tab semantics (5.2).** One active character per browser, or per tab?
-2. **Per-user vs shared homebrew (5.3).** Recommendation is per-user, reversing the
-   original plan. Confirm before the DB layout is fixed.
+2. **Per-user vs shared homebrew (5.3) — RULED 2026-09-12: per account.** Each account
+   has its own library in its own folder, and nobody else sees it. Asked after the §5.3
+   measurement, with the shared library and "no library" as the alternatives. This is the
+   library the player authors in. It is separate from the table layer and the character
+   layer of `vtt.md` §1.3.
 3. **Eviction vs auto-save (3.4, 3.7).** How long may an idle session hold an unsaved
    character before it is dropped?
 4. **Does the GM page ship in v1?** The original defers it, but `/gm` shares `ctx` with

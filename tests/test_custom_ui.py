@@ -9,6 +9,8 @@ One route per test module state, per the harness's one-build-per-session rule: t
 page mutates the RuleSet it is handed, so it gets its own in tests/_ui_main.py.
 """
 
+import json
+
 import pytest
 from nicegui.testing import User
 
@@ -79,6 +81,43 @@ async def test_the_json_pane_offers_paste_and_upload(user: User) -> None:
     await user.should_see("JSON")
     await user.should_see("Import .json")
     await user.should_see("Load")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_export_downloads_every_charm_on_disk(user: User) -> None:
+    """The rejected row goes too. It is on disk, and the receiver can fix it."""
+    await user.open('/custom-content')
+    await user.should_see("House Strike")
+
+    user.find("custom-export").click()
+    response = await user.download.next()
+
+    ids = {r["id"] for r in json.loads(response.text)}
+    assert ids == {"custom.house-strike", "custom.orphan"}
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_export_and_the_json_pane_follow_the_kind_tab(user: User) -> None:
+    """After a switch to Rituals, the export gives the ritual and the pane shows a
+    ritual row. ⚠ A button or a pane that reads the kind at build time still gives
+    Charms here. The pane did give a SPELL row for a ritual until 2026-09-12."""
+    from nicegui import ui as _ui
+
+    await user.open('/custom-content')
+    tabs = next(e for e in user.client.elements.values() if isinstance(e, _ui.tabs))
+    tabs.set_value("ritual")
+    await user.should_see("Salt Road Whisper")
+
+    pane = json.loads(next(e for e in user.client.elements.values()
+                           if isinstance(e, _ui.code)).content)
+    assert "level" in pane and "circle" not in pane
+
+    user.find("custom-export").click()
+    response = await user.download.next()
+
+    assert [r["id"] for r in json.loads(response.text)] == ["custom.salt-road-whisper"]
 
 
 @pytest.mark.asyncio

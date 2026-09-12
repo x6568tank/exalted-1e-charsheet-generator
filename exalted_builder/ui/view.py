@@ -12,6 +12,7 @@ imports NO UI toolkit, so it is unit-testable on its own and the NiceGUI layer
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field, field as dc_field
 from typing import Callable, Optional, Sequence
 
@@ -4381,6 +4382,20 @@ CUSTOM_KINDS: dict[str, CustomKind] = {
                          custom_content.delete_ritual, custom_content.library_rituals,
                          "thaum_rituals"),
 }
+
+
+def custom_export(kind: str, custom_dir) -> tuple[str, str] | None:
+    """Give the file that exports each `kind` row of the library at `custom_dir`.
+
+    The output is (filename, JSON text): one array of the raw rows on disk, from
+    all the files of the library. The Import of the same kind tab reads it back.
+    Rows that did not load are in the array too. The output is None for an empty
+    library, because `parse_rows` refuses an empty array."""
+    spec = CUSTOM_KINDS[kind]
+    rows = spec.library(custom_dir)
+    if not rows:
+        return None
+    return f"homebrew-{spec.label.lower()}.json", json.dumps(rows, indent=2)
 
 
 def build_custom_library(ruleset: RuleSet, charm_rows: list[dict],

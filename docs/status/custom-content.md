@@ -299,3 +299,26 @@ within one kind. `library.refresh()` is the fix, and the ritual render test is i
 and Rituals went in at index 2. Three tests pointed at the wrong kind and stayed green
 until an assertion happened to disagree. **The one-line lesson the project already had,
 in its own file.**
+
+## Export .json — 2026-09-12 (webapp only)
+
+The human asked for a way to export homebrew as JSON, after ruling that each hosted
+account gets its own library (`hosting-state-model.md` §5.3). Before this, a hosted
+player could get homebrew out one row at a time from the JSON pane, or inside a
+character save. A player could not reach the library folder at all.
+
+* **Export .json** in the JSON pane downloads every row of the current kind tab as one
+  array: `view.custom_export(kind, custom_dir)`. That tab's **Import .json** reads the
+  file back. `test_an_exported_library_imports_into_an_empty_one` goes through a fresh
+  library to check this, with a prerequisite link across two source files.
+* Rows that did not load go in the export too. They are on disk, and the receiver can
+  fix them.
+* An empty tab gives a notice, not a file. `parse_rows` refuses `[]`, so an empty file
+  could never be imported.
+* ⚠ **Found on the way: the JSON pane showed a SPELL row on the Rituals tab.** This was
+  the last copy of the `charm if kind == "charm" else spell` ternary that `CUSTOM_KINDS`
+  was built to remove (§ above). It now reads `CUSTOM_KINDS[kind].payload`. The UI test
+  switches to Rituals and checks both the pane and the export. Mutation-checked: an
+  export hard-wired to Charms turns it red.
+* **Not done:** gear has no export (it lives outside `CUSTOM_KINDS`), and the Qt Custom
+  tab has no Export button. `view.custom_export` is the shared half, ready for Qt.

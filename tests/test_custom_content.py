@@ -601,6 +601,51 @@ def test_parse_rows_explains_bad_json():
     assert "valid JSON" in str(ei.value)
 
 
+def test_an_exported_library_imports_into_an_empty_one(tmp_path):
+    """The export is only useful if the import reads it back. Two files in the source
+    library, one Charm requiring the other, so the file must carry both rows and the
+    receiver must resolve the link after the import."""
+    book, mine, theirs = tmp_path / "data", tmp_path / "mine", tmp_path / "theirs"
+    _write_clean_set(book)
+    _custom_charms(mine, [_charm("custom.root")], stem="first")
+    _custom_charms(mine, [_charm("custom.leaf", prerequisites=[["custom.root"]])],
+                   stem="second")
+
+    filename, text = viewmod.custom_export("charm", mine)
+
+    kind = viewmod.CUSTOM_KINDS["charm"]
+    for row in custom_content.parse_rows(text):
+        kind.save(row, custom_dir=theirs)
+    rs = load_ruleset(book, custom_dir=theirs)
+
+    assert filename.endswith(".json")
+    assert rs.custom_problems == []
+    assert {c for c in rs.charms if rs.charms[c].custom} == {"custom.root", "custom.leaf"}
+    assert rs.charms["custom.leaf"].prerequisites == [["custom.root"]]
+
+
+def test_an_export_holds_only_its_own_kind(tmp_path):
+    """The Spells export must not carry the Charms. Each tab's import saves every row
+    as its own kind, so a mixed file would fail row by row."""
+    book, mine = tmp_path / "data", tmp_path / "mine"
+    _write_clean_set(book)
+    _custom_charms(mine, [_charm("custom.a-charm")])
+    form = viewmod.custom_spell_form()
+    form.update(name="A Spell", circle="Terrestrial")
+    form["id"] = custom_content.make_id(form["name"])
+    custom_content.save_spell(viewmod.custom_spell_payload(form), custom_dir=mine)
+
+    _, text = viewmod.custom_export("spell", mine)
+
+    assert [r["id"] for r in custom_content.parse_rows(text)] == ["custom.a-spell"]
+
+
+def test_an_empty_library_has_nothing_to_export(tmp_path):
+    """`parse_rows` refuses an empty array, so an empty file could never come back in.
+    The export gives None and the page says so instead of downloading it."""
+    assert viewmod.custom_export("ritual", tmp_path) is None
+
+
 def test_spell_save_and_reload(tmp_path):
     book = tmp_path / "book"
     mine = tmp_path / "mine"
