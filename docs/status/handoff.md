@@ -86,6 +86,10 @@ of a table.
 
 ## 👉 NEXT — in rough order of what would bite
 
+- 👉 **START HERE (human, 2026-09-12): the public front page, About, and wiki** (`vtt.md` §9.4 site map, §9.5) — independent
+  of everything else. `/` goes public, the login default moves to `/home`. ⚠ **Book-only
+  `RuleSet`**, never the merged one, or every player's homebrew goes public. The About
+  text is the human's — draft it, do not publish it unapproved.
 - **§5 piece 4 — the DB, and §5.3's per-user rulesets.** ⚠ **Measure one merged `RuleSet`
   in memory BEFORE fixing the DB layout.** §5.3 reverses the original plan (per-user is
   *easier* than shared, because shared needs the `load_character` write hazard solved and
@@ -93,10 +97,6 @@ of a table.
   ⚠ **The layout grew on 2026-09-12** — several characters, base characters, tables,
   pending memberships: `vtt.md` §9.3. Both base-character questions are ruled (§9.2):
   a base change reaches **later copies only**, and a copy **can** exist with no campaign.
-- **The public front page, About, and wiki** (`vtt.md` §9.4 site map, §9.5) — independent
-  of everything else. `/` goes public, the login default moves to `/home`. ⚠ **Book-only
-  `RuleSet`**, never the merged one, or every player's homebrew goes public. The About
-  text is the human's — draft it, do not publish it unapproved.
 - **Backgrounds `source` — 51 of 63 DONE. 12 left, and they need a human with a page.**
   `status/backgrounds.md` lists all 12 with their scores. Two are Lunar and have no
   page-marked text on this machine at all. ⚠ **Do not lower the matcher threshold to
