@@ -63,3 +63,19 @@ that range and both are handled in the authored file:
 Typos preserved from the page rather than silently fixed: Archery's "apple off someone's
 **heat**", Larceny's run-together "FencingStolen Goods" (spaced, since it is a list item),
 Presence's "into **an** highly motivated unit".
+
+## 🐞 The NiceGUI dialog was empty for nine days (fixed 2026-09-11)
+
+From 2026-09-02 until the hosted click-through on 2026-09-11, every ⓘ dialog in the
+NiceGUI shell showed the trait name and its family and **nothing else**. The Qt shell was
+never affected.
+
+**Cause:** `trait_reference_dialog` put the text in a `ui.scroll_area` inside a card with
+only `max-h`. A QScrollArea has no height of its own, so it rendered at zero height.
+`catalogue_dialog` uses the same pattern and works, because its card has a fixed
+`h-[85vh]`. **Fix:** a plain column with `overflow-y-auto`. Browser-verified by the human.
+
+⚠ **Three tests passed against it.** `should_see` finds text in the element tree, and the
+harness has no layout. The guard
+`test_the_dialog_text_is_not_in_a_zero_height_scroll_area` checks the structure instead:
+a scroll area in the open dialog must be in a card with a fixed `h-` class.

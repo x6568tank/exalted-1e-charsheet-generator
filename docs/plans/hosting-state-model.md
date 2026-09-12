@@ -889,7 +889,7 @@ filename that is already in `ctx["path"]`, and the case passes against the trap.
   Run separately because the case checks the builder first, so the both-at-once control
   never reached the party half.
 
-Not browser-verified.
+**Browser-verified by the human, 2026-09-11**, on a local hosted server with two browsers.
 
 ### 5.2 Correcting the original §5 on `app.storage.user`
 
@@ -956,7 +956,7 @@ auth gate and per-request resolution are the additions), plus whatever 5.3's rul
 |---|---|
 | 1. `server/main.py` — the switch | ✅ done, §5.1a |
 | 2. the third save branch (both sites) | ✅ done, §5.1b |
-| 2b. "Download a copy" on a hosted run | ✅ done, §5.1c — not browser-verified |
+| 2b. "Download a copy" on a hosted run | ✅ done, §5.1c — browser-verified |
 | 3. Auth — `/login`, the gate, `bcrypt`, the `[server]` extra | ❌ not started |
 | 4. The DB, and §5.3's per-user rulesets | ❌ not started; **measure one merged `RuleSet` before fixing the layout** |
 

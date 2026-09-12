@@ -1,4 +1,4 @@
-# Session handoff — 2026-09-11 (§5 piece 2b: "Download a copy")
+# Session handoff — 2026-09-11 (§5 piece 2b: "Download a copy"; hosted click-through; empty ⓘ dialogs)
 
 # 👉 YOU ARE HERE
 
@@ -13,10 +13,46 @@ row). Observed instead: **190 passed** across the 13 hosting / builder / GM / se
 including `test_engine_seam.py`. 2b adds six cases, so the next full run should read
 **3554 + 1 skipped** — computed, not observed.
 
-**Working tree:** dirty, uncommitted — 2b's code, tests and docs (`ui/builder.py`,
-`ui/gm.py`, `tests/test_hosted_save.py`, `tests/_hosted_save_main.py`,
-`docs/plans/hosting-state-model.md`, this file). Check `git status` before acting on this
-line.
+The trait-dialog fix below was verified with `tests/test_trait_descriptions.py` and
+`tests/test_catalogue_dialogs.py` (**28 passed**), not with the full suite.
+
+**Working tree:** clean when this line was written — 2b is `87b488c`, and the trait-dialog
+fix and the click-through record are the commit that carries this file. Check
+`git status` before acting on this line.
+
+## ✅ BROWSER-VERIFIED — the hosted server, by the human, 2026-09-11
+
+Run locally: `python -m exalted_builder.server.main` on `127.0.0.1:8080`, Firefox plus a
+private window as the second player. **All seven checks passed:**
+
+* **2b:** "Download a copy" on `/` downloads the character at once; the next auto-save
+  still writes the one session file, not a file named after the download. "Download a
+  copy" on `/gm` downloads the party, and Save party still writes to the session folder.
+* **Carried from last session, now done:** two browsers → two session directories; hosted
+  Save in each writes its own file with no download; a second tab of one browser shows the
+  same character; `/gm` → Builder in one browser leaves the other's character alone.
+
+⚠ **Still not done:** the desktop Save (it must still prompt and download). It needs the
+desktop build, not this server.
+
+## 🐞 FIXED — the ⓘ trait dialogs were empty in the NiceGUI shell
+
+Found in the click-through above. The dialog showed the trait name and its family and
+nothing else. **Not a hosting bug** — the NiceGUI shell has shown empty ⓘ dialogs since the
+feature shipped on 2026-09-02 (that commit says it was not checked). The Qt shell has its
+own dialog and was never affected.
+
+**Cause:** the text sat in a `ui.scroll_area` inside a card with only `max-h`. A QScrollArea
+has no height of its own, so it rendered at zero height. The catalogue picker uses the same
+pattern and works because its card has a fixed `h-[85vh]`. **Fix:** a plain column with
+`overflow-y-auto`, which takes the height of its text and scrolls at the card's maximum.
+Browser-verified by the human.
+
+⚠ **The old tests passed against it** — `should_see` finds the text in the element tree,
+and the harness has no layout. The new guard,
+`test_trait_descriptions.py::test_the_dialog_text_is_not_in_a_zero_height_scroll_area`,
+checks structure: a scroll area in the open dialog must be in a card with a fixed `h-`
+class. It was red on the old code.
 
 ## ✅ SHIPPED — §5 piece 2b, "Download a copy" on a hosted run
 
@@ -116,29 +152,14 @@ before blaming the build; the stale-binary theory has been wrong twice.
 
 ## 🖱 Not browser-verified — what a human should click
 
-**The desktop is untouched by 2b** — both buttons render only under `hosted`, and a test
-asserts they are absent otherwise. Items 1–6 are carried from the previous session and are
-still owed.
+The hosted click-through is **done** (see ✅ BROWSER-VERIFIED above). One item is left:
 
-Run `python -m exalted_builder.server.main` with `EXALTED_STORAGE_SECRET` and
-`EXALTED_SESSION_ROOT` set, and two real browsers:
+1. **Save on the DESKTOP still opens the filename prompt and downloads.** Run
+   `python -m exalted_builder.ui.builder`, not the server. That branch is untouched and
+   the harness covers it, but the three save branches now sit in one function, and 2b
+   added hosted-only buttons beside it — confirm they are **absent** there too.
 
-1. Edit a name in each, wait ~5 s, and confirm **two directories** under the root, each
-   holding that browser's character. The live run last session could not reach this step.
-2. **A second tab of the SAME browser must show the SAME character** — the key is per
-   browser by ruling (`vtt.md` §8 Q1), not per tab. ⚠ The suite cannot express this at all.
-3. **`/gm` → Builder in one of two browsers** — the other must keep its own character.
-4. **Save on the hosted server** writes into that browser's session directory and toasts
-   *"Saved …"* — no download, no filename prompt. Then Save in the OTHER browser and
-   confirm the two files stay separate.
-5. **Save on the DESKTOP still opens the filename prompt and downloads.**
-6. **`/gm` → "Save party" on the hosted server** writes a `.party.json` into that session's
-   directory and toasts *"Saved party to …"* — no download.
-7. **NEW — "Download a copy" on `/`.** The browser gets a `.character.json`. Then edit,
-   wait ~5 s, and confirm the auto-save still writes to the **same** file in the session
-   directory — not a second file named after the download.
-8. **NEW — "Download a copy" on `/gm`.** The browser gets a `.party.json`. Then click Save
-   party and confirm it writes where it did before the download.
+⚠ **The Qt ⓘ dialogs were never broken**, and nothing in this session changed them.
 
 ## ❓ Open for the human
 

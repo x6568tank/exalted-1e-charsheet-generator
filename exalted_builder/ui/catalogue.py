@@ -370,7 +370,10 @@ def trait_reference_dialog(pal: theme.Palette, info: viewmod.TraitInfo) -> None:
         ui.label(info.title).classes("text-base font-bold").style(f"color:{pal.accent}")
         ui.label(info.subtitle).classes("text-xs text-gray-600")
 
-        with ui.scroll_area().classes("w-full flex-1 min-h-0"):
+        # ⚠ A plain column, not `ui.scroll_area`. A QScrollArea has no height of its
+        # own, and this card has only `max-h`, thus a scroll area renders at zero
+        # height. The column takes the height of its text and scrolls at `max-h`.
+        with ui.column().classes("w-full flex-1 min-h-0 overflow-y-auto gap-2 no-wrap"):
             for para in info.description.split("\n\n"):
                 if para.strip():
                     ui.label(para).classes("text-sm whitespace-pre-line")

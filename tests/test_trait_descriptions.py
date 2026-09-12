@@ -171,6 +171,46 @@ async def test_the_ability_dialog_carries_specialties_and_feats(user) -> None:
     await user.should_see("Legendary (5 successes)")
 
 
+def _card_of(element):
+    """Return the nearest `ui.card` ancestor of `element`, or None."""
+    from nicegui import ui
+    node = element.parent_slot.parent if element.parent_slot else None
+    while node is not None:
+        if isinstance(node, ui.card):
+            return node
+        node = node.parent_slot.parent if node.parent_slot else None
+    return None
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file("tests/_ui_main.py")
+async def test_the_dialog_text_is_not_in_a_zero_height_scroll_area(user) -> None:
+    """🐞 The dialog showed the title and the subtitle and nothing else.
+
+    A QScrollArea positions its content absolutely, thus it has no height of its
+    own. In a card with only `max-h`, it collapses to zero and hides all the text.
+    The text is still in the element tree, thus `should_see` passes against it.
+
+    ⚠ This case examines the structure, because the harness has no layout. Any
+    scroll area in the open dialog must be in a card with a fixed `h-` height.
+    """
+    from nicegui import ui
+    await user.open('/blank')
+    user.find(marker="trait-info-strength").click()
+    await user.should_see("Doughty laborer (dead lift 200 lbs.).")
+
+    for element in list(user.client.elements.values()):
+        if not isinstance(element, ui.scroll_area):
+            continue
+        card = _card_of(element)
+        if card is None:
+            continue
+        assert any(c.startswith("h-") for c in card.classes), (
+            f"A scroll area is in a card with no fixed height ({card.classes}). "
+            "It renders at zero height and hides its content."
+        )
+
+
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_every_rated_trait_carries_an_info_marker(user) -> None:
