@@ -1,94 +1,85 @@
-# Session handoff — 2026-09-11 (§5 piece 2b: "Download a copy"; hosted click-through; empty ⓘ dialogs)
+# Session handoff — 2026-09-11 (§5 piece 3: auth — the login gate)
 
 # 👉 YOU ARE HERE
 
-Last FULL suite: **3555 passed + 1 skipped** — observed at the END of this session, on
-`54b0b00`, after both 2b and the trait-dialog fix.
+Last FULL suite: **3636 passed + 1 skipped** — observed after the second round of the auth
+work. The third round (the cookie) added one case to `test_server_main.py`, run on its own
+(14 passed): **3637 is COMPUTED, not observed.**
 ⚠ The count moves by machine and by optional dependency — see `docs/testing.md`, and do
-not reconcile this against another machine.
+not reconcile this against another machine. ⚠ **`bcrypt` is new and optional**: without
+it, `test_user_db.py`, `test_auth_gate.py` and `test_users_cli.py` skip (58 cases).
 
-**The arithmetic agrees.** The session opened on **3548 + 1 skipped** (the run the
-previous handoff left pending). 2b added six cases and the dialog guard one: 3548 + 6 + 1
-= 3555.
+**The arithmetic agrees.** 3555 (previous handoff) → 3595 after round one (observed) →
+3636 after round two (observed): +7 `test_user_db`, +5 `test_auth_gate`, +11
+`test_login_throttle`, +12 `test_folder_quota`, +6 `test_users_cli`.
 
-**Working tree:** `54b0b00` is the last commit. The only change after it is this
-count-and-tree update to `handoff.md`, uncommitted when written. Check `git status`
-before acting on this line.
+**Working tree: DIRTY, UNCOMMITTED.** `git status` at the time of writing: 10 modified
+(including `persistence.py`), 12 new — `server/{auth,db,quota,throttle,users}.py`,
+`tests/_auth_main.py`, `tests/_auth_state.py`, and five `tests/test_*.py`. Last commit
+`78848e1`. Check `git status` before acting on this line.
 
-## ✅ BROWSER-VERIFIED — the hosted server, by the human, 2026-09-11
+## ✅ SHIPPED (not browser-verified) — §5 piece 3, auth
 
-Run locally: `python -m exalted_builder.server.main` on `127.0.0.1:8080`, Firefox plus a
-private window as the second player. **All seven checks passed:**
+**§5.1d of `docs/plans/hosting-state-model.md` is the record** — the rulings, the
+mechanics, the five negative controls and the known limits. What a reader needs first:
 
-* **2b:** "Download a copy" on `/` downloads the character at once; the next auto-save
-  still writes the one session file, not a file named after the download. "Download a
-  copy" on `/gm` downloads the party, and Save party still writes to the session folder.
-* **Carried from last session, now done:** two browsers → two session directories; hosted
-  Save in each writes its own file with no download; a second tab of one browser shows the
-  same character; `/gm` → Builder in one browser leaves the other's character alone.
+* **Rulings, asked before building (human, 2026-09-11):** self-signup page; SQLite
+  `users` table now; context and save folder keyed to the **account**
+  (`<root>/user-<id>/`), so a player's devices see one character.
+* The gate is **`auth.AuthGate`, a middleware** — not a per-page `require_auth()` as the
+  §5.1 sketch had. It covers every route by default, `/docs` and `/openapi.json`
+  included. `OPEN_PATHS` is the exception list.
+* ⚠ **`main()` installs the gate, `build_server` does not.** Starlette refuses
+  `add_middleware` after the app starts, and unit tests call `build_server` in a process
+  where a User-harness test already started it. `test_server_main.py` asserts `main`
+  calls `install_gate` before `ui.run`. **Do not move the call into `build_server`.**
+* `check_bind_is_allowed` and `--public` are **deleted**, as §5.1a required. The server
+  now needs a third env var: **`EXALTED_DB_PATH`**, no default.
+* `[server]` extra in `pyproject.toml`: `nicegui`, `reportlab`, `bcrypt` (not `passlib`).
 
-⚠ **Still not done:** the desktop Save (it must still prompt and download). It needs the
-desktop build, not this server.
+### ✅ Second round, same session — the human ruled on the known limits
 
-## 🐞 FIXED — the ⓘ trait dialogs were empty in the NiceGUI shell
+**§5.1d is the record** (a second rulings table, what shipped, controls 6–10, and
+"Found on the way, second round"). In short:
 
-Found in the click-through above. The dialog showed the trait name and its family and
-nothing else. **Not a hosting bug** — the NiceGUI shell has shown empty ⓘ dialogs since the
-feature shipped on 2026-09-02 (that commit says it was not checked). The Qt shell has its
-own dialog and was never affected.
+* **Usernames are now case-sensitive** (ruling; reverses the first build).
+* **Rate limit per username** — `server/throttle.py`. ⚠ Counts an attempt at its
+  START, not after bcrypt; do not "fix" that, it is what closes the parallel race.
+* **10 MB per account** — `server/quota.py`, through a new
+  **`persistence.set_write_guard`** hook in `atomic_write`, installed by `main()`.
+  ⚠ Every hosted write goes through `atomic_write`; a new write path that bypasses it
+  bypasses the quota.
+* **Manual password reset** — `python -m exalted_builder.server.users reset <name>`
+  (and `list`). `EXALTED_ADMIN_CONTACT` puts *"Forgot your password? Email …"* on
+  `/login`. The human is making `admin@x6568tank.com` for it.
 
-**Cause:** the text sat in a `ui.scroll_area` inside a card with only `max-h`. A QScrollArea
-has no height of its own, so it rendered at zero height. The catalogue picker uses the same
-pattern and works because its card has a fixed `h-[85vh]`. **Fix:** a plain column with
-`overflow-y-auto`, which takes the height of its text and scrolls at the card's maximum.
-Browser-verified by the human.
+### ✅ Third round — the cookie
 
-⚠ **The old tests passed against it** — `should_see` finds the text in the element tree,
-and the harness has no layout. The new guard,
-`test_trait_descriptions.py::test_the_dialog_text_is_not_in_a_zero_height_scroll_area`,
-checks structure: a scroll area in the open dialog must be in a card with a fixed `h-`
-class. It was red on the old code.
+**`Secure` ON** (ruling). The cookie is now **`__Host-exalted-session`**
+(`server/main.SESSION_COOKIE`): the prefix makes browsers refuse it from any other
+subdomain, which closes session fixation via the human's other `x6568tank.com` apps
+(Jellyfin, Calibre, Seafile, Filebrowser). ⚠ **Never give it a `domain`** — the browser
+then drops it. Checked on a live server's `Set-Cookie`. `.nicegui/` → a deploy concern,
+understood.
 
-## ✅ SHIPPED — §5 piece 2b, "Download a copy" on a hosted run
+### ⚠ Known limits still open — §5.1d has each with its cost
 
-**§5.1c of `docs/plans/hosting-state-model.md` is the record** ("What shipped", at the end
-of that section). What a reader needs before touching anything:
+A reset does not end existing logins; signup is not rate-limited; no account delete;
+homebrew is outside the quota; the session id still does not rotate at login (only the
+physical-access case remains); **a LAN player on plain `http://192.168…` cannot log in**
+— the Secure cookie needs HTTPS or `localhost`.
 
-* A hosted run shows **"Download a copy"** beside Save on `/` (mark `top-bar-download`) and
-  beside Save party on `/gm` (mark `gm-download-party`). Both are gated on the **same
-  `hosted` bit** as the save branch and the auto-save timer. Not-hosted builds do not show
-  them.
-* ⚠ **The trap is closed by a split, not by care.** `builder._download_copy` and
-  `gm._party_download_copy` send the file and touch nothing in `ctx`. The desktop helpers
-  `_browser_download` / `_party_download` call them and **then** repoint `ctx` themselves,
-  each with a ⚠ desktop-only comment. **Do not move the repoint back into the shared
-  helper** — the hosted button would then move the auto-save target.
-* The tests assert `ctx` is **unchanged** after a download, and the gate in both
-  directions. `_hosted_save_main.py` gained a `/desktop-gm` control route.
-* Negative controls: four, all run, restored from a copy. Listed in §5.1c.
+## 🎲 Answered this session — the Table replaces `/gm`
 
-### 🐞 A fixture that could not see its own trap
-
-The first draft of the character trap case would have passed against the trap: with an
-unedited character, the desktop helper repoints `ctx["path"]` to the **same filename it
-already holds**. The case now renames the character first and asserts the fixture can
-see a repoint before it clicks. The party case does not need this — `party_path` starts
-as None.
-
-### ⚠ One design choice made without asking
-
-**No filename prompt** on the hosted button — it downloads at once under the suggested
-name. A prompt is a second place a typed name could reach `ctx`, and the browser can
-rename the file anyway. Reversible; say so if you want the prompt.
+The human asked whether a shared Table an ST sets up replaces the GM screen. **Yes —
+already ruled** (`vtt.md` §8 Q4 and §1.3): the GM page dissolves into a first-class
+`Table` at **P3**. Auth only supplies the user id that Table membership will point at.
+**There is deliberately no global admin/ST role on accounts** — Storyteller is a property
+of a table.
 
 ## 👉 NEXT — in rough order of what would bite
 
-- **§5 piece 3 — auth.** `/login`, the gate, `bcrypt` (not `passlib`), a `[server]` extra.
-  ⚠ **The first piece of this project with no adjacent pattern to copy** — §3 always had
-  `register_pages` or `custom_content` to follow. It is also the one place where an
-  unreviewed default is a security bug rather than a wrong number.
-  **`server/main.check_bind_is_allowed` is deleted by this piece, not before.** It is the
-  mechanism standing in for auth: a non-loopback bind refuses to start without `--public`.
+- **Click through auth** (below) and commit.
 - **§5 piece 4 — the DB, and §5.3's per-user rulesets.** ⚠ **Measure one merged `RuleSet`
   in memory BEFORE fixing the DB layout.** §5.3 reverses the original plan (per-user is
   *easier* than shared, because shared needs the `load_character` write hazard solved and
@@ -147,24 +138,38 @@ before blaming the build; the stale-binary theory has been wrong twice.
 
 ## 🖱 Not browser-verified — what a human should click
 
-The hosted click-through is **done** (see ✅ BROWSER-VERIFIED above). One item is left:
+1. **Auth, on the hosted server.** Run with all three variables:
+   `EXALTED_STORAGE_SECRET=… EXALTED_SESSION_ROOT=… EXALTED_DB_PATH=… python -m exalted_builder.server.main`.
+   ⚠ **Browse to `http://localhost:8080`, not `127.0.0.1`.** The cookie is Secure;
+   browsers exempt `localhost`. If a correct login lands straight back on the login
+   page, the browser refused the cookie — report which browser and address.
+   * Open `/` with no login → the login page. Make an account → the builder opens.
+   * A wrong password → "Wrong username or password.", and still gated.
+   * Open `/gm` logged out → log in → you land on `/gm`, not `/`.
+   * **A private window, same account** → the same character (the ruling). A second
+     account → a different, empty one.
+   * **Log out** on `/` and on `/gm` → the login page; `/` is gated again.
+   * Restart the server → still logged in (secret and `.nicegui/` unchanged).
+   * Log in as `Harmonious` when the account is `harmonious` → refused (case ruling).
+   * Five wrong passwords → the sixth, even correct, says *"Too many failed attempts"*.
+   * With `EXALTED_ADMIN_CONTACT` set, the login page shows the address.
+   * `python -m exalted_builder.server.users reset <name>` in a terminal → the new
+     password works, the old one does not.
+2. **Save on the DESKTOP still opens the filename prompt and downloads** (carried).
+   Run `python -m exalted_builder.ui.builder`. Confirm the hosted-only buttons —
+   **now three: Download a copy, Log out, and the party's Download a copy** — are
+   absent there.
 
-1. **Save on the DESKTOP still opens the filename prompt and downloads.** Run
-   `python -m exalted_builder.ui.builder`, not the server. That branch is untouched and
-   the harness covers it, but the three save branches now sit in one function, and 2b
-   added hosted-only buttons beside it — confirm they are **absent** there too.
-
-⚠ **The Qt ⓘ dialogs were never broken**, and nothing in this session changed them.
+⚠ The Qt shell is untouched by this session.
 
 ## ❓ Open for the human
 
 - **No open RULES questions.** This session touched no game values.
-- **Three design choices made without asking, all reversible:**
-  - **No filename prompt on "Download a copy"** (new this session, above).
-  - **Loopback default + `--public`.** Departs from §5.1's written `0.0.0.0`, because that
-    sketch assumes the auth gate.
-  - **A separate strict secret accessor** rather than making `storage_secret()` itself
-    raise. Merging them would break `ui/builder.py:main` and `ui/gm.py:main`.
+- **Design choices made without asking, all reversible:**
+  - **Rate-limit numbers:** 5 free, 30 s doubling to 15 min, forget after 1 h.
+  - **`DEFAULT_HOST` stays loopback** now that `--public` is gone.
+  - **No filename prompt on "Download a copy"** (carried).
+  - **A separate strict secret accessor** (carried).
 
 ## Still deferred, still NOT gaps
 

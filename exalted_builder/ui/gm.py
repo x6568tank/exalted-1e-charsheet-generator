@@ -728,6 +728,11 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
                           on_click=lambda: export_pdf()).props("flat").tooltip(
                     "Export every member's sheet as one PDF, one per page")
                 ui.button("New party", icon="group_add", on_click=confirm_new_party).props("flat")
+                if hosted:
+                    # The server registers `/logout`. See server/auth.py.
+                    ui.button("Log out", icon="logout",
+                              on_click=lambda: ui.navigate.to("/logout")
+                              ).props("flat").mark("gm-logout")
 
             _reference_panel(ruleset, pal)
 

@@ -891,6 +891,167 @@ filename that is already in `ctx["path"]`, and the case passes against the trap.
 
 **Browser-verified by the human, 2026-09-11**, on a local hosted server with two browsers.
 
+### 5.1d Auth — piece 3, BUILT 2026-09-11
+
+**Rulings (human, 2026-09-11), asked before the first line:**
+
+| Question | Ruling |
+|---|---|
+| How do accounts get made? | **Self-signup page.** (Recommended was admin CLI only; declined.) |
+| Where do accounts live before piece 4? | **SQLite `users` table now**, in the file piece 4 adds `characters` to. |
+| Is the context and save folder keyed to the user or the browser? | **The user.** Two devices of one account see one character. |
+
+**Second round of rulings, the same day, on the known limits of the first build:**
+
+| Question | Ruling |
+|---|---|
+| Forgotten passwords | **Manual.** The player emails the admin address (the human is making `admin@x6568tank.com`); the operator runs `server/users.py reset`. No reset by email, no email column. |
+| Rate limiting | **Yes — per username.** Not per IP: behind the tunnel every request has the tunnel's address. |
+| Disk per account | **10 MB.** *"Characters are in the singular kilobytes."* |
+| Username case | **Case-sensitive.** Reverses the `COLLATE NOCASE` the first build chose. |
+| Password rules | **8 characters, no complexity rule.** (The 72-byte maximum stays; it is bcrypt's, not a rule.) |
+| `Secure` cookie, session fixation, `.nicegui/` location | **Asked to explain, not ruled.** Explanations given; see the limits below. |
+
+**Third round, the same day:**
+
+| Question | Ruling |
+|---|---|
+| `Secure` cookie | **On.** |
+| Session fixation | The human runs **other `x6568tank.com` subdomains** (Jellyfin, Calibre, Seafile, Filebrowser) — the condition under which the fixation risk is real. Closed by the cookie name, below. |
+| `.nicegui/` | **Understood** — a deploy concern, no code. |
+
+**What shipped (third round):** `server/main.SESSION_COOKIE`, passed to `ui.run` as
+`session_middleware_kwargs`: name **`__Host-exalted-session`**, `https_only=True`, path
+`/`, no domain. Checked on a live server: `set-cookie: __Host-exalted-session=…; path=/;
+Max-Age=1209600; httponly; samesite=lax; secure`.
+
+⚠ **The `__Host-` prefix is the fixation fix, not decoration.** Browsers refuse a
+`__Host-` cookie that is not Secure, not path `/`, or that carries a `Domain` — so a
+sibling subdomain can neither plant a session id before login nor overwrite one after.
+That was the only realistic planting route. **Do not add a `domain`, and do not rename
+the cookie without the prefix**; `test_the_session_cookie_is_secure_and_host_only`
+guards both. Rotating the id at login would still close the physical-access case; it
+stays deferred as defence in depth.
+
+**What shipped:**
+
+* `server/db.py` — `init_db` (WAL + busy timeout), `create_user`, `authenticate`,
+  `username_for`, `set_password`, `list_users`. Usernames 3–32 of `[A-Za-z0-9_.-]`,
+  unique and **case-sensitive**; passwords
+  8 chars to **72 bytes** (bcrypt's limit — bcrypt 5 raises past it, and a longer one
+  would share a hash with its prefix). An unknown name still costs a bcrypt compare.
+  bcrypt is imported at the call, so nothing else needs the extra.
+* `server/auth.py` — `AuthGate` middleware, `/login`, `/signup`, `/logout`,
+  `current_user_key()` → `"user-<id>"`, `safe_target()` for `redirect_to`.
+* `register_pages(..., key=)` — the registry key function. Default is still the browser
+  key (desktop and the older hosted harnesses); `build_server` passes
+  `auth.current_user_key`. Folder: `<root>/user-<id>/`.
+* `server/main.py` — `EXALTED_DB_PATH` required (no default, `config.db_path()`), the
+  gate installed **before** `ui.run`. **`check_bind_is_allowed` and `--public` are
+  deleted**, as §5.1a said. `DEFAULT_HOST` stays loopback; a network deploy passes
+  `--host`.
+* A hosted-only **Log out** button on `/` and `/gm`, on the same `hosted` bit as the
+  download buttons.
+* `[server]` extra: `nicegui`, `reportlab`, `bcrypt`.
+* **Second round:**
+  * `server/throttle.py` — `LoginThrottle`, in memory, by exact username. 5 free
+    failures; the fifth sets a 30 s wait that doubles per further failure to 15 min; a
+    success clears the name; a name idle 1 h is forgotten; the table is bounded (10,000
+    names). ⚠ **An attempt counts as a failure when it STARTS** (`begin`), and a success
+    clears it — a count that waited for bcrypt would let parallel attempts all pass the
+    check. A refused attempt does not extend the wait.
+  * `server/quota.py` — `FolderQuota`, 10 MB per `<root>/user-<id>/`, installed by `main`
+    through a new **`persistence.set_write_guard`** hook that `atomic_write` runs before
+    each write. Every hosted write (Save, auto-save, tab save, Save party) goes through
+    `atomic_write`, so the one hook covers every site, and any new site. Replacing a file
+    frees its old size. Paths outside the root are not checked. The refusal reaches the
+    player through the existing `Save failed:` toast and the auto-save's `on_error`.
+  * `server/users.py` — `python -m exalted_builder.server.users list | reset <name>`.
+    `reset` asks twice with no echo. It refuses to run on a DB path that does not exist
+    rather than make an empty store.
+  * `EXALTED_ADMIN_CONTACT` (optional) → *"Forgot your password? Email …"* on `/login`.
+
+⚠ **The gate is a middleware, not a `require_auth()` in each page body** — a departure
+from the §5.1 sketch. A per-page call leaves open every route that forgets it, and nothing
+reddens. The middleware covers every route by default, FastAPI's `/docs` and
+`/openapi.json` included (checked on a live server). `OPEN_PATHS` is the list of exceptions.
+
+⚠ **Two layers, on purpose.** `current_user_key()` raises with no login, so a route the
+gate somehow missed returns a 500 instead of quietly serving the browser-keyed context.
+
+⚠ **`main` installs the gate and the quota, not `build_server`.** Starlette refuses
+`add_middleware` once the app has started, and the unit tests call `build_server` in a
+process where a User-harness test already started it. `test_server_main.py` asserts `main`
+calls `install_gate`, then `set_write_guard(FolderQuota(root))`, then `ui.run`, in that
+order — `ui.run` puts the session middleware *outside* the gate only if the gate is there
+first.
+
+**Tests:** `test_user_db.py` (25), `test_auth_gate.py` (27, production wiring through
+`tests/_auth_main.py`), `test_login_throttle.py` (11), `test_folder_quota.py` (12),
+`test_users_cli.py` (6), `test_server_main.py` rewritten for the gate and the quota. The route case
+**enumerates `Client.page_routes`** rather than naming pages, with a guard that the
+enumeration found `/` and `/gm`.
+
+**Negative controls, all run, restored from copies — each went red:**
+
+1. Gate not installed in the harness → 5 failed, 5 errors (the errors are the 500s of
+   the second layer).
+2. `build_server` without `key=` → the two account-key cases.
+3. `/gm` added to `OPEN_PATHS` → the route enumeration.
+4. `safe_target` without the `//` check → its parametrised case.
+5. `main` without `install_gate()` → the order case.
+6. The login page not calling `throttle.begin` → the page rate-limit case (the class's
+   own 11 cases stay green, which is the point of the page case).
+7. `main` without `set_write_guard` → the order case.
+8. The harness without the guard → the full-folder Save case.
+9. `set_password` without its `WHERE` → `test_a_reset_touches_one_account`.
+10. The throttle's prune able to remove the name it just added → a case written for it.
+
+#### 🐞 Found on the way, second round
+
+* **The throttle was off by one.** The first draft blocked on the sixth failure, so a
+  sixth attempt got through and only the seventh waited. Five tests red; fixed.
+* **The prune could delete the record it just inserted.** A new record started with
+  `last_failure = 0.0`, the oldest possible, so a full table pruned the new name and the
+  failures were counted on an orphan — that name was never limited. The bound test
+  checked only the table's length and stayed green. Fixed with `protect=`; the new case
+  went red against the old code.
+* **A test race, not a code bug, worth knowing:** `submit` reads the password field when
+  its task RUNS. A loop that settles on *"Wrong username or password."* settles
+  instantly after the first failure (the text stays), so the queued "wrong" attempts ran
+  after the test had typed the correct password — and logged in. The loop now waits for
+  the field to be cleared.
+
+#### Known limits — not solved, recorded so nobody assumes they are
+
+* **The session id does not change at login.** Since the third round the `__Host-`
+  cookie stops a sibling subdomain from planting one, which was the realistic route. What
+  remains is someone with physical access to the browser before login. Rotation would
+  need a plain HTTP login route (NiceGUI's login runs over the websocket, which cannot set
+  a cookie). Deferred as defence in depth.
+* **The cookie is Secure, so it is not stored over plain HTTP to a LAN address.** Local
+  testing works on `http://localhost` (browsers exempt it); a player on the LAN at
+  `http://192.168.x.x` cannot log in. Use the HTTPS hostname.
+* **A login lasts 14 days after the last visit** — Starlette's default `max_age`,
+  refreshed on each response.
+* **The login state lives in `.nicegui/storage-user-*.json` in the server's working
+  directory**, one small file per browser that ever visited, bots included, never
+  pruned. A deploy that discards that directory logs everyone out; no character is lost.
+  **Understood by the human 2026-09-11; minor.** Deploy guidance: start the server
+  from, or mount, a directory on the data volume.
+* **A password reset does not end the logins that exist.** A browser that is logged in
+  stays logged in. Matters only for a stolen password, not a forgotten one.
+* **The rate limit is per username only** (the ruling). Someone can keep a friend's name
+  in cooldown by guessing — at most 15 minutes at a time. It is in memory, so a restart
+  clears it.
+* **Signup is not rate-limited and the account count is not capped.** The quota bounds
+  each account's disk, not the number of accounts.
+* **No account delete, and no password change by the player.**
+* **The homebrew library is outside the quota** — it is one process-wide library
+  (§5.3, piece 4), and a loaded save still writes its homebrew into it.
+* **Two devices of one account share one live `Character`.** Saves are consistent; the
+  view that did not make an edit is stale until it reloads. This is the ruling's cost.
+
 ### 5.2 Correcting the original §5 on `app.storage.user`
 
 The original says:
@@ -957,7 +1118,7 @@ auth gate and per-request resolution are the additions), plus whatever 5.3's rul
 | 1. `server/main.py` — the switch | ✅ done, §5.1a |
 | 2. the third save branch (both sites) | ✅ done, §5.1b |
 | 2b. "Download a copy" on a hosted run | ✅ done, §5.1c — browser-verified |
-| 3. Auth — `/login`, the gate, `bcrypt`, the `[server]` extra | ❌ not started |
+| 3. Auth — `/login`, the gate, `bcrypt`, the `[server]` extra | ✅ done, §5.1d — not browser-verified |
 | 4. The DB, and §5.3's per-user rulesets | ❌ not started; **measure one merged `RuleSet` before fixing the layout** |
 
 ⚠ Piece 1 shipped **without** piece 2, so a hosted run now persists edits by timer while

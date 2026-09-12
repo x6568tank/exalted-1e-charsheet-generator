@@ -305,13 +305,18 @@ async def test_hosted_party_download_does_not_move_the_save_destination(
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_download_buttons_are_present_hosted(create_user) -> None:
     """The gate, first direction. Without this case, the absence cases below pass
-    against a button that never renders."""
+    against a button that never renders.
+
+    Log out takes the same hosted bit. The server registers `/logout`; this main
+    file does not, and the button needs only to render here."""
     user = create_user()
     await user.open("/")
     await user.should_see(marker="top-bar-download")
+    await user.should_see(marker="top-bar-logout")
 
     await user.open("/gm")
     await user.should_see(marker="gm-download-party")
+    await user.should_see(marker="gm-logout")
 
 
 @pytest.mark.asyncio
@@ -326,10 +331,12 @@ async def test_download_buttons_are_absent_on_the_desktop(create_user) -> None:
     await user.open("/desktop")
     await user.should_see(marker="top-bar-save")
     await user.should_not_see(marker="top-bar-download")
+    await user.should_not_see(marker="top-bar-logout")
 
     await user.open("/desktop-gm")
     await user.should_see(marker="gm-save-party")
     await user.should_not_see(marker="gm-download-party")
+    await user.should_not_see(marker="gm-logout")
 
 
 # --------------------------------------------------------------------------- #

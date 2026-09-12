@@ -25,6 +25,15 @@ ui = [
     # an optional extra within it: the Print button is always on the header bar.
     "reportlab>=4",
 ]
+# The hosted server (`python -m exalted_builder.server.main`): the web UI plus the
+# password hashing of the login gate. `bcrypt` directly, not `passlib`, which is
+# unmaintained and pins an old bcrypt (hosting-state-model.md §5.4). Also a dev
+# need: tests/test_auth_gate.py and test_user_db.py skip without it.
+server = [
+    "nicegui>=2",
+    "reportlab>=4",
+    "bcrypt>=4",
+]
 # Tools needed to build a standalone executable (see pack/). TWO products build from
 # this tree and `desktop` is just the toolchain shared by both: pair it with `ui` for
 # the browser build (`pack/exalted-builder.spec`) or with `qt` for the native PySide6

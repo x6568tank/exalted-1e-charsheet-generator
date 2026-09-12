@@ -10,9 +10,12 @@ session root.
 save directory and its own auto-save timer. All three desktop callers pass no root.
 Thus section 3 was complete and unreachable until this file.
 
-⚠ This module has NO authentication. It is piece 1 of section 5; the login gate and
-the database are piece 3 and piece 4. Thus `DEFAULT_HOST` is loopback, and a
-non-loopback bind needs `--public`. See `check_bind_is_allowed`.
+Piece 3 adds the login gate. `build_server` registers the login pages and keys each
+context on the account; `main` installs the gate. See server/auth.py.
+
+⚠ `main` installs the gate, not `build_server`. The tests call `build_server` in a
+process where the app can already run, and a middleware cannot be added then.
+`tests/test_server_main.py` asserts that `main` installs it.
 
 ⚠ Run ONE worker. The session registry holds live `Character` objects, thus it can
 never be JSON, thus it can never cross a process boundary. Section 3.4 gives the
@@ -30,39 +33,36 @@ from pathlib import Path
 
 from nicegui import ui
 
-from .. import rules_db
+from .. import persistence, rules_db
 from ..models.character import Character, new_character_id
-from ..server import config
+from ..server import auth, config, db, quota
 from ..server.session import SessionRegistry
 from ..ui import builder
 
 _DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
-# ⚠ Loopback, not 0.0.0.0. Section 5.1 sketches a public bind, and it assumes the
-# auth gate of section 5 that this file does not have.
+# Loopback. An operator that puts the server on a network passes `--host`.
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8080
 
-# The hosts that need no acknowledgement. A name that resolves to the loopback
-# interface reaches no other machine.
-_LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
 
-
-def check_bind_is_allowed(host: str, *, acknowledged: bool) -> None:
-    """Raise `RuntimeError` if `host` reaches other machines and `acknowledged` is
-    false. Return None in all other cases.
-
-    ⚠ This is a mechanism, not a warning, because there is no authentication yet.
-    An un-gated hostname gives whoever finds it the character, the homebrew library
-    and the Storyteller screen. `docs/plans/hosting-per-instance.md` records that
-    cost. Delete this function when the auth gate of section 5 lands, not before.
-    """
-    if host in _LOOPBACK_HOSTS or acknowledged:
-        return
-    raise RuntimeError(
-        f"Refusing to bind {host}: this server has no authentication yet. Anyone "
-        "who reaches the port gets every character, the homebrew library and the "
-        "Storyteller page. Bind 127.0.0.1, or pass --public to accept that.")
+# The session cookie of the hosted server. The human ruled the HTTPS-only flag on
+# 2026-09-11.
+#
+# ⚠ The `__Host-` prefix is a rule of the browser. A cookie with it must be Secure,
+# must have the path "/", and must have no domain. Thus a different site under the
+# same parent domain cannot set it or replace it. Without the prefix, a sibling
+# subdomain can plant a session id before a login, and after the login it holds
+# the login. See section 5.1d of docs/plans/hosting-state-model.md.
+#
+# ⚠ A Secure cookie is not stored over plain HTTP to a LAN address. `localhost` is
+# an exception in the browsers.
+SESSION_COOKIE = {
+    "session_cookie": "__Host-exalted-session",
+    "https_only": True,
+    "path": "/",
+    "same_site": "lax",
+}
 
 
 def prototype_context(session_root: Path) -> dict:
@@ -82,44 +82,58 @@ def prototype_context(session_root: Path) -> dict:
     return builder.make_context(character, path)
 
 
-def build_server(session_root: Path | None = None) -> SessionRegistry:
+def build_server(session_root: Path | None = None,
+                 db_path: Path | None = None) -> SessionRegistry:
     """Register the hosted routes and return the registry of session contexts.
 
-    Read the session root from `EXALTED_SESSION_ROOT` if the caller gives none.
-    That call raises when the variable is absent; there is no default, because one
-    shared directory is the defect that section 3.7 removes.
+    Read the session root from `EXALTED_SESSION_ROOT` and the database from
+    `EXALTED_DB_PATH` if the caller gives none. Each call raises when its variable
+    is absent; there is no default, because one shared directory is the defect
+    that section 3.7 removes.
 
-    ⚠ This does not run a server. `main` does that. The split exists so a test can
-    assert on the wiring, which is the only thing this file adds.
+    Make the account tables. Register the login pages. Key each context on the
+    logged-in account, thus each device of one player sees one character.
+
+    ⚠ This does not run a server and does not install the gate. `main` does both.
     """
     root = config.session_root() if session_root is None else session_root
+    database = config.db_path() if db_path is None else db_path
+    db.init_db(database)
     ruleset = rules_db.load_app_ruleset(_DATA_DIR)
-    return builder.register_pages(ruleset, prototype_context(root), session_root=root)
+    auth.register_auth_pages(database)
+    return builder.register_pages(ruleset, prototype_context(root), session_root=root,
+                                  key=auth.current_user_key)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Exalted 1e builder — hosted server")
     parser.add_argument("--host", default=DEFAULT_HOST)
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
-    parser.add_argument("--public", action="store_true",
-                        help="accept that this server has no authentication")
     args = parser.parse_args()
 
-    check_bind_is_allowed(args.host, acknowledged=args.public)
-
-    # Read both settings before the server starts. Each raises when it is absent,
+    # Read the settings before the server starts. Each raises when it is absent,
     # thus a misconfigured deployment fails at the start and not at the first
     # request.
     secret = config.required_storage_secret()
     root = config.session_root()
+    database = config.db_path()
     root.mkdir(parents=True, exist_ok=True)
 
-    build_server(session_root=root)
+    build_server(session_root=root, db_path=database)
+
+    # ⚠ Before `ui.run`. `ui.run` adds the session middleware outside the gate,
+    # thus the login state is readable when the gate runs.
+    auth.install_gate()
+
+    # The 10 MB limit of each account folder. Each hosted write goes through
+    # `persistence.atomic_write`, thus this one guard covers each write site.
+    persistence.set_write_guard(quota.FolderQuota(root))
 
     # ⚠ `reload=False`. A reload makes a second process, and the registry holds
     # live objects that cannot cross one. See the module docstring.
     ui.run(title="Exalted 1e — Table", host=args.host, port=args.port,
-           reload=False, show=False, storage_secret=secret)
+           reload=False, show=False, storage_secret=secret,
+           session_middleware_kwargs=SESSION_COOKIE)
 
 
 if __name__ in {"__main__", "__mp_main__"}:

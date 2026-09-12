@@ -26,6 +26,12 @@ STORAGE_SECRET_ENV = "EXALTED_STORAGE_SECRET"
 # The parent folder of the per-session save directories.
 SESSION_ROOT_ENV = "EXALTED_SESSION_ROOT"
 
+# The SQLite file that holds the user accounts. See server/db.py.
+DB_PATH_ENV = "EXALTED_DB_PATH"
+
+# The address that the login page gives for a forgotten password. Optional.
+ADMIN_CONTACT_ENV = "EXALTED_ADMIN_CONTACT"
+
 # The secret of this process, if the environment gives none. Made one time, at the
 # first request, and kept for the life of the process.
 _ephemeral: str | None = None
@@ -92,6 +98,31 @@ def session_root() -> Path:
             "directory makes every session write one file. See "
             "docs/plans/hosting-state-model.md section 3.7.")
     return Path(configured).expanduser()
+
+
+def db_path() -> Path:
+    """Return the path of the account database.
+
+    Read `EXALTED_DB_PATH`. Raise `RuntimeError` if it is absent or empty.
+
+    ⚠ This has no default, for the reason of `session_root`. A default path in the
+    working directory makes a second store when the server starts from a second
+    directory, and every account then seems lost.
+    """
+    configured = os.environ.get(DB_PATH_ENV, "").strip()
+    if not configured:
+        raise RuntimeError(
+            f"{DB_PATH_ENV} is not set. A hosted run must name the file that holds "
+            "the user accounts. There is no default.")
+    return Path(configured).expanduser()
+
+
+def admin_contact() -> str | None:
+    """Return the contact address for a forgotten password, or None if it is not set.
+
+    The operator resets a password with `python -m exalted_builder.server.users`.
+    """
+    return os.environ.get(ADMIN_CONTACT_ENV, "").strip() or None
 
 
 def reset_ephemeral_secret() -> None:

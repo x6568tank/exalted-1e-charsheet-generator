@@ -16,6 +16,7 @@ same machinery; the party helpers below mirror the character ones one for one.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 import os
 import re
 import sys
@@ -105,14 +106,35 @@ def character_from_json(data: str) -> Character:
     return character
 
 
+# A check that runs before each write, or None. It takes the path and the size of
+# the payload in bytes, and raises to refuse the write. The hosted server installs
+# `server/quota.FolderQuota`; the desktop installs nothing.
+_write_guard: Callable[[Path, int], None] | None = None
+
+
+def set_write_guard(guard: Callable[[Path, int], None] | None) -> None:
+    """Install `guard` as the check before each write. None removes the check.
+
+    ⚠ This is process-wide. The hosted server runs one process and installs it one
+    time, in `server/main.main`.
+    """
+    global _write_guard  # noqa: PLW0603
+    _write_guard = guard
+
+
 def atomic_write(path: str | os.PathLike, payload: str) -> Path:
     """Write `payload` to `path`, atomically. Creates parent directories if needed.
     Returns the path written.
 
     Writes to a temp file in the same directory then os.replace()s it, so the
     destination is never observed as a partially written file.
+
+    Run the write guard first, if one is installed. Its error propagates, and the
+    file is not changed.
     """
     path = Path(path)
+    if _write_guard is not None:
+        _write_guard(path, len(payload.encode("utf-8")))
     path.parent.mkdir(parents=True, exist_ok=True)
 
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=path.name, suffix=".tmp")

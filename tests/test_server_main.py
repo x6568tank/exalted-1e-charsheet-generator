@@ -17,10 +17,12 @@ proves the pages use it. Both pass with `server/main.py` absent or with its
 from __future__ import annotations
 
 from pathlib import Path
+import sys
 
 import pytest
 
-from exalted_builder.server import config, main
+from exalted_builder import persistence
+from exalted_builder.server import auth, config, main
 
 
 @pytest.fixture
@@ -29,18 +31,24 @@ def root(tmp_path: Path) -> Path:
     return tmp_path / "sessions"
 
 
+@pytest.fixture
+def database(tmp_path: Path) -> Path:
+    """An account database of this test alone."""
+    return tmp_path / "accounts" / "exalted.db"
+
+
 # --------------------------------------------------------------------------- #
 # The wiring: the entry point passes a root
 # --------------------------------------------------------------------------- #
 
 
-def test_two_sessions_of_the_server_get_two_directories(root: Path) -> None:
+def test_two_sessions_of_the_server_get_two_directories(root: Path, database: Path) -> None:
     """The dormancy check. `build_server` must hand `register_pages` a root.
 
     Delete the `session_root=` argument in `server/main.py` and this is the case
     that reddens.
     """
-    registry = main.build_server(session_root=root)
+    registry = main.build_server(session_root=root, db_path=database)
 
     alpha = registry.ctx_for("alpha")
     beta = registry.ctx_for("beta")
@@ -52,9 +60,9 @@ def test_two_sessions_of_the_server_get_two_directories(root: Path) -> None:
     )
 
 
-def test_the_server_saves_inside_the_session_root(root: Path) -> None:
+def test_the_server_saves_inside_the_session_root(root: Path, database: Path) -> None:
     """The destination comes from the root, not from the prototype."""
-    registry = main.build_server(session_root=root)
+    registry = main.build_server(session_root=root, db_path=database)
 
     path = registry.ctx_for("alpha")["path"]
 
@@ -77,14 +85,14 @@ def test_the_prototype_path_is_outside_the_root(root: Path) -> None:
     )
 
 
-def test_the_session_home_is_the_session_directory(root: Path) -> None:
+def test_the_session_home_is_the_session_directory(root: Path, database: Path) -> None:
     """🐞 The handler trap of section 3.7b.
 
     `new_character` and the upload branch rebuild the destination from
     `ctx["home_dir"]`. A home outside the session directory takes the session back
     out of its own folder on the first click of New.
     """
-    registry = main.build_server(session_root=root)
+    registry = main.build_server(session_root=root, db_path=database)
 
     ctx = registry.ctx_for("alpha")
 
@@ -94,10 +102,12 @@ def test_the_session_home_is_the_session_directory(root: Path) -> None:
     )
 
 
-def test_the_server_reads_the_root_from_the_environment(root: Path, monkeypatch) -> None:
+def test_the_server_reads_the_root_from_the_environment(root: Path, database: Path,
+                                                        monkeypatch) -> None:
     """The whole chain. `build_server` with no argument must call
     `config.session_root`, which reads `EXALTED_SESSION_ROOT`."""
     monkeypatch.setenv(config.SESSION_ROOT_ENV, str(root))
+    monkeypatch.setenv(config.DB_PATH_ENV, str(database))
 
     registry = main.build_server()
 
@@ -110,6 +120,21 @@ def test_the_server_refuses_to_start_without_a_root(monkeypatch) -> None:
 
     with pytest.raises(RuntimeError, match=config.SESSION_ROOT_ENV):
         main.build_server()
+
+
+def test_the_server_refuses_to_start_without_a_database(root: Path, monkeypatch) -> None:
+    """No default. A default path in the working directory makes a second account
+    store when the server starts from a second directory."""
+    monkeypatch.delenv(config.DB_PATH_ENV, raising=False)
+
+    with pytest.raises(RuntimeError, match=config.DB_PATH_ENV):
+        main.build_server(session_root=root)
+
+
+def test_the_server_makes_the_account_database(root: Path, database: Path) -> None:
+    main.build_server(session_root=root, db_path=database)
+
+    assert database.exists()
 
 
 # --------------------------------------------------------------------------- #
@@ -148,32 +173,62 @@ def test_the_hosted_secret_rejects_the_desktop_fallback(monkeypatch) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# The exposure guard: there is no auth yet
+# The gate: `main` installs it
 # --------------------------------------------------------------------------- #
 
 
-def test_a_public_bind_needs_the_explicit_acknowledgement() -> None:
-    """⚠ Auth is piece 3 and is NOT built. `hosting-per-instance.md` records what
-    an un-gated hostname costs: the character, the homebrew library and the
-    Storyteller screen, open to whoever finds the name.
+def test_main_installs_the_gate_and_the_quota_before_the_server_runs(root: Path, database: Path,
+                                                       monkeypatch) -> None:
+    """⚠ `build_server` does not install the gate, thus `main` must. A `main` that
+    omits the call serves each route to any visitor, and each case of
+    `test_auth_gate.py` still passes, because its main file installs the gate.
 
-    Thus a non-loopback bind must be asked for twice. Delete this and the default
-    entry point publishes an unauthenticated server.
+    The order matters too. `ui.run` adds the session middleware outside the gate
+    only if the gate is there first. See `auth.AuthGate`.
+
+    The quota is the same shape: a correct check that `main` does not install is
+    no limit. `test_folder_quota.py` tests the check.
     """
-    with pytest.raises(RuntimeError, match="no authentication"):
-        main.check_bind_is_allowed("0.0.0.0", acknowledged=False)
+    calls: list[str] = []
+    guards: list = []
+    monkeypatch.setattr(auth, "install_gate", lambda: calls.append("gate"))
+    monkeypatch.setattr(persistence, "set_write_guard",
+                        lambda guard: (calls.append("quota"), guards.append(guard)))
+    run_kwargs: dict = {}
+    monkeypatch.setattr(main.ui, "run", lambda *args, **kwargs: (
+        calls.append("run"), run_kwargs.update(kwargs)))
+    monkeypatch.setattr(sys, "argv", ["exalted-server"])
+    monkeypatch.setenv(config.STORAGE_SECRET_ENV, "a-real-secret")
+    monkeypatch.setenv(config.SESSION_ROOT_ENV, str(root))
+    monkeypatch.setenv(config.DB_PATH_ENV, str(database))
+
+    main.main()
+
+    assert calls == ["gate", "quota", "run"], (
+        f"main made the calls {calls}. It must install the gate and the quota, "
+        "then run.")
+    assert guards[0].root == root, "The quota guards a folder that is not the root."
+    assert guards[0].limit == 10 * 1024 * 1024
+    assert run_kwargs.get("session_middleware_kwargs") is main.SESSION_COOKIE, (
+        "main does not pass the session cookie settings to ui.run. The cookie is "
+        "then not Secure and a sibling subdomain can set it.")
 
 
-def test_a_loopback_bind_needs_no_acknowledgement() -> None:
-    main.check_bind_is_allowed("127.0.0.1", acknowledged=False)
-    main.check_bind_is_allowed("localhost", acknowledged=False)
+def test_the_session_cookie_is_secure_and_host_only() -> None:
+    """The human's ruling, 2026-09-11: the cookie is HTTPS-only.
 
+    ⚠ The `__Host-` prefix is what stops a sibling subdomain (the operator runs
+    several) from planting a session id. The browser enforces it only with Secure,
+    path "/" and no domain; with a domain, the browser drops the cookie.
+    """
+    cookie = main.SESSION_COOKIE
 
-def test_a_public_bind_is_allowed_once_acknowledged() -> None:
-    main.check_bind_is_allowed("0.0.0.0", acknowledged=True)
+    assert cookie["session_cookie"].startswith("__Host-")
+    assert cookie["https_only"] is True
+    assert cookie["path"] == "/"
+    assert "domain" not in cookie
 
 
 def test_the_default_host_is_loopback() -> None:
-    """The default must be the safe one. A default of 0.0.0.0 makes the guard
-    above a thing the operator meets after the fact."""
+    """The safe default stays. An operator that serves a network passes `--host`."""
     assert main.DEFAULT_HOST == "127.0.0.1"

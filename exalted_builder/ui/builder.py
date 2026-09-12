@@ -644,6 +644,11 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
                 "flat color=white").tooltip("Export a print-ready PDF character sheet")
             ui.button("Finish & Lock", icon="lock", on_click=finish).props("flat color=white")
             ui.button("Unlock", icon="lock_open", on_click=unlock).props("flat color=white")
+            if hosted:
+                # The server registers `/logout`. See server/auth.py.
+                ui.button("Log out", icon="logout",
+                          on_click=lambda: ui.navigate.to("/logout")
+                          ).props("flat color=white").mark("top-bar-logout")
 
     def _apply_chrome() -> None:
         """Paint the header bar, title and page background from the current
@@ -691,7 +696,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
 
 def register_pages(ruleset: RuleSet, ctx: dict,
-                   session_root: Path | None = None) -> SessionRegistry:
+                   session_root: Path | None = None,
+                   key: Callable[[], str] = session_key) -> SessionRegistry:
     """Register the app's routes: '/' the single-character builder, '/gm' the
     Storyteller's party page. Return the registry of the session contexts.
 
@@ -711,6 +717,10 @@ def register_pages(ruleset: RuleSet, ctx: dict,
     ⚠ Resolve the context in the page BODY. A context in the closure is the
     defect of hosting-state-model.md section 3.1: every browser then edits one
     Character, and every functional test still passes.
+
+    `key` returns the registry key of the current request. The default is the
+    browser key. The hosted server supplies `server/auth.current_user_key`, thus
+    each browser of one account gets one context and one save folder.
 
     ⚠ Each caller of this function must give `ui.run` a `storage_secret`. The
     session key comes from the session cookie, which needs one. See
@@ -736,7 +746,7 @@ def register_pages(ruleset: RuleSet, ctx: dict,
 
     @ui.page("/")
     def index() -> None:
-        session_ctx = sessions.ctx_for(session_key())
+        session_ctx = sessions.ctx_for(key())
         # ⚠ Auto-save is enabled by the same value that isolates the destination.
         # Thus the hazardous pair — a timer plus a shared path — cannot be
         # configured. Do not give these two their own switches. See section 3.7.
@@ -748,7 +758,7 @@ def register_pages(ruleset: RuleSet, ctx: dict,
         # ⚠ `/gm` takes the SAME hosted bit as '/'. `gm.save_party` carried the
         # identical two-way branch, so a hosted Storyteller got a download and the
         # server kept no roster. One page fixed and one not is the house bug.
-        gm_mod.build_gm(ruleset, sessions.ctx_for(session_key()),
+        gm_mod.build_gm(ruleset, sessions.ctx_for(key()),
                         hosted=session_root is not None)
 
     return sessions
