@@ -2,23 +2,18 @@
 
 # 👉 YOU ARE HERE
 
-Last FULL suite: **3548 passed + 1 skipped** — observed at the START of this session,
-**before** piece 2b. It is the run the previous handoff left pending, and it agrees with
-that handoff's arithmetic.
+Last FULL suite: **3555 passed + 1 skipped** — observed at the END of this session, on
+`54b0b00`, after both 2b and the trait-dialog fix.
 ⚠ The count moves by machine and by optional dependency — see `docs/testing.md`, and do
 not reconcile this against another machine.
 
-⚠ **The full suite was NOT re-run after 2b** (human's call: targeted is enough for this
-row). Observed instead: **190 passed** across the 13 hosting / builder / GM / session files,
-including `test_engine_seam.py`. 2b adds six cases, so the next full run should read
-**3554 + 1 skipped** — computed, not observed.
+**The arithmetic agrees.** The session opened on **3548 + 1 skipped** (the run the
+previous handoff left pending). 2b added six cases and the dialog guard one: 3548 + 6 + 1
+= 3555.
 
-The trait-dialog fix below was verified with `tests/test_trait_descriptions.py` and
-`tests/test_catalogue_dialogs.py` (**28 passed**), not with the full suite.
-
-**Working tree:** clean when this line was written — 2b is `87b488c`, and the trait-dialog
-fix and the click-through record are the commit that carries this file. Check
-`git status` before acting on this line.
+**Working tree:** `54b0b00` is the last commit. The only change after it is this
+count-and-tree update to `handoff.md`, uncommitted when written. Check `git status`
+before acting on this line.
 
 ## ✅ BROWSER-VERIFIED — the hosted server, by the human, 2026-09-11
 
