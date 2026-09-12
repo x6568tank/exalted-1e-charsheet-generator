@@ -92,9 +92,8 @@ of a table.
   *easier* than shared, because shared needs the `load_character` write hazard solved and
   per-user dissolves it) and that reversal has to be decided before the layout, not after.
   ⚠ **The layout grew on 2026-09-12** — several characters, base characters, tables,
-  pending memberships: `vtt.md` §9.3. Two base-character questions are **still unruled**
-  (§9.2): can a base change after a copy exists, and can a copy exist with no campaign.
-  Ask them before building the edit path.
+  pending memberships: `vtt.md` §9.3. Both base-character questions are ruled (§9.2):
+  a base change reaches **later copies only**, and a copy **can** exist with no campaign.
 - **The public wiki** (`vtt.md` §9.5) — independent of everything else. ⚠ **Book-only
   `RuleSet`**, never the merged one, or every player's homebrew goes public.
 - **Backgrounds `source` — 51 of 63 DONE. 12 left, and they need a human with a page.**
@@ -165,8 +164,6 @@ hand `users reset` over for a real terminal (`getpass`).
 ## ❓ Open for the human
 
 - **No open RULES questions.** This session touched no game values.
-- **Two product questions on the base character** (`vtt.md` §9.2): can a base be changed
-  after a campaign copy exists, and can a copy exist outside any campaign?
 - **Design choices made without asking, all reversible:**
   - **Rate-limit numbers:** 5 free, 30 s doubling to 15 min, forget after 1 h.
   - **`DEFAULT_HOST` stays loopback** now that `--public` is gone.

@@ -628,11 +628,12 @@ it, with its own log and its own play state, that advances on its own.
   with the copy for free: a save already embeds the definitions it references.
 * ⚠ **The copy must go through the table-layer consent rule of §1.3** — a character
   joining a table never absorbs its homebrew into the table's mod without the ST.
-* ⚠ **Not yet ruled, and a default is not a ruling:** whether a base can be changed after
-  a copy exists (`unlock_chargen()` is the escape hatch). The safe default is that
-  changing a base changes only **future** copies. Ask before building the edit path.
-* ⚠ **Not yet ruled:** whether a copy can exist with **no** campaign (solo play, the
-  desktop's shape today). Ask.
+* **RULED 2026-09-12: a base can be changed after a copy exists, and the change reaches
+  later copies only.** Copies already made do not move. (`unlock_chargen()` is the
+  escape hatch; re-locking re-snapshots, per 0004.)
+* **RULED 2026-09-12: a copy can exist with no campaign** — solo play, the desktop's
+  shape today. So `table_id` is nullable on a copy, and XP on a solo copy has no
+  Storyteller behind it.
 
 ### 9.3 What this does to piece 4 (the DB)
 
