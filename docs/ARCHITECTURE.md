@@ -159,6 +159,11 @@ Contains **zero game logic**. Two layers:
 If a renderer needs to know a rule, the answer is to add a function to the engine or
 the presenter, not an `if` to the render.
 
+`ui/wiki_view.py` is a second presenter, for the public wiki: `(RuleSet, filters)` →
+list and entry view models, **no `Character`**. It formats through `view.py`'s helpers
+(`charm_requirements`, `source_label`, `_cost_str`, …) rather than its own copies. Its
+renderer is `server/wiki.py`, which writes plain HTML, not NiceGUI.
+
 ### `server/` — the hosted deployment's state
 
 Holds what a hosted deployment needs and the desktop and Qt shells do not: **one `ctx`
@@ -172,6 +177,13 @@ Two boundaries hold here:
   a `factory(key) -> dict`. Auth maps a cookie to a user; `server/` does not.
 * **It is not on the engine side.** `tests/test_engine_seam.py` does not police it, and
   it must not become a dependency of `engine/` or `models/`.
+
+⚠ Those two boundaries describe `session.py`. `server/` has since grown the hosted
+entry point (`main.py`), auth (`auth.py`, `db.py`, `throttle.py`, `quota.py`, `users.py`)
+and the **public pages** (`site.py`, `public.py`, `wiki.py` — `docs/plans/vtt.md` §9),
+which do import NiceGUI/FastAPI and SQLite. ⚠ The public pages are plain FastAPI routes
+returning HTML, and the wiki is handed a **book-only** `RuleSet` (`load_ruleset`, never
+`load_app_ruleset`) so homebrew never goes public.
 
 ⚠ The registry holds live `Character` objects, so it can never be JSON, so it can never
 move between processes. **Run one worker.** `docs/plans/hosting-state-model.md` §3.4 has

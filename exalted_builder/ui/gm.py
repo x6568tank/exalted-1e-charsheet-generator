@@ -198,9 +198,12 @@ def party_palette(party: Party) -> theme.Palette:
 
 
 def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
-             hosted: bool = False) -> None:
+             hosted: bool = False, builder_path: str = "/") -> None:
     """Render the party page over the shared app context (see builder.make_context).
     `ctx["party"]` is the roster; `ctx["party_path"]` is where it last saved.
+
+    `builder_path` is the route of the builder. The two ways back to the builder
+    go there. The hosted server moves the builder off "/", which is public there.
 
     `hosted` says that this session runs on a server and owns a directory there.
     It selects the same third save branch that `builder.build_app` does. See
@@ -275,7 +278,7 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
 
     def open_in_builder(index: int) -> None:
         builder_mod.open_member(ctx, index)
-        ui.navigate.to("/")
+        ui.navigate.to(builder_path)
 
     # ---- party save / load ------------------------------------------------ #
     # Deployment-aware in the same way as the builder's character Save/Load:
@@ -771,7 +774,8 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
                 f"background:{pal.accent}"):
             ui.label("Exalted 1e — Party").classes("text-lg font-bold text-white")
             ui.button("Builder", icon="edit",
-                      on_click=lambda: ui.navigate.to("/")).props("flat color=white")
+                      on_click=lambda: ui.navigate.to(builder_path)).props(
+                "flat color=white").mark("gm-builder")
     body()
 
 

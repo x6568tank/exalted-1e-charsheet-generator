@@ -35,7 +35,7 @@ from nicegui import ui
 
 from .. import persistence, rules_db
 from ..models.character import Character, new_character_id
-from ..server import auth, config, db, quota
+from ..server import auth, config, db, public, quota, wiki
 from ..server.session import SessionRegistry
 from ..ui import builder
 
@@ -91,8 +91,14 @@ def build_server(session_root: Path | None = None,
     is absent; there is no default, because one shared directory is the defect
     that section 3.7 removes.
 
-    Make the account tables. Register the login pages. Key each context on the
-    logged-in account, thus each device of one player sees one character.
+    Make the account tables. Register the login pages, the public front page,
+    About and the wiki. Register the builder at `auth.HOME_PATH`, because "/" is
+    the public front page. Key each context on the logged-in account, thus each
+    device of one player sees one character.
+
+    ⚠ The wiki gets a BOOK ruleset from `load_ruleset`, not the merged ruleset of
+    the builder. The merged ruleset holds the homebrew of the process, and the
+    wiki is public. See docs/plans/vtt.md section 9.5.
 
     ⚠ This does not run a server and does not install the gate. `main` does both.
     """
@@ -101,8 +107,10 @@ def build_server(session_root: Path | None = None,
     db.init_db(database)
     ruleset = rules_db.load_app_ruleset(_DATA_DIR)
     auth.register_auth_pages(database)
+    public.register_public_pages()
+    wiki.register_wiki(rules_db.load_ruleset(_DATA_DIR))
     return builder.register_pages(ruleset, prototype_context(root), session_root=root,
-                                  key=auth.current_user_key)
+                                  key=auth.current_user_key, builder_path=auth.HOME_PATH)
 
 
 def main() -> None:

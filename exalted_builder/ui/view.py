@@ -568,6 +568,48 @@ def service_rows(ruleset: RuleSet, character: Character) -> list[tuple]:
             for g in sorted(services, key=lambda g: (g.category, g.name))]
 
 
+def charm_requirements(ruleset: RuleSet, charm) -> tuple[str, list[list[str]]]:
+    """Return the requirement line and the prerequisite groups of `charm`.
+
+    The requirement line gives each trait minimum and the Essence minimum, for
+    example "Martial Arts 4, Essence 2". Each prerequisite group is a list of Charm
+    names, and one name in a group satisfies it. A breadth prerequisite is a group
+    of one label. The result does not use a character.
+    """
+    # Every trait minimum, not just the primary one: a Charm may gate on more than one
+    # Ability (Ascendant Battle Visage needs Brawl 5 AND Endurance 5, p.102), and the
+    # engine owns the list so the card cannot show half the requirements.
+    reqs = [f"{_label(name)} {rating}"
+            for name, rating in validate.charm_ability_requirements(charm) if rating]
+    reqs.append(f"Essence {charm.min_essence}")
+    groups = [[name for name, _ in group] for group in charm_prerequisite_links(ruleset, charm)]
+    return ", ".join(reqs), groups
+
+
+def charm_prerequisite_links(ruleset: RuleSet, charm) -> list[list[tuple[str, Optional[str]]]]:
+    """Return the prerequisite groups of `charm` as (name, charm id) pairs.
+
+    The id is None for a Charm that the ruleset does not contain, and for a breadth
+    prerequisite. One pair in a group satisfies the group.
+    """
+    groups = [[(ruleset.charms[r].name, r) if r in ruleset.charms else (r, None)
+               for r in group]
+              for group in charm.prerequisites]
+    # A breadth prerequisite ("any 3 Occult Charms") names no id, so it cannot be a
+    # group of Charm names — it rides as its own single-entry group, which is how the
+    # card already renders "one of these" lines. Without this the five Aspect-Book
+    # Charms that have ONLY a breadth prerequisite would show none at all.
+    groups += [[(validate.charm_count_requirement_label(req), None)]
+               for req in charm.prerequisite_counts]
+    return groups
+
+
+def source_label(source) -> str:
+    """Return "<book> p.<page>" for a `Source`. Return "" if the book or the page is
+    absent."""
+    return f"{source.book} p.{source.page}" if source and source.book and source.page else ""
+
+
 def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) -> Optional[CharmDetail]:
     """Display detail for a single Charm: its requirements (gating ability + min
     essence), prerequisite Charms by name, and the character's relationship to it.
@@ -575,20 +617,7 @@ def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) ->
     charm = ruleset.charms.get(charm_id)
     if charm is None:
         return None
-    # Every trait minimum, not just the primary one: a Charm may gate on more than one
-    # Ability (Ascendant Battle Visage needs Brawl 5 AND Endurance 5, p.102), and the
-    # engine owns the list so the card cannot show half the requirements.
-    reqs = [f"{_label(name)} {rating}"
-            for name, rating in validate.charm_ability_requirements(charm) if rating]
-    reqs.append(f"Essence {charm.min_essence}")
-    groups = [[ruleset.charms[r].name if r in ruleset.charms else r for r in group]
-              for group in charm.prerequisites]
-    # A breadth prerequisite ("any 3 Occult Charms") names no id, so it cannot be a
-    # group of Charm names — it rides as its own single-entry group, which is how the
-    # card already renders "one of these" lines. Without this the five Aspect-Book
-    # Charms that have ONLY a breadth prerequisite would show none at all.
-    groups += [[validate.charm_count_requirement_label(req)]
-               for req in charm.prerequisite_counts]
+    requirement, groups = charm_requirements(ruleset, charm)
     return CharmDetail(
         id=charm.id,
         name=charm.name,
@@ -596,7 +625,7 @@ def build_charm_detail(ruleset: RuleSet, character: Character, charm_id: str) ->
         type=charm.type.value,
         cost=_cost_str(charm.cost),
         duration=charm.duration,
-        requirement=", ".join(reqs),
+        requirement=requirement,
         prerequisite_groups=groups,
         owned=charm_id in character.charms,
         available=validate.meets_charm_requirements(ruleset, character, charm),
@@ -2152,13 +2181,18 @@ def merit_option_label(definition) -> str:
     """One catalogue entry as a menu line — "Name  (−4 supernatural)". The sign says
     which way the transaction runs (a Flaw PAYS), and a variable-cost entry shows its
     range rather than a single number."""
+    sign = "−" if definition.kind == "merit" else "+"
+    return (f"{definition.name}  ({sign}{merit_price(definition)} "
+            f"{definition.category or definition.kind})")
+
+
+def merit_price(definition) -> str:
+    """Return the point value of a Merit or a Flaw: "3", or "1-3" for an entry with
+    cost options."""
     if definition.cost_options:
         lo, hi = min(definition.cost_options.values()), max(definition.cost_options.values())
-        price = f"{lo}-{hi}"
-    else:
-        price = str(definition.cost)
-    sign = "−" if definition.kind == "merit" else "+"
-    return f"{definition.name}  ({sign}{price} {definition.category or definition.kind})"
+        return f"{lo}-{hi}"
+    return str(definition.cost)
 
 
 def default_merit_tier(definition, exalt_type: str, caste: str) -> str:
@@ -2328,10 +2362,9 @@ def style_for_category(ruleset: RuleSet, category: str) -> Optional[StyleView]:
     for style in ruleset.martial_arts_styles.values():
         if style.category != category:
             continue
-        src = style.source
-        label = f"{src.book} p.{src.page}" if src and src.book and src.page else ""
         return StyleView(name=style.name, tier=style.tier, preamble=style.preamble,
-                         mechanics=list(style.mechanics), source_label=label)
+                         mechanics=list(style.mechanics),
+                         source_label=source_label(style.source))
     return None
 
 

@@ -4,6 +4,7 @@ server/auth.py — the login gate of the hosted server.
 Section 5 piece 3 of `docs/plans/hosting-state-model.md`. It supplies:
 
   * `AuthGate`, a middleware that sends each request without a login to `/login`.
+    The public pages are the exceptions: `/`, `/about` and `/wiki`.
   * The `/login`, `/signup` and `/logout` pages.
   * `current_user_key`, the session key of the logged-in account. The registry of
     `ui/builder.register_pages` keys the live context and the save folder on it.
@@ -40,8 +41,18 @@ from . import config, db
 from .throttle import LoginThrottle
 
 # The paths that a visitor with no login can open. The icon is here because the
-# login page shows it.
-OPEN_PATHS = frozenset({"/login", "/signup", "/logout", "/favicon.ico"})
+# login page shows it. "/" and "/about" are the public front page and the About
+# page, by the site map of docs/plans/vtt.md section 9.4.
+OPEN_PATHS = frozenset({"/", "/about", "/login", "/signup", "/logout", "/favicon.ico"})
+
+# The public wiki: "/wiki" and each path under it. Section 9.5 of vtt.md.
+# ⚠ Public ON PURPOSE (human ruling, 2026-09-12). `tests/test_auth_gate.py` names
+# it, thus a new public route fails that test until it is named there too.
+WIKI_PATH = "/wiki"
+
+# The page after a login with no `redirect_to`. It is gated. On the hosted server
+# it is the builder until the landing page of section 9.4 exists.
+HOME_PATH = "/home"
 
 # The static files, the uploads and the socket of NiceGUI. A page needs them to
 # render, the login page included. A client id from a gated page is necessary to
@@ -55,7 +66,8 @@ USERNAME = "username"
 
 def is_open_path(path: str) -> bool:
     """Return True if a visitor with no login can open `path`."""
-    return path in OPEN_PATHS or path.startswith(_OPEN_PREFIXES)
+    return (path in OPEN_PATHS or path.startswith(_OPEN_PREFIXES)
+            or path == WIKI_PATH or path.startswith(WIKI_PATH + "/"))
 
 
 def current_user_id() -> int | None:
@@ -100,7 +112,8 @@ def log_out() -> None:
 
 
 def safe_target(target: str | None) -> str:
-    """Return `target` if it is a path of this server. Return "/" in all other cases.
+    """Return `target` if it is a path of this server. Return `HOME_PATH` in all
+    other cases.
 
     ⚠ The login page sends the browser to `redirect_to`. An absolute URL there
     sends a player from this server to any site. "//host" is an absolute URL too.
@@ -108,7 +121,7 @@ def safe_target(target: str | None) -> str:
     """
     if (not target or not target.startswith("/") or target.startswith("//")
             or "\\" in target or target.split("?")[0] in OPEN_PATHS):
-        return "/"
+        return HOME_PATH
     return target
 
 
@@ -151,7 +164,7 @@ def register_auth_pages(db_path: Path, throttle: LoginThrottle | None = None) ->
     throttle = LoginThrottle() if throttle is None else throttle
 
     @ui.page("/login", title="Log in — Exalted 1e")
-    def login_page(redirect_to: str = "/"):
+    def login_page(redirect_to: str = HOME_PATH):
         target = safe_target(redirect_to)
         if current_user_id() is not None:
             return RedirectResponse(target, status_code=303)
@@ -193,7 +206,7 @@ def register_auth_pages(db_path: Path, throttle: LoginThrottle | None = None) ->
         return None
 
     @ui.page("/signup", title="Make an account — Exalted 1e")
-    def signup_page(redirect_to: str = "/"):
+    def signup_page(redirect_to: str = HOME_PATH):
         target = safe_target(redirect_to)
         if current_user_id() is not None:
             return RedirectResponse(target, status_code=303)
@@ -230,4 +243,4 @@ def register_auth_pages(db_path: Path, throttle: LoginThrottle | None = None) ->
     @ui.page("/logout")
     def logout_page():
         log_out()
-        return RedirectResponse("/login", status_code=303)
+        return RedirectResponse("/", status_code=303)

@@ -726,3 +726,105 @@ moved off `/`.
 * The **wiki**, the **front page** and **About** depend on nothing above. They need only
   the book `RuleSet` and the gate exceptions, so they can ship at any point — together,
   because `/` going public and the login default moving to `/home` is one change.
+
+### 9.7 SHIPPED 2026-09-12 — the front page, About and the wiki
+
+Built on the human's word *"Start on the public pages"*, with
+`exalted-essence-app.vercel.app/wiki` given as the visual reference (left section rail,
+display-font gradient heading, filter dropdowns + search, card grid with coloured pills).
+**Tests green, NOT browser-verified by the human.**
+
+⚠ **Restyled twice the same day — the current look MATCHES THE BUILDER.**
+1. The first build (card grid, pills, gold gradient heading, centred hero) drew *"I like
+   it but it looks very, very AI-generated."*
+2. A rulebook-reference restyle (serif, small caps, dotted-leader contents pages) drew
+   *"It still doesn't feel in line with the actual character creation part of the
+   website; that's a fairly standard NiceGUI setup, but this is different."*
+3. **Now — approved by the human** (*"This looks a lot more in line with the rest of the
+   site, I like it."*): the builder's own design language, reproduced in plain HTML — the solid
+   accent **header bar** with a white title ("Exalted 1e — Wiki") and uppercase
+   Material-icon buttons; the centred icon-over-label **tab strip** for the sections; the
+   tinted **Quasar cards** with the small bold accent card title; Quasar-style underlined
+   fields; Roboto and Material Icons loaded from **NiceGUI's own
+   `/_nicegui/<version>/static/fonts.css`** (an open path), so the type is byte-identical.
+   **Per-splat palette:** a page takes `ui/theme.palette` of its splat (the Charm's
+   Exalt type, or the Exalt-type filter), so a Lunar page is slate and a Dragon-Blooded
+   one crimson, exactly as the builder re-themes. **Light only**, like the builder.
+   ⚠ `server/site._FAMILY` holds the two Tailwind shades (50, 900) of each
+   `Palette.fam`, because the builder tints its cards with Tailwind classes that plain HTML
+   does not have. **A new `fam` in `ui/theme.py` needs a row there**, or its pages fall
+   back to amber tints.
+
+The lessons: "don't look AI-generated" was not the goal on its own — **the goal was one
+product**, and the reference to copy was already on the screen. The view models are
+`Row` + `columns` (tables grouped into one card per group), not `Card` + `Pill`; the
+paragraphs below that mention cards and pills describe the first build.
+
+**What shipped.**
+
+* `server/site.py` — the HTML frame: top bar, footer notice, one stylesheet with light
+  and dark tokens (`prefers-color-scheme`), Cinzel from Google Fonts with a serif
+  fallback. `replace_route` registers a plain GET route and **removes any earlier route of
+  the same path first** — Starlette takes the first match, and the tests call
+  `build_server` more than once per process.
+* `server/public.py` — `/` and `/about`. `/` swaps **Log in or sign up** for **Your
+  characters** when the cookie carries a login (read through `auth.current_username`, no
+  NiceGUI client).
+* `server/wiki.py` + `ui/wiki_view.py` — `/wiki` (index + search across every section),
+  and a list page + an entry page for **Charms, Martial Arts, Spells, Merits & Flaws,
+  Backgrounds**. Lists are filtered and searched **server-side** by GET parameters and
+  paged at 100, so every view is a plain crawlable URL and works without JavaScript (the
+  one script is `onchange="this.form.submit()"` on the dropdowns). Charm pages link their
+  prerequisites; a style page carries its preamble, its mechanics and its Charm cards.
+* **The site map of 9.4 is live in the gate.** `auth.OPEN_PATHS` gains `/` and
+  `/about`; `/wiki` and every path under it are open (`auth.WIKI_PATH`, an exact prefix —
+  `/wikipedia` stays gated). `auth.HOME_PATH = "/home"` is the default login target, and
+  `safe_target` sends a refused target there. `/logout` now lands on `/`.
+* **The builder moved to `/home` on the hosted server** (`register_pages(builder_path=…)`;
+  the desktop keeps `/`). `/gm`'s two ways back to the builder follow the parameter.
+  ⚠ **A design choice, not a ruling:** 9.4 says `/home` is the landing page, which lands
+  with piece 4. Until then `/home` *is* the builder, so a login lands where it did before.
+  Piece 4 moves the builder to `/character/<id>` and puts the landing page here.
+
+**The book-only ruleset.** `build_server` gives the wiki `rules_db.load_ruleset` (no
+custom layer) and the builder `load_app_ruleset`. `tests/test_public_pages.py` writes a
+homebrew Charm into a real library, points `EXALTED_CUSTOM_DIR` at it, runs the
+production `build_server`, and asserts the wiki 404s the Charm's page and never prints its
+name in a search. Its positive control asserts the same library DOES load into
+`load_app_ruleset`. **Mutation-checked:** handing the wiki the builder's `ruleset` turns it
+red. ⚠ `wiki_view` does not filter `custom` rows itself, on purpose — a filter there would
+keep that test green with the wiring broken.
+
+A second book `RuleSet` measured **~15 MB traced, 0.07 s** to load on this machine. That is
+also the first number for §5.3's "measure one `RuleSet` before fixing the layout".
+
+**The gate test now enumerates every route, not only NiceGUI pages.**
+`test_each_route_that_is_not_named_public_sends_a_visitor_to_the_login_page` reads
+`app.routes` as well as `Client.page_routes`, because the wiki's routes are plain FastAPI
+routes that `page_routes` never lists — the old enumeration would have been blind to a
+plain route that leaked. The public routes are **named** in `PUBLIC_ROUTES`, each a ruling;
+a paired case asserts every named route still exists and still opens. Mutation-checked:
+adding `/home` to `OPEN_PATHS` turns it red.
+
+**Found on the way: `BackgroundType` had no `source` field.** The 2026-09-11 provenance
+backfill wrote `source` onto 51 rows of `backgrounds.json`, and pydantic dropped every one
+at load — a writer with no reader, and not even a field to read. Added as
+**`Optional[Source] = None`**, not `Source()`: the default `Source()` names `"Core"`, so the
+12 unsourced rows would have shown a book that does not print them. The wiki's Background
+page is the first read site.
+
+**Refactors in `ui/view.py`, one formatter each.** `charm_requirements` and
+`charm_prerequisite_links` come out of `build_charm_detail` (which now calls them);
+`source_label` replaces the inline copy in `style_for_category`; `merit_price` comes out of
+`merit_option_label`. The wiki reads these rather than growing sibling formatters.
+
+**⚠ The About text is a DRAFT** (`server/public.py`, marked). It says what the site is,
+"One fan runs this site", the `EXALTED_ADMIN_CONTACT` address, and an unofficial-fan-site
+notice that names no owner. The human approves or rewrites it before a deployment shows
+it.
+
+**Not done, deliberately.** No `robots.txt` / `sitemap.xml` — a sitemap needs the public
+base URL, which behind the reverse proxy is not `request.base_url`; crawlers follow the
+links meanwhile. The wiki does not show the trait text, the ST-screen tables, artifacts,
+thaumaturgy or the Dragon-King Paths yet — all in `data/`, all addable as sections by the
+same pattern. The logged-in builder has no link to the wiki.

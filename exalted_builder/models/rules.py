@@ -1408,6 +1408,12 @@ class BackgroundType(BaseModel):
     # Artifact Background is heavily reworked. An opt-in cannot do that by accident.
     ladder_from: str = ""
 
+    # The page that prints this Background. None when no page is known.
+    # ⚠ None, not the default `Source()`. That default names "Core", thus an
+    # unsourced row would show a book that does not print it.
+    # ⚠ Read site: the public wiki (`ui/wiki_view.background_page`).
+    source: Optional[Source] = None
+
     # ---- Hearthstones (Savant and Sorcerer pp.66-67) ---------------------- #
     # What this Background's dots let the character actually HOLD in Hearthstones.
     # Set on the six Manse variants and nothing else; a Background that leaves both

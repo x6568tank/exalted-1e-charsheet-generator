@@ -1,29 +1,53 @@
-# Session handoff — 2026-09-12 (auth click-through PASSED; landing page + wiki ruled)
+# Session handoff — 2026-09-12 (the public pages: front page, About, wiki — tests green)
 
 # 👉 YOU ARE HERE
 
-**2026-09-12, docs only, no code:** the human clicked through auth — **all eleven steps
-passed** (`hosting-state-model.md` §5.1d has the record). Then the human asked for a
-**landing page** and a **public wiki**, and ruled on four questions (then two more, and a public site map — §9.2, §9.4): several characters
-per account, a **base character** made at the lock and copied into campaigns, join by
-**code + ST approval**, and the wiki **public and indexed**. **`vtt.md` §9 is the record**,
-and §9.3 is what it does to piece 4's DB layout. Suite not run — no code changed; the
-counts below are from 2026-09-11.
+**2026-09-12, second session: the public pages SHIPPED, tests green. The human approved
+the LOOK (*"a lot more in line with the rest of the site, I like it"*); the functional
+click-through steps below are not yet confirmed.** `/` (front page), `/about` (⚠ DRAFT text) and `/wiki` (Charms, Martial
+Arts, Spells, Merits & Flaws, Backgrounds — list + entry pages, search, filters) are plain
+server-rendered HTML with no login. The hosted builder moved to **`/home`**, and a login
+with no target lands there. **`vtt.md` §9.7 is the record.** Earlier the same day: the auth
+click-through passed (§5.1d) and the site map was ruled (§9).
 
-Last FULL suite: **3636 passed + 1 skipped** — observed after the second round of the auth
-work. The third round (the cookie) added one case to `test_server_main.py`, run on its own
-(14 passed): **3637 is COMPUTED, not observed.**
+Last FULL suite: **3668 passed + 1 skipped** — OBSERVED 2026-09-12 after this work.
+Preflight then added two cases to `test_public_pages.py` (the render sweep, and the
+party page's **Builder** → `/home` round trip, mutation-checked), run with the seam, gate
+and party-page files (546 passed). **3670 passed + 1 skipped OBSERVED** on the full
+suite after the restyle, before the commit.
+**The arithmetic agrees:** 3637 (computed, previous handoff) + 20 `test_public_pages.py`
++ 11 net in `test_auth_gate.py` (two enumeration cases for one, six prefix cases, the
+dot-segment case, three more redirect-target cases) = 3668.
 ⚠ The count moves by machine and by optional dependency — see `docs/testing.md`, and do
-not reconcile this against another machine. ⚠ **`bcrypt` is new and optional**: without
-it, `test_user_db.py`, `test_auth_gate.py` and `test_users_cli.py` skip (58 cases).
+not reconcile this against another machine. ⚠ **`bcrypt` is optional**: without it the
+auth test files skip, and so does one case of `test_public_pages.py`.
 
-**The arithmetic agrees.** 3555 (previous handoff) → 3595 after round one (observed) →
-3636 after round two (observed): +7 `test_user_db`, +5 `test_auth_gate`, +11
-`test_login_throttle`, +12 `test_folder_quota`, +6 `test_users_cli`.
+**Working tree:** committed 2026-09-12 in two commits (the public pages; the deploy
+files). Not pushed. Check `git status`.
 
-**Working tree:** the 2026-09-12 doc edits are committed in the commit that carries this
-line. **Pushed to `origin` 2026-09-12**. Check `git status`
-before acting on this line.
+## ✅ SHIPPED 2026-09-12 — the public pages (§9.7 of `vtt.md`)
+
+* **Book-only wiki, mutation-checked.** `build_server` gives the wiki
+  `rules_db.load_ruleset`; the builder keeps `load_app_ruleset`. A test writes a real
+  homebrew Charm, runs production wiring, and asserts the wiki cannot show it. ⚠ **Do not
+  add a `custom` filter in `ui/wiki_view.py`** — it would keep that test green with the
+  wiring broken.
+* **The gate test enumerates `app.routes` too**, because plain FastAPI routes never
+  appear in `Client.page_routes`. Public routes are **named** in
+  `tests/test_auth_gate.py::PUBLIC_ROUTES`, each a ruling. Mutation-checked.
+* 🐞 **`BackgroundType.source` did not exist** — the 51 citations of the 2026-09-11
+  backfill were dropped at load. Added as `Optional[Source] = None` (⚠ not `Source()`,
+  whose book defaults to "Core"). The wiki is the first read site.
+* **Design choices made without asking, all reversible:** `/home` IS the builder until
+  piece 4 builds the landing page; `/logout` lands on `/`; paging at 100; no
+  `robots.txt`/sitemap yet (needs the public base URL); the whole look — restyled
+  twice the same day and now **matching the NiceGUI builder** (header bar, tab strip,
+  tinted cards, Roboto/Material icons from NiceGUI's own fonts, per-splat palette); §9.7
+  has both rounds of the human's feedback. ⚠ A new `Palette.fam` needs a row in
+  `server/site._FAMILY`.
+* ⚠ **The About text is a draft** (`server/public.py`). The human approves it before any
+  deployment shows it.
+* A book `RuleSet` measured **~15 MB traced / 0.07 s** — the first number for §5.3.
 
 ## ✅ SHIPPED and BROWSER-VERIFIED 2026-09-12 — §5 piece 3, auth
 
@@ -86,10 +110,17 @@ of a table.
 
 ## 👉 NEXT — in rough order of what would bite
 
-- 👉 **START HERE (human, 2026-09-12): the public front page, About, and wiki** (`vtt.md` §9.4 site map, §9.5) — independent
-  of everything else. `/` goes public, the login default moves to `/home`. ⚠ **Book-only
-  `RuleSet`**, never the merged one, or every player's homebrew goes public. The About
-  text is the human's — draft it, do not publish it unapproved.
+- 👉 **The human: click through the public pages and approve (or rewrite) the About
+  text.** See "Not browser-verified" below.
+- **Deploy to `gilserver`** — `docs/deploy/homeserver.md` has every step. `Dockerfile` +
+  `.dockerignore` are new and the image was built and probed locally (front page, wiki,
+  `/home` → login, `__Host-` cookie, database owned by uid 1000). HTTPS is the existing
+  Cloudflare Tunnel; the container is published on `127.0.0.1:8090` only. The `claude`
+  account on the server has no `docker`/`sudo` on purpose, so the build, the Compose
+  entry and the tunnel rule are the human's to run.
+- **Wiki sections not yet shown**, all in `data/`, same pattern: trait text, the
+  ST-screen tables, artifacts, thaumaturgy, the Dragon-King Paths. Plus `robots.txt` and a
+  sitemap once the public base URL is settled, and a Wiki link in the logged-in builder.
 - **§5 piece 4 — the DB, and §5.3's per-user rulesets.** ⚠ **Measure one merged `RuleSet`
   in memory BEFORE fixing the DB layout.** §5.3 reverses the original plan (per-user is
   *easier* than shared, because shared needs the `load_character` write hazard solved and
@@ -150,6 +181,15 @@ everyone on the same build?"* is a live support question. Pair it with the launc
 before blaming the build; the stale-binary theory has been wrong twice.
 
 ## 🖱 Not browser-verified — what a human should click
+
+**The public pages (new 2026-09-12).** Start the hosted server and, logged OUT:
+`/` shows Wiki / Log in or make an account / About; `/wiki` shows five tabs with counts; a
+Charm page links its prerequisite; the dropdowns filter on change; search finds
+"ox body"; a Lunar Charm page (or the Exalt-type filter set to Lunar) re-themes to the
+builder's Lunar palette; at phone width the header buttons shrink to icons and tables
+become stacked rows. Then log in: it lands on `/home` (the builder); `/` now says **Your characters**;
+the builder's **Party** → `/gm` → **Builder** returns to `/home`; **Log out** lands on
+`/`. Read `/about` — it is a draft for the human's approval.
 
 ✅ **Auth — PASSED 2026-09-12**, all eleven steps (§5.1d). ⚠ For the next hosted
 click-through: browse to `http://localhost:8080`, not `127.0.0.1` (Secure cookie), and

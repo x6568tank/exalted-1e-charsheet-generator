@@ -697,9 +697,13 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
 def register_pages(ruleset: RuleSet, ctx: dict,
                    session_root: Path | None = None,
-                   key: Callable[[], str] = session_key) -> SessionRegistry:
-    """Register the app's routes: '/' the single-character builder, '/gm' the
-    Storyteller's party page. Return the registry of the session contexts.
+                   key: Callable[[], str] = session_key,
+                   builder_path: str = "/") -> SessionRegistry:
+    """Register the app's routes: `builder_path` the single-character builder, '/gm'
+    the Storyteller's party page. Return the registry of the session contexts.
+
+    `builder_path` is "/" on the desktop. The hosted server gives "/home", because
+    "/" is its public front page. See docs/plans/vtt.md section 9.4.
 
     `session_root` gives each session its own save directory. Omit it for the
     desktop, which has one user and keeps the path that the user opened. A hosted
@@ -744,7 +748,7 @@ def register_pages(ruleset: RuleSet, ctx: dict,
     # a timer and belongs to the deployment that runs a long-lived server.
     sessions = SessionRegistry(factory=session_context_factory(ctx, session_root))
 
-    @ui.page("/")
+    @ui.page(builder_path)
     def index() -> None:
         session_ctx = sessions.ctx_for(key())
         # ⚠ Auto-save is enabled by the same value that isolates the destination.
@@ -759,7 +763,7 @@ def register_pages(ruleset: RuleSet, ctx: dict,
         # identical two-way branch, so a hosted Storyteller got a download and the
         # server kept no roster. One page fixed and one not is the house bug.
         gm_mod.build_gm(ruleset, sessions.ctx_for(key()),
-                        hosted=session_root is not None)
+                        hosted=session_root is not None, builder_path=builder_path)
 
     return sessions
 

@@ -4,8 +4,9 @@ Section 5 piece 3 of `docs/plans/hosting-state-model.md`, recorded in section 5.
 
 ⚠ The subject is each ROUTE, not the pages that exist today. The gate is a
 middleware so that a new route is gated with no change. Thus the first case
-enumerates the page routes of the app and does not name them. Its guard asserts
-that the enumeration found '/' and '/gm', thus an empty list cannot pass it.
+enumerates the routes of the app and does not name them. Its guard asserts that
+the enumeration found the builder and '/gm', thus an empty list cannot pass it.
+The public routes ARE named, in `PUBLIC_ROUTES`, because each is a ruling.
 
 ⚠ The main file is production wiring. A gate that a test fixture installs proves
 nothing about the server. `test_server_main.py` asserts that `main` installs it.
@@ -14,6 +15,7 @@ nothing about the server. `test_server_main.py` asserts that `main` installs it.
 from __future__ import annotations
 
 import asyncio
+import re
 
 import pytest
 from nicegui import Client
@@ -60,19 +62,54 @@ async def _log_in(user: User, username: str, password: str = state.PASSWORD,
 # --------------------------------------------------------------------------- #
 
 
+# The routes that a visitor with no login can open, BY NAME. Each is public on
+# purpose, by a ruling of the human: the login pages (section 5.1d), and the front
+# page, About and the wiki (docs/plans/vtt.md 9.4 and 9.5, 2026-09-12).
+# ⚠ A route that opens without a name here fails the first case. Do not add a name
+# to make it pass without a ruling.
+PUBLIC_ROUTES = frozenset({
+    "/", "/about", "/login", "/signup", "/logout",
+    "/wiki", "/wiki/charms", "/wiki/charms/{entry_id}",
+    "/wiki/martial-arts", "/wiki/martial-arts/{entry_id}",
+    "/wiki/spells", "/wiki/spells/{entry_id}",
+    "/wiki/merits", "/wiki/merits/{entry_id}",
+    "/wiki/backgrounds", "/wiki/backgrounds/{entry_id}",
+})
+
+
+def _app_routes() -> set[str]:
+    """Return the path of each route of the app, the NiceGUI pages and the plain
+    routes both. The NiceGUI assets and the socket are not included."""
+    from nicegui import app
+    from starlette.routing import Route
+
+    paths = set(Client.page_routes.values())
+    paths |= {route.path for route in app.routes
+              if isinstance(route, Route) and not route.path.startswith("/_nicegui")}
+    return paths
+
+
+def _concrete(path: str) -> str:
+    """Put a value in each path parameter of `path`."""
+    return re.sub(r"\{[^}]+\}", "x", path)
+
+
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
-async def test_each_page_route_sends_a_visitor_with_no_login_to_the_login_page(
+async def test_each_route_that_is_not_named_public_sends_a_visitor_to_the_login_page(
         user: User) -> None:
     """🐞 The defect that the gate removes. Before piece 3, each route served the
-    character, the party and the homebrew library to any visitor."""
-    paths = set(Client.page_routes.values())
-    assert {"/", "/gm"} <= paths, (
-        f"The enumeration found {sorted(paths)}. It must find the builder and the "
-        "party page, or this case covers nothing.")
+    character, the party and the homebrew library to any visitor.
 
-    for path in sorted(paths - auth.OPEN_PATHS):
-        response = await user.http_client.get(path, follow_redirects=False)
+    The enumeration reads the routes of the app, not a list of pages. Thus a new
+    route is in it with no change here, a plain FastAPI route too."""
+    paths = _app_routes()
+    assert {auth.HOME_PATH, "/gm", "/", "/wiki/charms/{entry_id}"} <= paths, (
+        f"The enumeration found {sorted(paths)}. It must find the builder, the "
+        "party page and the public pages, or this case covers nothing.")
+
+    for path in sorted(paths - PUBLIC_ROUTES - {"/favicon.ico"}):
+        response = await user.http_client.get(_concrete(path), follow_redirects=False)
         assert response.status_code == 303, (
             f"{path} answered {response.status_code} to a visitor with no login.")
         assert response.headers["location"].startswith("/login"), (
@@ -81,8 +118,39 @@ async def test_each_page_route_sends_a_visitor_with_no_login_to_the_login_page(
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
+async def test_each_route_named_public_opens_with_no_login(user: User) -> None:
+    """The control for the case above: the public list is not stale. A name here
+    for a route that no longer exists, or that the gate closes, fails."""
+    paths = _app_routes()
+    assert PUBLIC_ROUTES <= paths, f"Named public, but absent: {sorted(PUBLIC_ROUTES - paths)}."
+
+    for path in sorted(PUBLIC_ROUTES - {"/logout"}):
+        response = await user.http_client.get(_concrete(path), follow_redirects=False)
+        assert response.status_code in (200, 404), (
+            f"{path} answered {response.status_code} to a visitor with no login.")
+
+
+@pytest.mark.parametrize("path", ["/wikipedia", "/wiki-admin", "/homepage", "/about/x",
+                                  "/gm", "/home"])
+def test_the_public_prefixes_are_exact(path: str) -> None:
+    """⚠ `/wiki` is open with each path under it. A path that only starts with the
+    same letters is not."""
+    assert not auth.is_open_path(path)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_dot_segment_under_the_wiki_does_not_reach_the_party(user: User) -> None:
+    response = await user.http_client.get("/wiki/../gm", follow_redirects=False)
+
+    assert "gm-save-party" not in response.text
+    assert response.headers.get("X-Nicegui-Content") != "page"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
 async def test_the_login_page_opens_with_no_login(user: User) -> None:
-    await user.open("/")
+    await user.open(auth.HOME_PATH)
     await user.should_see(marker="login-submit")
     await user.should_not_see("Identity")
 
@@ -179,7 +247,7 @@ async def test_a_wrong_password_stays_on_the_login_page(user: User) -> None:
     await _log_in(user, "Harmonious", "wrong horse")
     await user.should_see("Wrong username or password.")
 
-    response = await user.http_client.get("/", follow_redirects=False)
+    response = await user.http_client.get(auth.HOME_PATH, follow_redirects=False)
     assert response.status_code == 303, "A wrong password opened the gate."
 
 
@@ -209,13 +277,16 @@ async def test_login_returns_to_the_page_that_was_asked_for(user: User) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_logout_closes_the_gate(user: User) -> None:
+    """The Log out button goes to `/logout`. That route logs out and sends the
+    browser to the public front page, which is plain HTML. The harness cannot open
+    plain HTML as a page, thus this case follows the route itself."""
     await _sign_up(user, "Harmonious")
     await user.should_see(marker="top-bar-logout")
 
-    user.find(marker="top-bar-logout").click()
-    await user.should_see(marker="login-submit")
+    response = await user.http_client.get("/logout", follow_redirects=False)
+    assert response.headers["location"] == "/"
 
-    response = await user.http_client.get("/", follow_redirects=False)
+    response = await user.http_client.get(auth.HOME_PATH, follow_redirects=False)
     assert response.status_code == 303, "The gate is open after a logout."
 
 
@@ -257,7 +328,7 @@ async def test_the_login_page_applies_the_rate_limit(user: User) -> None:
     user.find(marker="login-submit").click()
     await user.should_see("Too many failed attempts")
 
-    response = await user.http_client.get("/", follow_redirects=False)
+    response = await user.http_client.get(auth.HOME_PATH, follow_redirects=False)
     assert response.status_code == 303, "The correct password passed the rate limit."
 
 
@@ -307,14 +378,15 @@ async def test_save_in_a_full_account_folder_is_refused(user: User) -> None:
 
 @pytest.mark.parametrize("target", [
     "https://elsewhere.example", "//elsewhere.example", "/\\elsewhere.example",
-    "elsewhere", "", None, "/logout", "/login?redirect_to=/gm",
+    "elsewhere", "", None, "/logout", "/login?redirect_to=/gm", "/", "/about",
 ])
-def test_an_unsafe_redirect_target_becomes_the_root(target) -> None:
+def test_an_unsafe_redirect_target_becomes_the_home_page(target) -> None:
     """⚠ An absolute URL in `redirect_to` sends a player from this server to any
-    site. `/logout` there logs the player out at once."""
-    assert auth.safe_target(target) == "/"
+    site. `/logout` there logs the player out at once. "/" is the public front page
+    now: a login goes to `/home` (docs/plans/vtt.md 9.4)."""
+    assert auth.safe_target(target) == auth.HOME_PATH
 
 
-@pytest.mark.parametrize("target", ["/", "/gm", "/gm?x=1"])
+@pytest.mark.parametrize("target", ["/home", "/gm", "/gm?x=1", "/wiki/charms"])
 def test_a_path_of_this_server_is_kept(target: str) -> None:
     assert auth.safe_target(target) == target
