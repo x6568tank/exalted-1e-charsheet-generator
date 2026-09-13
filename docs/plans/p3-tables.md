@@ -1,8 +1,8 @@
 # P3 — Campaigns (the `Table`): design
 
-**Status: DESIGN, 2026-09-12. No P3 code exists.** Every product question the human was asked
-is ruled (`vtt.md` §9.1, §9.2, §9.3a, §9.10). Designing turned up **six more questions**
-(§13). Those need rulings before the build steps that depend on them — not before step 1.
+**Status: build step 1 DONE 2026-09-12 (§14 is the build log); steps 2–8 not started.**
+Every product question the human was asked is ruled (`vtt.md` §9.1, §9.2, §9.3a, §9.10), and
+so are the six the design turned up (§13).
 
 **Read first:** `vtt.md` §1.3 (why a Table is first-class, and the three homebrew layers),
 §9.2 (the base character), §9.10 (the P3 rulings), and `docs/lessons.md` on the house bug.
@@ -305,7 +305,7 @@ roller rolls a count it is handed.
 
 Each step is its own commit, tests first, green before the next.
 
-1. **`TableStore` + schema + codes + throttle.** No UI. The whole of §3 and §2.3, with the
+1. ✅ **DONE 2026-09-12 (§14).** **`TableStore` + schema + codes + throttle.** No UI. The whole of §3 and §2.3, with the
    refusals as tests and the ownership / access checks mutation-checked.
 2. **`/home` Campaigns**: new, join (code + base or watch), pending. The ST's request list
    on a bare `/table/<id>` (approve / reject). Approval makes the copy with `table_id`.
@@ -394,3 +394,50 @@ So on ANY character with a non-empty `xp_log` — desktop and solo copies too �
 the XP-bought dots into creation dots while the log still records them as spent, and a
 re-lock snapshots the inflated state as the character's creation. A rules-engine question
 for the human, bigger than P3.
+
+---
+
+## 14. Build log
+
+### Step 1 — `TableStore` + schema + codes + throttle (2026-09-12)
+
+**Shipped, no UI:** `server/tables.py` (`TableStore`, `TableRow`, `JoinRequest`,
+`JoinThrottle`, `new_join_code`); the three tables of §2.1 plus an index on
+`characters(table_id)` in `server/db.SCHEMA` (all `IF NOT EXISTS`, so a deployed database
+gains them at the next start — no migration); `CharacterStore.make_copy(..., table_id=None)`.
+Tests: `tests/test_table_store.py`, **56 cases**. Targeted run with the character store,
+pages, homebrew, auth, quota, throttle, server-main and seam files: **266 passed, 0 skipped
+— OBSERVED.** The full suite was not re-run for this step.
+
+**Mutation-checked (12, all killed):** `access` treating anyone as a member; the
+Storyteller check as a no-op; the base-ownership, lock and copy-as-base checks dropped; the
+throttle skipped; `delete` without its access check; `leave` clearing every owner's
+copies; the Storyteller allowed to leave; the duplicate check written `base_id = ?`
+(NULL never equals NULL); `delete` leaving `table_id` set; the id-shape check skipped in
+`access`.
+
+**Beyond the §3 table, needed by step 2:** `table(id)`, `table_dir(id)` (`<root>/table-<hex>`,
+refuses a malformed id), `pending(st_id, table_id)` (ST-only), `requests_by(user_id)`.
+`leave` by a non-member withdraws their pending requests and returns False — that is the
+withdraw path. A watch request from someone who already has access (a member, or the ST)
+is refused. The ST may bring a base (Q4) and approves their own request; no membership row
+is written for the ST.
+
+**Design choices made without asking, reversible:**
+- **No foreign key on `characters.table_id`** — the §2.1 recommendation. The store clears
+  the column at leave, remove and delete; three tests and a mutation cover it.
+- `delete` by a non-Storyteller **returns False** (as `CharacterStore.delete` does); the other
+  ST operations **raise** `TableStoreError`.
+- The throttle numbers are the login throttle's (5 free, then 30 s doubling to 15 min).
+
+🐞 **Found on the way — a correct code must not clear the count.** The login throttle
+clears a name on success, which is safe there because the attacker does not know the
+password. The join throttle is keyed by the **asking account**, and that account always
+knows one correct code: its own campaign's. Clearing on success would let it guess four,
+reset with its own code, and repeat forever. `JoinThrottle` counts every attempt and
+never calls `succeeded`; `test_a_correct_code_does_not_clear_the_count` holds it. §2.3
+said only "rate-limited the way login is", which would have shipped the bypass.
+
+⚠ **For step 4+:** `server/quota.QuotaExceeded` says *"This account has no space left"*.
+A table folder hitting its 10 MB will show the word "account". Reword when the table's
+first write path lands.

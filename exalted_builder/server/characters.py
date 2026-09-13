@@ -130,11 +130,14 @@ class CharacterStore:
         """
         return self._add(user_id, character, is_copy=False, base_id=None)
 
-    def make_copy(self, user_id: int, base_id: str) -> CharacterRow:
-        """Make a campaign copy of the base `base_id` of account `user_id`.
+    def make_copy(self, user_id: int, base_id: str,
+                  table_id: str | None = None) -> CharacterRow:
+        """Make a campaign copy of the base `base_id` of account `user_id`, in the
+        table `table_id` or with no table.
 
         Refuse a character of another account, an unlocked character, and a copy.
         A base is a locked character, and XP belongs to a copy (section 9.2).
+        `server/tables.py` gives `table_id` at an approval, and checks the access.
         """
         base = self.owned(user_id, base_id)
         if base is None:
@@ -144,7 +147,8 @@ class CharacterStore:
         character = self.load(base)
         if not is_locked(character):
             raise CharacterStoreError("Finish and lock the character before you make a copy.")
-        return self._add(user_id, character, is_copy=True, base_id=base.id)
+        return self._add(user_id, character, is_copy=True, base_id=base.id,
+                         table_id=table_id)
 
     def delete(self, user_id: int, character_id: str) -> bool:
         """Delete the character `character_id` of account `user_id`. Return False
@@ -158,16 +162,17 @@ class CharacterStore:
         return True
 
     def _add(self, user_id: int, character: Character, *, is_copy: bool,
-             base_id: str | None) -> CharacterRow:
+             base_id: str | None, table_id: str | None = None) -> CharacterRow:
         new = character.model_copy(deep=True, update={"id": new_character_id()})
         row = CharacterRow(id=new.id, owner_id=user_id, is_copy=is_copy,
-                           base_id=base_id, table_id=None)
+                           base_id=base_id, table_id=table_id)
         self.save(row, new)
         try:
             with closing(db.connect(self.db_path)) as connection, connection:
                 connection.execute(
-                    "INSERT INTO characters (id, owner_id, is_copy, base_id) "
-                    "VALUES (?, ?, ?, ?)", (row.id, user_id, int(is_copy), base_id))
+                    "INSERT INTO characters (id, owner_id, is_copy, base_id, table_id) "
+                    "VALUES (?, ?, ?, ?, ?)",
+                    (row.id, user_id, int(is_copy), base_id, table_id))
         except Exception:
             self.path_for(row).unlink(missing_ok=True)
             raise

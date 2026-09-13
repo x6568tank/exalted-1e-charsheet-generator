@@ -54,6 +54,36 @@ CREATE TABLE IF NOT EXISTS characters (
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS characters_owner ON characters(owner_id);
+
+-- The campaigns (P3). docs/plans/p3-tables.md section 2.1; server/tables.py.
+-- ⚠ characters.table_id has no foreign key: SQLite cannot add one to an existing
+-- column. TableStore clears the column itself.
+CREATE TABLE IF NOT EXISTS tables (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    storyteller_id INTEGER NOT NULL REFERENCES users(id),
+    join_code TEXT UNIQUE NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- An approved member. The Storyteller is not a row here: tables.storyteller_id
+-- holds that role.
+CREATE TABLE IF NOT EXISTS memberships (
+    table_id TEXT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    joined_at TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (table_id, user_id)
+);
+
+-- A request that waits for the Storyteller. base_id NULL is a request to watch.
+CREATE TABLE IF NOT EXISTS join_requests (
+    id INTEGER PRIMARY KEY,
+    table_id TEXT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    base_id TEXT REFERENCES characters(id) ON DELETE CASCADE,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS characters_table ON characters(table_id);
 """
 
 

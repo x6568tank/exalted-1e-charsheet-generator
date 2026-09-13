@@ -1,77 +1,50 @@
-# Session handoff — 2026-09-12 (third session: §5 piece 4 DONE and clicked; navigation pass approved)
+# Session handoff — 2026-09-12 (fourth session: P3 build step 1, `TableStore`)
 
 # 👉 YOU ARE HERE
 
-**2026-09-12, third session: §5 piece 4 is DONE, deployed, and the human clicked it**
-(*"In any case, it looks good."*).
-`/home` lists an account's characters; each character has its own page; a locked base
-is read-only and makes campaign copies. **`vtt.md` §9.8 is the record**, rulings in
-§9.3a. Done this session, in order:
+**P3 build step 1 is DONE, tests green, no UI** — so there is nothing to click.
+`server/tables.py` (`TableStore`: create, access, request, approve, reject, leave, remove,
+delete, new code, the join throttle), the `tables` / `memberships` / `join_requests`
+schema, and `CharacterStore.make_copy(..., table_id=)`. **`docs/plans/p3-tables.md` §14 is
+the record**: what shipped beyond the §3 table, the 12 mutations (all killed), and the
+design choices made without asking.
 
-1. **The §5.3 measurement** — a full per-user `RuleSet` is ~15 MB; an overlay that
-   shares the book is ~0.1 MB plus the homebrew. `hosting-state-model.md` §5.3.
-2. **Ruled: one homebrew library per account** (open question 2 of that file).
-3. **Export .json** on the Custom page (`1d95c04`), and the Rituals JSON pane fix.
-   `status/custom-content.md`.
-4. 🐞 **SECURITY, deployed and human-checked:** the hosted Load dialogs took a server
-   path, so a player could open and auto-save over another account's character
-   (`beda3ec`). §5.1d "Closed 2026-09-12" is the record. ⚠ **A hosted control must
-   never take a path from the browser.**
-5. **Per-account homebrew BUILT** — `<account folder>/custom`, `ctx["ruleset"]` per
-   session, `custom_content.require_explicit_dir` on the server. §5.3 "BUILT" has the
-   wiring table and the five mutations. Closes the "homebrew outside the quota" limit.
-   **Not deployed** — the Dockerfile lost `EXALTED_CUSTOM_DIR`, so the human rebuilds.
+**Tests:** `tests/test_table_store.py`, 56 cases. **Targeted run 266 passed, 0 skipped —
+OBSERVED** (the new file with the character-store, character-pages, account-homebrew,
+user-db, quota, throttle, server-main, auth-gate and seam files). **The full suite was not
+re-run** (the human's targeted-tests rule). Last full count: 3721 + 1 skipped computed
+after item 8 of the previous session; the unlock-warning commit `0f3466f` added cases to
+three files that were never counted into it, so the next full run is the first real number.
+⚠ The count moves by machine and by optional dependency (`docs/testing.md`); ⚠ **`bcrypt`
+is optional**, and without it several server files skip whole.
 
-6. **Ruled 2026-09-12 (§9.3a):** files + a DB index; **start clean** (no import of the
-   old one-per-account files); delete keeps copies; **no `/gm` on the server until P3.**
-7. **The character store** (`ad68e96`), **the pages** (`7ab2395`), and **the old
-   per-account hosted path deleted**, its properties re-proved on the production pages.
+**Working tree: clean and COMMITTED** — step 1 is the commit titled *"P3 step 1: the
+campaign store…"*. `main` is 3 commits ahead of `origin`, **unpushed**. `.nicegui/` is
+untracked noise. Check `git status`.
 
-**Full suite 3701 passed + 1 skipped — OBSERVED** after item 7, before preflight added
-the six-shape render matrix to `test_character_pages.py`: **3707 computed.** (3699 after
-item 5; item 7 added the store, the pages and the ported cases, and deleted the
-old-path cases.) ⚠ The count moves by machine and by optional dependency
-(`docs/testing.md`); ⚠ **`bcrypt` is optional** and without it `test_character_pages.py`
-and `test_account_homebrew.py` skip whole.
+🐞 **Found on the way:** the design said the join form is "rate-limited the way login is".
+Done literally, that ships a bypass — login clears the count on success, and the join
+count is keyed by the ASKING account, which always knows one correct code (its own
+campaign's). `JoinThrottle` counts every attempt and never clears. p3-tables.md §14.
 
-**Not deployed:** `c64a163` is pushed; the piece-4 commits are local until the human
-says. ⚠ **Deploying starts every account clean** (the ruling): the old
-`user-<id>/<name>.character.json` files stay on disk, listed nowhere. A player gets one
-back by Download a copy — **before** the deploy — then Import on `/home`.
+**Deployed:** `4a614bb` is on `gilserver`. The schema change is `IF NOT EXISTS` only, so a
+deploy adds the empty tables at start with no migration.
 
-8. **The navigation and look pass** — asked by the human after the click-through,
-   spiked on a local server over four rounds of screenshots, **approved**: the top bar
-   names the character, one lock button, a ⋮ menu; `/home` cards and a Homebrew tab (the
-   library left the character page); the Custom page draws **the tree the Charm joins**
-   and filters Prerequisites by splat and tree. `vtt.md` §9.9. ⚠ The human expects more
-   changes once friends use it.
+**Next:** P3 **build step 2** — `/home` Campaigns (new, join with code + base or watch,
+pending), the ST's request list on a bare `/table/<id>`, approval makes the copy. The store
+already has every call step 2 needs (`pending`, `requests_by`, `leave` as withdraw).
+⚠ `access()` in every page body AND every handler (p3-tables.md §3, §12). Friends'
+feedback on the new look may come first.
 
-**Full suite after item 8: 3720 passed + 1 failed + 1 skipped — OBSERVED;** the one
-failure was `test_pdf.py` looking for a Print BUTTON, which is now in the ⋮ menu. The
-test was pointed at the menu entry and its file re-run (46 passed): **3721 + 1 skipped
-computed.**
+## The session before — piece 4, the navigation pass, the P3 design
 
-9. **P3 is fully ruled** (`vtt.md` §9.10): a copy per join, ST grants XP, a leaver keeps
-   the copy as solo, six-character codes with no expiry, a table folder of its own,
-   spectating by the same code as a way of OPENING the table, several characters per
-   member. No P3 code yet.
-
-10. **The P3 design is written: `docs/plans/p3-tables.md`.** Schema (`tables`,
-    `memberships`, `join_requests`), the table folder, `TableStore`, the rules layers, the
-    house-rule sync, XP grants, the pages, the build order, and the house-bug traps.
-    ⚠ **Six new questions for the human (its §13, Q1–Q6)** — steps 1–4 of its build order
-    need none of them; steps 5 and 6 need Q2 and Q1.
-
-11. **Answers to p3-tables.md §13**: Q1 no, Q2 ST, Q3 yes, Q4 allow, Q5 probably (build
-    it removed, flag it), Q6 ST-only in campaigns. **Unlock after XP — ruled: allowed,
-    with a warning, everywhere.** Built in both shells (`view.unlock_warning`, a confirm
-    before `unlock_chargen`). The Qt toolbar now shows only the lock action that applies,
-    as the webapp has since `286e420`.
-
-**Deployed:** `4a614bb` is on `gilserver` (the human recomposes). 
-
-**Next:** the human answers p3-tables.md §13 (or not yet), then build step 1 (`TableStore`
-+ schema + codes + throttle, no UI). Friends' feedback on the new look may come first.
+**2026-09-12, third session.** §5 piece 4 (the character store, `/home`, per-character
+pages, base / campaign copy) DONE, deployed and clicked — `vtt.md` §9.8, rulings §9.3a.
+Per-account homebrew built (`hosting-state-model.md` §5.3). 🐞 The hosted Load dialog took a
+server path — closed, §5.1d. ⚠ **A hosted control must never take a path from the browser.**
+The navigation and look pass approved (`vtt.md` §9.9). P3 fully ruled (`vtt.md` §9.10) and
+designed (`docs/plans/p3-tables.md`), its §13 Q1–Q6 answered. Unlock after XP ruled:
+allowed with a warning, built in both shells (`0f3466f`).
 
 ---
 
