@@ -482,5 +482,12 @@ and their copies made solo. `withdraw(user_id, request_id)` deletes the one requ
   mutation**: the store refuses the same call, so the page behaves the same without it.
   It is defence in depth; the store is the check.
 
+✅ **BROWSER-VERIFIED 2026-09-12** — the human ran the six-step click-through (two accounts,
+create, join by the Join shortcut with a lower-case code, approve, the copy "· In <name>",
+the watch refusal, a stranger's "no such campaign"): *"everything looks good!"* With a
+note: *"the campaign window will probably need to be redesigned at some point, but it's
+fine for now."* ⚠ Step 3 replaces the bare `/table/<id>` body with the table view, so that
+redesign lands there. Follow `match-the-builder-look` (spike, screenshot, iterate).
+
 **Not live yet (step 3):** neither page polls. The ST sees a new request on reload, and a
 player sees an approval on reload.

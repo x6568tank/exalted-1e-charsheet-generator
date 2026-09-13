@@ -2,7 +2,9 @@
 
 # 👉 YOU ARE HERE
 
-**P3 build step 2 is DONE, tests green, NOT browser-verified.** `/home` has a CAMPAIGNS
+**P3 build step 2 is DONE and BROWSER-VERIFIED** (human, 2026-09-12: *"everything looks
+good!"* — and *"the campaign window will probably need to be redesigned at some point,
+but it's fine for now"*; step 3 is where that redesign goes). `/home` has a CAMPAIGNS
 section (New campaign, Join a campaign with code + base or "just watch", the waiting list
 with Withdraw, a **Join** shortcut on each base card), and `/table/<id>` is a bare page:
 characters and members for everyone, plus the join code and Approve / Reject for the
@@ -23,7 +25,8 @@ deployed. Check `git status`.
 🐞 **Found on the way:** step 1's *"`leave` as withdraw"* is wrong for a MEMBER — it takes
 them out of the campaign. `TableStore.withdraw` cancels one request. §14.
 
-**Click-through (step 2)** — two accounts, `http://localhost:8080` (Secure cookie):
+✅ **Click-through (step 2) — PASSED 2026-09-12**, all seven steps below. The server ran
+from `/tmp/exalted-click/` (throwaway DB, fixed secret). For the record:
 1. A: `/home` → **New campaign** "Test" → lands on `/table/<id>` with a JOIN CODE.
 2. B: make and lock a character; on its card press **Join**, type A's code in lower
    case, Send → WAITING FOR THE STORYTELLER (1) with **Withdraw**.
@@ -36,7 +39,9 @@ them out of the campaign. `TableStore.withdraw` cancels one request. §14.
 7. A's `/home` card shows the code and "1 request waiting" while one waits.
 
 **Next:** P3 **build step 3** — the table view: the Party page's cards, open-as /
-spectate, the live poll, the "no longer in this campaign" path.
+spectate, the live poll, the "no longer in this campaign" path. It is also the
+**redesign of the campaign page** the human flagged — spike it, screenshot it, iterate
+(`match-the-builder-look`). Step 2 is not deployed; deploy when the human asks.
 
 ## The session before — P3 build step 1, `TableStore`
 
