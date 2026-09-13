@@ -1,6 +1,44 @@
-# Session handoff — 2026-09-12 (fourth session: P3 build step 1, `TableStore`)
+# Session handoff — 2026-09-12 (fifth session: P3 build step 2, the campaign pages)
 
 # 👉 YOU ARE HERE
+
+**P3 build step 2 is DONE, tests green, NOT browser-verified.** `/home` has a CAMPAIGNS
+section (New campaign, Join a campaign with code + base or "just watch", the waiting list
+with Withdraw, a **Join** shortcut on each base card), and `/table/<id>` is a bare page:
+characters and members for everyone, plus the join code and Approve / Reject for the
+Storyteller. **`docs/plans/p3-tables.md` §14 "Step 2" is the record** — what shipped, 8
+mutations (all killed), the design choices made without asking.
+
+**Tests:** `tests/test_campaign_pages.py` (21) + 3 in `test_table_store.py`. Targeted run
+(campaign, character, store, gate, server-main, homebrew, seam files) **218 passed —
+OBSERVED**, before the shape case was added. **Full suite: 3806 passed + 1 skipped — OBSERVED** on this machine after all of step 2
+(the shape case included). ⚠ The count moves by machine and by optional dependency
+(`docs/testing.md`); ⚠ `bcrypt` is optional, and without it the page files skip whole.
+
+**Working tree: COMMITTED** — step 2 is the commit titled *"P3 step 2: …"*. New
+modules `server/campaigns.py` and `server/chrome.py` (the top bar and the character card
+moved out of `home.py`). `main` is 4 commits ahead of `origin`, **unpushed**. Not
+deployed. Check `git status`.
+
+🐞 **Found on the way:** step 1's *"`leave` as withdraw"* is wrong for a MEMBER — it takes
+them out of the campaign. `TableStore.withdraw` cancels one request. §14.
+
+**Click-through (step 2)** — two accounts, `http://localhost:8080` (Secure cookie):
+1. A: `/home` → **New campaign** "Test" → lands on `/table/<id>` with a JOIN CODE.
+2. B: make and lock a character; on its card press **Join**, type A's code in lower
+   case, Send → WAITING FOR THE STORYTELLER (1) with **Withdraw**.
+3. A: reload `/table/<id>` → REQUESTS (1) names B and the character → **Approve** → the
+   copy appears under CHARACTERS, B under MEMBERS.
+4. B: reload `/home` → the campaign card ("Player", "Your characters: …"); the copy card
+   says "· In Test"; the copy opens in the builder.
+5. B: **Join a campaign** → "Just watch" with the same code → refused ("already in").
+6. A third account opening A's `/table/<id>` URL → "There is no such campaign."
+7. A's `/home` card shows the code and "1 request waiting" while one waits.
+
+**Next:** P3 **build step 3** — the table view: the Party page's cards, open-as /
+spectate, the live poll, the "no longer in this campaign" path.
+
+## The session before — P3 build step 1, `TableStore`
 
 **P3 build step 1 is DONE, tests green, no UI** — so there is nothing to click.
 `server/tables.py` (`TableStore`: create, access, request, approve, reject, leave, remove,

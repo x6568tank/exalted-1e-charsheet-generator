@@ -172,6 +172,17 @@ class TableStore:
         return [row for (character_id,) in rows
                 if (row := store.row(character_id)) is not None]
 
+    def members(self, table_id: str) -> list[int]:
+        """Return the user ids of the members of `table_id`, oldest first. The
+        Storyteller is not a member. Do not check the access."""
+        if not TABLE_ID.fullmatch(table_id or ""):
+            return []
+        with closing(db.connect(self.db_path)) as connection:
+            rows = connection.execute(
+                "SELECT user_id FROM memberships WHERE table_id = ? "
+                "ORDER BY joined_at, rowid", (table_id,)).fetchall()
+        return [user_id for (user_id,) in rows]
+
     def pending(self, st_id: int, table_id: str) -> list[JoinRequest]:
         """Return the requests of `table_id`, oldest first. Refuse all but the
         Storyteller."""
@@ -292,6 +303,18 @@ class TableStore:
         self._require_storyteller(st_id, request.table_id)
         with closing(db.connect(self.db_path)) as connection, connection:
             connection.execute("DELETE FROM join_requests WHERE id = ?", (request.id,))
+
+    def withdraw(self, user_id: int, request_id: int) -> bool:
+        """Delete request `request_id` if `user_id` made it. Return False if not.
+
+        ⚠ Use this, not `leave`, to cancel one request. `leave` also ends the
+        membership of a member who asked to bring another character.
+        """
+        with closing(db.connect(self.db_path)) as connection, connection:
+            cursor = connection.execute(
+                "DELETE FROM join_requests WHERE id = ? AND user_id = ?",
+                (int(request_id), user_id))
+        return cursor.rowcount == 1
 
     def leave(self, user_id: int, table_id: str) -> bool:
         """Take `user_id` out of `table_id`. Return False if it was not a member.

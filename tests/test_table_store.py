@@ -546,6 +546,43 @@ def test_leave_withdraws_a_pending_request_of_a_non_member(store: TableStore) ->
     assert store.pending(ST, table.id) == []
 
 
+def test_withdraw_deletes_one_request_and_keeps_the_membership(store: TableStore,
+                                                                characters) -> None:
+    """🐞 `leave` is NOT a withdraw for a member: it takes the member out. A member
+    who asked to bring a second character withdraws that one request only."""
+    table = store.create(ST, "Second thoughts")
+    _member(store, table, PLAYER)
+    first = store.request(PLAYER, table.join_code, _base(characters, PLAYER, "One").id)
+    second = store.request(PLAYER, table.join_code, _base(characters, PLAYER, "Two").id)
+
+    assert store.withdraw(PLAYER, first.id) is True
+
+    assert store.access(PLAYER, table.id) == "member"
+    assert [r.id for r in store.pending(ST, table.id)] == [second.id]
+
+
+def test_withdraw_refuses_the_request_of_another_account(store: TableStore) -> None:
+    table = store.create(ST, "Not yours to withdraw")
+    request = store.request(PLAYER, table.join_code, None)
+
+    assert store.withdraw(OTHER, request.id) is False
+    assert store.withdraw(ST, request.id) is False
+
+    assert [r.id for r in store.pending(ST, table.id)] == [request.id]
+
+
+def test_members_lists_the_members_and_not_the_storyteller(store: TableStore) -> None:
+    """The Storyteller is not a row in `memberships` (section 2.1)."""
+    table = store.create(ST, "Headcount")
+    _member(store, table, PLAYER)
+    _member(store, table, OTHER)
+    store.leave(OTHER, table.id)
+    _member(store, store.create(ST, "Elsewhere"), OTHER)
+
+    assert store.members(table.id) == [PLAYER]
+    assert store.members("../table") == []
+
+
 def test_the_storyteller_cannot_leave(store: TableStore) -> None:
     table = store.create(ST, "Captain")
 

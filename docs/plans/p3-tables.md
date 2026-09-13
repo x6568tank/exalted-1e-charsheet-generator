@@ -1,6 +1,6 @@
 # P3 — Campaigns (the `Table`): design
 
-**Status: build step 1 DONE 2026-09-12 (§14 is the build log); steps 2–8 not started.**
+**Status: build steps 1–2 DONE 2026-09-12 (§14 is the build log); steps 3–8 not started.**
 Every product question the human was asked is ruled (`vtt.md` §9.1, §9.2, §9.3a, §9.10), and
 so are the six the design turned up (§13).
 
@@ -307,7 +307,7 @@ Each step is its own commit, tests first, green before the next.
 
 1. ✅ **DONE 2026-09-12 (§14).** **`TableStore` + schema + codes + throttle.** No UI. The whole of §3 and §2.3, with the
    refusals as tests and the ownership / access checks mutation-checked.
-2. **`/home` Campaigns**: new, join (code + base or watch), pending. The ST's request list
+2. ✅ **DONE 2026-09-12 (§14).** **`/home` Campaigns**: new, join (code + base or watch), pending. The ST's request list
    on a bare `/table/<id>` (approve / reject). Approval makes the copy with `table_id`.
 3. **The table view**: cards, open-as, spectate, live poll, `access()` on every route and
    handler. The "no longer a member" path.
@@ -441,3 +441,46 @@ said only "rate-limited the way login is", which would have shipped the bypass.
 ⚠ **For step 4+:** `server/quota.QuotaExceeded` says *"This account has no space left"*.
 A table folder hitting its 10 MB will show the word "account". Reword when the table's
 first write path lands.
+
+### Step 2 — `/home` Campaigns + the bare `/table/<id>` (2026-09-12)
+
+**Shipped:** `server/campaigns.py` — `HomeCampaigns` (the CAMPAIGNS section of `/home`:
+cards, **New campaign**, **Join a campaign** with code + base-or-watch, the WAITING FOR
+THE STORYTELLER list with **Withdraw**) and `register_table_page` (`/table/<id>`: name,
+Storyteller, CHARACTERS, MEMBERS; for the ST also the JOIN CODE and REQUESTS with
+Approve / Reject and what each base carries). A base card on `/home` has **Join**, the
+shortcut into the same form with that base chosen. A copy card says *"· In <campaign>"*.
+New shared module `server/chrome.py` — the page paths, the top bar, the grid and the
+character card moved out of `home.py`, so `home.py` and `campaigns.py` do not import each
+other. `TableStore` grew `withdraw` and `members`. `build_server` makes **one**
+`TableStore` for the process (the join throttle lives in it).
+
+**Tests:** `tests/test_campaign_pages.py` (21, production wiring through
+`tests/_auth_main.py`) and 3 more in `test_table_store.py`. **Mutation-checked (8, all
+killed):** `access` dropped from the page body; the code shown to members; withdraw done
+with `leave`; the join form offering drafts and copies; the carried-homebrew line dropped;
+`withdraw` ignoring the owner; `members` not filtered by table (survived at first — the
+test had one table; a second table's member now kills it); the approve handler not
+catching the store's refusal.
+
+🐞 **Found on the way — `leave` is not a withdraw for a member.** The step-1 log and the
+handoff said *"`leave` as withdraw"*. That holds only for a non-member. A member who asked
+to bring a second character and withdrew with `leave` would be taken out of the campaign,
+and their copies made solo. `withdraw(user_id, request_id)` deletes the one request;
+`test_withdraw_deletes_one_request_and_keeps_the_membership` and its page twin hold it.
+
+**Design choices made without asking, reversible:**
+- The CAMPAIGNS section is the third section of `/home`'s Characters tab, after the
+  copies (§7 says "a third section"), with its own New / Join buttons.
+- The join code shows on the ST's `/home` card as well as on `/table/<id>`.
+- The join form starts on the first base; "Just watch" is the last option. With no base
+  it says how to get one.
+- A member's `/table/<id>` lists the characters (a card links only to the viewer's own
+  copy — another account's page would refuse it) and the members by username.
+- A requester sees the name of a campaign they are waiting on (they typed its code).
+- Each ST handler asks `access()` again (`still_storyteller`). ⚠ **No test can kill that
+  mutation**: the store refuses the same call, so the page behaves the same without it.
+  It is defence in depth; the store is the check.
+
+**Not live yet (step 3):** neither page polls. The ST sees a new request on reload, and a
+player sees an approval on reload.

@@ -23,7 +23,6 @@ RuleSet for each ACCOUNT: all its characters see the homebrew of its library.
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
 
 from nicegui import ui
 
@@ -37,17 +36,15 @@ from ..ui import builder, theme
 from ..ui.assets import cytoscape_head_html
 from ..ui import custom as custom_mod
 from ..ui import view as viewmod
-from . import auth
+from . import chrome
+from .campaigns import HomeCampaigns
 from .characters import CharacterRow, CharacterStore, CharacterStoreError
 from .session import SessionRegistry
+from .tables import TableStore
 
-HOME_PATH = auth.HOME_PATH
-CHARACTER_PATH = "/character"
-
-
-def character_url(character_id: str) -> str:
-    """Return the page of the character `character_id`."""
-    return f"{CHARACTER_PATH}/{character_id}"
+HOME_PATH = chrome.HOME_PATH
+CHARACTER_PATH = chrome.CHARACTER_PATH
+character_url = chrome.character_url
 
 
 class AccountRulesets:
@@ -88,11 +85,13 @@ def import_character(store: CharacterStore, rulesets: AccountRulesets, user_id: 
 
 def register_character_pages(store: CharacterStore, book: RuleSet,
                              current_user_id: Callable[[], int | None],
-                             adversary_catalog: dict) -> SessionRegistry:
+                             adversary_catalog: dict,
+                             tables: TableStore) -> SessionRegistry:
     """Register `/home` and `/character/<id>`. Return the registry of the contexts.
 
     `current_user_id` returns the account of the request. The server gives
     `auth.current_user_id`; the gate sends a visitor with no login away first.
+    `tables` gives the Campaigns section of `/home`.
     """
     rulesets = AccountRulesets(book, store)
 
@@ -111,14 +110,11 @@ def register_character_pages(store: CharacterStore, book: RuleSet,
     sessions = SessionRegistry(factory=factory)
 
     def _account() -> int:
-        user_id = current_user_id()
-        if user_id is None:
-            raise PermissionError("No account is logged in. The login gate did not run.")
-        return user_id
+        return chrome.require_account(current_user_id)
 
     @ui.page(HOME_PATH)
     def home_page() -> None:
-        _build_home(store, rulesets, sessions, _account())
+        _build_home(store, tables, rulesets, sessions, _account())
 
     @ui.page(CHARACTER_PATH + "/{character_id}")
     def character_page(character_id: str) -> None:
@@ -148,39 +144,23 @@ def register_character_pages(store: CharacterStore, book: RuleSet,
 # --------------------------------------------------------------------------- #
 
 
-def _header(pal, title: str) -> ui.row:
-    """Draw the top bar of the builder. Return the row for its buttons."""
-    with ui.header().classes("items-center justify-between px-4").style(
-            f"background:{pal.accent}"):
-        ui.label(title).classes("text-lg font-bold text-white")
-        buttons = ui.row().classes("items-center gap-2")
-    ui.query("body").style(f"background:{pal.bg};color:{pal.ink}")
-    return buttons
-
-
-def _logout_button() -> None:
-    ui.button("Log out", icon="logout", on_click=lambda: ui.navigate.to("/logout")).props(
-        "flat color=white").mark("top-bar-logout")
-
-
 def _not_found() -> None:
     """The answer for a character of another account and for one that is absent."""
     pal = theme.palette(None)
-    with _header(pal, "Exalted 1e"):
-        ui.button("Home", icon="home", on_click=lambda: ui.navigate.to(HOME_PATH)).props(
-            "flat color=white").mark("top-bar-home")
+    with chrome.header(pal, "Exalted 1e"):
+        chrome.home_button()
     ui.label("There is no such character.").classes("text-base p-4").mark("not-found")
 
 
-def _build_home(store: CharacterStore, rulesets: AccountRulesets,
+def _build_home(store: CharacterStore, tables: TableStore, rulesets: AccountRulesets,
                 sessions: SessionRegistry, user_id: int) -> None:
     pal = theme.palette(None)
     # The Homebrew tab draws a Charm tree.
     ui.add_head_html(cytoscape_head_html())
-    with _header(pal, "Exalted 1e — Your characters"):
+    with chrome.header(pal, "Exalted 1e — Your characters"):
         ui.button("Wiki", icon="menu_book", on_click=lambda: ui.navigate.to("/wiki")).props(
             "flat color=white")
-        _logout_button()
+        chrome.logout_button()
 
     def new_character() -> None:
         row = store.create(user_id, Character(id=new_character_id()))
@@ -267,43 +247,51 @@ def _build_home(store: CharacterStore, rulesets: AccountRulesets,
     @ui.refreshable
     def listing() -> None:
         rows = store.list_for(user_id)
-        entries = {row.id: _entry(store, ruleset, row) for row in rows}
+        entries = {row.id: chrome.entry(store, ruleset, row) for row in rows}
         characters = [row for row in rows if not row.is_copy]
         copies = [row for row in rows if row.is_copy]
+        bases = {row.id: entries[row.id].name for row in characters
+                 if entries[row.id].stage == "Base"}
+        campaign_names = campaigns.table_names()
 
-        def section(title: str, count: int) -> None:
-            ui.label(f"{title} ({count})").classes(
-                "text-xs font-bold tracking-widest pt-2").style(f"color:{pal.accent}")
-
-        section("CHARACTERS", len(characters))
+        chrome.section_label(pal, "CHARACTERS", len(characters))
         if not characters:
             with ui.card().classes(f"w-full p-8 items-center gap-1 {pal.card_soft}"):
                 ui.icon("person_add").classes("text-5xl opacity-40")
                 ui.label("No characters yet").classes("text-base font-bold")
                 ui.label("Start one with New character, or import a .character.json "
                          "that you downloaded.").classes("text-sm opacity-70")
-        with _grid():
+        with chrome.grid():
             for row in characters:
                 entry = entries[row.id]
-                with _character_card(entry, row):
+                with chrome.character_card(entry, row):
                     if entry.stage == "Base":
                         ui.button("Campaign copy", icon="content_copy",
                                   on_click=lambda _=None, r=row: make_copy(r)).props(
                             "flat dense no-caps size=sm").mark(f"home-copy-{row.id}") \
                             .tooltip("Make a campaign copy to play and advance")
+                        ui.button("Join", icon="group_add",
+                                  on_click=lambda _=None, r=row.id:
+                                  campaigns.open_join(bases, r)).props(
+                            "flat dense no-caps size=sm").mark(f"home-join-with-{row.id}") \
+                            .tooltip("Join a campaign with this character")
                     _delete_button(row, entry.name)
 
-        section("CAMPAIGN COPIES", len(copies))
+        chrome.section_label(pal, "CAMPAIGN COPIES", len(copies))
         if not copies:
             ui.label("A campaign copy is made from a locked base. It takes XP; the "
                      "base does not.").classes("text-sm opacity-70")
-        with _grid():
+        with chrome.grid():
             for row in copies:
                 entry = entries[row.id]
                 origin = (f"Copy of {entries[row.base_id].name}" if row.base_id in entries
                           else "Its base is deleted")
-                with _character_card(entry, row, detail=origin):
+                if row.table_id in campaign_names:
+                    origin += f" · In {campaign_names[row.table_id]}"
+                with chrome.character_card(entry, row, detail=origin):
                     _delete_button(row, entry.name)
+
+        campaigns.draw(bases, {row_id: e.name for row_id, e in entries.items()})
 
     def _delete_button(row: CharacterRow, name: str) -> None:
         ui.button(icon="delete_outline",
@@ -311,61 +299,10 @@ def _build_home(store: CharacterStore, rulesets: AccountRulesets,
             "flat dense round size=sm color=negative").mark(
             f"home-delete-{row.id}").tooltip("Delete")
 
+    campaigns = HomeCampaigns(tables, store, user_id, refresh=lambda: listing.refresh())
+
     with characters_panel:
         listing()
-
-
-@dataclass(frozen=True)
-class _Entry:
-    """What a card on /home shows. The file gives all of it."""
-
-    name: str
-    stage: str               # "Draft", "Base", "Copy" or "Unreadable"
-    exalt_type: str | None
-    kind: str                # "Solar · Dawn", "Mortal", ...
-    essence: int | None
-
-
-def _grid():
-    """A grid of cards that fills the column and wraps."""
-    return ui.element("div").classes("grid gap-3 w-full").style(
-        "grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr))")
-
-
-def _character_card(entry: _Entry, row: CharacterRow, detail: str | None = None):
-    """Draw a card for one character, tinted by its splat. Return the row that
-    holds its action buttons. The name and the details are ONE link."""
-    cpal = theme.palette(entry.exalt_type)
-    card = ui.card().classes(f"p-0 gap-0 overflow-hidden {cpal.card}").mark(
-        f"home-row-{row.id}")
-    with card:
-        ui.element("div").classes("w-full h-1").style(f"background:{cpal.accent}")
-        with ui.link(target=character_url(row.id)).classes(
-                "w-full no-underline text-inherit px-3 pt-2 pb-1 hover:bg-black/5"):
-            with ui.row().classes("w-full items-start justify-between no-wrap gap-2"):
-                ui.label(entry.name).classes("text-base font-bold truncate min-w-0")
-                ui.badge(entry.stage).props("outline").style(f"color:{cpal.accent}")
-            ui.label(entry.kind).classes("text-sm opacity-80")
-            if entry.essence is not None:
-                ui.label(f"Essence {entry.essence}").classes("text-xs opacity-60")
-            if detail:
-                ui.label(detail).classes("text-xs opacity-70 pt-1")
-        actions = ui.row().classes("w-full items-center justify-end gap-1 px-2 pb-1")
-    return actions
-
-
-def _entry(store: CharacterStore, ruleset: RuleSet, row: CharacterRow) -> _Entry:
-    """Return what the card of `row` shows. A file that does not read is listed,
-    so that it can be deleted."""
-    try:
-        character = store.load(row)
-    except Exception:                               # noqa: BLE001 - list it, do not crash the page
-        return _Entry(f"(unreadable: {row.id})", "Unreadable", None, "", None)
-    caste = ruleset.castes.get(character.caste) if character.caste else None
-    kind = character.exalt_type + (f" · {caste.label}" if caste is not None else "")
-    stage = "Copy" if row.is_copy else ("Base" if character.chargen_locked else "Draft")
-    return _Entry(character.name or "Unnamed character", stage, character.exalt_type,
-                  kind, character.essence_rating)
 
 
 def _delete(store: CharacterStore, sessions: SessionRegistry, user_id: int,
@@ -405,16 +342,15 @@ def _build_base(store: CharacterStore, sessions: SessionRegistry, row: Character
         ui.download.content(persistence.character_to_json(character).encode("utf-8"),
                             persistence.suggested_filename(character))
 
-    with _header(pal, f"Exalted 1e — {pal.splat_label} Base"):
-        ui.button("Home", icon="home", on_click=lambda: ui.navigate.to(HOME_PATH)).props(
-            "flat color=white").mark("top-bar-home")
+    with chrome.header(pal, f"Exalted 1e — {pal.splat_label} Base"):
+        chrome.home_button()
         ui.button("Make a campaign copy", icon="content_copy", on_click=make_copy).props(
             "flat color=white").mark("base-copy")
         ui.button("Unlock to edit", icon="lock_open", on_click=unlock).props(
             "flat color=white").mark("base-unlock")
         ui.button("Download a copy", icon="download", on_click=download).props(
             "flat color=white").mark("top-bar-download")
-        _logout_button()
+        chrome.logout_button()
 
     ui.label("A base character. It takes no XP. Make a campaign copy to play and "
              "advance it; the base stays as it is.").classes("text-sm p-2").mark("base-note")
