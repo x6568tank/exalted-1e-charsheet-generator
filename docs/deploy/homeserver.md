@@ -9,6 +9,9 @@ commit `7cd594f`. Checked from outside through Cloudflare: the public pages and 
 snapshot) is the human's to add; `claude` cannot write `backup.sh`. Steps marked **(gil)** need the `docker` or `sudo` group;
 `claude` has neither, on purpose.
 
+⚠ One line of step 3 is now AHEAD of the running server: `mem_limit: 2g`, added 2026-09-18.
+See "The memory limit". Everything else in steps 2–4 is what the server runs.
+
 ## What the server already looks like
 
 * Ubuntu 24.04, 8 cores, 15 GB RAM, 408 GB free on `/`.
@@ -67,6 +70,7 @@ Add under `services:` in `~/homelab/docker-compose.yml`:
     image: exalted-builder:local
     container_name: exalted
     restart: unless-stopped
+    mem_limit: 2g                      # see "The memory limit" below
     ports:
       - "127.0.0.1:8090:8080"          # only cloudflared on this host can reach it
     environment:
@@ -89,6 +93,22 @@ curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8090/     # expect: 20
 
 ⚠ The port is published on `127.0.0.1` only, unlike the other services. That is on
 purpose: the plain-HTTP LAN address cannot log anyone in, so it should not be reachable.
+
+#### The memory limit
+
+**NOT YET APPLIED** (2026-09-18) — the running server predates the `mem_limit: 2g` line
+above, and the human had no access when it was written. Apply it at the next deploy;
+`docker compose up -d exalted` recreates the container and picks it up.
+
+It protects the *other* homelab apps from this one, not this one from its users. Without a
+limit, a container that leaks or spikes takes memory from Filebrowser, Jellyfin and the
+rest of the Compose file, and the kernel's OOM killer picks the victim — which need not be
+`exalted`. With the limit, only `exalted` dies, and `restart: unless-stopped` brings it
+back.
+
+2 GB is well above what it needs. `SessionRegistry` caps at 200 live contexts with LRU
+eviction (`server/session.py`), so the usage is bounded by design, not by hope. Raise the
+limit if `docker stats exalted` shows it near the ceiling in normal play.
 
 ### 4. The tunnel (gil, sudo)
 

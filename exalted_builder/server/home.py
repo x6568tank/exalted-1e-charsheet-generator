@@ -46,6 +46,17 @@ HOME_PATH = chrome.HOME_PATH
 CHARACTER_PATH = chrome.CHARACTER_PATH
 character_url = chrome.character_url
 
+# The largest file that the import control accepts. A character file is some
+# kilobytes; a file with a large homebrew library is more. The account quota is
+# 10 MB (server/quota.py), thus one import can never fill an account.
+#
+# ⚠ The browser applies this limit, not the server. `ui.upload` sets the Quasar
+# `max-file-size` prop, and the upload route of NiceGUI reads the whole body. Thus
+# this refuses the file that a person picks by mistake. It does not refuse a
+# request that a program makes. That request needs the client id of a page of the
+# account, thus a visitor with no login cannot make one.
+MAX_IMPORT_BYTES = 2 * 1024 * 1024
+
 
 class AccountRulesets:
     """One RuleSet for each account: the book with the library of the account.
@@ -177,6 +188,16 @@ def _build_home(store: CharacterStore, tables: TableStore, rulesets: AccountRule
                       type="info")
         ui.navigate.to(character_url(row.id))
 
+    def on_rejected(_) -> None:
+        """Tell the user why the import control took no file.
+
+        The browser rejects a file that is larger than `MAX_IMPORT_BYTES`, or that
+        is not a `.json` file. Without this, the control takes the file and does
+        nothing, and the page gives no message.
+        """
+        ui.notify(f"Import failed: a character file must be a .json file of "
+                  f"{MAX_IMPORT_BYTES // 2**20} MB or less.", type="negative")
+
     def make_copy(row: CharacterRow) -> None:
         try:
             copy = store.make_copy(user_id, row.id)
@@ -229,7 +250,9 @@ def _build_home(store: CharacterStore, tables: TableStore, rulesets: AccountRule
     with characters_panel:
         # The upload control of Quasar draws a blue box with a progress readout.
         # It stays hidden; the Import button opens its file picker.
-        upload = ui.upload(auto_upload=True, on_upload=on_import).props(
+        upload = ui.upload(auto_upload=True, on_upload=on_import,
+                           max_file_size=MAX_IMPORT_BYTES,
+                           on_rejected=on_rejected).props(
             "accept=.json").classes("hidden").mark("home-import")
         with ui.row().classes("w-full items-end justify-between gap-2 pt-2"):
             with ui.column().classes("gap-0"):
