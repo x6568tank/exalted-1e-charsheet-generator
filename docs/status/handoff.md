@@ -2,7 +2,7 @@
 
 # 👉 YOU ARE HERE
 
-**P3 step 4 is DONE, tests green, NOT browser-verified.** Committed, not pushed.
+**P3 step 4 is DONE and BROWSER-VERIFIED** (human, 2026-09-22: *"everything looks good! no issues on my end now and everything in the clickthrough passed"*), the health labels included. Committed, not pushed.
 **`docs/plans/p3-tables.md` §14 "Step 4" is the record.** New `server/table_log.py`
 (`TableLog`: `entries`, `version`, `post`, `roll`, in `<table folder>/log.json`); the
 Log tab of `/table/<id>` has the entries, a text box, a Dice count, **Roll** and
@@ -22,7 +22,7 @@ all killed. **Full suite: 3877 passed + 1 skipped — OBSERVED** on this machine
 Preflight: passes 1–2 found nothing but an overflowing name row in a Log entry (fixed:
 truncate); pass 3's shapes are roles and states, all tested.
 
-🖱 **Click-through (step 4)** — two accounts in one campaign, side by side:
+✅ **Click-through (step 4) — PASSED 2026-09-22**, all five steps, for the record:
 1. The Log tab: an empty Log says "Nothing yet"; type a line, Enter → it appears, and
    in the other browser within ~2 s, with the name (the ST's with a star).
 2. Type "I swing", Dice 8, **Roll** → one entry: the caption, `8 dice → …`, the faces;
@@ -34,8 +34,7 @@ truncate); pass 3's shapes are roles and states, all tested.
    as in step 3's click-through); the player's Send → "You are no longer in this campaign."
 
 **Asked after:** the health box labels (-0 / -1 / -2 / -4 / Incap) are now on YOU PLAY
-and THE OTHERS, from `PlayHealthBox.label`. Check them at the click-through, and check
-that "Incap" does not push the small boxes of THE OTHERS apart.
+and THE OTHERS, from `PlayHealthBox.label`. Checked in the browser.
 
 **Next:** after the click-through, P3 **step 5, ST tools** (§15.4): Grant XP through
 the live context + the award log, remove member, new code, delete, the Adjust XP

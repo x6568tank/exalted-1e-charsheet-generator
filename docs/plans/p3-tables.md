@@ -1,6 +1,6 @@
 # P3 — Campaigns (the `Table`): design
 
-**Status: build steps 1–2 DONE 2026-09-12; step 3 (the table view shell) DONE and BROWSER-VERIFIED 2026-09-22; step 4 (the Log) DONE, tests green, NOT browser-verified, 2026-09-22 (§14 is the build log). The layout was approved 2026-09-22 (§15). Steps 5–9 (the revised order, §15.4) are not started.**
+**Status: build steps 1–2 DONE 2026-09-12; step 3 (the table view shell) DONE and BROWSER-VERIFIED 2026-09-22; step 4 (the Log) DONE and BROWSER-VERIFIED 2026-09-22 (§14 is the build log). The layout was approved 2026-09-22 (§15). Steps 5–9 (the revised order, §15.4) are not started.**
 Every product question the human was asked is ruled (`vtt.md` §9.1, §9.2, §9.3a, §9.10), and
 so are the six the design turned up (§13).
 
@@ -661,6 +661,8 @@ no text cap; the roll ignoring the injected RNG.
 - The count box starts empty (the spike had 6).
 - An unreadable `log.json` reads as empty, with a warning in the server log; the next
   post then replaces it.
+
+✅ **BROWSER-VERIFIED 2026-09-22.** The human ran the five-step click-through (a message across two accounts, the caption rule, `<b>` as text, the look and narrow width, removal) and checked the health labels: *"everything looks good! no issues on my end now and everything in the clickthrough passed"*.
 
 ⚠ **Known limit:** the Log has no paging. The newest 500 are all on the page.
 
