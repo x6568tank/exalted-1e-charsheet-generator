@@ -2,43 +2,49 @@
 
 # 👉 YOU ARE HERE
 
-**P3 step 4 is DONE and BROWSER-VERIFIED** (human, 2026-09-22: *"everything looks good! no issues on my end now and everything in the clickthrough passed"*), the health labels included. Committed, not pushed.
-**`docs/plans/p3-tables.md` §14 "Step 4" is the record.** New `server/table_log.py`
-(`TableLog`: `entries`, `version`, `post`, `roll`, in `<table folder>/log.json`); the
-Log tab of `/table/<id>` has the entries, a text box, a Dice count, **Roll** and
-**Send**. The server rolls (`engine/dice.roll`); Roll takes the text box as its
-caption; the newest 500 entries; 1,000 characters; the ST, players and watchers post;
-`access()` in the store AND the handler; the 2 s poll appends new entries.
-⚠ `version()` is the newest entry id, not the file's mtime and size, which can miss a
-post once the Log is full.
+**P3 step 4 is DONE and BROWSER-VERIFIED** (human, 2026-09-22: *"everything looks good!
+no issues on my end now and everything in the clickthrough passed"*), the health labels
+included. **`docs/plans/p3-tables.md` §14 "Step 4" is the record**: what shipped, the
+mechanics, 10 mutations (all killed), the design choices made without asking.
 
-**Design choices made without asking** (§14 Step 4): a count of 0 is refused; no TN or
-10s/botch switches in the Log (R5 names a count only); times are the server's local
-HH:MM; the count box starts empty.
+In one breath: new `server/table_log.py` (`TableLog`: `entries`, `version`, `post`,
+`roll`, kept in `<table folder>/log.json`); the Log tab of `/table/<id>` has the entries,
+a text box, a Dice count, **Roll** and **Send**. The server rolls (`engine/dice.roll`);
+Roll takes the text box as its caption; the newest 500 entries; 1,000 characters; the
+ST, players and watchers post; `access()` in the store AND the handler; the 2 s poll
+appends new entries. ⚠ `version()` is the **newest entry id**, not the file's mtime and
+size, which can miss a post once the Log is full.
 
-**Tests:** `tests/test_table_log.py` (21) + 10 in `test_table_view.py`; 10 mutations,
-all killed. **Full suite: 3877 passed + 1 skipped — OBSERVED** on this machine
-(3846 + 31), before the labels case; 3878 computed after it. ⚠ The count moves by machine and optional dependency (`docs/testing.md`).
-Preflight: passes 1–2 found nothing but an overflowing name row in a Log entry (fixed:
-truncate); pass 3's shapes are roles and states, all tested.
+**Asked after:** the health box labels (-0 / -1 / -2 / -4 / Incap, ★ for a Charm level)
+are now on YOU PLAY and THE OTHERS, from `PlayHealthBox.label`. Browser-checked.
 
-✅ **Click-through (step 4) — PASSED 2026-09-22**, all five steps, for the record:
-1. The Log tab: an empty Log says "Nothing yet"; type a line, Enter → it appears, and
-   in the other browser within ~2 s, with the name (the ST's with a star).
-2. Type "I swing", Dice 8, **Roll** → one entry: the caption, `8 dice → …`, the faces;
-   the box is cleared and the 8 stays. Roll with an empty box → no caption.
-3. Post `<b>hi</b>` → shown as the literal text.
-4. The look: a long line wraps inside the rail; the list scrolls to the newest; a
-   phone-width window.
-5. Remove the player (no button until step 5: `TableStore.remove` from a Python shell,
-   as in step 3's click-through); the player's Send → "You are no longer in this campaign."
+**Design choices made without asking, reversible** (§14 Step 4): a count of 0 is
+refused; no TN or 10s/botch switches in the Log (R5 names a count only); times are the
+server's local HH:MM; the count box starts empty; no paging of the 500.
 
-**Asked after:** the health box labels (-0 / -1 / -2 / -4 / Incap) are now on YOU PLAY
-and THE OTHERS, from `PlayHealthBox.label`. Checked in the browser.
+**Tests:** `tests/test_table_log.py` (21) + 11 in `test_table_view.py` (10 Log, 1
+labels). **Full suite: 3877 passed + 1 skipped — OBSERVED** on this machine after all of the
+Log work, BEFORE the labels commit (`da6d389`). ⚠ **The full suite was NOT re-run after
+the labels commit**: a close-out run was stopped at 55% (green so far) because the
+laptop had to leave. The labels change was checked by `tests/test_table_view.py`
+alone (43 passed). **3878 + 1 skipped is COMPUTED**, not observed. Run the full suite
+once at the start of the next session before building on it.
+⚠ The count moves by machine and optional dependency (`docs/testing.md`).
 
-**Next:** after the click-through, P3 **step 5, ST tools** (§15.4): Grant XP through
-the live context + the award log, remove member, new code, delete, the Adjust XP
-lockout, and **Leave campaign** for a member. Steps 2–4 are not deployed.
+**Working tree:** clean, committed and **pushed** at close-out (this handoff is the last
+commit). Check `git status`.
+
+✅ **Click-through (step 4) — PASSED 2026-09-22**: a message and a roll across two
+accounts, the caption rule, `<b>` shown as text, the look at narrow width, removal
+stopping the page, and the health labels.
+
+**Next:** P3 **step 5, ST tools** (§15.4): Grant XP through the live context + the
+award log (⚠ the §6 / §15.3 trap: a write to the file behind an open page is lost at the
+next auto-save), remove member, new code, delete, the Adjust XP lockout on campaign
+copies, and **Leave campaign** for a member (in ⋮; `TableStore.leave`). The award could
+also post a line to the Log (a design choice). **Steps 2–4 are not deployed**; deploy
+when the human asks. The click-through server may still be running on :8080 from
+`/tmp/exalted-click/`.
 
 ---
 
