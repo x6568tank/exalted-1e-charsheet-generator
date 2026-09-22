@@ -1,6 +1,46 @@
-# Session handoff — 2026-09-22 (P3 step 3, the table view)
+# Session handoff — 2026-09-22 (P3 step 4, the Log)
 
 # 👉 YOU ARE HERE
+
+**P3 step 4 is DONE, tests green, NOT browser-verified.** Committed, not pushed.
+**`docs/plans/p3-tables.md` §14 "Step 4" is the record.** New `server/table_log.py`
+(`TableLog`: `entries`, `version`, `post`, `roll`, in `<table folder>/log.json`); the
+Log tab of `/table/<id>` has the entries, a text box, a Dice count, **Roll** and
+**Send**. The server rolls (`engine/dice.roll`); Roll takes the text box as its
+caption; the newest 500 entries; 1,000 characters; the ST, players and watchers post;
+`access()` in the store AND the handler; the 2 s poll appends new entries.
+⚠ `version()` is the newest entry id, not the file's mtime and size, which can miss a
+post once the Log is full.
+
+**Design choices made without asking** (§14 Step 4): a count of 0 is refused; no TN or
+10s/botch switches in the Log (R5 names a count only); times are the server's local
+HH:MM; the count box starts empty.
+
+**Tests:** `tests/test_table_log.py` (21) + 10 in `test_table_view.py`; 10 mutations,
+all killed. **Full suite: 3877 passed + 1 skipped — OBSERVED** on this machine
+(3846 + 31). ⚠ The count moves by machine and optional dependency (`docs/testing.md`).
+Preflight: passes 1–2 found nothing but an overflowing name row in a Log entry (fixed:
+truncate); pass 3's shapes are roles and states, all tested.
+
+🖱 **Click-through (step 4)** — two accounts in one campaign, side by side:
+1. The Log tab: an empty Log says "Nothing yet"; type a line, Enter → it appears, and
+   in the other browser within ~2 s, with the name (the ST's with a star).
+2. Type "I swing", Dice 8, **Roll** → one entry: the caption, `8 dice → …`, the faces;
+   the box is cleared and the 8 stays. Roll with an empty box → no caption.
+3. Post `<b>hi</b>` → shown as the literal text.
+4. The look: a long line wraps inside the rail; the list scrolls to the newest; a
+   phone-width window.
+5. Remove the player (no button until step 5: `TableStore.remove` from a Python shell,
+   as in step 3's click-through); the player's Send → "You are no longer in this campaign."
+
+**Next:** after the click-through, P3 **step 5, ST tools** (§15.4): Grant XP through
+the live context + the award log, remove member, new code, delete, the Adjust XP
+lockout, and **Leave campaign** for a member. Steps 2–4 are not deployed.
+
+---
+
+## The session before — P3 step 3, the table view (2026-09-22)
+
 
 **P3 step 3 is DONE and BROWSER-VERIFIED** (human, 2026-09-22: *"It works. No notes."*). Committed.
 `/table/<id>` is now layout A: `server/table_view.py` (new; step 2's page body moved out

@@ -18,6 +18,7 @@ absence here follows a `should_see` of something that the same render draws.
 from __future__ import annotations
 
 import pytest
+from nicegui import ui
 from nicegui.testing import User
 
 pytest.importorskip("bcrypt")
@@ -26,7 +27,7 @@ from exalted_builder.engine import lifecycle  # noqa: E402
 from exalted_builder.engine import play as engineplay  # noqa: E402
 from exalted_builder.models.character import (  # noqa: E402
     Armor, Character, Damage, MeritFlawPurchase, PlayState)
-from exalted_builder.server import chrome, db, table_view  # noqa: E402
+from exalted_builder.server import chrome, db, table_log, table_view  # noqa: E402
 from exalted_builder.server.characters import CharacterStore  # noqa: E402
 from exalted_builder.server.tables import TableStore  # noqa: E402
 
@@ -633,3 +634,180 @@ async def test_an_unreadable_copy_does_not_break_the_page(create_user) -> None:
     await player.should_see(marker="you-play")
     await player.should_see(f"(unreadable: {mine.id})")
     await player.should_see(f"(unreadable: {theirs.id})")
+
+
+# --------------------------------------------------------------------------- #
+# The Log (step 4, section 15.3)
+# --------------------------------------------------------------------------- #
+
+
+def _log() -> table_log.TableLog:
+    return table_log.TableLog(_tables())
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_message_reaches_the_other_members_by_the_poll(create_user) -> None:
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, player_id, _), = players
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="log-send")
+    await player.open(chrome.table_url(table.id))
+
+    player.find(marker="log-text").type("The doors grind open.")
+    player.find(marker="log-send").click()
+
+    await player.should_see(marker="log-body-1", content="The doors grind open.")
+    assert _one(player, "log-text").value == ""
+    (entry,) = _log().entries(table.id)
+    assert (entry.user_id, entry.text, entry.roll) == (player_id, "The doors grind open.",
+                                                       None)
+    await st.should_see(marker="log-body-1", content="The doors grind open.",
+                        retries=_POLL_RETRIES)
+    await st.should_see(marker="log-name-1", content="Player0")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_enter_in_the_text_box_sends(create_user) -> None:
+    _, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, _), = players
+    await player.open(chrome.table_url(table.id))
+
+    player.find(marker="log-text").type("Hello").trigger("keydown.enter")
+
+    await player.should_see(marker="log-body-1", content="Hello")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_roll_takes_the_text_as_its_caption(create_user) -> None:
+    _, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, player_id, _), = players
+    await player.open(chrome.table_url(table.id))
+
+    player.find(marker="log-text").type("I swing at the bandit")
+    _one(player, "log-count").value = 8
+    player.find(marker="log-roll").click()
+
+    await player.should_see(marker="log-body-1", content="I swing at the bandit")
+    (entry,) = _log().entries(table.id)
+    assert entry.user_id == player_id and entry.text == "I swing at the bandit"
+    assert entry.roll is not None and len(entry.roll.faces) == 8
+    await player.should_see(marker="log-roll-1", content=f"8 dice → {entry.roll.summary}")
+    assert _one(player, "log-text").value == ""
+    # The count stays for the next roll.
+    assert _one(player, "log-count").value == 8
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_roll_with_an_empty_box_has_no_caption(create_user) -> None:
+    _, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, _), = players
+    await player.open(chrome.table_url(table.id))
+
+    _one(player, "log-count").value = 3
+    player.find(marker="log-roll").click()
+
+    await player.should_see(marker="log-roll-1", content="3 dice →")
+    (entry,) = _log().entries(table.id)
+    assert entry.text == "" and entry.roll is not None
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_count_out_of_range_writes_nothing(create_user) -> None:
+    _, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, _), = players
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="log-roll")
+
+    _one(player, "log-count").value = 0
+    player.find(marker="log-roll").click()
+
+    await player.should_see("Type a number of dice from 1 to")
+    assert _log().entries(table.id) == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_log_text_is_shown_as_text_not_markup(create_user) -> None:
+    _, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, _), = players
+    await player.open(chrome.table_url(table.id))
+
+    player.find(marker="log-text").type("<b>bold</b> <script>x()</script>")
+    player.find(marker="log-send").click()
+
+    await player.should_see("<b>bold</b> <script>x()</script>")
+    for element in player.find("<b>bold</b>").elements:
+        assert type(element) is ui.label
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_watcher_and_the_storyteller_can_post(create_user) -> None:
+    st, st_id, table, _ = await _campaign(create_user)
+    watcher = create_user()
+    watcher_id = await _sign_up(watcher, "Watcher")
+    _member(table, watcher_id)
+
+    for n, (user, text) in enumerate(((watcher, "watching"), (st, "welcome")), 1):
+        await user.open(chrome.table_url(table.id))
+        user.find(marker="log-text").type(text)
+        user.find(marker="log-send").click()
+        await user.should_see(marker=f"log-body-{n}", content=text)
+
+    assert [(e.user_id, e.text) for e in _log().entries(table.id)] == [
+        (watcher_id, "watching"), (st_id, "welcome")]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_log_shows_older_entries_with_the_storyteller_starred(create_user) -> None:
+    _, st_id, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, _), = players
+    _log().post(st_id, table.id, "Three bandits look up.")
+
+    await player.open(chrome.table_url(table.id))
+
+    await player.should_see(marker="log-body-1", content="Three bandits look up.")
+    await player.should_see(marker="log-name-1", content="Harmonious")
+    await player.should_see(marker="log-star-1")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_post_after_removal_writes_nothing(create_user) -> None:
+    _, st_id, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, player_id, _), = players
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="log-send")
+
+    _tables().remove(st_id, table.id, player_id)
+    player.find(marker="log-text").type("still here?")
+    player.find(marker="log-send").click()
+
+    # ⚠ Before any await: the poll draws the same words on the page.
+    assert player.notify.contains(table_view.GONE)
+    await player.should_see(marker="table-gone")
+    assert _log().entries(table.id) == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_poll_adds_new_entries_below_the_old(create_user) -> None:
+    _, st_id, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, _), = players
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="log-empty")
+
+    _log().post(st_id, table.id, "first")
+    await player.should_see(marker="log-body-1", content="first", retries=_POLL_RETRIES)
+    await player.should_not_see(marker="log-empty")
+    _log().roll(st_id, table.id, 1, "second")
+
+    await player.should_see(marker="log-roll-2", content="1 die →", retries=_POLL_RETRIES)
+    await player.should_see(marker="log-body-1", content="first")
+    assert len(player.find(marker="log-body-1").elements) == 1

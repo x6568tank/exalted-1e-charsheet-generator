@@ -1,6 +1,6 @@
 # P3 — Campaigns (the `Table`): design
 
-**Status: build steps 1–2 DONE 2026-09-12; step 3 (the table view shell) DONE and BROWSER-VERIFIED 2026-09-22 (§14 is the build log). The layout was approved 2026-09-22 (§15). Steps 4–9 (the revised order, §15.4) are not started.**
+**Status: build steps 1–2 DONE 2026-09-12; step 3 (the table view shell) DONE and BROWSER-VERIFIED 2026-09-22; step 4 (the Log) DONE, tests green, NOT browser-verified, 2026-09-22 (§14 is the build log). The layout was approved 2026-09-22 (§15). Steps 5–9 (the revised order, §15.4) are not started.**
 Every product question the human was asked is ruled (`vtt.md` §9.1, §9.2, §9.3a, §9.10), and
 so are the six the design turned up (§13).
 
@@ -607,6 +607,61 @@ Step 7 (the table homebrew layer, §4) settles which RuleSet a campaign copy see
 ⚠ **Also not live:** the builder page of a character does not repaint when the table
 changes its trackers. The object is shared, so the marks are there at its next redraw
 and its auto-save writes them; the Play tab shows them on a tab switch or reload.
+
+### Step 4 — the Log (2026-09-22)
+
+**Shipped:** `server/table_log.py` (new): `TableLog(tables)` with `entries`, `version`,
+`post` and `roll`, kept in `<table folder>/log.json`. The Log tab of `/table/<id>`
+replaces the step-3 placeholder: the entries (name, the ST starred, HH:MM, the text,
+and for a roll `N dice → 3 successes` with the faces high to low), a text box, a
+**Dice** count, **Roll** and **Send** (Enter sends). `build_server` makes one `TableLog`
+and passes it to `register_table_page`.
+
+**Mechanics, as §15.3 asked:**
+* **The server rolls**: `TableLog.roll` calls `engine/dice.roll` (TN 7, 10s double, a 1
+  can botch). No call takes faces. An entry stores the count, the faces, the successes
+  and the botch.
+* **The caption rule**: Roll takes whatever is in the text box as the caption (it may
+  be empty), then clears the box. The count stays for the next roll. Nothing fills
+  the count (0019).
+* **Bounds**: the newest **500** entries on each write; **1,000** characters for a
+  message or caption (the store refuses more; the box also has `maxlength`).
+* **Who**: `access()` is not None — the ST, players and watchers. The store checks it
+  on each write, and the page handler checks it first and stops the page (GONE), as
+  YOU PLAY's handler does.
+* **The poll**: `version()` is the **newest entry id**, not the file's mtime and size.
+  ⚠ A full Log can have the same size after a write, and two writes in one clock step can share an
+  mtime, so a stat digest can miss a post. The id only rises. The poll reads the file
+  (at most ~500 short entries) once per viewer per 2 s.
+* **Append, not redraw**: a new entry is added below the ones on the page; the whole
+  list is drawn only on the first draw or when the file lost entries. Then it scrolls
+  to the newest.
+* The username is resolved at render (`db.username_for`), never stored.
+* `ui.label` only; `whitespace-pre-wrap break-words`.
+
+**Tests:** `tests/test_table_log.py` (21, the store) and 10 new cases in
+`tests/test_table_view.py` (a message reaches another member by the poll, Enter
+sends, the caption rule, an empty caption, a bad count, `<b>` and `<script>` shown as
+text, a watcher and the ST post, older entries with the star, a post after removal,
+the append path). **Mutation-checked (10, all killed):** `ui.html` for the text (killed
+by the `type is ui.label` assertion, not by a crash); the handler's `access()` dropped;
+the store's member check dropped; no trim; the poll ignoring the Log; Roll dropping the
+caption; the append path redrawing old entries (duplicates); `version` by length;
+no text cap; the roll ignoring the injected RNG.
+**Full suite: 3877 passed + 1 skipped — OBSERVED** on the dev machine (3846 + 31).
+
+**Design choices made without asking, reversible:**
+- **A count of 0 is refused** ("Type a number of dice from 1 to 100"), though
+  `dice.roll` accepts 0. A roll of no dice has nothing to show.
+- **No target-number or 10s/botch switches** in the Log (R5 names a count only). The
+  Play tab's roller keeps them. A damage roll in the Log therefore counts 10s double.
+- **Times are the server's local time**, HH:MM. The server does not know the
+  browser's time zone.
+- The count box starts empty (the spike had 6).
+- An unreadable `log.json` reads as empty, with a warning in the server log; the next
+  post then replaces it.
+
+⚠ **Known limit:** the Log has no paging. The newest 500 are all on the page.
 
 ---
 

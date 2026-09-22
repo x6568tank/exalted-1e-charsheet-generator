@@ -28,7 +28,7 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import custom_content, persistence, rules_db
-from ..server import (auth, characters, config, db, home, public, quota, table_view,
+from ..server import (auth, characters, config, db, home, public, quota, table_log, table_view,
                       tables, wiki)
 from ..server.session import SessionRegistry
 
@@ -98,7 +98,7 @@ def build_server(session_root: Path | None = None,
         table_store)
     # The table view writes YOU PLAY through the character registry.
     table_view.register_table_page(table_store, store, book, sessions,
-                                   auth.current_user_id)
+                                   auth.current_user_id, table_log.TableLog(table_store))
     return sessions
 
 

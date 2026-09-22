@@ -10,6 +10,7 @@ section 15.2 (shape A of `spikes/campaign_page/`):
     controls (R2). THE OTHERS are read-only for each viewer, the Storyteller too (R3).
   * The centre: the frame of the board (P4) and nothing else (Q7).
   * The right rail: the tabs Log, Notes and ST. The ST tab is for the Storyteller.
+    The Log is step 4 (section 15.3): messages and rolls, in `server/table_log.py`.
 
 ⚠ `TableStore.access` is the check. The page calls it in the page body, before it
 reads anything of the table. Each handler and each poll calls it again. A hidden
@@ -21,18 +22,22 @@ next auto-save of that page. Only the owner gets a context. The page reads the
 character of another account with `SessionRegistry.peek`, or from its file, and
 never builds a context for it (section 8).
 
-⚠ A poll, not a hook. The timer compares the rows, the members, the requests and a
-digest of each character. It repaints the part that moved.
+⚠ A poll, not a hook. The timer compares the rows, the members, the requests, a
+digest of each character and the version of the Log. It repaints the part that moved.
+
+⚠ The Log shows each text with `ui.label`. Never use `ui.html` or `ui.markdown`
+there: a member types the text.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+import time
 
 from nicegui import app, ui
 
-from ..engine import derive, play as engineplay
+from ..engine import derive, dice, play as engineplay
 from ..models.character import Character, PlayState
 from ..models.rules import RuleSet
 from ..ui import play as play_mod
@@ -43,6 +48,7 @@ from .campaigns import carried_summary
 from .characters import CharacterRow, CharacterStore
 from .quota import QuotaExceeded
 from .session import SessionRegistry
+from .table_log import MAX_TEXT, LogEntry, TableLog, TableLogError
 from .tables import STORYTELLER, TableRow, TableStore, TableStoreError
 
 TABLE_PATH = chrome.TABLE_PATH
@@ -72,12 +78,13 @@ def _open_as_key(table_id: str) -> str:
 
 def register_table_page(tables: TableStore, store: CharacterStore, book: RuleSet,
                         sessions: SessionRegistry,
-                        current_user_id: Callable[[], int | None]) -> None:
+                        current_user_id: Callable[[], int | None],
+                        log: TableLog) -> None:
     """Register `/table/<id>`.
 
     `book` gives the RuleSet of a character that has no live context. `sessions` is
     the character registry of `server/home.py`. `current_user_id` returns the
-    account of the request.
+    account of the request. `log` reads and writes the Log of each table.
     """
 
     @ui.page(TABLE_PATH + "/{table_id}")
@@ -89,7 +96,7 @@ def register_table_page(tables: TableStore, store: CharacterStore, book: RuleSet
         if table is None:
             _not_found()
             return
-        _TableView(tables, store, book, sessions, user_id, table).build()
+        _TableView(tables, store, book, sessions, log, user_id, table).build()
 
 
 def _not_found() -> None:
@@ -127,8 +134,10 @@ class _TableView:
     """The page of one table for one account. Build it with `build`."""
 
     def __init__(self, tables: TableStore, store: CharacterStore, book: RuleSet,
-                 sessions: SessionRegistry, user_id: int, table: TableRow) -> None:
+                 sessions: SessionRegistry, log: TableLog, user_id: int,
+                 table: TableRow) -> None:
         self.tables = tables
+        self.log = log
         self.store = store
         self.book = book
         self.sessions = sessions
@@ -139,6 +148,7 @@ class _TableView:
         self.gone = False
         self._structure = None
         self._digests: dict[str, object] = {}
+        self._log_version = None
 
     # ---- reads -------------------------------------------------------------- #
 
@@ -264,6 +274,8 @@ class _TableView:
         if self.tables.access(self.user_id, self.table.id) is None:
             self.stop()
             return
+        if self.log.version(self.table.id) != self._log_version:
+            self._draw_log()
         copies = self.copies()
         if self.structure(copies) != self._structure:
             self.refresh_all()
@@ -477,9 +489,8 @@ class _TableView:
         self.tabs = tabs
         with ui.tab_panels(tabs, value="log", animated=False).classes(
                 "w-full bg-transparent"):
-            with ui.tab_panel("log").classes("p-0 gap-2"):
-                ui.label("The campaign log is not built yet.").classes(
-                    "text-sm opacity-70")
+            with ui.tab_panel("log").classes("p-0 gap-1"):
+                self._log_panel()
             with ui.tab_panel("notes").classes("p-0 gap-2"):
                 self.members_panel = ui.column().classes("w-full gap-1")
                 self._draw_members(self.copies())
@@ -487,6 +498,94 @@ class _TableView:
                 with ui.tab_panel("st").classes("p-0 gap-2"):
                     self.st_panel = ui.column().classes("w-full gap-2")
                     self._draw_st()
+
+    # ---- the Log ------------------------------------------------------------ #
+
+    def _log_panel(self) -> None:
+        """The Log (R5): the entries, a text box, a dice count, Roll and Send."""
+        pal = self.pal
+        # ⚠ A scroll area needs a height that is fixed. The rail has no fixed height.
+        self.log_area = ui.scroll_area().classes(
+            "w-full h-[55vh] md:h-[calc(100vh-15rem)]").mark("log-area")
+        with self.log_area:
+            self.log_list = ui.column().classes("w-full gap-1").mark("log-list")
+        with ui.column().classes("w-full gap-1 pt-1").style(
+                f"border-top:1px solid {_BORDER}"):
+            self.log_text = ui.input(
+                placeholder="Say something, or caption a roll…").props(
+                f"dense outlined maxlength={MAX_TEXT}").classes("w-full").mark("log-text")
+            self.log_text.on("keydown.enter", self._send)
+            with ui.row().classes("w-full items-center no-wrap gap-1"):
+                # ⚠ Decision 0019: the player types the count. Nothing fills it from
+                # a pool, and the Log never names a roll.
+                self.log_count = ui.number(
+                    "Dice", value=None, min=1, max=dice.MAX_DICE, format="%d").props(
+                    "dense outlined").classes("w-20").mark("log-count")
+                ui.button("Roll", icon="casino", on_click=self._roll).props(
+                    f"dense no-caps color={pal.button}").mark("log-roll").tooltip(
+                    "Roll the dice. The text in the box, if any, is the caption.")
+                ui.space()
+                ui.button(icon="send", on_click=self._send).props(
+                    f"flat dense round color={pal.button}").mark("log-send").tooltip(
+                    "Send (Enter)")
+        self._draw_log()
+
+    def _draw_log(self) -> None:
+        """Draw the entries of the Log, the oldest first, and scroll to the newest.
+
+        If entries are on the page, add only the entries that are newer. Else draw
+        all of them.
+        """
+        entries = self.log.entries(self.table.id)
+        shown = self._log_version or 0
+        self._log_version = entries[-1].id if entries else 0
+        names: dict[int, str] = {}
+        if shown and entries and entries[-1].id >= shown:
+            entries = [entry for entry in entries if entry.id > shown]
+        else:
+            self.log_list.clear()
+        with self.log_list:
+            if not entries and not shown:
+                ui.label("Nothing yet. Messages and rolls show here, for each "
+                         "member.").classes("text-sm opacity-70").mark("log-empty")
+            for entry in entries:
+                if entry.user_id not in names:
+                    names[entry.user_id] = _username(self.tables, entry.user_id)
+                _log_entry(entry, names[entry.user_id], self.pal,
+                           mine=entry.user_id == self.user_id,
+                           storyteller=entry.user_id == self.table.storyteller_id)
+        self.log_area.scroll_to(percent=1.0)
+
+    def _log_write(self, write: Callable[[], LogEntry]) -> None:
+        """Call `write`, clear the text box and draw the Log.
+
+        ⚠ Ask `access()` first. The store asks again, but the page must stop here.
+        """
+        if self.gone:
+            return
+        if self.tables.access(self.user_id, self.table.id) is None:
+            ui.notify(GONE, type="warning")
+            self.stop()
+            return
+        try:
+            write()
+        except (TableLogError, QuotaExceeded) as exc:
+            ui.notify(str(exc), type="warning")
+            return
+        self.log_text.set_value("")
+        self._draw_log()
+
+    def _send(self) -> None:
+        text = self.log_text.value or ""
+        if not text.strip():
+            return
+        self._log_write(lambda: self.log.post(self.user_id, self.table.id, text))
+
+    def _roll(self) -> None:
+        value = self.log_count.value
+        count = int(value) if value is not None and float(value).is_integer() else 0
+        self._log_write(lambda: self.log.roll(
+            self.user_id, self.table.id, count, self.log_text.value or ""))
 
     def _draw_members(self, copies: list[CharacterRow]) -> None:
         """Draw MEMBERS: the Storyteller, the players, and the members who watch."""
@@ -653,6 +752,38 @@ def _mote_bar(label: str, key: str, spent: int, cap: int, pal,
         ui.button(icon="add", on_click=lambda: set_spent(spent - 1)).props(
             f"flat dense round size=xs color={pal.button}").mark(
             f"you-motes-{key}-plus").tooltip("Regain 1")
+
+
+def _log_entry(entry: LogEntry, name: str, pal, *, mine: bool, storyteller: bool) -> None:
+    """One entry of the Log: the name, the time, the text, and the dice of a roll.
+
+    ⚠ `ui.label` only. A member types the text.
+    """
+    with ui.column().classes("w-full gap-0 px-2 py-1 rounded").style(
+            f"background:{'#c9a22722' if mine else 'transparent'}").mark(
+            f"log-entry-{entry.id}"):
+        with ui.row().classes("w-full items-baseline gap-1 no-wrap min-w-0"):
+            ui.label(name).classes("text-xs font-bold truncate min-w-0").style(
+                f"color:{pal.accent if storyteller else pal.ink}").mark(
+                f"log-name-{entry.id}")
+            if storyteller:
+                ui.icon("star", size="0.7rem").style(f"color:{pal.accent}").mark(
+                    f"log-star-{entry.id}")
+            ui.label(time.strftime("%H:%M", time.localtime(entry.at))).classes(
+                "text-xs opacity-40 shrink-0")
+        if entry.text:
+            ui.label(entry.text).classes(
+                "text-sm leading-snug whitespace-pre-wrap break-words").mark(
+                f"log-body-{entry.id}")
+        if entry.roll is not None:
+            with ui.row().classes("items-center gap-1 no-wrap"):
+                ui.icon("casino", size="1rem").style(f"color:{pal.accent}")
+                ui.label(f"{entry.roll.count} {'die' if entry.roll.count == 1 else 'dice'}"
+                         f" → {entry.roll.summary}").classes(
+                    "text-sm font-bold").mark(f"log-roll-{entry.id}")
+            ui.label(" ".join(str(f) for f in sorted(entry.roll.faces, reverse=True))
+                     ).classes("text-xs font-mono opacity-60 break-words").mark(
+                f"log-faces-{entry.id}")
 
 
 def _other_row(shown: _Shown, player: str, *, mine: bool) -> None:
