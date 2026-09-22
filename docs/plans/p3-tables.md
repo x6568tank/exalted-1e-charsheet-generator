@@ -1,6 +1,6 @@
 # P3 — Campaigns (the `Table`): design
 
-**Status: build steps 1–2 DONE 2026-09-12 (§14 is the build log); steps 3–8 not started.**
+**Status: build steps 1–2 DONE 2026-09-12 (§14 is the build log). The table view's layout was approved 2026-09-22 (§15). Steps 3–9 (the revised order, §15.4) are not started.**
 Every product question the human was asked is ruled (`vtt.md` §9.1, §9.2, §9.3a, §9.10), and
 so are the six the design turned up (§13).
 
@@ -80,6 +80,7 @@ many as there are.
     adversaries.json     the roster (models/adversary.Adversary list)
     house_rules.json     the TABLE-WIDE HouseRules fields (see §5)
     notes.json           session notes (the Party page had them)
+    log.json             the Log: messages and rolls, newest 500 (§15.3, added 2026-09-22)
 ```
 
 * The quota (`server/quota.FolderQuota`) counts the first folder below the root, so a
@@ -236,6 +237,10 @@ PER-CHARACTER fields (`st_foreign_charms`, `mortal_favored_ability`, …) are St
 * A base card gets **"Join a campaign with this"** as a shortcut into the same form.
 
 ### `/table/<id>` — the table view
+
+> ⚠ **Superseded in part by §15 (2026-09-22).** The layout is §15.2, and the ST does NOT
+> edit a player's trackers (R3). The rest of these bullets stands where §15 is silent.
+
 * `access()` first; `None` → the same "There is no such campaign" as a missing one.
 * **Open as** (ruling: chosen when opening): a small chooser — each of *your* characters in
   the table, or **Spectate**. Remembered per browser (`app.storage.user`), changeable from
@@ -302,6 +307,8 @@ roller rolls a count it is handed.
 ---
 
 ## 11. Build order
+
+> ⚠ **From step 3 on, §15.4 replaces this list** (it adds the Log as step 4 and renumbers).
 
 Each step is its own commit, tests first, green before the next.
 
@@ -491,3 +498,146 @@ redesign lands there. Follow `match-the-builder-look` (spike, screenshot, iterat
 
 **Not live yet (step 3):** neither page polls. The ST sees a new request on reload, and a
 player sees an approval on reload.
+
+---
+
+## 15. The table view — the approved layout (2026-09-22)
+
+**The model is `spikes/campaign_page/` shape A, committed as `7f54cf1`.** Its README
+has the five rounds with the human's words. This section is the plan built from it. It
+**supersedes §7's `/table/<id>` bullets and §11's build order** where they disagree;
+§7's `/home` and campaign-copy parts stand.
+
+The human's request was to *"spike a couple different campaign designs; remember it'll
+have the whiteboard."* Three shapes were compared: A, a tabletop layout (party rail |
+board | log and tools); B, tabs like the builder; and C, a board with a party dock and a
+drawer. The verdict: *"A tabletop is the best by far. B is just an absolutely not, C is a
+little too cluttered."* Round 5 ended with *"There we go. Perfect."*
+
+### 15.1 Rulings, 2026-09-22
+
+| # | Question | Ruling |
+|---|---|---|
+| R1 | Layout | **Shape A.** Three columns: the party rail on the left, the board in the centre (P4) and the right rail with **Log / Notes / ST** tabs. |
+| R2 | How a player spends motes and marks damage from the table | **Live controls on the viewer's OWN character**, at the top of the rail ("YOU PLAY"). Health boxes cycle on click. Willpower and Limit are click tracks. Each mote pool is a **bar of what is left with − / + at its ends; a click on the bar opens a box to type an amount** (Spend / Regain / Full). The first version, with four buttons per pool, was *"clunky"*. The other characters are read-only. |
+| R3 | May the Storyteller change a player's trackers from the table? | **No.** *"ST can tell them if they fucked up."* The Party page's GM-marks-anything does not carry over. |
+| R4 | Who sees the adversaries | **The ST only.** This reaffirms §1 (spectators never see the roster). The human first said everyone should see them, then took a friend's advice from more 1E GMing: *"Players should not see any enemy stats by default."* A "let players see it" ST toggle was floated, and the human leans against it: **not built**. |
+| R5 | Text chat | **Yes, as ONE Log**: messages and rolls in time order, in the right rail's first tab. It has a text box and a dice count with **Roll**. If the text box holds text when you roll, that text becomes the roll's caption. Left out: player↔ST whispers and unbounded history. |
+| R6 | Allied NPCs | **A setting on the roster entry** (`side`: enemy / ally), not a second kind of NPC. |
+| R7 | What players see of an ally | **Name and health only.** Stats stay ST-only, as for enemies. |
+| R8 | Who marks an ally's trackers | **The ST alone, "for now"**, and the human may reopen it. Linking an ally to the Background that bought it (Familiar, Followers…) is deferred. |
+
+### 15.2 The page, column by column
+
+**Top bar.** `‹ Home › <campaign>` and the viewer's role on the left. On the right is
+**Open as: <character> / Spectate** (a member; §7's chooser), the request badge (the
+ST), and ⋮. The request badge opens the ST tab.
+
+**Left rail: the party.** `PARTY (n)`, then:
+* **YOU PLAY**: the character chosen in *Open as*, with the R2 controls and an ↗ link to
+  `/character/<copy>`. Absent when spectating, and absent for a viewer with no copy in the
+  table. A member with two copies gets the one they opened as. The other copy is in THE
+  OTHERS, and it is still theirs to open.
+* **THE OTHERS**: a compact row for each other copy: accent strip, name, player, identity
+  line, health strip, motes, and Willpower. Read-only for everyone, **the ST included (R3)**.
+* **ALLIES**: every member sees this. A player sees each ally as a name and a read-only
+  health track (R7). The ST sees each ally's full roster row, with its clickable health
+  and the **Ally / Enemy** switch.
+* **ENEMIES**: the ST only, with **+** to add from the catalogue.
+
+**Centre.** The board is P4, and the centre is its place. **What fills it before P4 is Q7.**
+
+**Right rail.** **Log** (R5) | **Notes** | **ST** (the ST only). The ST tab takes over step
+2's join code, requests, Approve / Reject and members, and it gets each later ST tool:
+Grant XP, house rules, campaign homebrew, Roll initiative, New code, Delete.
+
+### 15.3 Mechanics
+
+**Own-character controls go through the live context.** They change the same object that
+the owner's `/character/<copy>` page uses: the character registry's context for that id,
+built by the same factory if it is not open. This is safe because the viewer OWNS the
+character, and §8 forbids a context only for someone else's. ⚠ It is the Grant-XP trap
+(§6) again: a write to the file behind an open page is lost at the next auto-save. The
+table page and the character page, both open, must show the same marks.
+Each handler checks `row.owner_id == user_id` again. The ST gets no handler on a
+player's card (R3), and a GMPC (§13 Q4) is the ST's own copy, so it is "YOU PLAY".
+
+**The mote bar** calls `engine/play.set_motes` with `view.spent_motes`. It is the Party
+page's arithmetic with a different control; no new calculation.
+
+**The others' rows** read the live context if the copy is open, else the file (§8). The
+page's poll repaints a row when its digest moves (§7 "Live").
+
+**The Log** is `log.json` in the table folder (§2.2 gains a row). Each entry holds an id, a
+`user_id`, a time, the text, and, for a roll, the count, faces, successes and botch.
+* **The server rolls** (`engine/dice.roll`), in the handler. A result that came from the
+  browser would be the browser's claim.
+* **Bounded:** it keeps the newest **500** entries and drops the oldest on write, with a
+  **1,000-character** cap on text. *Design choices, reversible.*
+* Every member can post, spectating or not. Spectating is a way of opening the table, not
+  a kind of membership (§9.10), so a spectator is still an approved member. The ST posts
+  as themselves.
+* Its repaint rides the page's existing poll: a length or version check, not a hook.
+* The username is resolved at render, never stored, so a later rename shows everywhere.
+
+**Allies and enemies.** `Adversary` gains `side: Literal["enemy", "ally"] = "enemy"`.
+The default is the old meaning, so every roster in a `.party.json` loads as enemies.
+The desktop Party page and Qt are **not changed**. They are ST-only surfaces, and a
+parity port is not wanted (the Qt and webapp design-surfaces rule). The field is
+harmless there.
+* ⚠ **A non-ST page is built from a projection, never from the `Adversary`.**
+  `view.ally_view(adversary) -> (name, marks)` is all that a player's page receives. An
+  enemy is never passed in. `set_visibility(False)` and CSS still send the element to the
+  browser, and a player can read it in the page source.
+* The switch and the ally's health boxes are ST handlers, and each asks `access()`
+  again.
+
+### 15.4 The build order, revised
+
+It replaces §11 from step 3. As before, each step is its own commit, with the tests
+written first and green before the next.
+
+3. **The table view: shell and party.** Layout A. The top bar with Open as and Spectate.
+   The left rail: YOU PLAY with the R2 controls through the live context, the others
+   read-only. The right rail's tabs, with the ST tab holding step 2's code, requests and
+   members. The live poll. `access()` on every route and handler. The "no longer in
+   this campaign" path. The centre is as Q7 rules.
+4. **The Log.** `log.json`, server-side rolls, the caption rule, the bound, and the poll.
+5. **ST tools.** It was step 4: Grant XP (through the live context, plus the award log),
+   remove member, new code, delete, and the Adjust XP lockout. The award could also post
+   a line to the Log. *A design choice; it needs no ruling.*
+6. **House rules.** It was step 5.
+7. **The table homebrew layer.** It was step 6.
+8. **The roster on the table.** It was step 7, and now includes `Adversary.side`, the ally
+   projection, the two rail sections, and Notes (Q8).
+9. **Initiative for the whole table**, the gate. It was step 8. **Its results go to the
+   Log**, which is where every member already looks.
+
+**P4, the board,** goes in the centre column. Decision 0020 applies unchanged: a token is a
+picture and a label that someone typed.
+
+### 15.5 Traps added by this section
+
+| Trap | Type | Guard |
+|---|---|---|
+| Own-character controls writing the file behind an open page | 1 | through the registry context; a test with the character page open that the auto-save keeps a mark made on the table |
+| The ST able to change a player's tracker | 3 | no handler on a non-owned card, and the handler re-checks the owner; a test drives the ST's page and asserts the row takes no click |
+| Enemy stats or entries reaching a player's browser | — | the non-ST page is built from `ally_view` only; a test walks the player's element tree for any enemy name and any ally stat, **mutation-checked** by building from the `Adversary` |
+| A roll result supplied by the browser | — | the handler rolls; a test that the posted entry's faces come from `dice.roll`, not the request |
+| Log text rendered as markup | — | `ui.label` only, never `ui.html` or `ui.markdown`; a test posts `<b>` and finds it as text |
+| A roll that names itself from a pool | — | 0019: the Log rolls a COUNT. Nothing in the own-character panel may pre-fill the count from a pool. **A "roll my Dex + Melee" button is the thin end.** |
+| The Log growing without bound | — | trimmed on write; a test posts 501 |
+
+### 15.6 Open questions from this section
+
+**Q7. What fills the centre before P4?** The board is P4, and steps 3–9 ship without it.
+*Recommendation:* **the read-only sheet of the character selected in the rail.** Your own
+character is the default. A click on any row in the rail shows that character, and it
+uses the existing sheet renderer. When P4 lands, the centre gets two tabs: **Board** and
+**Sheet**. The alternative, an empty "Board comes later" panel, wastes the widest column
+for months.
+
+**Q8. Who writes the Notes tab?** The Party page's session notes were the GM's alone. In
+the spike, Notes is a shared text box. Several people typing in one box overwrite each
+other: the last write wins. *Recommendation:* **the ST writes and members read.** Players
+already have the Log for anything they want written down.

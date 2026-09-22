@@ -1,6 +1,33 @@
-# Session handoff — 2026-09-12 (fifth session: P3 build step 2, the campaign pages)
+# Session handoff — 2026-09-22 (the campaign page layout)
 
 # 👉 YOU ARE HERE
+
+**The layout of the P3 table view is APPROVED, and the plan is written.**
+`spikes/campaign_page/` compared three shapes. The human took **A, the tabletop
+layout** (party rail | board | Log / Notes / ST), then refined it over five rounds.
+Commit `7f54cf1` has the spike, and its README has each round in the human's words.
+**`docs/plans/p3-tables.md` §15 is the plan**: rulings R1–R8, the page column by
+column, the mechanics, the **revised build order (§15.4, which replaces §11 from
+step 3 on)**, the new traps, and two open questions.
+
+The rulings in one line each: own-character live controls (a mote BAR with − / + and
+type-an-amount); **the ST does not edit players' trackers**; **enemies are ST-only**
+(no show-players toggle); **one Log** of messages and rolls, where the text box
+captions a roll; **allies are a `side` setting** on a roster entry, and players see
+an ally's name and health only; **only the ST marks allies**, "for now".
+
+**❓ Open for the human, §15.6:** **Q7**: what fills the centre before the board
+(recommended: the selected character's read-only sheet). **Q8**: who writes Notes
+(recommended: the ST writes, members read).
+
+**Next:** P3 **step 3** (§15.4): the shell, the party rail with YOU PLAY through the
+live context, the poll, and the no-longer-member path. Q7 decides the centre column.
+No code changed this session, so the suite was not run. Step 2 is still not
+deployed, and `main` is ahead of `origin` and unpushed.
+
+---
+
+## The session before — P3 build step 2, the campaign pages (2026-09-12)
 
 **P3 build step 2 is DONE and BROWSER-VERIFIED** (human, 2026-09-12: *"everything looks
 good!"* — and *"the campaign window will probably need to be redesigned at some point,
