@@ -1,6 +1,67 @@
-# Session handoff — 2026-09-22 (the campaign page layout)
+# Session handoff — 2026-09-22 (P3 step 3, the table view)
 
 # 👉 YOU ARE HERE
+
+**P3 step 3 is BUILT, tests green, NOT browser-verified, NOT committed.**
+`/table/<id>` is now layout A: `server/table_view.py` (new; step 2's page body moved out
+of `campaigns.py`). **`docs/plans/p3-tables.md` §14 "Step 3" is the record**: what
+shipped, the mechanics, 8 mutations (all killed, one after a fix), the design choices
+made without asking, and two known limits.
+
+In one breath: top bar with **Open as / Spectate** (remembered per browser) and the ST's
+request badge; **YOU PLAY** with health, mote bars (− / + / click to type), Willpower and
+Limit/Clarity/Paradox tracks, all written through the character registry's live context
+and saved on each click; **THE OTHERS** read-only for everyone (R3), read with the new
+`SessionRegistry.peek` so no context is built for another account; the board frame in the
+centre; **Log** (placeholder) / **Notes** (MEMBERS) / **ST** (code, requests); a 2 s poll
+that repaints what moved and replaces the page with *"You are no longer in this
+campaign."* when `access()` goes.
+
+🐞 Fixed on the way: `PartyCardView.identity_line` said `" Caste · Mortal"` for a
+casteless character (shared by the Party page and Qt).
+
+Asked after: **a Mortal with Essence Merits** gets exactly the bars the engine gives
+(Awareness/Awakened → Personal; Beacon → one bar; Aura → both). The Essence Awareness
+"N may be spent freely" note was missing; it is now `view.free_motes_note`, one string for
+the web Play tab, the Qt Play tab and the table view (§14 Step 3).
+
+Then an audit against the Play tab (§14 Step 3 has the list). 🐞 Three defects fixed:
+YOU PLAY's Limit track ran to 10 regardless of Greater Curse / permanent Resonance;
+**the web and Qt Party pages had the same 10**; and **the Qt Party card's Limit and
+Willpower tracks were off by one** (a click on the first box of an empty track did
+nothing). YOU PLAY gained armour fatigue and the Clarity band. Luck, the Great Geas and
+box labels stay behind ↗. **Leave campaign is deferred to step 5** (the human).
+
+**Tests:** `tests/test_table_view.py` (32) + 2 `peek` + 1 identity-line + 2 free-note
++ 2 Qt party + 1 web GM cases. **Full suite: 3846 passed + 1 skipped — OBSERVED** on this
+machine after all of it (3806 + 40). ⚠ The count
+moves by machine and optional dependency (`docs/testing.md`).
+
+**Working tree: NOT committed.** Check `git status`. Step 2 and this are not deployed.
+
+## 🖱 Click-through for step 3 — what a test cannot see
+
+Serve as for step 2 (throwaway DB, fixed secret, `http://localhost:8080`). Two accounts:
+A runs a campaign; B joins with a locked Solar base and A approves.
+1. **The look.** B's `/table/<id>`: three columns, YOU PLAY outlined at the top of the
+   left rail, the board frame filling the centre, Log / Notes tabs. Compare with the spike
+   (`python -m spikes.campaign_page`, `/a?st=0`). Narrow the window: the columns stack.
+2. **The mote bar menu.** Click the Peripheral bar: the box opens under it, typing 5 and
+   Enter spends 5, and the menu closes.
+3. **Two pages, one character.** B opens `/character/<copy>` in a second tab, Play tab;
+   marks damage on the table tab; the Play tab shows it after a tab switch, and after
+   5 s + reload of both, both still show it (no lost write).
+4. **Live across accounts.** A's table page shows B's damage within ~2 s, with no reload.
+   A clicking B's boxes does nothing (R3).
+5. **Removal.** In a store shell or a future ST tool, remove B: B's open page turns into
+   "You are no longer in this campaign." within ~2 s. *(No UI for remove until step 5;
+   `TableStore.remove` from a Python shell against the throwaway DB.)*
+
+**Next after the click-through:** commit step 3, then **step 4, the Log** (§15.4).
+
+---
+
+## The session before — the campaign page layout (2026-09-22)
 
 **The layout of the P3 table view is APPROVED, and the plan is written.**
 `spikes/campaign_page/` compared three shapes. The human took **A, the tabletop

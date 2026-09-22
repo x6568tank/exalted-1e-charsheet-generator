@@ -350,6 +350,14 @@ GM_PENALTY = _gm_ctx(Character(id="pn", name="Wounded", caste="dawn"))
 def page_gm_penalty():
     gm.build_gm(RS, GM_PENALTY, with_header=False)
 
+# Greater Curse 3 lowers the maximum of Limit to 7 (p.40).
+GM_CURSE = _gm_ctx(Character(id="gc", name="Cursed", caste="dawn", merits_flaws=[
+    MeritFlawPurchase(merit_id="mf.greater-curse", tier="3")]))
+
+@ui.page('/gm-curse')
+def page_gm_curse():
+    gm.build_gm(RS, GM_CURSE, with_header=False)
+
 # (k2) the adversary roster. Its own party again, and its own catalogue: the
 # templates are passed through the context, so a test can hand the page exactly
 # the rows it wants to assert on rather than depending on data/adversaries.json.

@@ -156,3 +156,11 @@ async def test_marking_damage_reports_the_wound_penalty(user: User) -> None:
     await user.should_see("Penalty: none")
     _click(user, _health_boxes(user)[1])             # the -1 box
     await user.should_see("Penalty: -1")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_greater_curse_shortens_the_limit_track(user: User) -> None:
+    """The card reads `derive.limit_max`, as the Play tab does, never a constant 10."""
+    await user.open('/gm-curse')
+    await user.should_see("LIMIT  (0/7)")

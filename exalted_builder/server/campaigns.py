@@ -7,8 +7,8 @@ rulings are `docs/plans/vtt.md` section 9.10:
   * The Campaigns section of `/home`: the campaigns of the account, New
     campaign, Join a campaign (a code, then a base to bring or "just watch"), and
     the requests that wait for a Storyteller.
-  * `/table/<id>`: the campaign, its characters and its members. The Storyteller
-    also sees the join code and the requests, with Approve and Reject.
+
+`/table/<id>` is in `server/table_view.py`.
 
 ⚠ `TableStore.access` is the check. The page calls it in the page body, before
 it reads anything of the table, and each handler calls it again. The store also
@@ -28,12 +28,10 @@ from collections.abc import Callable
 from nicegui import ui
 
 from ..models.character import Character
-from ..models.rules import RuleSet
 from ..ui import theme
 from . import chrome, db
-from .characters import CharacterRow, CharacterStore
-from .quota import QuotaExceeded
-from .tables import STORYTELLER, TableRow, TableStore, TableStoreError
+from .characters import CharacterStore
+from .tables import TableRow, TableStore, TableStoreError
 
 TABLE_PATH = chrome.TABLE_PATH
 table_url = chrome.table_url
@@ -232,163 +230,3 @@ class HomeCampaigns:
         if self.tables.withdraw(self.user_id, request_id):
             ui.notify("Request withdrawn.", type="info")
         self.refresh()
-
-
-# --------------------------------------------------------------------------- #
-# /table/<id>
-# --------------------------------------------------------------------------- #
-
-
-def register_table_page(tables: TableStore, store: CharacterStore, book: RuleSet,
-                        current_user_id: Callable[[], int | None]) -> None:
-    """Register `/table/<id>`.
-
-    `book` gives the labels of the castes on the character cards. `current_user_id`
-    returns the account of the request.
-    """
-
-    @ui.page(TABLE_PATH + "/{table_id}")
-    def table_page(table_id: str) -> None:
-        user_id = chrome.require_account(current_user_id)
-        # ⚠ Before anything that reads the table.
-        role = tables.access(user_id, table_id)
-        table = tables.table(table_id) if role is not None else None
-        if table is None:
-            _not_found()
-            return
-        _build_table(tables, store, book, user_id, table)
-
-
-def _not_found() -> None:
-    """The answer for a campaign of which the account is not a member, and for
-    one that is absent."""
-    with chrome.header(theme.palette(None), "Exalted 1e"):
-        chrome.home_button()
-    ui.label("There is no such campaign.").classes("text-base p-4").mark("table-not-found")
-
-
-def _build_table(tables: TableStore, store: CharacterStore, book: RuleSet,
-                 user_id: int, table: TableRow) -> None:
-    pal = theme.palette(None)
-    is_st = table.storyteller_id == user_id
-
-    with chrome.header(pal, "Exalted 1e — Campaign"):
-        chrome.home_button()
-        chrome.logout_button()
-
-    page = ui.column().classes("w-full max-w-5xl mx-auto px-4 py-2 gap-4")
-    with page:
-        with ui.column().classes("gap-0 pt-2"):
-            ui.label(table.name).classes("text-2xl font-bold").style(
-                f"color:{pal.accent}").mark("table-title")
-            ui.label("You are the Storyteller." if is_st else
-                     f"Storyteller: {_username(tables, table.storyteller_id)}").classes(
-                "text-sm opacity-70")
-        if is_st:
-            with ui.card().classes(f"w-full px-4 py-3 gap-1 {pal.card}").mark("table-code"):
-                ui.label("JOIN CODE").classes("text-xs font-bold tracking-widest").style(
-                    f"color:{pal.accent}")
-                ui.label(table.join_code).classes("text-3xl font-mono font-bold")
-                ui.label("Give this code to your players. A code lets a player ask to "
-                         "join; you approve each request below.").classes(
-                    "text-sm opacity-70")
-
-    def still_storyteller() -> bool:
-        """⚠ Each handler asks again. The Storyteller can delete the campaign on a
-        second device while this page is open."""
-        if tables.access(user_id, table.id) == STORYTELLER:
-            return True
-        ui.notify("You are not the Storyteller of this campaign.", type="negative")
-        return False
-
-    def approve(request_id: int) -> None:
-        if not still_storyteller():
-            return
-        try:
-            tables.approve(user_id, request_id)
-        except (TableStoreError, QuotaExceeded) as exc:
-            ui.notify(str(exc), type="warning")
-        else:
-            ui.notify("Approved.", type="positive")
-        body.refresh()
-
-    def reject(request_id: int) -> None:
-        if not still_storyteller():
-            return
-        try:
-            tables.reject(user_id, request_id)
-        except TableStoreError as exc:
-            ui.notify(str(exc), type="warning")
-        body.refresh()
-
-    @ui.refreshable
-    def body() -> None:
-        copies = tables.characters(table.id)
-        chrome.section_label(pal, "CHARACTERS", len(copies))
-        if not copies:
-            ui.label("No characters yet. An approved request that brings a character "
-                     "puts its campaign copy here.").classes("text-sm opacity-70")
-        with chrome.grid():
-            for row in copies:
-                chrome.character_card(chrome.entry(store, book, row), row,
-                                      detail=f"Played by {_username(tables, row.owner_id)}",
-                                      link=row.owner_id == user_id)
-
-        members = tables.members(table.id)
-        chrome.section_label(pal, "MEMBERS", len(members))
-        with ui.row().classes("gap-2"):
-            if not members:
-                ui.label("No members yet.").classes("text-sm opacity-70")
-            for member in members:
-                ui.chip(_username(tables, member), icon="person").props("outline")
-
-        if is_st:
-            _requests(tables, store, book, user_id, table, approve, reject)
-
-    with page:
-        body()
-
-
-def _requests(tables: TableStore, store: CharacterStore, book: RuleSet, user_id: int,
-              table: TableRow, approve: Callable[[int], None],
-              reject: Callable[[int], None]) -> None:
-    """Draw the requests of `table` for its Storyteller, with what each base carries."""
-    pal = theme.palette(None)
-    requests = tables.pending(user_id, table.id)
-    with ui.column().classes("w-full gap-2").mark("table-requests"):
-        chrome.section_label(pal, "REQUESTS", len(requests))
-        if not requests:
-            ui.label("No requests are waiting.").classes("text-sm opacity-70")
-        for request in requests:
-            who = _username(tables, request.user_id)
-            base = store.row(request.base_id) if request.base_id else None
-            with ui.card().classes(f"w-full px-3 py-2 gap-1 {pal.card_soft}").mark(
-                    f"table-request-{request.id}"):
-                with ui.row().classes("w-full items-center justify-between gap-2"):
-                    with ui.column().classes("gap-0 min-w-0"):
-                        ui.label(who).classes("text-base font-bold")
-                        if base is None:
-                            ui.label("Asks to watch.").classes("text-sm opacity-80")
-                        else:
-                            _request_base(store, book, base)
-                    with ui.row().classes("gap-1"):
-                        ui.button("Approve", icon="check",
-                                  on_click=lambda _=None, r=request.id: approve(r)).props(
-                            f"dense no-caps color={pal.button}").mark(
-                            f"table-approve-{request.id}")
-                        ui.button("Reject", icon="close",
-                                  on_click=lambda _=None, r=request.id: reject(r)).props(
-                            "flat dense no-caps color=negative").mark(
-                            f"table-reject-{request.id}")
-
-
-def _request_base(store: CharacterStore, book: RuleSet, base: CharacterRow) -> None:
-    """Draw what a request brings: the base and the homebrew that it carries."""
-    shown = chrome.entry(store, book, base)
-    ui.label(f"Asks to bring {shown.name} ({shown.kind}).").classes("text-sm opacity-80")
-    try:
-        summary = carried_summary(store.load(base))
-    except Exception:                               # noqa: BLE001 - the entry says unreadable
-        summary = None
-    if summary:
-        ui.label(summary).classes("text-xs")

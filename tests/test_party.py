@@ -193,6 +193,12 @@ def test_party_card_view_uses_the_db_aspect_vocabulary(ruleset):
     assert cv.identity_line == "Fire Aspect · Dragon-Blooded"
 
 
+def test_party_card_identity_line_for_a_casteless_character(ruleset):
+    """A Mortal has no caste. The line names the splat only, not " Caste · Mortal"."""
+    c = Character(id="x", exalt_type="Mortal", caste="", origin="heroic", essence_rating=1)
+    assert viewmod.build_party_card_view(ruleset, c).identity_line == "Mortal"
+
+
 def test_party_card_identity_line_for_a_solar(ruleset):
     c = Character(id="c", name="Ashes", caste="dawn")
     assert viewmod.build_party_card_view(ruleset, c).identity_line == "Dawn Caste · Solar"

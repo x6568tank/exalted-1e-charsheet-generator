@@ -338,9 +338,7 @@ class PlayPage(QWidget):
             # a Willpower roll, and the table makes that roll. This app does not. ⚠ The
             # inputs go to the full maximum, because the user can spend those motes. Thus
             # this text is a note below the inputs. It is never a second limit.
-            body.addWidget(self._note(
-                f"{play.free_max} of these may be spent freely; the rest need a "
-                f"Willpower roll (Essence Awareness)."))
+            body.addWidget(self._note(viewmod.free_motes_note(play)))
 
     def _committed_note(self, lay, play) -> None:
         """The reason that the pool is small. `view.committed_note` supplies the text. The

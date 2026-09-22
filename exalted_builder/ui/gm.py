@@ -597,12 +597,15 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
                                            body.refresh)
             else:
                 lim = derive.limit_label(ruleset, character).upper()   # "PARADOX" for a Sidereal
-                ui.label(f"{lim}  ({cur.limit}/10"
-                         f"{f'  — {lim} BREAK' if cur.limit >= 10 else ''})").classes(
+                # ⚠ `derive.limit_max`, not 10: Greater Curse (p.40) and permanent
+                # Resonance shorten the track.
+                lim_max = derive.limit_max(ruleset, character)
+                ui.label(f"{lim}  ({cur.limit}/{lim_max}"
+                         f"{f'  — {lim} BREAK' if cur.limit >= lim_max else ''})").classes(
                     "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
                 with ui.row().classes("gap-1 flex-wrap"):
-                    for i in range(10):
-                        play_mod.count_box(character, i, i < cur.limit, "limit", 10,
+                    for i in range(lim_max):
+                        play_mod.count_box(character, i, i < cur.limit, "limit", lim_max,
                                            body.refresh)
 
             # --- The Great Geas (Mountain Folk, CH6 p.235) ---------------- #

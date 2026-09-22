@@ -3226,6 +3226,21 @@ def committed_note(play: PlayView, *, compact: bool = False) -> str:
             f"off the maximum above.")
 
 
+def free_motes_note(play: PlayView) -> str:
+    """The note under the mote inputs that says how many motes are free, or "".
+
+    Essence Awareness makes one third of the pool free. The rest needs a Willpower
+    roll, and the table makes that roll. ⚠ The inputs still go to the full maximum.
+    This is a note, never a second limit.
+
+    ⚠ ONE copy of this string, for ui/play, qt/play and server/table_view.
+    """
+    if play.free_max is None:
+        return ""
+    return (f"{play.free_max} of these may be spent freely; the rest need a "
+            f"Willpower roll (Essence Awareness).")
+
+
 def spent_motes(play: PlayView, state) -> tuple[int, int]:
     """The stored `(personal, peripheral)` spend, clamped to what the pools can now
     hold. `state` is a `PlayState`; returns (0, 0) for None.
@@ -4023,7 +4038,10 @@ class PartyCardView:
     @property
     def identity_line(self) -> str:
         """'Fire Aspect · Dragon-Blooded' — the sub-heading under the name. A
-        party is often mixed, so each card states its own splat vocabulary."""
+        party is often mixed, so each card states its own splat vocabulary. A
+        character with no caste (a Mortal) gets the splat alone."""
+        if not self.caste_label:
+            return self.exalt_type
         return f"{self.caste_label} {self.caste_noun} · {self.exalt_type}"
 
 

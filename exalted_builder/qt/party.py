@@ -1034,8 +1034,11 @@ class PartyPage(QWidget):
             return (f"CLARITY  ({cl.total}/{derive.CLARITY_MAX}  ·  {cl.permanent}p "
                     f"+ {cl.temporary}t  ·  band {cl.band})")
         label = derive.limit_label(ruleset, character).upper()   # "PARADOX" for a Sidereal
-        return (f"{label}  ({cur.limit}/10"
-                f"{f'  — {label} BREAK' if cur.limit >= 10 else ''})")
+        # ⚠ `derive.limit_max`, not 10: Greater Curse (p.40) and permanent Resonance
+        # shorten the track.
+        lim_max = derive.limit_max(ruleset, character)
+        return (f"{label}  ({cur.limit}/{lim_max}"
+                f"{f'  — {label} BREAK' if cur.limit >= lim_max else ''})")
 
     def _limit(self, lay, index, character, cur, accent) -> None:
         """Limit, or Clarity for an Alchemical (p.69). ⚠ Never show both. The user can
@@ -1048,7 +1051,8 @@ class PartyPage(QWidget):
             self._count_track(body, index, character, "clarity_temporary",
                               cur.clarity_temporary, derive.CLARITY_MAX, accent)
             return
-        self._count_track(body, index, character, "limit", cur.limit, 10, accent)
+        self._count_track(body, index, character, "limit", cur.limit,
+                          derive.limit_max(ruleset, character), accent)
         if derive.limit_label(ruleset, character) == "Divergence":
             # ⚠ Use a BUTTON, not a hover. The Storyteller decides a divergence, and the
             # engine never enforces one. Thus the nine clauses are the copy of the page on
@@ -1077,9 +1081,11 @@ class PartyPage(QWidget):
                 body.addLayout(row)
             button = tracker_box(f"party.{index}.{field}.{i}", 13,
                                  accent if i < spent else INPUT, accent)
+            # ⚠ `engine.play.set_count` takes the 1-based box, thus `i + 1`.
+            # `engine.adversaries.set_count` takes the 0-based box. Do not copy one to the other.
             button.clicked.connect(
                 lambda _c=False, c=character, i=i, f=field, m=cap, x=index:
-                (engineplay.set_count(c, f, i, m), self._sync_card(x)))
+                (engineplay.set_count(c, f, i + 1, m), self._sync_card(x)))
             # ⚠ Key these boxes under "willpower_spent" or "count", not under `field`. The
             # third track is `limit` for most splats, and `clarity_temporary` for an
             # Alchemical. A sync that uses the field name skips the track that this

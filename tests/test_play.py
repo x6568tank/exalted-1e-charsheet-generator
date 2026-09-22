@@ -575,3 +575,15 @@ def test_the_sheet_still_prints_the_FULL_pools(ruleset):
     assert derive.essence_pools(ruleset, bare) == derive.essence_pools(ruleset, attuned)
     assert (viewmod.build_sheet_view(ruleset, bare).essence_personal
             == viewmod.build_sheet_view(ruleset, attuned).essence_personal)
+
+
+def test_the_free_motes_note_names_the_free_count(ruleset):
+    view = viewmod.build_play_view(ruleset, _awakened_mortal(ruleset))
+    assert viewmod.free_motes_note(view) == (
+        f"{view.free_max} of these may be spent freely; the rest need a "
+        f"Willpower roll (Essence Awareness).")
+
+
+def test_the_free_motes_note_is_empty_for_an_unrestricted_pool(ruleset):
+    solar = Character(id="s", name="S", exalt_type="Solar", caste="dawn")
+    assert viewmod.free_motes_note(viewmod.build_play_view(ruleset, solar)) == ""

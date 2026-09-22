@@ -28,7 +28,7 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import custom_content, persistence, rules_db
-from ..server import (auth, campaigns, characters, config, db, home, public, quota,
+from ..server import (auth, characters, config, db, home, public, quota, table_view,
                       tables, wiki)
 from ..server.session import SessionRegistry
 
@@ -93,10 +93,13 @@ def build_server(session_root: Path | None = None,
     # ⚠ ONE store for the process. It holds the join throttle, and a second store
     # has a second count.
     table_store = tables.TableStore(db_path=database, root=root)
-    campaigns.register_table_page(table_store, store, book, auth.current_user_id)
-    return home.register_character_pages(
+    sessions = home.register_character_pages(
         store, book, auth.current_user_id, rules_db.load_adversary_catalog(_DATA_DIR),
         table_store)
+    # The table view writes YOU PLAY through the character registry.
+    table_view.register_table_page(table_store, store, book, sessions,
+                                   auth.current_user_id)
+    return sessions
 
 
 def main() -> None:

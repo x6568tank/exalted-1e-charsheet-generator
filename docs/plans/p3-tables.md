@@ -1,6 +1,6 @@
 # P3 — Campaigns (the `Table`): design
 
-**Status: build steps 1–2 DONE 2026-09-12 (§14 is the build log). The table view's layout was approved 2026-09-22 (§15). Steps 3–9 (the revised order, §15.4) are not started.**
+**Status: build steps 1–2 DONE 2026-09-12; step 3 (the table view shell) DONE 2026-09-22, tests green, NOT browser-verified (§14 is the build log). The layout was approved 2026-09-22 (§15). Steps 4–9 (the revised order, §15.4) are not started.**
 Every product question the human was asked is ruled (`vtt.md` §9.1, §9.2, §9.3a, §9.10), and
 so are the six the design turned up (§13).
 
@@ -499,6 +499,109 @@ redesign lands there. Follow `match-the-builder-look` (spike, screenshot, iterat
 **Not live yet (step 3):** neither page polls. The ST sees a new request on reload, and a
 player sees an approval on reload.
 
+### Step 3 — the table view: shell and party (2026-09-22)
+
+**Shipped:** `server/table_view.py` replaces step 2's bare `/table/<id>` body with layout A
+(§15.2). The top bar: Home › campaign · role, **Open as** (a member with a copy in the
+table: each own copy, or Spectate; remembered per browser in `app.storage.user`, key
+`table-open-as:<table id>`), the ST's request button with a count badge (opens the ST
+tab), and ⋮ → Log out. The left rail: `PARTY (n)`, **YOU PLAY** with the R2 controls
+(health boxes cycle; each mote pool is a bar with − / + and a click-to-type menu with
+Spend / Regain / Full; Willpower and Limit — or Clarity, or Paradox by
+`derive.limit_label` — as click tracks; ↗ to `/character/<copy>`), then **THE OTHERS**,
+read-only for everyone. The centre is the board frame and *"The board comes next."*
+(Q7). The right rail: **Log** (a not-built line until step 4), **Notes** (MEMBERS, with
+the ST starred and members with no copy marked "watching"; per-member notes are step
+8), **ST** (the join code and the requests with Approve / Reject). A 2-second poll.
+`campaigns.py` keeps `/home`'s section; `register_table_page` moved out and now takes
+the character registry, so `build_server` registers the character pages first.
+
+**Mechanics, as §15.3 asked:**
+* YOU PLAY reads and writes **`sessions.ctx_for(copy)["char"]`** — the object the
+  owner's `/character/<copy>` page edits — and saves the file after each click
+  (`store.save`), so a click is kept with or without that page open.
+* Every other copy is read with the new **`SessionRegistry.peek`**: the live context if
+  its owner has one open, else the file. `peek` builds nothing and records no use, so a
+  poll never keeps another player's context alive (§8).
+* The handler asks `access()`, then `store.owned(...)` and `row.table_id == table`, before
+  it touches the context. A removed member gets *"You are no longer in this campaign."*
+  and the page stops; a deleted copy gets *"That character is no longer in this
+  campaign."*
+* The poll: `access()` first (None → the page is replaced by the "no longer" answer);
+  then the structure (copy ids, members, the ST's pending ids) — changed → redraw the
+  top bar, rail, members and ST tab; else a digest per copy (the live character's
+  digest, or the file's mtime and size) — changed → redraw the rail.
+
+**Tests:** `tests/test_table_view.py` (24), 2 `peek` cases in
+`test_session_registry.py`, 1 in `test_party.py`; two step-2 assertions in
+`test_campaign_pages.py` moved to the new text (`PARTY (3)`, the identity line).
+**Mutation-checked (8, all killed):** the handler writing a fresh load instead of the
+context; `read` using `ctx_for` instead of `peek`; others' boxes given a handler plus
+the owner check dropped; the poll's `access()` dropped; the handler's `access()` dropped
+(**survived at first** — the removed player's copy is solo, so the owner-and-table check
+refused anyway and the page text came from a racing poll; the test now asserts the
+notification before any await); Open as not remembered; the digest repaint dropped;
+the save dropped.
+
+🐞 **Found on the way:** `PartyCardView.identity_line` gave `" Caste · Mortal"` for a
+casteless character. It now gives the splat alone. This also fixes the Party page and
+the Qt party card, which share the presenter.
+
+**Design choices made without asking, reversible:**
+- MEMBERS sits in the Notes tab for everyone (the spike's round 4), not in the ST tab as
+  §15.4 worded it. Remove-member (step 5) goes in the ST tab.
+- A mote pool with a maximum of 0 and nothing attuned is not drawn (a Mortal has no
+  bars). The Party page draws 0/0 inputs.
+- Willpower shows what is LEFT as gold (the spike), while the Play tab and the Party
+  page show what is SPENT. A click on box i leaves i dots; a click on the first empty
+  box fills it again.
+- The Open-as names come from each copy's current name; "(unnamed)" for none.
+- A poll of 2 s.
+- Log out moved into ⋮ on this page.
+
+**Mortals with Essence Merits (the human asked, same day).** The bars follow
+`build_play_view`'s maxima, so the Merits already work: Essence Awareness and Awakened
+Essence give a Personal bar only, Beacon of Power one "All motes" bar, Aura of Power
+both. 🐞 **The Essence Awareness free third was missing** from YOU PLAY. The sentence was
+written twice already (`ui/play.py`, `qt/play.py`, differing by a full stop); it is now
+**`view.free_motes_note`**, used by all three. Tests: 4 shape cases in
+`test_table_view.py`, 2 in `test_play.py`; two mutations (the note dropped, the
+zero-pool rule dropped) both killed.
+
+**Audit against the Play tab (asked, same day).** Checked by listing every `PlayState`
+field, every `PlayView` field and the play-state block of `MeritEffects`, then each
+surface's read sites. Findings and what was done (the human: *"sounds fine to me; leave
+leave campaign to later"*):
+* 🐞 **YOU PLAY drew Limit to a constant 10.** It now reads `derive.limit_max`
+  (Greater Curse p.40, permanent Resonance) and says BREAK at that maximum.
+* 🐞 **The same 10 on the Party page, web (`ui/gm.py`) and Qt (`qt/party.py`).** The
+  Play tab had the rule and the two ST surfaces did not. Both fixed. Tests:
+  `test_gm.py::test_a_greater_curse_shortens_the_limit_track` (new route `/gm-curse`)
+  and its Qt twin; each failed first.
+* 🐞 **The Qt Party card's dot tracks were off by one.** It passed the 0-based box
+  index to `engine.play.set_count`, which takes the 1-based box (the Qt Play tab and
+  both web surfaces pass `i + 1`). A click on the first Limit or Willpower box of an
+  empty track did nothing; a click on box n filled n − 1. No test clicked those boxes.
+  `test_qt_party.py::test_a_click_on_a_limit_box_fills_up_to_that_box` (failed first).
+  ⚠ `engine.adversaries.set_count` takes the 0-based index on purpose; the Qt
+  adversary track is correct.
+* **Added to YOU PLAY:** armour fatigue (p.332) as a − / + counter with the roll
+  difficulties, shown for a character with armour or with points, as on the Play tab;
+  the Clarity band and its printed effects for an Alchemical.
+* **Left behind the ↗ (the full sheet), by agreement:** the luck pools (Lucky /
+  Unlucky), the Great Geas panel, the health box labels.
+* **Leave campaign:** no UI anywhere, though `TableStore.leave` exists. **Deferred by
+  the human** — added to step 5 in §15.4.
+
+⚠ **Known limit:** another player's copy is shown against the BOOK RuleSet when its
+owner has no page open (with the owner's account RuleSet while one is open). A homebrew
+Charm that adds health levels or motes therefore shows only while the owner is on.
+Step 7 (the table homebrew layer, §4) settles which RuleSet a campaign copy sees.
+
+⚠ **Also not live:** the builder page of a character does not repaint when the table
+changes its trackers. The object is shared, so the marks are there at its next redraw
+and its auto-save writes them; the Play tab shows them on a tab switch or reload.
+
 ---
 
 ## 15. The table view — the approved layout (2026-09-22)
@@ -605,7 +708,8 @@ written first and green before the next.
    this campaign" path. The centre is the placeholder (Q7).
 4. **The Log.** `log.json`, server-side rolls, the caption rule, the bound, and the poll.
 5. **ST tools.** It was step 4: Grant XP (through the live context, plus the award log),
-   remove member, new code, delete, and the Adjust XP lockout. The award could also post
+   remove member, new code, delete, and the Adjust XP lockout. **Plus Leave campaign
+   for a member** (in ⋮; `TableStore.leave`), deferred here from step 3 by the human. The award could also post
    a line to the Log. *A design choice; it needs no ruling.*
 6. **House rules.** It was step 5.
 7. **The table homebrew layer.** It was step 6.

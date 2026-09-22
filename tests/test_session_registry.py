@@ -255,3 +255,34 @@ def test_discard_of_an_unknown_session_does_nothing() -> None:
     registry.discard("never-existed")
 
     assert seen == []
+
+
+# --------------------------------------------------------------------------- #
+# peek — a read that does not keep a context alive (P3 step 3)
+# --------------------------------------------------------------------------- #
+
+def test_peek_returns_the_live_context_and_builds_none() -> None:
+    """The table view reads the character of another account with `peek`. It must
+    never build a context for it (p3-tables.md section 8)."""
+    calls, factory = _counting_factory()
+    registry = SessionRegistry(factory=factory)
+
+    assert registry.peek("a") is None
+    assert calls == [] and "a" not in registry
+    ctx = registry.ctx_for("a")
+    assert registry.peek("a") is ctx
+
+
+def test_peek_does_not_record_a_use() -> None:
+    """A poll of a campaign page must not keep the context of another player alive."""
+    clock = _Clock()
+    _, factory = _counting_factory()
+    registry = SessionRegistry(factory=factory, max_idle_seconds=10, clock=clock)
+    registry.ctx_for("a")
+
+    clock.advance(8)
+    registry.peek("a")
+    clock.advance(8)
+
+    assert registry.sweep() == 1
+    assert "a" not in registry

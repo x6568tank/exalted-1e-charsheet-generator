@@ -335,9 +335,9 @@ async def test_the_table_page_renders_copies_of_each_shape(create_user) -> None:
 
     await st.open(campaigns.table_url(table.id))
 
-    await st.should_see("CHARACTERS (3)")
+    await st.should_see("PARTY (3)")
     await st.should_see("Mortal Hero")
-    await st.should_see("Lunar · Full Moon")
+    await st.should_see("Full Moon Caste · Lunar")
     await st.should_see(f"(unreadable: {broken.id})")
 
 

@@ -342,6 +342,32 @@ def test_a_solar_card_gets_limit_and_no_clarity(make_window):
     assert not _boxes(window.party_page, "party.0.clarity_temporary.")
 
 
+def test_a_greater_curse_shortens_the_limit_track(make_window):
+    """Greater Curse lowers the maximum of Limit (p.40). The card draws
+    `derive.limit_max` boxes, as the Play tab does, never a constant 10."""
+    from exalted_builder.models.character import MeritFlawPurchase
+    cursed = _solar(merits_flaws=[MeritFlawPurchase(merit_id="mf.greater-curse",
+                                                    tier="3")])
+    window, _ctx, _calls = make_window(_party(cursed))
+    assert len(_boxes(window.party_page, "party.0.limit.")) == 7
+
+
+def test_a_click_on_a_limit_box_fills_up_to_that_box(make_window):
+    """The same click as the Play tab: box i fills i + 1 dots, and a second click on
+    the top filled box clears it."""
+    character = _solar()
+    window, _ctx, _calls = make_window(_party(character))
+
+    _named(window.party_page, "party.0.limit.0").click()
+    assert character.play.limit == 1
+    _named(window.party_page, "party.0.limit.3").click()
+    assert character.play.limit == 4
+    _named(window.party_page, "party.0.limit.3").click()
+    assert character.play.limit == 3
+    _named(window.party_page, "party.0.willpower_spent.0").click()
+    assert character.play.willpower_spent == 1
+
+
 def test_an_alchemical_card_gets_clarity_and_no_limit(ruleset, make_window):
     """Clarity replaces Limit for an Alchemical (p.69) — never both on one card."""
     from exalted_builder.engine import derive

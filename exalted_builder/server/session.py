@@ -97,6 +97,16 @@ class SessionRegistry:
             entry.last_used = self.clock()
         return entry.ctx
 
+    def peek(self, key: str) -> dict | None:
+        """Return the context of session `key`, or None. Do not build one, and do
+        not record a use.
+
+        ⚠ A read of the context of another account uses this. A page that polls
+        with `ctx_for` keeps that context alive, and builds one if it is absent.
+        """
+        entry = self._entries.get(key)
+        return None if entry is None else entry.ctx
+
     def keys(self) -> list[str]:
         """The keys of the live sessions, in insertion order."""
         return list(self._entries)

@@ -538,9 +538,7 @@ def build_play(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 # still run to the full maximum — those motes are spendable — so the
                 # line goes under them as a note rather than as a second cap.
                 if pv.free_max is not None:
-                    ui.label(f"{pv.free_max} of these may be spent freely; the rest "
-                             f"need a Willpower roll (Essence Awareness)"
-                             ).classes("text-xs opacity-70 mt-1")
+                    ui.label(viewmod.free_motes_note(pv)).classes("text-xs opacity-70 mt-1")
 
             # --- Temporary Willpower ------------------------------------- #
             with _panel(f"Temporary Willpower  ({pv.willpower_max - cur.willpower_spent} / "
