@@ -79,7 +79,7 @@ many as there are.
     custom/              the table's homebrew layer, custom_content's shape
     adversaries.json     the roster (models/adversary.Adversary list)
     house_rules.json     the TABLE-WIDE HouseRules fields (see §5)
-    notes.json           session notes (the Party page had them)
+    notes/<user_id>.json each member's own notes, private (§15.6 Q8, 2026-09-22)
     log.json             the Log: messages and rolls, newest 500 (§15.3, added 2026-09-22)
 ```
 
@@ -545,7 +545,8 @@ ST), and ⋮. The request badge opens the ST tab.
   and the **Ally / Enemy** switch.
 * **ENEMIES**: the ST only, with **+** to add from the catalogue.
 
-**Centre.** The board is P4, and the centre is its place. **What fills it before P4 is Q7.**
+**Centre.** The board is P4, and the centre is its place. Before P4 it holds the board's
+frame and a "the board comes next" line, and nothing else (Q7).
 
 **Right rail.** **Log** (R5) | **Notes** | **ST** (the ST only). The ST tab takes over step
 2's join code, requests, Approve / Reject and members, and it gets each later ST tool:
@@ -601,7 +602,7 @@ written first and green before the next.
    The left rail: YOU PLAY with the R2 controls through the live context, the others
    read-only. The right rail's tabs, with the ST tab holding step 2's code, requests and
    members. The live poll. `access()` on every route and handler. The "no longer in
-   this campaign" path. The centre is as Q7 rules.
+   this campaign" path. The centre is the placeholder (Q7).
 4. **The Log.** `log.json`, server-side rolls, the caption rule, the bound, and the poll.
 5. **ST tools.** It was step 4: Grant XP (through the live context, plus the award log),
    remove member, new code, delete, and the Adjust XP lockout. The award could also post
@@ -609,7 +610,7 @@ written first and green before the next.
 6. **House rules.** It was step 5.
 7. **The table homebrew layer.** It was step 6.
 8. **The roster on the table.** It was step 7, and now includes `Adversary.side`, the ally
-   projection, the two rail sections, and Notes (Q8).
+   projection, the two rail sections, and each member's own Notes (Q8).
 9. **Initiative for the whole table**, the gate. It was step 8. **Its results go to the
    Log**, which is where every member already looks.
 
@@ -630,14 +631,30 @@ picture and a label that someone typed.
 
 ### 15.6 Open questions from this section
 
-**Q7. What fills the centre before P4?** The board is P4, and steps 3–9 ship without it.
-*Recommendation:* **the read-only sheet of the character selected in the rail.** Your own
-character is the default. A click on any row in the rail shows that character, and it
-uses the existing sheet renderer. When P4 lands, the centre gets two tabs: **Board** and
-**Sheet**. The alternative, an empty "Board comes later" panel, wastes the widest column
-for months.
+**Q7. What fills the centre before P4? ANSWERED 2026-09-22: a placeholder.** I
+recommended the selected character's sheet, arguing that an empty panel would waste the
+widest column "for months". The human: *"Don't think it'd be months."* He was right. The
+board is costed at 5–7 budget days, which is not elapsed time, and at this pace it follows
+step 3 closely. A Sheet tab would be built only to be pushed aside. **The centre holds the
+board's frame with a "the board comes next" line and nothing else.** The ↗ on YOU PLAY
+already reaches the full sheet.
 
-**Q8. Who writes the Notes tab?** The Party page's session notes were the GM's alone. In
-the spike, Notes is a shared text box. Several people typing in one box overwrite each
-other: the last write wins. *Recommendation:* **the ST writes and members read.** Players
-already have the Log for anything they want written down.
+**Q8. Who writes the Notes tab? ANSWERED 2026-09-22: each member has their own.** The
+human: *"Can they each have individual notes?"* Yes. That also removes the problem of
+two people typing in one box and overwriting each other. The design:
+* **Notes are per member, per campaign:** one text for each user in each table, the ST
+  included. They are stored in the table folder as `notes/<user_id>.json` (§2.2's
+  `notes.json` becomes this folder).
+* **Private: only the writer reads them.** This is a recommendation, not yet ruled; see
+  Q9. The Log is the shared record.
+* **They are written through the table context**, keyed by user id. A user's two devices
+  then share one object, as the ST's do (§8), and neither overwrites the other on save.
+* **Leaving or removal deletes that member's notes** with the membership. Their character
+  copy keeps its own `notes` field (the bio block), which travels with it.
+  *A design choice, reversible.*
+* Why not use the character's own `notes`? A member can have two copies in one table, or
+  none (a spectator). The notes belong to the person at the table, not to a character.
+
+**Q9. Can the ST read a player's notes?** *Recommendation:* **no.** A player's notes are
+where they plan things the ST should not see yet. The ST can ask, or the player can post
+to the Log.

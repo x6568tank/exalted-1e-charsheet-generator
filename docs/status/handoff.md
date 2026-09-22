@@ -16,12 +16,13 @@ type-an-amount); **the ST does not edit players' trackers**; **enemies are ST-on
 captions a roll; **allies are a `side` setting** on a roster entry, and players see
 an ally's name and health only; **only the ST marks allies**, "for now".
 
-**❓ Open for the human, §15.6:** **Q7**: what fills the centre before the board
-(recommended: the selected character's read-only sheet). **Q8**: who writes Notes
-(recommended: the ST writes, members read).
+**§15.6 answers (2026-09-22):** **Q7**: the centre is a placeholder until the board.
+My sheet-tab idea rested on "for months", which was wrong. **Q8**: **each member has
+their own notes** (`notes/<user_id>.json`, through the table context). **❓ Q9 is still
+open**: can the ST read a player's notes? (Recommended: no, they are private.)
 
 **Next:** P3 **step 3** (§15.4): the shell, the party rail with YOU PLAY through the
-live context, the poll, and the no-longer-member path. Q7 decides the centre column.
+live context, the poll, the no-longer-member path, and the placeholder centre.
 No code changed this session, so the suite was not run. Step 2 is still not
 deployed, and `main` is ahead of `origin` and unpushed.
 
