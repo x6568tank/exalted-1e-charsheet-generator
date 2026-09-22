@@ -811,3 +811,20 @@ async def test_the_poll_adds_new_entries_below_the_old(create_user) -> None:
     await player.should_see(marker="log-roll-2", content="1 die →", retries=_POLL_RETRIES)
     await player.should_see(marker="log-body-1", content="first")
     assert len(player.find(marker="log-body-1").elements) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_each_health_box_has_its_penalty_label(create_user) -> None:
+    """The labels of the Play tab (`PlayHealthBox.label`), on YOU PLAY and on each
+    row of THE OTHERS."""
+    _, _, table, players = await _campaign(create_user, "Ashes of Dawn", "Gearheart")
+    (player, _, _), (_, _, theirs) = players
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="you-play")
+
+    expected = ["-0", "-1", "-1", "-2", "-2", "-4", "Incap"]
+    for i, label in enumerate(expected):
+        await player.should_see(marker=f"you-health-label-{i}", content=label)
+        await player.should_see(marker=f"other-health-label-{theirs.id}-{i}", content=label)
+    await player.should_not_see(marker=f"you-health-label-{len(expected)}")

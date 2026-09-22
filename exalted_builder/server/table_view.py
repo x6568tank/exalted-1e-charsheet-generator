@@ -400,8 +400,9 @@ class _TableView:
                     _heading(cpal, "HEALTH · penalty "
                              + viewmod.worst_penalty(cv.play, marks))
                     with ui.row().classes("gap-0.5"):
-                        for i, mark in enumerate(marks):
-                            box = _health_box(mark, cpal, 1.35).mark(f"you-health-{i}")
+                        for i, (health, mark) in enumerate(zip(cv.play.health_boxes, marks)):
+                            box = _health_box(mark, cpal, 1.35, health.label,
+                                              f"you-health-label-{i}").mark(f"you-health-{i}")
                             box.classes("cursor-pointer select-none").on(
                                 "click", lambda _=None, i=i: act(
                                     lambda c: engineplay.cycle_mark(c, i, n)))
@@ -659,8 +660,17 @@ def _heading(pal, text: str) -> None:
         f"color:{pal.accent}")
 
 
-def _health_box(mark, pal, size: float) -> ui.label:
-    """One health box. It shows the mark, and has no handler."""
+def _health_box(mark, pal, size: float, label: str, label_marker: str) -> ui.label:
+    """One health box with its label above it: the penalty, or "Incap"
+    (`PlayHealthBox.label`). Return the box. The box shows the mark, and has no handler.
+    """
+    with ui.column().classes("items-center gap-0"):
+        ui.label(label).classes("opacity-60 leading-none whitespace-nowrap").style(
+            f"font-size:{max(0.5, size * 0.42):.2f}rem").mark(label_marker)
+        return _box(mark, pal, size)
+
+
+def _box(mark, pal, size: float) -> ui.label:
     return ui.label(mark.value if mark else "").style(
         f"width:{size}rem;height:{size}rem;line-height:{size}rem;text-align:center;"
         f"font-size:{size * 0.6}rem;font-weight:700;border-radius:3px;"
@@ -815,8 +825,10 @@ def _other_row(shown: _Shown, player: str, *, mine: bool) -> None:
                     "text-xs opacity-60 shrink-0")
             ui.label(cv.identity_line).classes("text-xs opacity-70 truncate -mt-1")
             with ui.row().classes("gap-0.5"):
-                for i, mark in enumerate(marks):
-                    _health_box(mark, cpal, 0.95).mark(f"other-health-{row.id}-{i}")
+                for i, (health, mark) in enumerate(zip(cv.play.health_boxes, marks)):
+                    _health_box(mark, cpal, 0.95, health.label,
+                                f"other-health-label-{row.id}-{i}").mark(
+                        f"other-health-{row.id}-{i}")
             spent_p, spent_pp = viewmod.spent_motes(cv.play, cur)
             wp_left = cv.play.willpower_max - cur.willpower_spent
             with ui.row().classes("items-center gap-x-3 gap-y-0 text-xs"):

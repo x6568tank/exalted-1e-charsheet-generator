@@ -18,7 +18,7 @@ HH:MM; the count box starts empty.
 
 **Tests:** `tests/test_table_log.py` (21) + 10 in `test_table_view.py`; 10 mutations,
 all killed. **Full suite: 3877 passed + 1 skipped — OBSERVED** on this machine
-(3846 + 31). ⚠ The count moves by machine and optional dependency (`docs/testing.md`).
+(3846 + 31), before the labels case; 3878 computed after it. ⚠ The count moves by machine and optional dependency (`docs/testing.md`).
 Preflight: passes 1–2 found nothing but an overflowing name row in a Log entry (fixed:
 truncate); pass 3's shapes are roles and states, all tested.
 
@@ -32,6 +32,10 @@ truncate); pass 3's shapes are roles and states, all tested.
    phone-width window.
 5. Remove the player (no button until step 5: `TableStore.remove` from a Python shell,
    as in step 3's click-through); the player's Send → "You are no longer in this campaign."
+
+**Asked after:** the health box labels (-0 / -1 / -2 / -4 / Incap) are now on YOU PLAY
+and THE OTHERS, from `PlayHealthBox.label`. Check them at the click-through, and check
+that "Incap" does not push the small boxes of THE OTHERS apart.
 
 **Next:** after the click-through, P3 **step 5, ST tools** (§15.4): Grant XP through
 the live context + the award log, remove member, new code, delete, the Adjust XP

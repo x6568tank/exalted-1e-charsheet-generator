@@ -589,7 +589,8 @@ leave campaign to later"*):
   difficulties, shown for a character with armour or with points, as on the Play tab;
   the Clarity band and its printed effects for an Alchemical.
 * **Left behind the ↗ (the full sheet), by agreement:** the luck pools (Lucky /
-  Unlucky), the Great Geas panel, the health box labels.
+  Unlucky), the Great Geas panel, the health box labels (the labels were added in
+  step 4, on request).
 * **Leave campaign:** no UI anywhere, though `TableStore.leave` exists. **Deferred by
   the human** — added to step 5 in §15.4.
 
@@ -662,6 +663,11 @@ no text cap; the roll ignoring the injected RNG.
   post then replaces it.
 
 ⚠ **Known limit:** the Log has no paging. The newest 500 are all on the page.
+
+**Asked after (the human, same day): the health box labels.** Step 3 left them behind
+the ↗. Each box on YOU PLAY and on THE OTHERS now has its label above it, the Play tab's
+`PlayHealthBox.label` (`-0`, `-1`, `-2`, `-4`, `Incap`, ★ for a level from a Charm).
+No new calculation. Test: `test_each_health_box_has_its_penalty_label` (failed first).
 
 ---
 
