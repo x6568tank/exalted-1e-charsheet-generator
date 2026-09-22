@@ -1,6 +1,6 @@
 # P3 — Campaigns (the `Table`): design
 
-**Status: build steps 1–2 DONE 2026-09-12; step 3 (the table view shell) DONE 2026-09-22, tests green, NOT browser-verified (§14 is the build log). The layout was approved 2026-09-22 (§15). Steps 4–9 (the revised order, §15.4) are not started.**
+**Status: build steps 1–2 DONE 2026-09-12; step 3 (the table view shell) DONE and BROWSER-VERIFIED 2026-09-22 (§14 is the build log). The layout was approved 2026-09-22 (§15). Steps 4–9 (the revised order, §15.4) are not started.**
 Every product question the human was asked is ruled (`vtt.md` §9.1, §9.2, §9.3a, §9.10), and
 so are the six the design turned up (§13).
 
@@ -592,6 +592,12 @@ leave campaign to later"*):
   Unlucky), the Great Geas panel, the health box labels.
 * **Leave campaign:** no UI anywhere, though `TableStore.leave` exists. **Deferred by
   the human** — added to step 5 in §15.4.
+
+✅ **BROWSER-VERIFIED 2026-09-22.** The human ran the six-step click-through (the look
+against the spike and at narrow width, the mote bar menu, Limit to 7 under Greater
+Curse, fatigue, Clarity on an Alchemical, one character in two tabs, the live repaint
+across accounts with the ST unable to mark a player, removal stopping the page): *"It
+works. No notes."*
 
 ⚠ **Known limit:** another player's copy is shown against the BOOK RuleSet when its
 owner has no page open (with the owner's account RuleSet while one is open). A homebrew

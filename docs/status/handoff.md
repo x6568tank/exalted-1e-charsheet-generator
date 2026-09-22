@@ -2,7 +2,7 @@
 
 # 👉 YOU ARE HERE
 
-**P3 step 3 is BUILT, tests green, NOT browser-verified, NOT committed.**
+**P3 step 3 is DONE and BROWSER-VERIFIED** (human, 2026-09-22: *"It works. No notes."*). Committed.
 `/table/<id>` is now layout A: `server/table_view.py` (new; step 2's page body moved out
 of `campaigns.py`). **`docs/plans/p3-tables.md` §14 "Step 3" is the record**: what
 shipped, the mechanics, 8 mutations (all killed, one after a fix), the design choices
@@ -37,27 +37,14 @@ box labels stay behind ↗. **Leave campaign is deferred to step 5** (the human)
 machine after all of it (3806 + 40). ⚠ The count
 moves by machine and optional dependency (`docs/testing.md`).
 
-**Working tree: NOT committed.** Check `git status`. Step 2 and this are not deployed.
+**Working tree:** committed, **not pushed**. Check `git status`. Steps 2–3 are not deployed.
 
-## 🖱 Click-through for step 3 — what a test cannot see
+✅ **Click-through (step 3) — PASSED 2026-09-22**, all six steps: the look and narrow
+width, the mote menu, Limit 7 / fatigue / Clarity, one character in two tabs, live repaint
+across accounts (the ST cannot mark a player), removal stops the page.
 
-Serve as for step 2 (throwaway DB, fixed secret, `http://localhost:8080`). Two accounts:
-A runs a campaign; B joins with a locked Solar base and A approves.
-1. **The look.** B's `/table/<id>`: three columns, YOU PLAY outlined at the top of the
-   left rail, the board frame filling the centre, Log / Notes tabs. Compare with the spike
-   (`python -m spikes.campaign_page`, `/a?st=0`). Narrow the window: the columns stack.
-2. **The mote bar menu.** Click the Peripheral bar: the box opens under it, typing 5 and
-   Enter spends 5, and the menu closes.
-3. **Two pages, one character.** B opens `/character/<copy>` in a second tab, Play tab;
-   marks damage on the table tab; the Play tab shows it after a tab switch, and after
-   5 s + reload of both, both still show it (no lost write).
-4. **Live across accounts.** A's table page shows B's damage within ~2 s, with no reload.
-   A clicking B's boxes does nothing (R3).
-5. **Removal.** In a store shell or a future ST tool, remove B: B's open page turns into
-   "You are no longer in this campaign." within ~2 s. *(No UI for remove until step 5;
-   `TableStore.remove` from a Python shell against the throwaway DB.)*
-
-**Next after the click-through:** commit step 3, then **step 4, the Log** (§15.4).
+**Next:** P3 **step 4, the Log** (§15.4): `log.json`, server-side rolls, the caption
+rule, the 500 bound, the poll. Steps 2–3 are not deployed; deploy when the human asks.
 
 ---
 
