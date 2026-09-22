@@ -645,8 +645,9 @@ two people typing in one box and overwriting each other. The design:
 * **Notes are per member, per campaign:** one text for each user in each table, the ST
   included. They are stored in the table folder as `notes/<user_id>.json` (§2.2's
   `notes.json` becomes this folder).
-* **Private: only the writer reads them.** This is a recommendation, not yet ruled; see
-  Q9. The Log is the shared record.
+* **Private: only the writer reads them, the ST included (Q9, ruled).** The Log is the
+  shared record. ⚠ Keyed on the ACCOUNT in the handler, not on anything the page sends:
+  a test reads another member's notes as the ST and gets nothing.
 * **They are written through the table context**, keyed by user id. A user's two devices
   then share one object, as the ST's do (§8), and neither overwrites the other on save.
 * **Leaving or removal deletes that member's notes** with the membership. Their character
@@ -655,6 +656,7 @@ two people typing in one box and overwriting each other. The design:
 * Why not use the character's own `notes`? A member can have two copies in one table, or
   none (a spectator). The notes belong to the person at the table, not to a character.
 
-**Q9. Can the ST read a player's notes?** *Recommendation:* **no.** A player's notes are
+**Q9. Can the ST read a player's notes? ANSWERED 2026-09-22: no.** The human: *"your
+conclusion is fine."* The recommendation was **no.** A player's notes are
 where they plan things the ST should not see yet. The ST can ask, or the player can post
 to the Log.

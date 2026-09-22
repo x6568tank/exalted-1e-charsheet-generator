@@ -18,13 +18,14 @@ an ally's name and health only; **only the ST marks allies**, "for now".
 
 **§15.6 answers (2026-09-22):** **Q7**: the centre is a placeholder until the board.
 My sheet-tab idea rested on "for months", which was wrong. **Q8**: **each member has
-their own notes** (`notes/<user_id>.json`, through the table context). **❓ Q9 is still
-open**: can the ST read a player's notes? (Recommended: no, they are private.)
+their own notes** (`notes/<user_id>.json`, through the table context). **Q9**: the ST
+cannot read a player's notes (ruled: *"your conclusion is fine"*). **§15 has no open
+question left.**
 
 **Next:** P3 **step 3** (§15.4): the shell, the party rail with YOU PLAY through the
 live context, the poll, the no-longer-member path, and the placeholder centre.
-No code changed this session, so the suite was not run. Step 2 is still not
-deployed, and `main` is ahead of `origin` and unpushed.
+No code changed this session, so the suite was not run. Everything is **pushed**.
+Step 2 is still not deployed.
 
 ---
 
