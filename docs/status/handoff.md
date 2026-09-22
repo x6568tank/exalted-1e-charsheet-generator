@@ -34,10 +34,10 @@ box labels stay behind ↗. **Leave campaign is deferred to step 5** (the human)
 
 **Tests:** `tests/test_table_view.py` (32) + 2 `peek` + 1 identity-line + 2 free-note
 + 2 Qt party + 1 web GM cases. **Full suite: 3846 passed + 1 skipped — OBSERVED** on this
-machine after all of it (3806 + 40). ⚠ The count
+machine after all of it (3806 + 40). Reused at close-out: only a comment and docs changed since. ⚠ The count
 moves by machine and optional dependency (`docs/testing.md`).
 
-**Working tree:** committed, **not pushed**. Check `git status`. Steps 2–3 are not deployed.
+**Working tree:** clean, committed and **pushed** (`669ce5b` and this close-out). Check `git status`. Steps 2–3 are not deployed.
 
 ✅ **Click-through (step 3) — PASSED 2026-09-22**, all six steps: the look and narrow
 width, the mote menu, Limit 7 / fatigue / Clarity, one character in two tabs, live repaint
