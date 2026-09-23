@@ -29,7 +29,7 @@ request is approved at once** (human: "Go ahead"), on all three paths.
 the checkboxes"); untick to leave one out.
 
 ✅ **Click-through of 6 / 6b / auto-approve / checkboxes: PASSED 2026-09-22**, steps 1–11.
-**Step 12 (phone width) NOT checked** — owed.
+Phone width: not being tested for now (human).
 
 **Then: the Storyteller's own characters are NPCs** (rulings in §14 "Step 6b"): an
 **NPC** badge wherever a copy owned by the table's Storyteller is listed, and it starts
@@ -45,9 +45,9 @@ God-Blooded, ST-tab, seam, store files). 6b and the auto-approve add 40 tests; t
 After the auto-approve: table, campaign and character-page files, 288 passed — OBSERVED.
 ⚠ The count moves by machine and optional dependency (`docs/testing.md`).
 
-**Working tree:** **committed** on `main` (steps 6, 6b, the auto-approve, the Grant checkboxes, the NPC badge; one commit, this handoff in it), **not pushed**. Check `git status`.
+**Working tree:** clean, committed on `main` and **pushed** (`b3eb99a` steps 6, 6b, the auto-approve, the Grant checkboxes, the NPC badge; then the request-card house-rules warning, with this handoff). Check `git status`.
 
-✅ **Click-through (steps 6, 6b) — PASSED 2026-09-22 except step 12 (phone width), which is owed.** For the record:
+✅ **Click-through (steps 6, 6b) — PASSED 2026-09-22.** Step 12 (phone width) is not being tested for now (human) — not verified, not owed. For the record:
 1. Player opens `/character/<copy>` → ST Options: *"The Storyteller of this campaign
    sets these."*, each rule as text, no checkbox or select.
 2. ST, ST tab → HOUSE RULES: tick Magic for Everyone. The Log shows
@@ -70,12 +70,9 @@ After the auto-approve: table, campaign and character-page files, 288 passed —
 12. ST: GRANT XP shows each character ticked. Untick your own, grant 3: the Log names
     only the others. Untick all: "Tick at least one character."
 
-❓ **Open for the human** (partly answered by 6b — a character made FOR the campaign is
-now priced under its rules; this remains for a base brought in): every campaign copy is born LOCKED, so its creation was
-priced under its owner's switches, frozen in the snapshot. A table's creation switch
-(Magic for Everyone, ritual/Science caps, Inheritance) reaches it only if the ST
-unlocks it. Intended? Or should approval show where the base's frozen rules differ
-from the table's?
+✅ **Answered:** a base brought into a campaign keeps the rules it was created under.
+The ST's request card now says *"ST house rules are different on this character"* and
+lists each differing TABLE-WIDE rule (human's wording). Not browser-verified.
 
 **Next:** P3 **step 7, the table homebrew layer** (§4 / §15.4): `with_custom_layers`,
 `TableRulesets`, the campaign Custom page, "Add to campaign homebrew", the no-absorb

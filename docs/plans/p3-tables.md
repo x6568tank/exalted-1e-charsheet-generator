@@ -815,11 +815,14 @@ the permission dialog showing both scopes.
 - **The campaign copy's tab shows both scopes as text** — not only the TABLE-WIDE ones,
   because Q2 gave the permissions to the ST as well.
 
-⚠ **For the human (click-through):** every campaign copy is born LOCKED (a base is
-locked), so its creation was priced under its owner's own switches, frozen in the
-snapshot. The table's creation switches never re-price it unless the ST unlocks it.
-Is that the intended reading, or should approval show the ST where the base's frozen
-rules differ from the table's?
+**Answered 2026-09-22:** every campaign copy is born LOCKED, so its creation was priced
+under its owner's switches, frozen in the snapshot, and the table's creation switches
+reach it only through an ST Unlock. The human: *"make it a notification in the request
+popup? 'ST house rules are different on this character'"*. Built: the request card in
+the ST tab lists each TABLE-WIDE rule in which the base's creation rules
+(`chargen_house_rules`) differ from the table's, as `<rule>: <setting> (campaign:
+<setting>)` under that heading (`view.house_rule_differences`). PER-CHARACTER
+permissions are not listed. 5 tests; 2 mutations killed.
 
 ⚠ **Known limits:** as step 5, a player's open character page shows a switch on the
 next tab switch or reload; the object is right at once. A second ST device's panel
@@ -912,7 +915,7 @@ asked *"could we add a way to distinguish ST NPCs?"* and ruled:
 * **Shipped, same day:** `_TableView.is_npc`; the badge in YOU PLAY, THE OTHERS, the ST
   tab's CHARACTERS and BEING MADE, and "· NPC" on the Grant checkbox, which starts
   unticked. 4 page tests; 3 mutations killed (never an NPC; "NPC" = the viewer's own;
-  the NPC ticked). ✅ **Browser-verified 2026-09-22** ("NPC badge looks good.").
+  the NPC ticked). ✅ **Browser-verified 2026-09-22** ("NPC badge looks good."). Phone width is **not being tested for now** (human, 2026-09-22) — dropped from the owed list, not verified.
 * **Step 8: full-character NPCs get the Enemy / Ally switch too** (as the roster's
   `side`, R6), and are filed within the ALLIES / ENEMIES groups. ⚠ A hidden (enemy)
   full character must reach a player's page as nothing at all — the §15.3 projection

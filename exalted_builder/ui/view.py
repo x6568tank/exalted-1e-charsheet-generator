@@ -1982,6 +1982,24 @@ def build_table_house_rules(rules: HouseRules) -> list[HouseRuleRow]:
             if scope == "table"]
 
 
+
+def house_rule_differences(character_rules: HouseRules,
+                           table_rules: HouseRules) -> list[str]:
+    """One line for each TABLE-WIDE rule in which `character_rules` differ from
+    `table_rules`: "<rule>: <character setting> (campaign: <table setting>)".
+
+    The Storyteller sees these on a join request (p3-tables.md section 14, step 6b).
+    Give the rules that priced the creation (`validate.chargen_house_rules`).
+    """
+    table_rows = {row.field: row for row in build_table_house_rules(table_rules)}
+    lines = []
+    for row in build_table_house_rules(character_rules):
+        theirs = table_rows[row.field]
+        if row.value != theirs.value:
+            lines.append(f"{row.label}: {house_rule_setting_label(row)} "
+                         f"(campaign: {house_rule_setting_label(theirs)})")
+    return lines
+
 @dataclass
 class SheetView:
     # identity / concept

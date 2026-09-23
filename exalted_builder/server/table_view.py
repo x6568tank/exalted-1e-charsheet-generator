@@ -43,8 +43,8 @@ import time
 
 from nicegui import app, ui
 
-from ..engine import derive, dice, play as engineplay
-from ..models.character import Character, PlayState
+from ..engine import derive, dice, play as engineplay, validate
+from ..models.character import Character, HouseRules, PlayState
 from ..models.rules import RuleSet
 from ..ui import play as play_mod
 from ..ui import saving, theme
@@ -1323,7 +1323,8 @@ def _requests(tables: TableStore, store: CharacterStore, book: RuleSet, user_id:
                 if base is None:
                     ui.label("Asks to watch.").classes("text-xs opacity-80")
                 else:
-                    _request_base(store, book, base)
+                    _request_base(store, book, base, tables.house_rules(table.id),
+                                  f"table-request-rules-{request.id}")
                 with ui.row().classes("gap-1 justify-end w-full"):
                     ui.button("Approve", icon="check",
                               on_click=lambda _=None, r=request.id: approve(r)).props(
@@ -1335,13 +1336,26 @@ def _requests(tables: TableStore, store: CharacterStore, book: RuleSet, user_id:
                         f"table-reject-{request.id}")
 
 
-def _request_base(store: CharacterStore, book: RuleSet, base: CharacterRow) -> None:
-    """Draw what a request brings: the base and the homebrew that it carries."""
+def _request_base(store: CharacterStore, book: RuleSet, base: CharacterRow,
+                  table_rules: HouseRules, marker: str) -> None:
+    """Draw what a request brings: the base, the homebrew that it carries, and the
+    TABLE-WIDE house rules under which it was made, where they differ from the
+    table's (human, 2026-09-22). The copy keeps its creation rules unless the
+    Storyteller unlocks it."""
     shown = chrome.entry(store, book, base)
     ui.label(f"Asks to bring {shown.name} ({shown.kind}).").classes("text-xs opacity-80")
     try:
-        summary = carried_summary(store.load(base))
+        character = store.load(base)
     except Exception:                               # noqa: BLE001 - the entry says unreadable
-        summary = None
+        return
+    summary = carried_summary(character)
     if summary:
         ui.label(summary).classes("text-xs")
+    differences = viewmod.house_rule_differences(
+        validate.chargen_house_rules(character), table_rules)
+    if differences:
+        with ui.column().classes("w-full gap-0 pt-1"):
+            ui.label("ST house rules are different on this character").classes(
+                "text-xs font-bold text-amber-800").mark(marker)
+            for line in differences:
+                ui.label(line).classes("text-xs")

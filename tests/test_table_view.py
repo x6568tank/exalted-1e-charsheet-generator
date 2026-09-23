@@ -1338,3 +1338,25 @@ async def test_the_badge_is_keyed_on_the_owner_not_the_name(create_user) -> None
     await st.open(chrome.table_url(table.id))
     await st.should_see(marker=f"st-copy-{copy.id}")
     assert not _marked_all(st, f"npc-badge-{copy.id}")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_request_card_warns_of_different_house_rules(create_user) -> None:
+    """Human, 2026-09-22: "ST house rules are different on this character". The
+    base was priced under the rules frozen at its lock; the table's rules reach
+    it only if the Storyteller unlocks the copy."""
+    from exalted_builder.models.character import HouseRules
+
+    st, st_id, table, _ = await _campaign(create_user)
+    _tables().write_house_rules(table.id, HouseRules(magic_for_everyone=True))
+    watcher, watcher_id = await _watcher(create_user, table)
+    differs = _tables().bring(watcher_id, table.id, _base(watcher_id, "Differs").id)
+    agrees = _tables().bring(watcher_id, table.id, _base(
+        watcher_id, "Agrees", house_rules=HouseRules(magic_for_everyone=True)).id)
+    await st.open(chrome.table_url(table.id))
+
+    await st.should_see(marker=f"table-request-rules-{differs.id}",
+                        content="ST house rules are different on this character")
+    await st.should_see("Magic for Everyone: Off (campaign: On)")
+    assert not _marked_all(st, f"table-request-rules-{agrees.id}")

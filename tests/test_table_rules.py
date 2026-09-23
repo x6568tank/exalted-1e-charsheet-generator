@@ -364,3 +364,34 @@ def test_a_permission_for_a_copy_in_another_table_is_refused(
         st.set_character_rule(ST, table.id, copy.id, "st_foreign_charms", True)
     rules = store.load(copy).house_rules
     assert rules is None or rules.st_foreign_charms is False
+
+
+# --------------------------------------------------------------------------- #
+# The request card names the house rules a base was made under (human, 2026-09-22)
+# --------------------------------------------------------------------------- #
+
+
+def test_the_differences_name_each_table_wide_rule_that_differs() -> None:
+    lines = viewmod.house_rule_differences(
+        HouseRules(magic_for_everyone=False, mf_change_method="swap",
+                   st_foreign_charms=True),
+        HouseRules(magic_for_everyone=True, mf_change_method="swap"))
+    assert lines == ["Magic for Everyone: Off (campaign: On)"]
+
+
+def test_no_differences_when_the_rules_agree() -> None:
+    assert viewmod.house_rule_differences(HouseRules(), HouseRules()) == []
+
+
+def test_a_per_character_permission_is_not_a_difference() -> None:
+    """A permission is the Storyteller's to grant after approval (Q2), not a rule
+    the base was made under."""
+    assert viewmod.house_rule_differences(
+        HouseRules(st_foreign_charms=True), HouseRules()) == []
+
+
+def test_the_select_rules_read_as_their_labels() -> None:
+    lines = viewmod.house_rule_differences(
+        HouseRules(), HouseRules(godblooded_inheritance_rating=3))
+    assert lines == ["God-Blooded Inheritance rating: Per character "
+                     "(campaign: 3 ••• Notable ancestry)"]
