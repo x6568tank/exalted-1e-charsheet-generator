@@ -521,3 +521,78 @@ def test_import_makes_a_new_character_and_takes_its_homebrew(tmp_path) -> None:
     assert row.id != source.id
     assert store.load(row).name == "Travelling Brewer"
     assert "custom.road-strike" in rulesets.for_account(1).charms
+
+
+# --------------------------------------------------------------------------- #
+# A campaign copy (P3 step 5): the Storyteller grants XP and unlocks
+# --------------------------------------------------------------------------- #
+
+
+def _campaign_copy(player_id: int, name: str):
+    """A table run by a second account, and a copy of `player_id` in it."""
+    from exalted_builder.server.tables import TableStore
+
+    st_id = db.create_user(state.DB, f"Storyteller{player_id}", state.PASSWORD)
+    tables = TableStore(db_path=state.DB, root=state.ROOT)
+    table = tables.create(st_id, "The Scarlet Gambit")
+    base = _store().create(player_id, _locked(name))
+    request = tables.request(player_id, table.join_code, base.id)
+    return tables, table, tables.approve(st_id, request.id)
+
+
+def _marked_all(user: User, marker: str) -> list:
+    """Each element with `marker`, hidden or not. `user.find` skips hidden ones."""
+    return [e for e in user.client.elements.values()
+            if marker in getattr(e, "_markers", [])]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_campaign_copy_has_no_adjust_xp_downtime_or_unlock(user: User) -> None:
+    """⚠ House bug type 3 (p3-tables.md section 12): Adjust XP lets the player set
+    their own XP, and Unlock reopens creation. On a campaign copy the Storyteller
+    does both (ruling 2, Q5, Q6). The discriminator is `table_id` in the database,
+    which no control of the page edits. ⚠ Not built at all: a hidden button still
+    has a handler."""
+    user_id = await _sign_up(user, "Harmonious")
+    _, _, copy = _campaign_copy(user_id, "Tabled")
+
+    await user.open(home.character_url(copy.id))
+
+    await user.should_see(marker="xp-by-storyteller")
+    assert not _marked_all(user, "xp-adjust")
+    assert not _marked_all(user, "xp-downtime")
+    assert not _marked_all(user, "top-bar-unlock")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_solo_copy_keeps_adjust_xp_downtime_and_unlock(user: User) -> None:
+    """The negative control of the case above: the same page, with no table."""
+    user_id = await _sign_up(user, "Harmonious")
+    store = _store()
+    copy = store.make_copy(user_id, store.create(user_id, _locked("Solo")).id)
+
+    await user.open(home.character_url(copy.id))
+
+    await user.should_see(marker="xp-adjust")
+    await user.should_see(marker="xp-downtime")
+    assert _marked_all(user, "top-bar-unlock")
+    assert not _marked_all(user, "xp-by-storyteller")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_copy_that_leaves_its_campaign_gets_adjust_xp_back(user: User) -> None:
+    """Ruling 3: a leaver keeps each copy as a solo copy. The page reads `table_id`
+    at each open, not once."""
+    user_id = await _sign_up(user, "Harmonious")
+    tables, table, copy = _campaign_copy(user_id, "Leaver")
+    await user.open(home.character_url(copy.id))
+    await user.should_see(marker="xp-by-storyteller")
+
+    tables.leave(user_id, table.id)
+    await user.open(home.character_url(copy.id))
+
+    await user.should_see(marker="xp-adjust")
+    assert _marked_all(user, "top-bar-unlock")

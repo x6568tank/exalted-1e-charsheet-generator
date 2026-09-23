@@ -1,6 +1,51 @@
-# Session handoff — 2026-09-22 (P3 step 4, the Log)
+# Session handoff — 2026-09-22 (P3 step 5, the ST tools)
 
 # 👉 YOU ARE HERE
+
+**P3 step 5 is DONE and BROWSER-VERIFIED** (human, 2026-09-22: all nine steps "Correct"). `docs/plans/p3-tables.md`
+§14 "Step 5" is the record: what shipped, the mechanics, 16 mutations (all killed), the
+design choices made without asking, the known limits.
+
+In one breath: new `server/table_st.py` (`TableStoryteller`: `grant_xp`, `awards`,
+`unlock`; the award log is `<table folder>/awards.json`). The ST tab gains New code,
+GRANT XP (Everyone or one character, a note; posts a Log line), AWARDS, MEMBERS with
+Remove, CHARACTERS with Unlock (Q6), Delete campaign (confirm names the member count).
+A member has **Leave campaign** in ⋮. A campaign copy's `/character/<copy>` page builds
+**no Unlock, no Adjust XP, no Downtime…** (keyed on `row.table_id`). 🐞 The quota
+message now says "This campaign" for a table folder (it said "This account").
+
+⚠ Grants and unlocks go on the live object (`sessions.peek`) and save the file from it.
+
+**Full suite: 3921 passed + 1 skipped — OBSERVED** (3878 + 43) on the dev machine, once, after all of step 5
+(the human asked for one run at the end). ⚠ The count moves by machine and optional
+dependency (`docs/testing.md`).
+
+**Working tree:** clean, committed and **pushed** (this handoff is in the step-5 commit).
+Check `git status`. **Not deployed** (steps 2–5); deploy when the human asks. The
+click-through server may still be running on :8080 from `/tmp/exalted-click/`.
+
+✅ **Click-through (step 5) — PASSED 2026-09-22.** **Q5 answered: yes**, Downtime… included.
+The server ran from `/tmp/exalted-click/` (throwaway DB, seeded accounts). For the record:
+1. As the player, open `/character/<copy>`: the Edit tab says *"The Storyteller grants
+   XP in this campaign."*; no Adjust XP, no Downtime…, no Unlock in the top bar.
+   **Q5 flag:** is removing Adjust XP right? And Downtime… with it (a choice I made)?
+2. Keep that page open. As the ST, Grant 5 XP to Everyone with a note. The ST sees the
+   award; both see `+5 XP to … — note` in the Log. The player switches tab: 5 XP.
+3. Grant −2 to one character only. The other is unchanged.
+4. ST: Unlock the copy (a character that spent XP shows the warning). The player
+   reloads: the builder is in creation mode with Finish & Lock.
+5. ST: New code — the old code no longer joins.
+6. ST: Remove a member — their open table page says "You are no longer in this
+   campaign."; their copy on `/home` is now solo and has Adjust XP again.
+7. As a member, ⋮ → Leave campaign → lands on `/home`.
+8. ST: Delete campaign — the confirm names the member count; lands on `/home`.
+
+**Next:** P3 **step 6, house rules** (§15.4 / §5): `house_rules.json`, `apply_table_rules`
+at the three sites, the ST's TABLE-WIDE switches, read-only on campaign copies.
+
+---
+
+## The session before — P3 step 4, the Log (2026-09-22)
 
 **P3 step 4 is DONE and BROWSER-VERIFIED** (human, 2026-09-22: *"everything looks good!
 no issues on my end now and everything in the clickthrough passed"*), the health labels
@@ -328,6 +373,9 @@ of a table.
 
 ## 👉 NEXT — in rough order of what would bite
 
+- **Make the signup and login pages look good** (human, 2026-09-22). `/login` and
+  `/signup` (`server/auth.py`) are still the plain forms from §5 piece 3. Follow
+  `match-the-builder-look`: copy the builder's design, spike, screenshot, iterate.
 - **The About text** is Lorem Ipsum until the human writes it (`server/public.py`).
 - ✅ **DEPLOYED 2026-09-12 to `https://exalted.x6568tank.com`** (commit `7cd594f`,
   checked from outside). ✅ **A real signup in the human's browser worked**, and a

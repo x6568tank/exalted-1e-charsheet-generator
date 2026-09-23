@@ -11,6 +11,8 @@ section 15.2 (shape A of `spikes/campaign_page/`):
   * The centre: the frame of the board (P4) and nothing else (Q7).
   * The right rail: the tabs Log, Notes and ST. The ST tab is for the Storyteller.
     The Log is step 4 (section 15.3): messages and rolls, in `server/table_log.py`.
+  * The ST tools are step 5: Grant XP and Unlock (`server/table_st.py`), remove
+    member, new code and delete campaign. A member leaves from the ⋮ menu.
 
 ⚠ `TableStore.access` is the check. The page calls it in the page body, before it
 reads anything of the table. Each handler and each poll calls it again. A hidden
@@ -32,7 +34,7 @@ there: a member types the text.
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import time
 
 from nicegui import app, ui
@@ -49,6 +51,7 @@ from .characters import CharacterRow, CharacterStore
 from .quota import QuotaExceeded
 from .session import SessionRegistry
 from .table_log import MAX_TEXT, LogEntry, TableLog, TableLogError
+from .table_st import MAX_GRANT, MAX_NOTE, Award, TableStoryteller
 from .tables import STORYTELLER, TableRow, TableStore, TableStoreError
 
 TABLE_PATH = chrome.TABLE_PATH
@@ -59,6 +62,12 @@ POLL_SECONDS = 2.0
 
 # The value of "Open as" for a viewer who opens the campaign with no character.
 SPECTATE = "spectate"
+
+# The value of the Grant XP target that gives the XP to each copy in the table.
+EVERYONE = "everyone"
+
+# The number of awards that the ST tab shows, the newest first. A design choice.
+AWARDS_SHOWN = 10
 
 _GOLD, _WHITE, _BORDER = play_mod._GOLD, play_mod._WHITE, play_mod._BORDER
 _MARK_COLOR = play_mod._MARK_COLOR
@@ -86,6 +95,7 @@ def register_table_page(tables: TableStore, store: CharacterStore, book: RuleSet
     the character registry of `server/home.py`. `current_user_id` returns the
     account of the request. `log` reads and writes the Log of each table.
     """
+    storyteller = TableStoryteller(tables, store, sessions, log)
 
     @ui.page(TABLE_PATH + "/{table_id}")
     def table_page(table_id: str) -> None:
@@ -96,7 +106,8 @@ def register_table_page(tables: TableStore, store: CharacterStore, book: RuleSet
         if table is None:
             _not_found()
             return
-        _TableView(tables, store, book, sessions, log, user_id, table).build()
+        _TableView(tables, store, book, sessions, log, storyteller, user_id,
+                   table).build()
 
 
 def _not_found() -> None:
@@ -134,10 +145,11 @@ class _TableView:
     """The page of one table for one account. Build it with `build`."""
 
     def __init__(self, tables: TableStore, store: CharacterStore, book: RuleSet,
-                 sessions: SessionRegistry, log: TableLog, user_id: int,
-                 table: TableRow) -> None:
+                 sessions: SessionRegistry, log: TableLog,
+                 storyteller: TableStoryteller, user_id: int, table: TableRow) -> None:
         self.tables = tables
         self.log = log
+        self.storyteller = storyteller
         self.store = store
         self.book = book
         self.sessions = sessions
@@ -312,6 +324,9 @@ class _TableView:
                     ui.tooltip("Join requests")
             with ui.button(icon="more_vert").props("flat round color=white"):
                 with ui.menu():
+                    if not self.is_st:
+                        ui.menu_item("Leave campaign", on_click=self._confirm_leave) \
+                            .mark("table-leave")
                     ui.menu_item("Log out", on_click=lambda: ui.navigate.to("/logout")) \
                         .mark("top-bar-logout")
 
@@ -609,17 +624,32 @@ class _TableView:
                                 "outline dense")
 
     def _draw_st(self) -> None:
-        """Draw the ST tab: the join code and the requests."""
+        """Draw the ST tab: the join code, the requests, Grant XP and the awards, the
+        members, the characters, and Delete campaign."""
         pal = self.pal
+        copies = self.copies()
         self.st_panel.clear()
         with self.st_panel:
             with ui.column().classes("w-full gap-0").mark("table-code"):
                 _heading(pal, "JOIN CODE")
-                ui.label(self.table.join_code).classes("text-2xl font-mono font-bold")
+                with ui.row().classes("w-full items-center justify-between no-wrap"):
+                    ui.label(self.table.join_code).classes(
+                        "text-2xl font-mono font-bold").mark("table-code-text")
+                    ui.button("New code", icon="autorenew",
+                              on_click=self._confirm_new_code).props(
+                        "flat dense no-caps size=sm").mark("st-new-code")
                 ui.label("Give this code to your players. You approve each request "
                          "below.").classes("text-xs opacity-70")
             _requests(self.tables, self.store, self.book, self.user_id, self.table,
                       self._approve, self._reject)
+            self._grant_form(copies)
+            self._awards()
+            self._st_members(copies)
+            self._st_characters(copies)
+            ui.separator()
+            ui.button("Delete campaign", icon="delete_forever",
+                      on_click=self._confirm_delete).props(
+                "flat dense no-caps color=negative").mark("st-delete")
 
     def _still_storyteller(self) -> bool:
         """⚠ Each handler asks again. The Storyteller can delete the campaign on a
@@ -648,6 +678,212 @@ class _TableView:
         except TableStoreError as exc:
             ui.notify(str(exc), type="warning")
         self.refresh_all()
+
+    # ---- Grant XP ----------------------------------------------------------- #
+
+    def _grant_form(self, copies: list[CharacterRow]) -> None:
+        """Grant XP: an amount, a note, and one copy or each copy (section 6)."""
+        pal = self.pal
+        with ui.column().classes("w-full gap-1").mark("st-grant-form"):
+            _heading(pal, "GRANT XP")
+            if not copies:
+                ui.label("No characters yet.").classes("text-sm opacity-70")
+                return
+            targets = {EVERYONE: "Everyone"}
+            targets |= {row.id: self._copy_name(row) for row in copies}
+            with ui.row().classes("w-full items-center no-wrap gap-1"):
+                amount = ui.number("XP", value=None, min=-MAX_GRANT, max=MAX_GRANT,
+                                   format="%d").props("dense outlined").classes(
+                    "w-20").mark("st-grant-amount")
+                target = ui.select(targets, value=EVERYONE).props(
+                    "dense outlined options-dense").classes("flex-1 min-w-0").mark(
+                    "st-grant-target")
+            note = ui.input(placeholder="Why? (shown in the Log)").props(
+                f"dense outlined maxlength={MAX_NOTE}").classes("w-full").mark(
+                "st-grant-note")
+            ui.button("Grant", icon="add", on_click=lambda: self._grant(
+                amount.value, note.value, target.value)).props(
+                f"dense no-caps color={pal.button}").mark("st-grant")
+            ui.label("A negative amount corrects an over-grant.").classes(
+                "text-xs opacity-60")
+
+    def _grant(self, value, note: str | None, target: str | None) -> None:
+        if not self._still_storyteller():
+            return
+        amount = int(value) if value is not None and float(value).is_integer() else 0
+        ids = None if target in (None, EVERYONE) else [target]
+        try:
+            result = self.storyteller.grant_xp(self.user_id, self.table.id, amount,
+                                               note or "", ids)
+        except (TableStoreError, QuotaExceeded) as exc:
+            ui.notify(str(exc), type="warning")
+            return
+        names = ", ".join(r.name for r in result.award.recipients)
+        ui.notify(f"{result.award.amount:+d} XP to {names}.", type="positive")
+        if result.failed:
+            ui.notify("Not granted, the file could not be saved: "
+                      + ", ".join(result.failed), type="negative")
+        self._draw_st()
+        self._draw_log()
+
+    def _awards(self) -> None:
+        """The newest `AWARDS_SHOWN` awards, the newest first."""
+        awards = self.storyteller.awards(self.table.id)
+        if not awards:
+            return
+        with ui.column().classes("w-full gap-0").mark("st-awards"):
+            _heading(self.pal, f"AWARDS ({len(awards)})")
+            for award in reversed(awards[-AWARDS_SHOWN:]):
+                _award_row(award)
+
+    # ---- members and characters --------------------------------------------- #
+
+    def _st_members(self, copies: list[CharacterRow]) -> None:
+        """MEMBERS, each with Remove."""
+        pal = self.pal
+        members = self.tables.members(self.table.id)
+        with ui.column().classes("w-full gap-0").mark("st-members"):
+            _heading(pal, f"MEMBERS ({len(members)})")
+            if not members:
+                ui.label("No members yet.").classes("text-sm opacity-70")
+            for member in members:
+                name = _username(self.tables, member)
+                count = sum(1 for row in copies if row.owner_id == member)
+                with ui.row().classes("w-full items-center justify-between no-wrap").mark(
+                        f"st-member-{member}"):
+                    ui.label(name + ("" if count else " · watching")).classes(
+                        "text-sm truncate min-w-0")
+                    ui.button(icon="person_remove",
+                              on_click=lambda _=None, m=member, n=name, c=count:
+                              self._confirm_remove(m, n, c)).props(
+                        "flat dense round size=sm color=negative").mark(
+                        f"st-remove-{member}").tooltip("Remove from the campaign")
+
+    def _st_characters(self, copies: list[CharacterRow]) -> None:
+        """CHARACTERS, each locked one with Unlock (Q6)."""
+        if not copies:
+            return
+        with ui.column().classes("w-full gap-0").mark("st-characters"):
+            _heading(self.pal, f"CHARACTERS ({len(copies)})")
+            for row in copies:
+                character = self.read(row).character
+                with ui.row().classes("w-full items-center justify-between no-wrap").mark(
+                        f"st-copy-{row.id}"):
+                    ui.label(f"{self._copy_name(row)} · "
+                             f"{_username(self.tables, row.owner_id)}").classes(
+                        "text-sm truncate min-w-0")
+                    if character is not None and character.chargen_locked:
+                        ui.button(icon="lock_open",
+                                  on_click=lambda _=None, r=row: self._confirm_unlock(r)
+                                  ).props("flat dense round size=sm").mark(
+                            f"st-unlock-{row.id}").tooltip("Unlock character creation")
+                    elif character is not None:
+                        ui.label("unlocked").classes("text-xs opacity-60")
+
+    def _copy_name(self, row: CharacterRow) -> str:
+        character = self.read(row).character
+        return (character.name or "(unnamed)") if character is not None else row.id
+
+    # ---- the confirms ------------------------------------------------------- #
+
+    def _confirm(self, title: str, body: str, action: str, marker: str,
+                 on_confirm: Callable[[], None]) -> None:
+        """Open a dialog with `title`, `body`, Cancel and `action`."""
+        with ui.dialog() as dialog, ui.card().classes(
+                f"w-[26rem] p-4 gap-2 {self.pal.card_solid}"):
+            ui.label(title).classes("text-base font-bold")
+            ui.label(body).classes("text-sm").mark(f"{marker}-body")
+            with ui.row().classes("w-full justify-end gap-2"):
+                ui.button("Cancel", on_click=dialog.close).props("flat")
+
+                def confirm() -> None:
+                    dialog.close()
+                    on_confirm()
+
+                ui.button(action, on_click=confirm, color="negative").mark(marker)
+        dialog.open()
+
+    def _confirm_new_code(self) -> None:
+        self._confirm("Make a new join code?",
+                      "The old code stops working. A request that is waiting stays.",
+                      "New code", "st-new-code-confirm", self._new_code)
+
+    def _new_code(self) -> None:
+        if not self._still_storyteller():
+            return
+        code = self.tables.new_code(self.user_id, self.table.id)
+        self.table = replace(self.table, join_code=code)
+        self._draw_st()
+
+    def _confirm_remove(self, member: int, name: str, count: int) -> None:
+        body = (f"{name} leaves the campaign." + (
+            f" Their {count} character{'s' if count != 1 else ''} in it become solo "
+            "copies, with their XP." if count else ""))
+        self._confirm(f"Remove {name}?", body, "Remove", "st-remove-confirm",
+                      lambda: self._remove(member))
+
+    def _remove(self, member: int) -> None:
+        if not self._still_storyteller():
+            return
+        try:
+            self.tables.remove(self.user_id, self.table.id, member)
+        except TableStoreError as exc:
+            ui.notify(str(exc), type="warning")
+        self.refresh_all()
+
+    def _confirm_unlock(self, row: CharacterRow) -> None:
+        character = self.read(row).character
+        name = self._copy_name(row)
+        warning = viewmod.unlock_warning(character) if character is not None else ""
+        body = warning or (f"The player of {name} can then change its creation, and "
+                           "locks it again when it is done.")
+        self._confirm(f"Unlock {name}?", body, "Unlock", "st-unlock-confirm",
+                      lambda: self._unlock(row.id))
+
+    def _unlock(self, character_id: str) -> None:
+        if not self._still_storyteller():
+            return
+        try:
+            self.storyteller.unlock(self.user_id, self.table.id, character_id)
+        except (TableStoreError, QuotaExceeded) as exc:
+            ui.notify(str(exc), type="warning")
+        else:
+            ui.notify("Unlocked. The player sees it when the character page opens "
+                      "again.", type="positive")
+        self._draw_st()
+
+    def _confirm_delete(self) -> None:
+        members = len(self.tables.members(self.table.id))
+        self._confirm(
+            f"Delete {self.table.name}?",
+            f"It has {members} member{'s' if members != 1 else ''}. Each character in "
+            "it becomes a solo copy, with its XP. The Log and the awards are deleted. "
+            "This cannot be undone.",
+            "Delete", "st-delete-confirm", self._delete)
+
+    def _delete(self) -> None:
+        if not self._still_storyteller():
+            return
+        self.tables.delete(self.user_id, self.table.id)
+        self.gone = True
+        ui.navigate.to(chrome.HOME_PATH)
+
+    def _confirm_leave(self) -> None:
+        count = len(self.mine(self.copies()))
+        body = ("You leave the campaign." + (
+            f" Your {count} character{'s' if count != 1 else ''} in it become solo "
+            "copies, with their XP." if count else ""))
+        self._confirm(f"Leave {self.table.name}?", body, "Leave", "table-leave-confirm",
+                      self._leave)
+
+    def _leave(self) -> None:
+        try:
+            self.tables.leave(self.user_id, self.table.id)
+        except TableStoreError as exc:
+            ui.notify(str(exc), type="warning")
+            return
+        self.gone = True
+        ui.navigate.to(chrome.HOME_PATH)
 
 
 # --------------------------------------------------------------------------- #
@@ -794,6 +1030,20 @@ def _log_entry(entry: LogEntry, name: str, pal, *, mine: bool, storyteller: bool
             ui.label(" ".join(str(f) for f in sorted(entry.roll.faces, reverse=True))
                      ).classes("text-xs font-mono opacity-60 break-words").mark(
                 f"log-faces-{entry.id}")
+
+
+def _award_row(award: Award) -> None:
+    """One award: the amount, the copies, the note and the date."""
+    with ui.column().classes("w-full gap-0 py-0.5").mark(f"st-award-{award.id}"):
+        with ui.row().classes("w-full items-baseline gap-1 no-wrap min-w-0"):
+            ui.label(f"{award.amount:+d} XP").classes("text-sm font-bold shrink-0")
+            ui.label(", ".join(r.name for r in award.recipients)).classes(
+                "text-xs truncate min-w-0")
+            ui.space()
+            ui.label(time.strftime("%d %b %H:%M", time.localtime(award.at))).classes(
+                "text-xs opacity-40 shrink-0")
+        if award.note:
+            ui.label(award.note).classes("text-xs opacity-70 break-words")
 
 
 def _other_row(shown: _Shown, player: str, *, mine: bool) -> None:

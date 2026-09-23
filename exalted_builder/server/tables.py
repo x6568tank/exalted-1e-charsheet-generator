@@ -36,6 +36,7 @@ import sqlite3
 
 from . import db
 from .characters import CharacterRow, CharacterStore, CharacterStoreError, is_locked
+from .quota import TABLE_FOLDER_PREFIX
 from .throttle import LoginThrottle
 
 # The shape of a table id. A URL gives the id, thus the store refuses each other
@@ -113,7 +114,7 @@ class TableStore:
         match = TABLE_ID.fullmatch(table_id or "")
         if match is None:
             raise ValueError(f"Not a table id: {table_id!r}")
-        return self.root / f"table-{match.group(1)}"
+        return self.root / f"{TABLE_FOLDER_PREFIX}{match.group(1)}"
 
     def _characters(self) -> CharacterStore:
         return CharacterStore(db_path=self.db_path, root=self.root)

@@ -828,3 +828,216 @@ async def test_each_health_box_has_its_penalty_label(create_user) -> None:
         await player.should_see(marker=f"you-health-label-{i}", content=label)
         await player.should_see(marker=f"other-health-label-{theirs.id}-{i}", content=label)
     await player.should_not_see(marker=f"you-health-label-{len(expected)}")
+
+
+# --------------------------------------------------------------------------- #
+# Step 5 — the ST tools, and Leave
+# --------------------------------------------------------------------------- #
+
+
+def _grant(st: User, amount: int, note: str = "", target: str | None = None) -> None:
+    """Fill the Grant XP form of the ST tab and press Grant."""
+    _one(st, "st-grant-amount").set_value(amount)
+    _one(st, "st-grant-note").set_value(note)
+    if target is not None:
+        _one(st, "st-grant-target").set_value(target)
+    st.find(marker="st-grant").click()
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_grant_reaches_the_object_that_the_players_page_holds(create_user) -> None:
+    """⚠ Trap section 12, "XP grant written behind an open page". The player's page
+    is open first, thus the registry holds the object that its auto-save writes."""
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn", "Gearheart")
+    (player, _, copy), (_, _, other) = players
+    await player.open(chrome.character_url(copy.id))
+    held = state.REGISTRY.peek(copy.id)["char"]
+
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="st-grant-form")
+    _grant(st, 5, "Session one")
+
+    await st.should_see(marker="st-award-1")
+    await st.should_see("+5 XP to Ashes of Dawn, Gearheart — Session one")
+    assert state.REGISTRY.peek(copy.id)["char"] is held
+    assert held.xp_earned == 5
+    assert _load(copy).xp_earned == 5
+    assert _load(other).xp_earned == 5
+    assert state.REGISTRY.peek(other.id) is None, "A context was built for a grant."
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_grant_to_one_character_leaves_the_other(create_user) -> None:
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn", "Gearheart")
+    (_, _, copy), (_, _, other) = players
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="st-grant-form")
+
+    _grant(st, 3, target=other.id)
+
+    await st.should_see(marker="st-award-1")
+    assert _load(other).xp_earned == 3
+    assert _load(copy).xp_earned == 0
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_grant_of_zero_writes_nothing(create_user) -> None:
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (_, _, copy), = players
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="st-grant-form")
+
+    _grant(st, 0)
+
+    await st.should_see("not 0")
+    assert _load(copy).xp_earned == 0
+    assert not (_tables().table_dir(table.id) / "awards.json").exists()
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_players_see_the_grant_in_the_log(create_user) -> None:
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, _), = players
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="log-empty")
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="st-grant-form")
+
+    _grant(st, 2, "Good roleplay")
+
+    await player.should_see("+2 XP to Ashes of Dawn — Good roleplay",
+                            retries=_POLL_RETRIES)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_grant_after_the_campaign_is_deleted_writes_nothing(create_user) -> None:
+    """⚠ The handler asks `access()` again. No await separates the delete and the
+    click, thus the poll cannot run between them."""
+    st, st_id, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (_, _, copy), = players
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="st-grant-form")
+
+    _tables().delete(st_id, table.id)
+    _grant(st, 5)
+
+    assert st.notify.contains("You are not the Storyteller of this campaign.")
+    assert _load(copy).xp_earned == 0
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_removes_a_member(create_user) -> None:
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, player_id, copy), = players
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="you-play")
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker=f"st-member-{player_id}")
+
+    st.find(marker=f"st-remove-{player_id}").click()
+    await st.should_see(marker="st-remove-confirm-body", content="solo")
+    st.find(marker="st-remove-confirm").click()
+
+    await st.should_see("PARTY (0)")
+    assert _tables().access(player_id, table.id) is None
+    assert _characters().row(copy.id).table_id is None
+    await player.should_see(marker="table-gone", retries=_POLL_RETRIES)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_member_leaves_from_the_menu(create_user) -> None:
+    _, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, player_id, copy), = players
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="you-play")
+
+    player.find(marker="table-leave").click()
+    await player.should_see(marker="table-leave-confirm-body", content="solo")
+    player.find(marker="table-leave-confirm").click()
+
+    await player.should_see(marker="home-new")
+    assert _tables().access(player_id, table.id) is None
+    assert _characters().row(copy.id).table_id is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_has_no_leave(create_user) -> None:
+    st, _, table, _ = await _campaign(create_user)
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="top-bar-logout")
+    # Preflight pass 3: the ST tab of a campaign with no characters builds.
+    await st.should_see(marker="st-grant-form")
+    await st.should_see(marker="st-delete")
+    await st.should_see("MEMBERS (0)")
+
+    await st.should_not_see(marker="table-leave")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_new_code_replaces_the_code(create_user) -> None:
+    st, _, table, _ = await _campaign(create_user)
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="table-code-text", content=table.join_code)
+
+    st.find(marker="st-new-code").click()
+    st.find(marker="st-new-code-confirm").click()
+
+    code = _tables().table(table.id).join_code
+    assert code != table.join_code
+    await st.should_see(marker="table-code-text", content=code)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_delete_names_the_member_count_and_deletes(create_user) -> None:
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn", "Gearheart")
+    (player, _, copy), _ = players
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="you-play")
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="st-delete")
+
+    st.find(marker="st-delete").click()
+    await st.should_see(marker="st-delete-confirm-body", content="It has 2 members.")
+    st.find(marker="st-delete-confirm").click()
+
+    await st.should_see(marker="home-new")
+    assert _tables().table(table.id) is None
+    assert _characters().row(copy.id).table_id is None
+    await player.should_see(marker="table-gone", retries=_POLL_RETRIES)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_unlocks_a_copy_after_a_warning(create_user) -> None:
+    """Q6: on a campaign copy, unlocking is up to the Storyteller. Ruled 2026-09-12:
+    an Unlock after XP is allowed, with a warning."""
+    from exalted_builder.models.character import XpEntry
+
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, copy), = players
+    character = _load(copy)
+    character.xp_log.append(XpEntry(target="essence", from_rating=2, to_rating=3, cost=16))
+    _characters().save(copy, character)
+    await player.open(chrome.character_url(copy.id))
+    held = state.REGISTRY.peek(copy.id)["char"]
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker=f"st-copy-{copy.id}")
+
+    st.find(marker=f"st-unlock-{copy.id}").click()
+    await st.should_see(marker="st-unlock-confirm-body", content="16 XP")
+    assert held.chargen_locked, "Unlocked before the confirm."
+    st.find(marker="st-unlock-confirm").click()
+
+    await st.should_see("unlocked")
+    assert not held.chargen_locked
+    assert not _load(copy).chargen_locked

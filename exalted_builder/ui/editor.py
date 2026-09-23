@@ -202,12 +202,16 @@ def trait_info_button(pal, make_info, key: str) -> None:
 
 
 def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
-                 *, with_header: bool = True, on_theme_change=None):
+                 *, with_header: bool = True, on_theme_change=None,
+                 in_campaign: bool = False):
     """Render the whole editor for `character`. Pure-ish wiring: every control
     mutates the Character and refreshes the live readout. With `with_header=False`
     the title/Save bar is omitted (the embedding app provides one). `on_theme_change`
     (if given) is called after the Exalt type changes so an embedding app can re-paint
     its own chrome (header bar / page background) to the new splat's palette.
+
+    `in_campaign` is True for a campaign copy. Then Adjust XP and Downtime are not
+    built: the Storyteller grants XP (p3-tables.md section 6, Q5).
 
     Returns the post-lock downward-click dialog opener, `(target, current, wanted,
     refresh)`, so tests can build it. Callers ignore it."""
@@ -422,14 +426,21 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         """
         ui.label("Experience").classes("text-sm font-bold tracking-widest").style(
             f"color:{pal.accent}")
-        with ui.row().classes("w-full items-center gap-1 no-wrap"):
-            amount = ui.number(value=_adjust["amount"], format="%d").props("dense").classes("w-20")
-            ui.button("Adjust XP", icon="add", on_click=lambda: (
-                _adjust.__setitem__("amount", int(amount.value or 0)),
-                advancement.add_xp(character, int(amount.value or 0)),
-                changed())).props(f"dense color={pal.button}")
-        ui.button("Downtime…", icon="hourglass_bottom", on_click=_downtime_dialog
-                  ).props("dense flat size=sm").classes("w-full")
+        if in_campaign:
+            # ⚠ Not built, not hidden: a hidden button keeps its handler. The
+            # discriminator is `table_id` in the database, which the page cannot edit.
+            ui.label("The Storyteller grants XP in this campaign.").classes(
+                "text-xs opacity-70").mark("xp-by-storyteller")
+        else:
+            with ui.row().classes("w-full items-center gap-1 no-wrap"):
+                amount = ui.number(value=_adjust["amount"], format="%d").props(
+                    "dense").classes("w-20")
+                ui.button("Adjust XP", icon="add", on_click=lambda: (
+                    _adjust.__setitem__("amount", int(amount.value or 0)),
+                    advancement.add_xp(character, int(amount.value or 0)),
+                    changed())).props(f"dense color={pal.button}").mark("xp-adjust")
+            ui.button("Downtime…", icon="hourglass_bottom", on_click=_downtime_dialog
+                      ).props("dense flat size=sm").classes("w-full").mark("xp-downtime")
         rows = viewmod.build_xp_log(ruleset, character)
         if rows:
             ui.button(f"Undo last: {rows[-1].label}", icon="undo", on_click=_do_undo

@@ -9,6 +9,8 @@ rulings of `docs/plans/vtt.md` sections 9.2 to 9.4:
   * `/character/<id>` shows one character. A draft or a copy opens in the
     builder. A locked base opens on a read-only page: a base takes no XP, and a
     campaign copy is where a character advances (section 9.2).
+  * A copy in a campaign has no Unlock, no Adjust XP and no Downtime. The
+    Storyteller does these on the table view (p3-tables.md section 6, Q5, Q6).
   * There is no `/gm` on the server until P3 (ruled 2026-09-12, 9.3a).
 
 ⚠ The ownership check is `CharacterStore.owned`, in the page body, before the
@@ -145,7 +147,8 @@ def register_character_pages(store: CharacterStore, book: RuleSet,
 
         builder.build_app(ctx["ruleset"], ctx["char"], ctx["path"], ctx=ctx, hosted=True,
                           home_path=HOME_PATH,
-                          on_lock=None if row.is_copy else after_lock)
+                          on_lock=None if row.is_copy else after_lock,
+                          in_campaign=row.table_id is not None)
 
     return sessions
 

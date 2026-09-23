@@ -385,7 +385,7 @@ nothing. (Co-Storytellers are a separate, later question — not designed.)
 roster covers the ST's NPCs (stat blocks; an `Adversary` is not a `Character`, `CLAUDE.md`
 §13). Q4 is only about a full builder-made character, a GMPC. Asked back.
 
-**Q5. Is Adjust XP removed from campaign copies?** It follows from ruling 2, but it removes
+**Q5. Is Adjust XP removed from campaign copies?** ✅ *Confirmed at the step-5 click-through, 2026-09-22, Downtime… included.* It follows from ruling 2, but it removes
 something a player can do today. *Recommendation:* **yes**.
 
 **Q6. May a player Unlock a campaign copy?** `unlock_chargen` reopens chargen, which on a
@@ -670,6 +670,84 @@ no text cap; the roll ignoring the injected RNG.
 the ↗. Each box on YOU PLAY and on THE OTHERS now has its label above it, the Play tab's
 `PlayHealthBox.label` (`-0`, `-1`, `-2`, `-4`, `Incap`, ★ for a level from a Charm).
 No new calculation. Test: `test_each_health_box_has_its_penalty_label` (failed first).
+
+### Step 5 — the ST tools, and Leave (2026-09-22)
+
+**Shipped:** `server/table_st.py` (new): `TableStoryteller(tables, store, sessions, log)`
+with `grant_xp`, `awards` and `unlock`; the award log is `<table folder>/awards.json`.
+`register_table_page` makes one. The ST tab of `/table/<id>` now has, top to bottom:
+JOIN CODE with **New code**, REQUESTS, **GRANT XP** (amount, Everyone or one character,
+a note), **AWARDS** (the newest 10), **MEMBERS** with Remove, **CHARACTERS** with Unlock
+on each locked copy, and **Delete campaign**. A member (not the ST) has **Leave
+campaign** in ⋮. Every one of these confirms first except Grant; Delete names the member
+count, Remove and Leave say the characters become solo copies, Unlock after XP shows
+`view.unlock_warning`.
+
+**The lockout (Q5, Q6):** `/character/<copy>` for a copy with `row.table_id` set builds
+**no Unlock, no Adjust XP and no Downtime…** — not hidden: a hidden button keeps its
+handler. The editor shows *"The Storyteller grants XP in this campaign."* in their
+place. `build_app(in_campaign=)` → `build_editor(in_campaign=)`; `home.character_page`
+reads `table_id` from the row it fetches on each open, so a copy that leaves gets them
+back on its next open. Solo copies and the desktop are unchanged.
+
+**Mechanics:**
+* ⚠ **Grant through the live object** (§6, trap §12): `sessions.peek(copy)` — if a
+  page holds the copy, `add_xp` goes on `ctx["char"]` and the file is saved from it;
+  else load, add, save. `peek`, never `ctx_for`: a grant builds no context. The file is
+  saved even when the page is open, because the registry has no save on eviction.
+  Unlock takes the same path.
+* **Failure**: a copy whose save fails (its owner's account is full) keeps its old XP
+  (the live object too) and is named in a warning; the others get the grant. If none
+  does, the grant is refused. The award log is written after the copies; if **it**
+  fails, every copy goes back to its old XP and the error shows.
+* **Each grant posts one Log line as the ST**: `+5 XP to Ashes, Gearheart — note`.
+  A failed post leaves the award.
+* `access() == "storyteller"` in the store (grant, unlock; remove, new code, delete
+  already had it) and again in each page handler. The browser names the copy, so the
+  store also refuses a copy not in the table.
+* 🐞 **The quota message named the wrong owner.** A table folder has an account
+  folder's quota, and a full one said *"This account has no space left"* — to a
+  Storyteller whose account has room. `FolderQuota` now says *"This campaign…"* for a
+  `table-` folder (`quota.TABLE_FOLDER_PREFIX`, which `TableStore.table_dir` now uses).
+  This also fixes the Log's message.
+
+**Tests:** `tests/test_table_st.py` (28, the store), 3 in `test_character_pages.py`
+(a campaign copy has none of the three; a solo copy has all three — the negative
+control; a copy that leaves gets them back), 1 in `test_folder_quota.py`, and 11 in
+`test_table_view.py` (a grant reaches the player's open object and builds no context
+for the other; one character; 0 refused; players see the grant in the Log; a grant
+after the campaign is deleted elsewhere writes nothing; remove; leave; the ST has no
+Leave and an empty campaign's ST tab builds; new code; delete names the count; unlock
+after a warning). **Mutation-checked (16, all killed):** the grant reading the file
+instead of the live object; `ctx_for` for `peek`; each store role check dropped (grant,
+unlock); the copy-in-table check dropped; no restore when the award log fails; no
+restore of a failed copy; the not-locked check dropped; 0 accepted; `home.py` passing
+`in_campaign=False`; reading `table_id` from the cached `ctx["row"]` (the leave case);
+Unlock built on a campaign copy; the page's `_grant` role check dropped; the target
+ignored; delete counting characters instead of members; the quota wording.
+**Full suite: 3921 passed + 1 skipped — OBSERVED** on the dev machine (3878 + 43).
+
+**Design choices made without asking, reversible:**
+- **Downtime… is removed with Adjust XP.** It grants XP too (the Elder Exalts
+  award), so leaving it would be the same hole. The ST can grant a Downtime award
+  by hand. **Flag at the click-through** with Q5.
+- **Unlock (Q6) is in this step**, as a button per character in the ST tab. §15.4 did
+  not list it, but removing the player's Unlock without it would leave a campaign copy
+  that nobody can unlock.
+- **Grant bounds**: 1–1000 XP either way, not 0; a note up to 200 characters.
+- **The award posts to the Log** (§15.4 left it open).
+- **The ST tab shows the newest 10 awards**; the file keeps all of them (the quota bounds it).
+- New code asks for a confirm; the old code stops working and a waiting request stays.
+
+✅ **BROWSER-VERIFIED 2026-09-22.** The human ran the nine-step click-through (the
+lockout, grant to everyone and to one, 0 refused, unlock after XP with the warning, new
+code, remove, leave, delete) and answered "Correct" to each. **Q5 ANSWERED: yes** —
+Adjust XP is absent on a campaign copy, and Downtime… with it (step 1 asked both).
+
+⚠ **Known limits:** a player whose character page is open when the ST grants or
+unlocks sees the new XP, or the unlocked state, on their next tab switch or reload.
+The object is right at once; the page is not redrawn. After an ST Unlock with the
+page open, the player should reload before editing.
 
 ---
 

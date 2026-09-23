@@ -60,6 +60,16 @@ def test_a_write_past_the_limit_is_refused(root: Path) -> None:
         FolderQuota(root, limit=LIMIT)(root / "user-1" / "new.json", 401)
 
 
+def test_a_campaign_folder_is_named_as_a_campaign(root: Path) -> None:
+    """A table folder has the quota of an account folder. The message must not say
+    "This account" to a Storyteller whose own account has space."""
+    _fill(root / "table-0123456789ab" / "log.json", LIMIT - 400)
+
+    with pytest.raises(QuotaExceeded, match="This campaign has no space left") as error:
+        FolderQuota(root, limit=LIMIT)(root / "table-0123456789ab" / "awards.json", 401)
+    assert "account" not in str(error.value)
+
+
 def test_a_replaced_file_frees_its_size(root: Path) -> None:
     """A save rewrites one file. Counting the old copy and the new one refuses a
     save that makes the folder no larger."""

@@ -203,7 +203,8 @@ def session_key() -> str:
 def build_app(ruleset: RuleSet, character: Character, save_path: Path,
               *, ctx: dict | None = None, hosted: bool = False,
               home_path: str | None = None,
-              on_lock: Callable[[], None] | None = None) -> None:
+              on_lock: Callable[[], None] | None = None,
+              in_campaign: bool = False) -> None:
     """Render the single-character builder. `ctx` is the shared app context; when
     omitted (running this module standalone) a private one is created, so the
     builder still works with no party involved.
@@ -236,6 +237,11 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
     `on_lock` runs after Finish & Lock. The hosted server shows a locked base on a
     page of its own, thus it saves and goes there.
+
+    `in_campaign` is True for a campaign copy of the hosted server. Then Unlock,
+    Adjust XP and Downtime are not built: the Storyteller unlocks and grants XP
+    (p3-tables.md section 6, Q5, Q6). ⚠ Not built, not hidden: a hidden button
+    keeps its handler.
     """
     # ⚠ The seven tabs take a callback here and this function takes a path. That
     # asymmetry is deliberate, and it misleads: a caller that passes a save
@@ -304,7 +310,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         _sync_tabs()             # Edit ⇄ XP swap follows the lock
         if state["tab"] == "Edit":
             editor.build_editor(ruleset, char, tab_save, with_header=False,
-                                on_theme_change=_apply_chrome)
+                                on_theme_change=_apply_chrome, in_campaign=in_campaign)
         elif state["tab"] == "Gear":
             gear_mod.build_gear(ruleset, char, tab_save, with_header=False,
                                 custom_dir=ctx["custom_dir"])
@@ -664,7 +670,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             # them, because a lock and an unlock both refresh the content.
             lock_button = ui.button("Finish & Lock", icon="lock", on_click=finish).props(
                 "flat color=white").mark("top-bar-lock")
-            unlock_button = ui.button("Unlock", icon="lock_open", on_click=unlock).props(
+            unlock_button = None if in_campaign else ui.button(
+                "Unlock", icon="lock_open", on_click=unlock).props(
                 "flat color=white").mark("top-bar-unlock")
             # The file actions that are not Save, in one menu.
             with ui.button(icon="more_vert").props("flat round color=white").tooltip(
@@ -692,7 +699,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         header_el.style(f"background:{pal.accent}")
         subtitle_label.set_text(f"{pal.splat_label} · {_stage()}")
         lock_button.set_visibility(not ctx["char"].chargen_locked)
-        unlock_button.set_visibility(ctx["char"].chargen_locked)
+        if unlock_button is not None:
+            unlock_button.set_visibility(ctx["char"].chargen_locked)
         ui.query("body").style(f"background:{pal.bg};color:{pal.ink}")
         # A Charm-Slot splat builds Arrays instead of Combos (p.89), so the tab is
         # relabelled for them. Only the LABEL changes — the tab keeps its "Combos"

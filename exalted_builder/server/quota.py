@@ -22,6 +22,10 @@ from pathlib import Path
 
 QUOTA_BYTES = 10 * 1024 * 1024
 
+# The name of a table folder starts with this. `TableStore.table_dir` makes it.
+# A table folder has the same limit as an account folder.
+TABLE_FOLDER_PREFIX = "table-"
+
 
 class QuotaExceeded(Exception):
     """A write that makes an account folder larger than its limit. The message is
@@ -62,7 +66,9 @@ class FolderQuota:
         replaced = target.stat().st_size if target.is_file() else 0
         used = folder_size(root / parts[0]) - replaced
         if used + size > self.limit:
+            owner = ("This campaign" if parts[0].startswith(TABLE_FOLDER_PREFIX)
+                     else "This account")
             raise QuotaExceeded(
-                f"This account has no space left: {used / 2**20:.1f} MB of "
+                f"{owner} has no space left: {used / 2**20:.1f} MB of "
                 f"{self.limit / 2**20:.1f} MB used. Ask the server admin to remove "
                 "old files.")
