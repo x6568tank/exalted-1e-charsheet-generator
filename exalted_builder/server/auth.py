@@ -37,7 +37,8 @@ from fastapi.responses import RedirectResponse
 from nicegui import app, run, ui
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from . import config, db
+from ..ui import theme
+from . import config, db, site
 from .throttle import LoginThrottle
 
 # The paths that a visitor with no login can open. The icon is here because the
@@ -138,6 +139,34 @@ def wait_text(seconds: float) -> str:
     return f"Too many failed attempts. Try again in {math.ceil(seconds / 60)} minutes."
 
 
+def _frame(current: str) -> ui.element:
+    """Draw the header bar and the footer of the public pages. Return the card
+    for the form. `current` marks the button of the page in the header bar."""
+    ui.colors(primary=theme.palette(None).accent)
+    # The public pages have no padding around the header bar. NiceGUI pads its content.
+    ui.add_head_html(f"<style>{site.style_sheet()}"
+                     ".nicegui-content{padding:0;gap:0;align-items:stretch}</style>")
+    ui.html(site.header_bar(current, None), sanitize=False)
+    with ui.element("main").classes("page w-full"):
+        card = ui.element("section").classes("card auth")
+    ui.html(site.FOOTER, sanitize=False)
+    return card
+
+
+def _heading(title: str, lead: str) -> None:
+    ui.html(f'<h1>{site.esc(title)}</h1><p class="lead muted">{site.esc(lead)}</p>',
+            sanitize=False)
+
+
+def _aside(lines: list[str]) -> ui.element:
+    """Draw the note area at the bottom of the card. Each item of `lines` is HTML
+    that the caller escaped. Return the area, for more lines."""
+    with ui.element("div").classes("aside") as area:
+        for line in lines:
+            ui.html(f"<p>{line}</p>", sanitize=False)
+    return area
+
+
 def register_auth_pages(db_path: Path, throttle: LoginThrottle | None = None) -> None:
     """Register `/login`, `/signup` and `/logout` against the database at `db_path`.
 
@@ -151,14 +180,14 @@ def register_auth_pages(db_path: Path, throttle: LoginThrottle | None = None) ->
         if current_user_id() is not None:
             return RedirectResponse(target, status_code=303)
 
-        with ui.card().classes("absolute-center w-80"):
-            ui.label("Log in").classes("text-h6")
+        with _frame("login"):
+            _heading("Log in", "Build characters and keep them on the server.")
             username = ui.input("Username").props("autofocus").classes(
                 "w-full").mark("login-username")
             password = ui.input("Password", password=True,
                                 password_toggle_button=True).classes(
                 "w-full").mark("login-password")
-            error = ui.label().classes("text-negative")
+            error = ui.label().classes("text-negative q-mt-xs")
 
             async def submit() -> None:
                 name = db.normalise_username(username.value or "")
@@ -179,12 +208,14 @@ def register_auth_pages(db_path: Path, throttle: LoginThrottle | None = None) ->
                 ui.navigate.to(target)
 
             password.on("keydown.enter", submit)
-            ui.button("Log in", on_click=submit).classes("w-full").mark("login-submit")
-            ui.link("Make an account", f"/signup?redirect_to={quote(target, safe='/')}")
-            contact = config.admin_contact()
-            if contact:
-                ui.label(f"Forgot your password? Email {contact}.").classes(
-                    "text-caption").mark("login-contact")
+            ui.button("Log in", icon="login", on_click=submit).props("unelevated").classes(
+                "w-full q-mt-md").mark("login-submit")
+            signup = site.esc(f"/signup?redirect_to={quote(target, safe='/')}")
+            with _aside([f'No account? <a href="{signup}">Make an account</a>.']):
+                contact = config.admin_contact()
+                if contact:
+                    ui.label(f"Forgot your password? Email {contact}.").classes(
+                        "muted").mark("login-contact")
         return None
 
     @ui.page("/signup", title="Make an account — Exalted 1e")
@@ -193,16 +224,18 @@ def register_auth_pages(db_path: Path, throttle: LoginThrottle | None = None) ->
         if current_user_id() is not None:
             return RedirectResponse(target, status_code=303)
 
-        with ui.card().classes("absolute-center w-80"):
-            ui.label("Make an account").classes("text-h6")
+        with _frame("signup"):
+            _heading("Make an account", "An account keeps your characters on the server.")
             username = ui.input("Username").props("autofocus").classes(
                 "w-full").mark("signup-username")
+            username.props["hint"] = f"{db.USERNAME_RULE} Case-sensitive."
             password = ui.input("Password", password=True,
                                 password_toggle_button=True).classes(
-                "w-full").mark("signup-password")
+                "w-full q-mt-sm").mark("signup-password")
+            password.props["hint"] = f"At least {db.MIN_PASSWORD_LENGTH} characters."
             confirm = ui.input("Password again", password=True).classes(
-                "w-full").mark("signup-confirm")
-            error = ui.label().classes("text-negative")
+                "w-full q-mt-sm").mark("signup-confirm")
+            error = ui.label().classes("text-negative q-mt-xs")
 
             async def submit() -> None:
                 if (password.value or "") != (confirm.value or ""):
@@ -218,8 +251,10 @@ def register_auth_pages(db_path: Path, throttle: LoginThrottle | None = None) ->
                 ui.navigate.to(target)
 
             confirm.on("keydown.enter", submit)
-            ui.button("Make account", on_click=submit).classes("w-full").mark("signup-submit")
-            ui.link("Log in instead", login_url(target))
+            ui.button("Make account", icon="person_add", on_click=submit).props(
+                "unelevated").classes("w-full q-mt-md").mark("signup-submit")
+            login = site.esc(login_url(target))
+            _aside([f'Have an account? <a href="{login}">Log in</a>.'])
         return None
 
     @ui.page("/logout")

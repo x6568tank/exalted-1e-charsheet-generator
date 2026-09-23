@@ -27,6 +27,7 @@ BCRYPT_ROUNDS = 12
 
 # The limits of a username. The characters are safe in a path and in a URL.
 USERNAME_PATTERN = re.compile(r"[A-Za-z0-9_.-]{3,32}")
+USERNAME_RULE = "3 to 32 characters: letters, digits, '.', '_' or '-'."
 
 MIN_PASSWORD_LENGTH = 8
 MAX_PASSWORD_BYTES = 72
@@ -140,8 +141,7 @@ def normalise_username(username: str) -> str:
 def check_new_account(username: str, password: str) -> None:
     """Raise `AccountError` if `username` or `password` cannot make an account."""
     if not USERNAME_PATTERN.fullmatch(username):
-        raise AccountError(
-            "A username has 3 to 32 characters: letters, digits, '.', '_' or '-'.")
+        raise AccountError(f"A username has {USERNAME_RULE}")
     check_password(password)
 
 

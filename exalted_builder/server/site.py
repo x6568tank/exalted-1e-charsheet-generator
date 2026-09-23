@@ -157,6 +157,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .item .go { margin-left: auto; opacity: .45; }
 .prose p { margin: 0 0 10px; font-size: 15px; }
 
+/* The login and signup pages. They are NiceGUI pages, thus Quasar draws the fields. */
+.auth { max-width: 400px; margin: 40px auto 0; padding: 20px 24px 22px; }
+.auth h1 { color: var(--accent); font-size: 20px; line-height: 1.3; font-weight: 700; letter-spacing: normal; margin: 0 0 2px; }
+.auth .lead { font-size: 14px; margin: 0 0 8px; }
+.auth .aside { margin: 14px -24px -22px; padding: 12px 24px; font-size: 13px;
+  border-top: 1px solid color-mix(in srgb, var(--edge) 15%, transparent); }
+.auth .aside p { margin: 0; }
+.auth .aside p + p { margin-top: 6px; }
+
 /* The wiki */
 .filters { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 20px; }
 .field { display: flex; flex-direction: column; flex: 1 1 180px; min-width: 0; }
@@ -230,9 +239,24 @@ def _nav(current: str, username: Optional[str]) -> str:
         parts.append(_button("/home", "edit", "Your characters"))
         parts.append(_button("/logout", "logout", "Log out"))
     else:
-        parts.append(_button("/login", "login", "Log in"))
-        parts.append(_button("/signup", "person_add", "Sign up"))
+        parts.append(_button("/login", "login", "Log in", current == "login"))
+        parts.append(_button("/signup", "person_add", "Sign up", current == "signup"))
     return "".join(parts)
+
+
+def style_sheet(splat: str = "") -> str:
+    """Return the CSS of the public pages, with the builder palette of `splat`."""
+    return _palette_css(splat) + _CSS
+
+
+def header_bar(current: str, username: Optional[str], heading: str = SITE_NAME) -> str:
+    """Return the header bar of a public page. `current` marks one button."""
+    return (f'<header class="bar"><a class="title" href="/">{esc(heading)}</a>'
+            f'<nav aria-label="Site">{_nav(current, username)}</nav></header>')
+
+
+FOOTER = ('<footer class="footer muted">An unofficial fan site, not affiliated with the '
+          'publisher of Exalted. <a href="/about">About this site</a>.</footer>')
 
 
 def page(title: str, body: str, *, current: str = "", username: Optional[str] = None,
@@ -250,12 +274,9 @@ def page(title: str, body: str, *, current: str = "", username: Optional[str] = 
         '<!doctype html><html lang="en"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
         f"<title>{esc(title)}</title>{meta}{_FONTS}"
-        f"<style>{_palette_css(splat)}{_CSS}</style></head><body>"
-        f'<header class="bar"><a class="title" href="/">{esc(heading)}</a>'
-        f'<nav aria-label="Site">{_nav(current, username)}</nav></header>'
-        f'<main class="page">{body}</main>'
-        '<footer class="footer muted">An unofficial fan site, not affiliated with the '
-        'publisher of Exalted. <a href="/about">About this site</a>.</footer>'
+        f"<style>{style_sheet(splat)}</style></head><body>"
+        f"{header_bar(current, username, heading)}"
+        f'<main class="page">{body}</main>{FOOTER}'
         "</body></html>")
     return HTMLResponse(html)
 
