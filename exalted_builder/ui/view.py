@@ -1953,18 +1953,33 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
                         f"every God-Blooded: no pool dots, no above-cap bonus points. "
                         f"The bonus points and Flaw capacity still follow each "
                         f"character's own sheet rating.")
-        value = getattr(rules, fld)
-        if fld == "godblooded_inheritance_rating":
-            # The select's option keys are the strings "1".."5" plus a sentinel for
-            # None, so an int rating must become its key (and None its sentinel) or
-            # the select's build-time value check fails.
-            value = "per-character" if value is None else str(value)
         rows.append(HouseRuleRow(field=fld, label=label, scope=scope,
                                  citation=citation, description=description,
-                                 value=value,
+                                 value=_house_rule_value(rules, fld),
                                  options=dict(_HOUSE_RULE_OPTIONS.get(fld, {})),
                                  note=note, inert=inert))
     return rows
+
+
+def _house_rule_value(rules: HouseRules, fld: str) -> bool | str | int | None:
+    value = getattr(rules, fld)
+    if fld == "godblooded_inheritance_rating":
+        # The select's option keys are the strings "1".."5" plus a sentinel for
+        # None, so an int rating must become its key (and None its sentinel) or
+        # the select's build-time value check fails.
+        value = "per-character" if value is None else str(value)
+    return value
+
+
+def build_table_house_rules(rules: HouseRules) -> list[HouseRuleRow]:
+    """The TABLE-WIDE rows of the house rules of a campaign, with the values of
+    `rules`. The rows have no note: a campaign has no one character to test a
+    rule against."""
+    return [HouseRuleRow(field=fld, label=label, scope=scope, citation=citation,
+                         description=description, value=_house_rule_value(rules, fld),
+                         options=dict(_HOUSE_RULE_OPTIONS.get(fld, {})))
+            for fld, label, scope, citation, description in _HOUSE_RULES
+            if scope == "table"]
 
 
 @dataclass

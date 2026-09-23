@@ -204,7 +204,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
               *, ctx: dict | None = None, hosted: bool = False,
               home_path: str | None = None,
               on_lock: Callable[[], None] | None = None,
-              in_campaign: bool = False) -> None:
+              in_campaign: bool = False,
+              campaign_draft: str | None = None) -> None:
     """Render the single-character builder. `ctx` is the shared app context; when
     omitted (running this module standalone) a private one is created, so the
     builder still works with no party involved.
@@ -240,8 +241,13 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
 
     `in_campaign` is True for a campaign copy of the hosted server. Then Unlock,
     Adjust XP and Downtime are not built: the Storyteller unlocks and grants XP
-    (p3-tables.md section 6, Q5, Q6). ⚠ Not built, not hidden: a hidden button
-    keeps its handler.
+    (p3-tables.md section 6, Q5, Q6). The ST Options tab builds no control: the
+    Storyteller sets the house rules (section 5, Q2). ⚠ Not built, not hidden: a
+    hidden button keeps its handler.
+
+    `campaign_draft` is the name of the campaign for which this draft is made
+    (p3-tables.md section 14, step 6b). The page says so, and the ST Options tab
+    builds no control: the draft is built under the rules of the campaign.
     """
     # ⚠ The seven tabs take a callback here and this function takes a path. That
     # asymmetry is deliberate, and it misleads: a caller that passes a save
@@ -324,7 +330,9 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         elif state["tab"] == "Play":
             play_mod.build_play(ruleset, char, tab_save, with_header=False)
         elif state["tab"] == "ST":
-            st_mod.build_storyteller(ruleset, char, tab_save, with_header=False)
+            st_mod.build_storyteller(
+                ruleset, char, tab_save, with_header=False,
+                in_campaign=in_campaign or campaign_draft is not None)
         elif state["tab"] == "Custom":
             # Rule-set editing, not character editing: it takes no Character and is
             # the one tab whose edits outlive the open save. It mutates `ruleset` in
@@ -716,6 +724,11 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
     # Tab names are identifiers (state, visible_tabs, resolve_tab all key off them);
     # where a name reads badly on the bar, the LABEL differs — see Combos/Arrays.
     _LABELS = {"ST": "ST Options"}
+    if campaign_draft is not None:
+        ui.label(f"For {campaign_draft}: built under its house rules, and sent to its "
+                 "Storyteller when you Finish & Lock.").classes(
+            f"w-full text-sm px-3 py-1 rounded {_pal().card_soft}").mark(
+            "draft-for-campaign")
     with ui.tabs(value="Edit").classes("w-full") as tab_bar:
         tabs = {name: ui.tab(name, label=_LABELS.get(name, name), icon=_ICONS[name])
                 for name in _TABS}

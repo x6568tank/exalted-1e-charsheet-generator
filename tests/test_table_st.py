@@ -335,3 +335,10 @@ def test_an_unlock_after_xp_keeps_the_xp_log(st, tables, store, table) -> None:
     st.unlock(ST, table.id, row.id)
 
     assert len(store.load(row).xp_log) == 1
+
+
+def test_an_empty_list_is_refused(st, tables, store, table) -> None:
+    """An empty list is "nobody", not "everyone" (the None of the argument)."""
+    with pytest.raises(TableStoreError, match="Tick at least one"):
+        st.grant_xp(ST, table.id, 5, "", [])
+    assert all(store.load(r).xp_earned == 0 for r in tables.characters(table.id))

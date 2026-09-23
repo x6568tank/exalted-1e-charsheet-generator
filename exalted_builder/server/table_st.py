@@ -12,6 +12,13 @@ copy, unlocking is up to the Storyteller):
   * Each grant posts one line to the Log of the table.
   * Unlock: `lifecycle.unlock_chargen` on one copy in the table.
 
+Step 6 is section 5 and Q2 (ruled 2026-09-12: the Storyteller sets the
+PER-CHARACTER permissions of a campaign copy):
+
+  * A TABLE-WIDE switch: the table's `house_rules.json` first, then each copy in
+    the table (`apply_table_rules`), then one line in the Log.
+  * A PER-CHARACTER permission: one copy in the table.
+
 ⚠ A copy that has a live context gets the change on THAT object, and the file is
 saved from it. A write to the file behind an open page is lost at the next
 auto-save of that page. Read the context with `peek`: this module never builds a
@@ -31,8 +38,10 @@ from pathlib import Path
 import time
 
 from ..engine import advancement, lifecycle
-from ..models.character import Character
+from ..engine.house_rule_actions import apply_table_rules, set_house_rule, set_rule
+from ..models.character import TABLE_WIDE_HOUSE_RULES, Character, HouseRules
 from ..persistence import atomic_write
+from ..ui import view as viewmod
 from .characters import CharacterRow, CharacterStore
 from .quota import QuotaExceeded
 from .session import SessionRegistry
@@ -136,7 +145,8 @@ class TableStoryteller:
         table for None. Record the award and post it to the Log. Return the result.
 
         Refuse all but the Storyteller, an amount of 0 or past `MAX_GRANT`, a note
-        past `MAX_NOTE`, a copy that is not in the table, and a table with no copy.
+        past `MAX_NOTE`, an empty list, a copy that is not in the table, and a table
+        with no copy.
 
         A copy that cannot be saved keeps its old XP and is in `failed`. If no copy
         gets the grant, refuse. ⚠ If the award log cannot be written, each copy
@@ -149,6 +159,8 @@ class TableStoryteller:
         note = (note or "").strip()
         if len(note) > MAX_NOTE:
             raise TableStoreError(f"A note can have {MAX_NOTE} characters at most.")
+        if character_ids is not None and not character_ids:
+            raise TableStoreError("Tick at least one character.")
         rows = self._rows(table_id, character_ids)
         if not rows:
             raise TableStoreError("There is no character in this campaign.")
@@ -235,16 +247,87 @@ class TableStoryteller:
         lifecycle.unlock_chargen(character)
         self.store.save(row, character)
 
+    # ---- house rules -------------------------------------------------------- #
+
+    def set_table_rule(self, st_id: int, table_id: str, field: str,
+                       value: bool | str | int | None) -> tuple[str, ...]:
+        """Set the TABLE-WIDE house rule `field` of `table_id` to `value`, and sync
+        each copy in the table. Post one line to the Log. Return the names of the
+        copies that could not be saved.
+
+        Refuse all but the Storyteller, and a field that is not TABLE-WIDE.
+
+        ⚠ The table's file is written first. If it cannot be written, the error
+        propagates and no copy changes. A copy that cannot be saved takes the value
+        of the table at its next load (the context factory of `server/home.py`).
+        """
+        self._require_storyteller(st_id, table_id)
+        if field not in TABLE_WIDE_HOUSE_RULES:
+            raise TableStoreError("That is not a rule of the campaign.")
+        rules = self.tables.house_rules(table_id)
+        set_house_rule(rules, field, value)
+        self.tables.write_house_rules(table_id, rules)
+
+        failed: list[str] = []
+        # The drafts for the table are built under its rules too (step 6b).
+        for row in self.tables.characters(table_id) + self.tables.drafts(table_id):
+            character = self._character(row)
+            if character is None:
+                failed.append(row.id)
+                continue
+            if not apply_table_rules(rules, character):
+                continue
+            try:
+                self.store.save(row, character)
+            except (QuotaExceeded, OSError):
+                failed.append(_name(character))
+        self._post_rule(st_id, table_id, rules, field)
+        return tuple(failed)
+
+    def set_character_rule(self, st_id: int, table_id: str, character_id: str,
+                           field: str, value: bool | str | int | None) -> None:
+        """Set the PER-CHARACTER house rule `field` of the copy `character_id` to
+        `value`, and save it.
+
+        Refuse all but the Storyteller, the owner too (Q2); a field that is not
+        PER-CHARACTER; and a character that is not a copy in the table or a draft
+        for it. A permission such as foreign Charms matters before the lock.
+        """
+        self._require_storyteller(st_id, table_id)
+        if field not in HouseRules.model_fields or field in TABLE_WIDE_HOUSE_RULES:
+            raise TableStoreError("That is not a permission of one character.")
+        (row,) = self._rows(table_id, [character_id], drafts=True)
+        character = self._character(row)
+        if character is None:
+            raise TableStoreError("That character does not read.")
+        set_rule(character, field, value)
+        self.store.save(row, character)
+
+    def _post_rule(self, st_id: int, table_id: str, rules: HouseRules,
+                   field: str) -> None:
+        """Post the new value of `field` to the Log. A post that fails leaves the
+        rule as it is."""
+        row = next(r for r in viewmod.build_table_house_rules(rules) if r.field == field)
+        try:
+            self.log.post(st_id, table_id, f"House rule: {row.label} — "
+                          f"{viewmod.house_rule_setting_label(row)}")
+        except (TableLogError, QuotaExceeded) as exc:
+            log.warning("Could not post the house rule %s to the Log: %s", field, exc)
+
     # ---- helpers ------------------------------------------------------------ #
 
     def _require_storyteller(self, user_id: int, table_id: str) -> None:
         if self.tables.access(user_id, table_id) != STORYTELLER:
             raise TableStoreError("Only the Storyteller of this campaign can do that.")
 
-    def _rows(self, table_id: str, character_ids: list[str] | None) -> list[CharacterRow]:
+    def _rows(self, table_id: str, character_ids: list[str] | None,
+              drafts: bool = False) -> list[CharacterRow]:
         """Return the copies of `character_ids` in `table_id`, or each copy for None.
-        Refuse an id that is not a copy in the table."""
+        Refuse an id that is not a copy in the table. `drafts` also accepts the
+        drafts for the table. ⚠ Grant XP and Unlock never take a draft."""
         rows = self.tables.characters(table_id)
+        if drafts:
+            rows = rows + self.tables.drafts(table_id)
         if character_ids is None:
             return rows
         by_id = {row.id: row for row in rows}

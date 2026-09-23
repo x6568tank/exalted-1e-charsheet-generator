@@ -191,6 +191,23 @@ def test_st_inheritance_rating_freezes_into_the_snapshot(rs):
     assert c.chargen_snapshot.house_rules.godblooded_inheritance_rating == 4
 
 
+def test_a_locked_sheet_prices_inheritance_from_the_snapshot(rs):
+    """The case above tests the WRITE; this tests the READ. A campaign syncs its
+    TABLE-WIDE switches onto locked copies (p3-tables.md section 5), so the live
+    value can move after the lock. The free dots of the chargen accounting must
+    stay the frozen ones, or the Storyteller's switch re-prices a locked sheet."""
+    c = _gb(backgrounds=[BackgroundEntry(name="Inheritance", rating=4)])
+    c.house_rules = HouseRules(godblooded_inheritance_rating=4)
+    lifecycle.lock_chargen(c, rs)
+    budgets = rs.budgets_for("God-Blooded", "", "")
+    before = validate.background_pool_spend(rs, c, budgets, c.backgrounds)
+
+    c.house_rules.godblooded_inheritance_rating = 1
+
+    assert merits.inheritance_free_rating(rs, c) == 4
+    assert validate.background_pool_spend(rs, c, budgets, c.backgrounds) == before
+
+
 # --------------------------------------------------------------------------- #
 # Essence: no pool without Awakened Essence; the heritage formula once unlocked
 # --------------------------------------------------------------------------- #

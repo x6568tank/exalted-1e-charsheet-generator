@@ -17,7 +17,7 @@ must land as None or an int.
 
 from __future__ import annotations
 
-from ..models.character import Character, HouseRules
+from ..models.character import TABLE_WIDE_HOUSE_RULES, Character, HouseRules
 
 
 def house_rules(character: Character) -> HouseRules:
@@ -33,12 +33,43 @@ def set_rule(character: Character, field: str,
     """Set one house rule. Pure state; the caller refreshes. Guarded against unknown
     field names so a renamed field fails loudly here rather than silently writing an
     attribute nothing reads."""
+    set_house_rule(house_rules(character), field, value)
+
+
+def set_house_rule(target: HouseRules, field: str,
+                   value: bool | str | int | None) -> None:
+    """Set the field `field` of `target` to `value`, coerced to the type of the field.
+
+    Raise `KeyError` for a name that is not a `HouseRules` field. A campaign has a
+    `HouseRules` with no character (`server/tables.py`), thus this takes the rules.
+    """
     if field not in HouseRules.model_fields:
         raise KeyError(f"{field!r} is not a HouseRules field")
-    target = house_rules(character)
     if field == "mf_change_method":
         setattr(target, field, value)
     elif field == "godblooded_inheritance_rating":
         setattr(target, field, None if value == "per-character" else int(value))
     else:
         setattr(target, field, bool(value))
+
+
+def apply_table_rules(table_rules: HouseRules, character: Character) -> bool:
+    """Copy the TABLE-WIDE fields of `table_rules` onto `character`. Return True if a
+    value changed.
+
+    Do not change the PER-CHARACTER fields or the chargen snapshot. The accounting of
+    a locked character reads the snapshot (`validate.chargen_house_rules`).
+
+    ⚠ p3-tables.md section 5: a campaign copy holds a synced copy of the rules of
+    its table. Call this at each of the three sites. Do not overlay the table at a
+    read site.
+    """
+    current = character.house_rules or HouseRules()
+    moved = [field for field in TABLE_WIDE_HOUSE_RULES
+             if getattr(current, field) != getattr(table_rules, field)]
+    # A character with no rules and a table with the defaults keeps a clean save.
+    if moved:
+        target = house_rules(character)
+        for field in moved:
+            setattr(target, field, getattr(table_rules, field))
+    return bool(moved)

@@ -8,6 +8,9 @@ sections 2 and 3. The rulings are `docs/plans/vtt.md` section 9.10 (human,
   * A join is a code plus the approval of the Storyteller. A request that brings a
     base makes a campaign copy at approval. A request with no base is a watcher.
   * A code has six characters and no expiry. The Storyteller can replace it.
+  * A member can bring a base from the table page (`bring`), or start a draft for
+    the table (`start_draft`); the lock of the draft sends the request
+    (`send_draft`). p3-tables.md section 14, step 6b.
   * A leaver keeps each copy as a solo copy. A delete of the table does the same
     for each member.
   * The table has a folder of its own, `<root>/table-<hex>/`. A table folder never
@@ -27,17 +30,28 @@ column. This store clears the column at each leave, removal and delete.
 from __future__ import annotations
 
 from contextlib import closing
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+import json
+import logging
 from pathlib import Path
 import re
 import secrets
 import shutil
 import sqlite3
 
+from ..engine.house_rule_actions import apply_table_rules
+from ..models.character import (
+    TABLE_WIDE_HOUSE_RULES, Character, HouseRules, new_character_id)
+from ..persistence import atomic_write
 from . import db
 from .characters import CharacterRow, CharacterStore, CharacterStoreError, is_locked
-from .quota import TABLE_FOLDER_PREFIX
+from .quota import TABLE_FOLDER_PREFIX, QuotaExceeded
 from .throttle import LoginThrottle
+
+log = logging.getLogger(__name__)
+
+# The TABLE-WIDE house rules of a table, in its folder (p3-tables.md section 5).
+HOUSE_RULES_FILE = "house_rules.json"
 
 # The shape of a table id. A URL gives the id, thus the store refuses each other
 # shape before it reads the DB or makes a path.
@@ -83,6 +97,9 @@ class JoinRequest:
     table_id: str
     user_id: int
     base_id: str | None
+    # True for a request of the Storyteller of the table: it is approved at once,
+    # and the row is gone (human, 2026-09-22).
+    approved: bool = False
 
 
 def new_join_code() -> str:
@@ -118,6 +135,35 @@ class TableStore:
 
     def _characters(self) -> CharacterStore:
         return CharacterStore(db_path=self.db_path, root=self.root)
+
+    # ---- house rules -------------------------------------------------------- #
+
+    def house_rules(self, table_id: str) -> HouseRules:
+        """Return the TABLE-WIDE house rules of `table_id`. Do not check the access.
+
+        The PER-CHARACTER fields have their defaults. An absent file gives the
+        defaults. A file that does not read gives the defaults, and a warning in the
+        server log.
+        """
+        path = self.table_dir(table_id) / HOUSE_RULES_FILE
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+            return HouseRules.model_validate(
+                {k: v for k, v in raw.items() if k in TABLE_WIDE_HOUSE_RULES})
+        except FileNotFoundError:
+            return HouseRules()
+        except (ValueError, AttributeError) as exc:
+            log.warning("The house rules %s do not read: %s", path, exc)
+            return HouseRules()
+
+    def write_house_rules(self, table_id: str, rules: HouseRules) -> None:
+        """Write the TABLE-WIDE fields of `rules` as the house rules of `table_id`. Do
+        not check the access: `TableStoryteller.set_table_rule` does.
+
+        ⚠ The quota of the table folder applies (`atomic_write`). Its error propagates.
+        """
+        atomic_write(self.table_dir(table_id) / HOUSE_RULES_FILE, json.dumps(
+            rules.model_dump(include=set(TABLE_WIDE_HOUSE_RULES)), sort_keys=True))
 
     # ---- reads -------------------------------------------------------------- #
 
@@ -259,7 +305,83 @@ class TableStore:
                 raise TableStoreError("You are already in this campaign.")
         else:
             self._check_base(user_id, base_id)
+        return self._insert_request(user_id, table_id, base_id)
 
+    def bring(self, user_id: int, table_id: str, base_id: str) -> JoinRequest:
+        """Ask to bring the base `base_id` into `table_id`, from the membership of
+        `user_id` instead of the code. The Storyteller approves it as a join.
+
+        Refuse a user with no access, and each base that `request` refuses. Do not
+        count the attempt in `throttle`: a member does not guess a code.
+        """
+        if self.access(user_id, table_id) is None:
+            raise TableStoreError("You are not in this campaign.")
+        if base_id is None:
+            raise TableStoreError("Pick a character to bring.")
+        self._check_base(user_id, base_id)
+        return self._insert_request(user_id, table_id, base_id)
+
+    # ---- drafts for a campaign (section 14, step 6b) ------------------------ #
+
+    def start_draft(self, user_id: int, table_id: str) -> CharacterRow:
+        """Make a new draft of `user_id` for `table_id`, with the TABLE-WIDE house
+        rules of the table. Return its row. Refuse a user with no access.
+
+        The draft has no `table_id`: it is an ordinary character until its lock
+        (`send_draft`) and the approval.
+        """
+        if self.access(user_id, table_id) is None:
+            raise TableStoreError("You are not in this campaign.")
+        character = Character(id=new_character_id())
+        apply_table_rules(self.house_rules(table_id), character)
+        row = self._characters().create(user_id, character)
+        with closing(db.connect(self.db_path)) as connection, connection:
+            connection.execute(
+                "INSERT INTO campaign_drafts (character_id, table_id) VALUES (?, ?)",
+                (row.id, table_id))
+        return row
+
+    def draft_table(self, character_id: str) -> str | None:
+        """Return the table for which `character_id` is a draft, or None."""
+        with closing(db.connect(self.db_path)) as connection:
+            found = connection.execute(
+                "SELECT table_id FROM campaign_drafts WHERE character_id = ?",
+                (character_id,)).fetchone()
+        return None if found is None else found[0]
+
+    def drafts(self, table_id: str) -> list[CharacterRow]:
+        """Return the drafts for `table_id`. Do not check the access."""
+        with closing(db.connect(self.db_path)) as connection:
+            rows = connection.execute(
+                "SELECT character_id FROM campaign_drafts WHERE table_id = ? "
+                "ORDER BY rowid", (table_id,)).fetchall()
+        store = self._characters()
+        return [row for (character_id,) in rows
+                if (row := store.row(character_id)) is not None]
+
+    def send_draft(self, user_id: int, character_id: str) -> JoinRequest | None:
+        """Send the locked draft `character_id` of `user_id` to the Storyteller of
+        its table as a join request, and delete the tag. Return the request, or None
+        for a character that is not a draft of `user_id` for a table.
+
+        Refuse an unlocked draft; the tag stays.
+        """
+        table_id = self.draft_table(character_id)
+        if table_id is None or self._characters().owned(user_id, character_id) is None:
+            return None
+        self._check_base(user_id, character_id)
+        request = self._insert_request(user_id, table_id, character_id)
+        with closing(db.connect(self.db_path)) as connection, connection:
+            connection.execute("DELETE FROM campaign_drafts WHERE character_id = ?",
+                               (character_id,))
+        return request
+
+    def _insert_request(self, user_id: int, table_id: str,
+                        base_id: str | None) -> JoinRequest:
+        """Add a join request, and return it. Refuse a duplicate pending request.
+
+        Approve a request of the Storyteller of the table at once.
+        """
         with closing(db.connect(self.db_path)) as connection, connection:
             duplicate = connection.execute(
                 "SELECT 1 FROM join_requests WHERE table_id = ? AND user_id = ? "
@@ -270,8 +392,18 @@ class TableStore:
             cursor = connection.execute(
                 "INSERT INTO join_requests (table_id, user_id, base_id) VALUES (?, ?, ?)",
                 (table_id, user_id, base_id))
-        return JoinRequest(id=int(cursor.lastrowid), table_id=table_id,
-                           user_id=user_id, base_id=base_id)
+        request = JoinRequest(id=int(cursor.lastrowid), table_id=table_id,
+                              user_id=user_id, base_id=base_id)
+        if self.access(user_id, table_id) != STORYTELLER:
+            return request
+        # The Storyteller does not approve their own character (Q4). A failed
+        # approval leaves the request in the list, to approve by hand.
+        try:
+            self.approve(user_id, request.id)
+        except (TableStoreError, QuotaExceeded) as exc:
+            log.warning("Could not approve the request %s at once: %s", request.id, exc)
+            return request
+        return replace(request, approved=True)
 
     def approve(self, st_id: int, request_id: int) -> CharacterRow | None:
         """Accept request `request_id`. Return the campaign copy, or None for a
@@ -280,6 +412,8 @@ class TableStore:
         Make the membership if it is absent, and the copy of the base in the table.
         Refuse all but the Storyteller of the table of the request. ⚠ Do not import
         the homebrew of the base into the table (p3-tables.md section 4).
+
+        The copy gets the TABLE-WIDE house rules of the table (section 5, site 1).
         """
         request = self._request(request_id)
         self._require_storyteller(st_id, request.table_id)
@@ -287,7 +421,9 @@ class TableStore:
         if request.base_id is not None:
             try:
                 copy = self._characters().make_copy(
-                    request.user_id, request.base_id, table_id=request.table_id)
+                    request.user_id, request.base_id, table_id=request.table_id,
+                    adjust=lambda character: apply_table_rules(
+                        self.house_rules(request.table_id), character))
             except CharacterStoreError as exc:
                 raise TableStoreError(str(exc)) from exc
         with closing(db.connect(self.db_path)) as connection, connection:
@@ -389,4 +525,7 @@ class TableStore:
             connection.execute(
                 "DELETE FROM join_requests WHERE table_id = ? AND user_id = ?",
                 (table_id, user_id))
+            connection.execute(
+                "DELETE FROM campaign_drafts WHERE table_id = ? AND character_id IN "
+                "(SELECT id FROM characters WHERE owner_id = ?)", (table_id, user_id))
         return cursor.rowcount == 1

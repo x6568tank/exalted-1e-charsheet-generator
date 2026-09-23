@@ -13,6 +13,10 @@ section 15.2 (shape A of `spikes/campaign_page/`):
     The Log is step 4 (section 15.3): messages and rolls, in `server/table_log.py`.
   * The ST tools are step 5: Grant XP and Unlock (`server/table_st.py`), remove
     member, new code and delete campaign. A member leaves from the ⋮ menu.
+  * The house rules are step 6 (section 5, Q2): the TABLE-WIDE switches in the ST
+    tab, and the PER-CHARACTER permissions of each copy in a dialog.
+  * Add a character is step 6b (section 14): a member brings a locked base, or
+    creates a draft for the campaign. The ST tab lists the drafts.
 
 ⚠ `TableStore.access` is the check. The page calls it in the page body, before it
 reads anything of the table. Each handler and each poll calls it again. A hidden
@@ -62,9 +66,6 @@ POLL_SECONDS = 2.0
 
 # The value of "Open as" for a viewer who opens the campaign with no character.
 SPECTATE = "spectate"
-
-# The value of the Grant XP target that gives the XP to each copy in the table.
-EVERYONE = "everyone"
 
 # The number of awards that the ST tab shows, the newest first. A design choice.
 AWARDS_SHOWN = 10
@@ -170,6 +171,11 @@ class _TableView:
     def mine(self, copies: list[CharacterRow]) -> list[CharacterRow]:
         return [row for row in copies if row.owner_id == self.user_id]
 
+    def is_npc(self, row: CharacterRow) -> bool:
+        """True for a character of the Storyteller of the table: an NPC (human,
+        2026-09-22). ⚠ Keyed on the owner, which the page cannot edit."""
+        return row.owner_id == self.table.storyteller_id
+
     def chosen(self, copies: list[CharacterRow]) -> CharacterRow | None:
         """Return the copy that the viewer opens as, or None to spectate.
 
@@ -215,8 +221,10 @@ class _TableView:
         """What decides the layout: the copies, the members and the requests."""
         pending = (tuple(r.id for r in self.tables.pending(self.user_id, self.table.id))
                    if self.is_st else ())
+        drafts = (tuple(r.id for r in self.tables.drafts(self.table.id))
+                  if self.is_st else ())
         return (tuple(row.id for row in copies), tuple(self.tables.members(self.table.id)),
-                pending)
+                pending, drafts)
 
     # ---- the page ----------------------------------------------------------- #
 
@@ -342,7 +350,11 @@ class _TableView:
         chosen = self.chosen(copies)
         self.rail.clear()
         with self.rail:
-            chrome.section_label(pal, "PARTY", len(copies))
+            with ui.row().classes("w-full items-center justify-between no-wrap"):
+                chrome.section_label(pal, "PARTY", len(copies))
+                ui.button("Add a character", icon="person_add",
+                          on_click=self._add_character).props(
+                    "flat dense no-caps size=sm").mark("table-add-character")
             if not copies:
                 ui.label("No characters yet. An approved request that brings a "
                          "character puts its campaign copy here.").classes(
@@ -355,8 +367,69 @@ class _TableView:
                 _heading(pal, "THE OTHERS")
             for row in others:
                 _other_row(self.read(row), _username(self.tables, row.owner_id),
-                           mine=row.owner_id == self.user_id)
+                           mine=row.owner_id == self.user_id, npc=self.is_npc(row))
         self._digests = {row.id: self.digest(row) for row in copies}
+
+    def _add_character(self) -> None:
+        """A dialog: bring one of the viewer's locked bases, or create a character
+        for the campaign (section 14, step 6b). Each goes to the Storyteller."""
+        bases = {}
+        for row in self.store.list_for(self.user_id):
+            if row.is_copy:
+                continue
+            try:
+                character = self.store.load(row)
+            except Exception:                       # noqa: BLE001 - skip a file that does not read
+                continue
+            if character.chargen_locked:
+                bases[row.id] = character.name or "(unnamed)"
+        with ui.dialog() as dialog, ui.card().classes(
+                f"w-[28rem] max-w-full p-4 gap-2 {self.pal.card_solid}"):
+            ui.label("Add a character").classes("text-base font-bold")
+            ui.label("The Storyteller approves each character. An approval makes a "
+                     "campaign copy.").classes("text-xs")
+            if bases:
+                choice = ui.select(bases, value=next(iter(bases)),
+                                   label="Bring a finished character").classes(
+                    "w-full").mark("add-character-base")
+                ui.button("Send request", icon="send",
+                          on_click=lambda: self._bring(dialog, choice.value)).props(
+                    f"dense no-caps color={self.pal.button}").mark("add-character-send")
+            else:
+                ui.label("You have no finished character to bring.").classes(
+                    "text-sm opacity-70")
+            ui.separator()
+            ui.label("Or make one for this campaign. It is built under the house "
+                     "rules of the campaign, and Finish & Lock sends it to the "
+                     "Storyteller.").classes("text-xs")
+            ui.button("Create a character", icon="note_add",
+                      on_click=lambda: self._create(dialog)).props(
+                f"outline dense no-caps color={self.pal.button}").mark(
+                "add-character-create")
+            with ui.row().classes("w-full justify-end"):
+                ui.button("Cancel", on_click=dialog.close).props("flat")
+        dialog.open()
+
+    def _bring(self, dialog, base_id: str | None) -> None:
+        try:
+            request = self.tables.bring(self.user_id, self.table.id, base_id)
+        except TableStoreError as exc:
+            ui.notify(str(exc), type="warning")
+            return
+        dialog.close()
+        ui.notify("Added to the campaign." if request.approved else
+                  "Request sent. It waits for the Storyteller.",
+                  type="positive" if request.approved else "info")
+        self.refresh_all()
+
+    def _create(self, dialog) -> None:
+        try:
+            row = self.tables.start_draft(self.user_id, self.table.id)
+        except (TableStoreError, QuotaExceeded) as exc:
+            ui.notify(str(exc), type="warning")
+            return
+        dialog.close()
+        ui.navigate.to(chrome.character_url(row.id))
 
     def _act(self, row_id: str, change: Callable[[Character], None]) -> None:
         """Apply `change` to the copy `row_id` of the viewer, and save it.
@@ -405,6 +478,9 @@ class _TableView:
                             "w-full items-baseline justify-between no-wrap gap-2"):
                         ui.label(cv.name).classes("text-sm font-bold truncate").style(
                             f"color:{cpal.accent}").mark("you-name")
+                        if self.is_npc(row):
+                            _npc_badge(cpal, "npc-badge-you")
+                        ui.space()
                         with ui.link(target=chrome.character_url(row.id)).mark(
                                 "you-open-sheet"):
                             ui.icon("open_in_new", size="1rem").style(
@@ -644,8 +720,10 @@ class _TableView:
                       self._approve, self._reject)
             self._grant_form(copies)
             self._awards()
+            self._house_rules()
             self._st_members(copies)
             self._st_characters(copies)
+            self._st_drafts()
             ui.separator()
             ui.button("Delete campaign", icon="delete_forever",
                       on_click=self._confirm_delete).props(
@@ -682,39 +760,49 @@ class _TableView:
     # ---- Grant XP ----------------------------------------------------------- #
 
     def _grant_form(self, copies: list[CharacterRow]) -> None:
-        """Grant XP: an amount, a note, and one copy or each copy (section 6)."""
+        """Grant XP: an amount, a note, and a checkbox for each copy, each ticked at
+        the start (section 6; the checkboxes: human, 2026-09-22).
+
+        ⚠ The grant names the ticked copies. A copy that joins after the draw is not
+        in the list, thus it gets nothing that the Storyteller did not see.
+        """
         pal = self.pal
         with ui.column().classes("w-full gap-1").mark("st-grant-form"):
             _heading(pal, "GRANT XP")
             if not copies:
                 ui.label("No characters yet.").classes("text-sm opacity-70")
                 return
-            targets = {EVERYONE: "Everyone"}
-            targets |= {row.id: self._copy_name(row) for row in copies}
             with ui.row().classes("w-full items-center no-wrap gap-1"):
                 amount = ui.number("XP", value=None, min=-MAX_GRANT, max=MAX_GRANT,
                                    format="%d").props("dense outlined").classes(
                     "w-20").mark("st-grant-amount")
-                target = ui.select(targets, value=EVERYONE).props(
-                    "dense outlined options-dense").classes("flex-1 min-w-0").mark(
-                    "st-grant-target")
-            note = ui.input(placeholder="Why? (shown in the Log)").props(
-                f"dense outlined maxlength={MAX_NOTE}").classes("w-full").mark(
-                "st-grant-note")
+                note = ui.input(placeholder="Why? (shown in the Log)").props(
+                    f"dense outlined maxlength={MAX_NOTE}").classes(
+                    "flex-1 min-w-0").mark("st-grant-note")
+            ticks = {}
+            with ui.column().classes("w-full gap-0"):
+                for row in copies:
+                    # An NPC starts unticked (human, 2026-09-22).
+                    npc = self.is_npc(row)
+                    ticks[row.id] = ui.checkbox(
+                        f"{self._copy_name(row)} · "
+                        + ("NPC" if npc else _username(self.tables, row.owner_id)),
+                        value=not npc).props(f"dense color={pal.button}").classes(
+                        "text-sm").mark(f"st-grant-to-{row.id}")
             ui.button("Grant", icon="add", on_click=lambda: self._grant(
-                amount.value, note.value, target.value)).props(
+                amount.value, note.value,
+                [copy_id for copy_id, box in ticks.items() if box.value])).props(
                 f"dense no-caps color={pal.button}").mark("st-grant")
-            ui.label("A negative amount corrects an over-grant.").classes(
-                "text-xs opacity-60")
+            ui.label("Untick a character to leave it out. A negative amount corrects "
+                     "an over-grant.").classes("text-xs opacity-60")
 
-    def _grant(self, value, note: str | None, target: str | None) -> None:
+    def _grant(self, value, note: str | None, character_ids: list[str]) -> None:
         if not self._still_storyteller():
             return
         amount = int(value) if value is not None and float(value).is_integer() else 0
-        ids = None if target in (None, EVERYONE) else [target]
         try:
             result = self.storyteller.grant_xp(self.user_id, self.table.id, amount,
-                                               note or "", ids)
+                                               note or "", character_ids)
         except (TableStoreError, QuotaExceeded) as exc:
             ui.notify(str(exc), type="warning")
             return
@@ -735,6 +823,70 @@ class _TableView:
             _heading(self.pal, f"AWARDS ({len(awards)})")
             for award in reversed(awards[-AWARDS_SHOWN:]):
                 _award_row(award)
+
+    # ---- house rules -------------------------------------------------------- #
+
+    def _house_rules(self) -> None:
+        """HOUSE RULES: the TABLE-WIDE switches of the campaign (section 5)."""
+        pal = self.pal
+        rows = viewmod.build_table_house_rules(self.tables.house_rules(self.table.id))
+        with ui.column().classes("w-full gap-1").mark("st-house-rules"):
+            _heading(pal, "HOUSE RULES")
+            ui.label("These apply to each character in the campaign. A creation rule "
+                     "reaches a locked character only if you unlock it.").classes(
+                "text-xs opacity-70")
+            for row in rows:
+                _rule_control(row, pal, f"st-rule-{row.field}",
+                              lambda value, f=row.field: self._set_table_rule(f, value))
+
+    def _set_table_rule(self, field: str, value) -> None:
+        if not self._still_storyteller():
+            return
+        try:
+            failed = self.storyteller.set_table_rule(self.user_id, self.table.id,
+                                                     field, value)
+        except (TableStoreError, QuotaExceeded) as exc:
+            ui.notify(str(exc), type="warning")
+            self._draw_st()
+            return
+        if failed:
+            ui.notify("Not changed, the file could not be saved: " + ", ".join(failed)
+                      + ". It changes when the character opens again.", type="negative")
+        self._draw_log()
+
+    def _permissions(self, row: CharacterRow) -> None:
+        """A dialog with the PER-CHARACTER permissions of the copy `row` (Q2)."""
+        shown = self.read(row)
+        if shown.character is None:
+            return
+        name = self._copy_name(row)
+        rows = [r for r in viewmod.build_house_rules(shown.ruleset, shown.character)
+                if r.scope == "character"]
+        with ui.dialog() as dialog, ui.card().classes(
+                f"w-[30rem] max-w-full p-4 gap-2 {self.pal.card_solid}").mark(
+                "st-permissions-dialog"):
+            ui.label(f"Permissions of {name}").classes("text-base font-bold")
+            for rule in rows:
+                _rule_control(rule, self.pal, f"st-permission-{rule.field}",
+                              lambda value, f=rule.field, n=name, lab=rule.label:
+                              self._set_character_rule(row.id, n, f, lab, value))
+                if rule.note:
+                    ui.label(rule.note).classes("text-xs italic opacity-70 -mt-1")
+            with ui.row().classes("w-full justify-end"):
+                ui.button("Close", on_click=dialog.close).props("flat")
+        dialog.open()
+
+    def _set_character_rule(self, character_id: str, name: str, field: str,
+                            label: str, value) -> None:
+        if not self._still_storyteller():
+            return
+        try:
+            self.storyteller.set_character_rule(self.user_id, self.table.id,
+                                                character_id, field, value)
+        except (TableStoreError, QuotaExceeded) as exc:
+            ui.notify(str(exc), type="warning")
+            return
+        ui.notify(f"{name}: {label} — {'On' if value else 'Off'}", type="positive")
 
     # ---- members and characters --------------------------------------------- #
 
@@ -772,6 +924,15 @@ class _TableView:
                     ui.label(f"{self._copy_name(row)} · "
                              f"{_username(self.tables, row.owner_id)}").classes(
                         "text-sm truncate min-w-0")
+                    if self.is_npc(row):
+                        _npc_badge(self.pal, f"npc-badge-{row.id}")
+                    ui.space()
+                    if character is not None:
+                        ui.button(icon="tune",
+                                  on_click=lambda _=None, r=row: self._permissions(r)
+                                  ).props("flat dense round size=sm").mark(
+                            f"st-permissions-{row.id}").tooltip(
+                            "Permissions of this character")
                     if character is not None and character.chargen_locked:
                         ui.button(icon="lock_open",
                                   on_click=lambda _=None, r=row: self._confirm_unlock(r)
@@ -779,6 +940,29 @@ class _TableView:
                             f"st-unlock-{row.id}").tooltip("Unlock character creation")
                     elif character is not None:
                         ui.label("unlocked").classes("text-xs opacity-60")
+
+    def _st_drafts(self) -> None:
+        """BEING MADE: the drafts for the campaign, each with its permissions (Q2).
+        A draft takes no XP and has no Unlock."""
+        drafts = self.tables.drafts(self.table.id)
+        if not drafts:
+            return
+        with ui.column().classes("w-full gap-0").mark("st-drafts"):
+            _heading(self.pal, f"BEING MADE ({len(drafts)})")
+            for row in drafts:
+                with ui.row().classes("w-full items-center justify-between no-wrap").mark(
+                        f"st-draft-{row.id}"):
+                    ui.label(f"{self._copy_name(row)} · "
+                             f"{_username(self.tables, row.owner_id)}").classes(
+                        "text-sm truncate min-w-0")
+                    if self.is_npc(row):
+                        _npc_badge(self.pal, f"npc-badge-{row.id}")
+                    ui.space()
+                    ui.button(icon="tune",
+                              on_click=lambda _=None, r=row: self._permissions(r)
+                              ).props("flat dense round size=sm").mark(
+                        f"st-permissions-{row.id}").tooltip(
+                        "Permissions of this character")
 
     def _copy_name(self, row: CharacterRow) -> str:
         character = self.read(row).character
@@ -889,6 +1073,28 @@ class _TableView:
 # --------------------------------------------------------------------------- #
 # Widgets
 # --------------------------------------------------------------------------- #
+
+
+def _rule_control(row: viewmod.HouseRuleRow, pal, marker: str,
+                  on_change: Callable[[object], None]) -> None:
+    """One house rule: a select for a rule with options, else a checkbox. The
+    description is the tooltip."""
+    tip = f"{row.description} ({row.citation})"
+    if row.options:
+        ui.label(row.label).classes("text-sm").tooltip(tip)
+        ui.select(row.options, value=row.value,
+                  on_change=lambda e: on_change(e.value)).props(
+            "dense outlined options-dense").classes("w-full").mark(marker)
+    else:
+        ui.checkbox(row.label, value=row.value,
+                    on_change=lambda e: on_change(e.value)).props(
+            f"dense color={pal.button}").classes("text-sm").mark(marker).tooltip(tip)
+
+
+def _npc_badge(pal, marker: str) -> None:
+    """The NPC badge of a character of the Storyteller."""
+    ui.badge("NPC").props("outline").classes("text-[10px] shrink-0").style(
+        f"color:{pal.accent}").mark(marker)
 
 
 def _heading(pal, text: str) -> None:
@@ -1046,7 +1252,7 @@ def _award_row(award: Award) -> None:
             ui.label(award.note).classes("text-xs opacity-70 break-words")
 
 
-def _other_row(shown: _Shown, player: str, *, mine: bool) -> None:
+def _other_row(shown: _Shown, player: str, *, mine: bool, npc: bool) -> None:
     """One copy that the viewer does not play now, read-only (R3): the name, the
     player, the identity line, the health strip, the motes and the Willpower.
 
@@ -1071,6 +1277,9 @@ def _other_row(shown: _Shown, player: str, *, mine: bool) -> None:
             with ui.row().classes("w-full items-baseline justify-between no-wrap gap-2"):
                 ui.label(cv.name).classes("text-sm font-bold truncate").style(
                     f"color:{cpal.accent}")
+                if npc:
+                    _npc_badge(cpal, f"npc-badge-{row.id}")
+                ui.space()
                 ui.label(player + (" (you)" if mine else "")).classes(
                     "text-xs opacity-60 shrink-0")
             ui.label(cv.identity_line).classes("text-xs opacity-70 truncate -mt-1")

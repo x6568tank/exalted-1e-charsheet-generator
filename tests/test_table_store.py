@@ -59,8 +59,11 @@ def _base(characters: CharacterStore, owner: int, name: str = "Base"):
 
 
 def _member(store: TableStore, table, user: int, base_id: str | None = None):
-    """Make `user` a member of `table` by the request and the approval."""
+    """Make `user` a member of `table` by the request and the approval. The
+    Storyteller's own request is approved at once."""
     request = store.request(user, table.join_code, base_id)
+    if request.approved:
+        return next(row for row in store.characters(table.id) if row.base_id == base_id)
     return store.approve(ST, request.id)
 
 

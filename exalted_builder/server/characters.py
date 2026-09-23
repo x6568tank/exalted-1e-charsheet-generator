@@ -23,6 +23,7 @@ the default library. See `custom_content.require_explicit_dir`.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from contextlib import closing
 from dataclasses import dataclass
 from pathlib import Path
@@ -131,9 +132,11 @@ class CharacterStore:
         return self._add(user_id, character, is_copy=False, base_id=None)
 
     def make_copy(self, user_id: int, base_id: str,
-                  table_id: str | None = None) -> CharacterRow:
+                  table_id: str | None = None,
+                  adjust: Callable[[Character], object] | None = None) -> CharacterRow:
         """Make a campaign copy of the base `base_id` of account `user_id`, in the
-        table `table_id` or with no table.
+        table `table_id` or with no table. `adjust` changes the copy before the
+        first save; the base does not change.
 
         Refuse a character of another account, an unlocked character, and a copy.
         A base is a locked character, and XP belongs to a copy (section 9.2).
@@ -148,7 +151,7 @@ class CharacterStore:
         if not is_locked(character):
             raise CharacterStoreError("Finish and lock the character before you make a copy.")
         return self._add(user_id, character, is_copy=True, base_id=base.id,
-                         table_id=table_id)
+                         table_id=table_id, adjust=adjust)
 
     def delete(self, user_id: int, character_id: str) -> bool:
         """Delete the character `character_id` of account `user_id`. Return False
@@ -162,8 +165,11 @@ class CharacterStore:
         return True
 
     def _add(self, user_id: int, character: Character, *, is_copy: bool,
-             base_id: str | None, table_id: str | None = None) -> CharacterRow:
+             base_id: str | None, table_id: str | None = None,
+             adjust: Callable[[Character], object] | None = None) -> CharacterRow:
         new = character.model_copy(deep=True, update={"id": new_character_id()})
+        if adjust is not None:
+            adjust(new)
         row = CharacterRow(id=new.id, owner_id=user_id, is_copy=is_copy,
                            base_id=base_id, table_id=table_id)
         self.save(row, new)

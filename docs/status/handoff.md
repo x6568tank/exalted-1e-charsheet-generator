@@ -1,6 +1,91 @@
-# Session handoff — 2026-09-22 (P3 step 5, the ST tools)
+# Session handoff — 2026-09-22 (P3 steps 6 and 6b: house rules, add a character)
 
 # 👉 YOU ARE HERE
+
+**P3 step 6 (house rules) is DONE, tests green, NOT browser-verified.**
+`docs/plans/p3-tables.md` §14 "Step 6" is the record: what shipped, the three sync
+sites, 16 mutations (all killed), the design choices made without asking.
+
+In one breath: the table's `house_rules.json` (TABLE-WIDE fields only);
+`apply_table_rules` at approval, at the ST's switch (through `peek`, the file
+first) and in the context factory; a HOUSE RULES section in the ST tab (a table
+switch posts `House rule: … — …` to the Log); a **tune** button on each copy in
+CHARACTERS opens its PER-CHARACTER permissions (Q2); a campaign copy's ST Options tab
+builds **no control**, the settings are text.
+
+🐞 **Found on the way:** `merits.inheritance_free_rating` priced God-Blooded Inheritance
+from the LIVE house rules on a locked sheet (every other creation toggle reads the
+snapshot). Step 6 made that reachable. Fixed, with a read test.
+
+**Then step 6b** (the human asked *"Should there be a way to join & create characters
+from within a campaign?"* and ruled "Correct." to the proposal; §14 "Step 6b"): PARTY has
+**Add a character** — bring a locked base (a request from the membership, no code), or
+**Create a character**, a draft tagged for the campaign (`campaign_drafts`, a new DB
+table) and built under its rules; Finish & Lock sends the request. The ST tab lists
+BEING MADE, with permissions. 14 mutations, all killed. **The Storyteller's own
+request is approved at once** (human: "Go ahead"), on all three paths.
+
+**Grant XP now has a checkbox per character**, each ticked at the start (human: "Build
+the checkboxes"); untick to leave one out.
+
+✅ **Click-through of 6 / 6b / auto-approve / checkboxes: PASSED 2026-09-22**, steps 1–11.
+**Step 12 (phone width) NOT checked** — owed.
+
+**Then: the Storyteller's own characters are NPCs** (rulings in §14 "Step 6b"): an
+**NPC** badge wherever a copy owned by the table's Storyteller is listed, and it starts
+**unticked** in Grant XP. No NPC group in the rail. **At step 8 full-character NPCs get
+the Enemy / Ally switch** and are filed in those groups. ✅ The badge is
+browser-verified ("NPC badge looks good."). The click-through server ran from
+`/tmp/exalted-click6/` (accounts `storyteller`, `alice`, `bob`, `watcher`, password
+`clickthrough`) and may still be on :8080.
+
+**Full suite: 3959 passed + 1 skipped (3921 + 38) — OBSERVED** on the dev machine, once, after step 6.
+**After 6b: targeted run only, 619 passed — OBSERVED** (table, campaign, character-page,
+God-Blooded, ST-tab, seam, store files). 6b and the auto-approve add 40 tests; the full count is not observed.
+After the auto-approve: table, campaign and character-page files, 288 passed — OBSERVED.
+⚠ The count moves by machine and optional dependency (`docs/testing.md`).
+
+**Working tree:** **committed** on `main` (steps 6, 6b, the auto-approve, the Grant checkboxes, the NPC badge; one commit, this handoff in it), **not pushed**. Check `git status`.
+
+✅ **Click-through (steps 6, 6b) — PASSED 2026-09-22 except step 12 (phone width), which is owed.** For the record:
+1. Player opens `/character/<copy>` → ST Options: *"The Storyteller of this campaign
+   sets these."*, each rule as text, no checkbox or select.
+2. ST, ST tab → HOUSE RULES: tick Magic for Everyone. The Log shows
+   `House rule: Magic for Everyone — On`. Player switches tab away and back to ST
+   Options: "On".
+3. ST: set the Inheritance select to 3; M&F method to Swap. Both reach the copy.
+4. ST: CHARACTERS → tune on the copy → tick "May start play knowing foreign Charms";
+   the dialog shows only the per-character rows, with their notes. The player's tab
+   shows it On.
+5. A solo copy's ST Options still has its controls.
+6. Narrow width: the HOUSE RULES section and the dialog fit.
+7. (6b) As a watcher: PARTY → **Add a character** → pick a finished base → Send
+   request. The ST's badge counts it; Approve works as before.
+8. (6b) Add a character → **Create a character** → the builder shows the "For The
+   Scarlet Gambit" line; ST Options are text. `/home` shows "For …" on the card.
+9. (6b) ST: the draft is under BEING MADE; tune → grant foreign Charms; the draft sees it.
+10. (6b) Finish & Lock the draft → "Sent to …" → base page; the ST sees the request.
+11. ST: Add a character → bring your own base → "Added to the campaign.", no request;
+    it is YOU PLAY.
+12. ST: GRANT XP shows each character ticked. Untick your own, grant 3: the Log names
+    only the others. Untick all: "Tick at least one character."
+
+❓ **Open for the human** (partly answered by 6b — a character made FOR the campaign is
+now priced under its rules; this remains for a base brought in): every campaign copy is born LOCKED, so its creation was
+priced under its owner's switches, frozen in the snapshot. A table's creation switch
+(Magic for Everyone, ritual/Science caps, Inheritance) reaches it only if the ST
+unlocks it. Intended? Or should approval show where the base's frozen rules differ
+from the table's?
+
+**Next:** P3 **step 7, the table homebrew layer** (§4 / §15.4): `with_custom_layers`,
+`TableRulesets`, the campaign Custom page, "Add to campaign homebrew", the no-absorb
+test. ⚠ Q1 is ruled **no**: a campaign copy stops seeing the owner's library — the
+context factory still hands it `rulesets.for_account(owner)` today.
+**Steps 2–6 are not deployed**; deploy when the human asks.
+
+---
+
+## The session before — P3 step 5, the ST tools (2026-09-22)
 
 **P3 step 5 is DONE and BROWSER-VERIFIED** (human, 2026-09-22: all nine steps "Correct"). `docs/plans/p3-tables.md`
 §14 "Step 5" is the record: what shipped, the mechanics, 16 mutations (all killed), the

@@ -11,6 +11,10 @@ rulings of `docs/plans/vtt.md` sections 9.2 to 9.4:
     campaign copy is where a character advances (section 9.2).
   * A copy in a campaign has no Unlock, no Adjust XP and no Downtime. The
     Storyteller does these on the table view (p3-tables.md section 6, Q5, Q6).
+  * A copy in a campaign takes the TABLE-WIDE house rules of its table each time
+    its context is made. Its ST Options tab is read-only (section 5, Q2).
+  * A draft for a campaign (step 6b) does the same, and its Finish & Lock sends
+    the join request (`TableStore.send_draft`).
   * There is no `/gm` on the server until P3 (ruled 2026-09-12, 9.3a).
 
 ⚠ The ownership check is `CharacterStore.owned`, in the page body, before the
@@ -30,6 +34,7 @@ from nicegui import ui
 
 from .. import custom_content, persistence, rules_db
 from ..engine import lifecycle
+from ..engine.house_rule_actions import apply_table_rules
 from ..models.character import Character, new_character_id
 from ..models.party import Party
 from ..models.rules import RuleSet
@@ -41,8 +46,9 @@ from ..ui import view as viewmod
 from . import chrome
 from .campaigns import HomeCampaigns
 from .characters import CharacterRow, CharacterStore, CharacterStoreError
+from .quota import QuotaExceeded
 from .session import SessionRegistry
-from .tables import TableStore
+from .tables import TableStore, TableStoreError
 
 HOME_PATH = chrome.HOME_PATH
 CHARACTER_PATH = chrome.CHARACTER_PATH
@@ -113,7 +119,20 @@ def register_character_pages(store: CharacterStore, book: RuleSet,
         if row is None:
             raise KeyError(character_id)
         path = store.path_for(row)
-        return {"char": store.load(row), "path": path, "dir": path.parent,
+        character = store.load(row)
+        table_id = row.table_id or tables.draft_table(row.id)
+        if table_id is not None:
+            # ⚠ Site 3 of p3-tables.md section 5: the table's values, whatever the
+            # file says. A copy that missed a switch is in step at its next load.
+            # A draft for a campaign (step 6b) is built under them too.
+            if apply_table_rules(tables.house_rules(table_id), character):
+                # The auto-save takes its first digest after this, thus it would
+                # not write the change. A full account keeps the old file.
+                try:
+                    store.save(row, character)
+                except (QuotaExceeded, OSError):
+                    pass
+        return {"char": character, "path": path, "dir": path.parent,
                 "home_dir": store.account_dir(row.owner_id),
                 "custom_dir": store.custom_dir(row.owner_id),
                 "ruleset": rulesets.for_account(row.owner_id),
@@ -141,14 +160,29 @@ def register_character_pages(store: CharacterStore, book: RuleSet,
             _build_base(store, sessions, row, ctx, user_id)
             return
 
+        # A draft for a campaign (step 6b). Read at each open: the tag goes at the lock.
+        draft_for = None if row.is_copy else tables.draft_table(row.id)
+        draft_table = tables.table(draft_for) if draft_for is not None else None
+
         def after_lock() -> None:
             store.save(row, ctx["char"])
+            if draft_table is not None:
+                try:
+                    request = tables.send_draft(user_id, row.id)
+                    if request is not None and request.approved:
+                        ui.notify(f"Added to {draft_table.name}.", type="positive")
+                    elif request is not None:
+                        ui.notify(f"Sent to {draft_table.name}. It waits for the "
+                                  "Storyteller.", type="positive")
+                except TableStoreError as exc:
+                    ui.notify(str(exc), type="warning")
             ui.navigate.to(character_url(row.id))
 
         builder.build_app(ctx["ruleset"], ctx["char"], ctx["path"], ctx=ctx, hosted=True,
                           home_path=HOME_PATH,
                           on_lock=None if row.is_copy else after_lock,
-                          in_campaign=row.table_id is not None)
+                          in_campaign=row.table_id is not None,
+                          campaign_draft=draft_table.name if draft_table else None)
 
     return sessions
 
@@ -290,7 +324,10 @@ def _build_home(store: CharacterStore, tables: TableStore, rulesets: AccountRule
         with chrome.grid():
             for row in characters:
                 entry = entries[row.id]
-                with chrome.character_card(entry, row):
+                draft_for = tables.draft_table(row.id)
+                detail = (f"For {campaign_names[draft_for]}"
+                          if draft_for in campaign_names else None)
+                with chrome.character_card(entry, row, detail=detail):
                     if entry.stage == "Base":
                         ui.button("Campaign copy", icon="content_copy",
                                   on_click=lambda _=None, r=row: make_copy(r)).props(

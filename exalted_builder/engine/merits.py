@@ -61,9 +61,13 @@ def inheritance_free_rating(ruleset: RuleSet, character: Character) -> int:
     assigns a consistent rating to set the series' power level" (p.61) — else the
     budget's own `free_rating` for the Inheritance background. The free grant does not
     change the rating itself: a character takes the dots on their sheet and gets the
-    printed bonus points for THAT rating."""
-    granted = (character.house_rules.godblooded_inheritance_rating
-               if character.house_rules is not None else None)
+    printed bonus points for THAT rating.
+
+    ⚠ Reads the frozen snapshot once locked, as `validate.chargen_house_rules` does. A
+    campaign changes the live value on a locked copy (p3-tables.md section 5)."""
+    snap = character.chargen_snapshot
+    rules = snap.house_rules if snap is not None else character.house_rules
+    granted = rules.godblooded_inheritance_rating if rules is not None else None
     if granted is not None:
         return granted
     b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)

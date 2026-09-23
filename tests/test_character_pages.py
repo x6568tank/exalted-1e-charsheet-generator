@@ -596,3 +596,158 @@ async def test_a_copy_that_leaves_its_campaign_gets_adjust_xp_back(user: User) -
 
     await user.should_see(marker="xp-adjust")
     assert _marked_all(user, "top-bar-unlock")
+
+
+# --------------------------------------------------------------------------- #
+# A campaign copy (P3 step 6): the Storyteller sets the house rules
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_campaign_copys_st_options_have_no_controls(user: User) -> None:
+    """⚠ House bug type 3 (p3-tables.md section 5): a player who flips a TABLE-WIDE
+    switch buys what the table forbids until the next load flips it back. Q2: the
+    PER-CHARACTER permissions are the Storyteller's too. The discriminator is
+    `table_id` in the database. ⚠ Not built at all, not disabled."""
+    user_id = await _sign_up(user, "Harmonious")
+    _, _, copy = _campaign_copy(user_id, "Tabled")
+    await user.open(home.character_url(copy.id))
+
+    user.find("ST Options").click()
+
+    await user.should_see(marker="house-rules-by-campaign")
+    await user.should_see("Magic for Everyone")
+    assert not _marked_all(user, "house-rule-magic_for_everyone")
+    assert not _marked_all(user, "house-rule-st_foreign_charms")
+    assert not _marked_all(user, "house-rule-mf_change_method")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_solo_copys_st_options_keep_their_controls(user: User) -> None:
+    """The negative control of the case above: the same tab, with no table."""
+    user_id = await _sign_up(user, "Harmonious")
+    store = _store()
+    copy = store.make_copy(user_id, store.create(user_id, _locked("Solo")).id)
+    await user.open(home.character_url(copy.id))
+
+    user.find("ST Options").click()
+
+    await user.should_see("Magic for Everyone")
+    assert _marked_all(user, "house-rule-magic_for_everyone")
+    assert _marked_all(user, "house-rule-st_foreign_charms")
+    assert not _marked_all(user, "house-rules-by-campaign")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_copy_whose_file_disagrees_opens_with_the_table_rules(user: User) -> None:
+    """Site 3 of section 5: the context factory. Whatever the file says, the page
+    sees the table's values, and the file is put in step."""
+    from exalted_builder.models.character import HouseRules
+
+    user_id = await _sign_up(user, "Harmonious")
+    tables, table, copy = _campaign_copy(user_id, "Drifted")
+    tables.write_house_rules(table.id, HouseRules(magic_for_everyone=True,
+                                                  mf_change_method="swap"))
+    character = _store().load(copy)
+    assert character.house_rules is None or not character.house_rules.magic_for_everyone
+
+    await user.open(home.character_url(copy.id))
+    await user.should_see(marker="xp-by-storyteller")
+
+    held = state.REGISTRY.peek(copy.id)["char"]
+    assert held.house_rules.magic_for_everyone is True
+    assert held.house_rules.mf_change_method == "swap"
+    assert _store().load(copy).house_rules.magic_for_everyone is True
+
+
+# --------------------------------------------------------------------------- #
+# A draft for a campaign (P3 step 6b)
+# --------------------------------------------------------------------------- #
+
+
+def _campaign_draft(player_id: int):
+    """A table run by a second account, with `player_id` watching, and a draft of
+    `player_id` for it."""
+    from exalted_builder.server.tables import TableStore
+
+    st_id = db.create_user(state.DB, f"Storyteller{player_id}", state.PASSWORD)
+    tables = TableStore(db_path=state.DB, root=state.ROOT)
+    table = tables.create(st_id, "The Scarlet Gambit")
+    tables.approve(st_id, tables.request(player_id, table.join_code, None).id)
+    return tables, table, st_id, tables.start_draft(player_id, table.id)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_campaign_draft_says_so_and_its_st_options_have_no_controls(
+        user: User) -> None:
+    """⚠ House bug type 3: the draft is built under the table's switches. A player
+    who could flip them would build what the table forbids. The tag is a database
+    row, which no control of the page edits."""
+    user_id = await _sign_up(user, "Harmonious")
+    _, _, _, draft = _campaign_draft(user_id)
+    await user.open(home.character_url(draft.id))
+
+    await user.should_see(marker="draft-for-campaign", content="The Scarlet Gambit")
+    user.find("ST Options").click()
+    await user.should_see(marker="house-rules-by-campaign")
+    assert not _marked_all(user, "house-rule-magic_for_everyone")
+    assert not _marked_all(user, "house-rule-st_foreign_charms")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_an_ordinary_draft_has_no_campaign_banner(user: User) -> None:
+    """The negative control of the case above."""
+    await _sign_up(user, "Harmonious")
+    user.find(marker="home-new").click()
+    await user.should_see("Identity")
+    user.find("ST Options").click()
+    await user.should_see("Magic for Everyone")
+    assert _marked_all(user, "house-rule-magic_for_everyone")
+    assert not _marked_all(user, "draft-for-campaign")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_draft_opens_with_the_table_rules(user: User) -> None:
+    """Site 3 of section 5 covers a draft for the campaign too."""
+    from exalted_builder.models.character import HouseRules
+
+    user_id = await _sign_up(user, "Harmonious")
+    tables, table, _, draft = _campaign_draft(user_id)
+    tables.write_house_rules(table.id, HouseRules(restrict_chargen_ritual_level=True))
+
+    await user.open(home.character_url(draft.id))
+    await user.should_see(marker="draft-for-campaign")
+
+    assert state.REGISTRY.peek(draft.id)["char"].house_rules.restrict_chargen_ritual_level
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_finish_and_lock_sends_a_campaign_draft_to_the_storyteller(
+        user: User) -> None:
+    user_id = await _sign_up(user, "Harmonious")
+    tables, table, st_id, draft = _campaign_draft(user_id)
+    await user.open(home.character_url(draft.id))
+    await user.should_see(marker="draft-for-campaign")
+
+    user.find(marker="top-bar-lock").click()
+
+    await user.should_see(marker="base-note")
+    (request,) = tables.pending(st_id, table.id)
+    assert (request.user_id, request.base_id) == (user_id, draft.id)
+    assert tables.draft_table(draft.id) is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_home_names_the_campaign_of_a_draft(user: User) -> None:
+    user_id = await _sign_up(user, "Harmonious")
+    _campaign_draft(user_id)
+    await user.open(home.HOME_PATH)
+    await user.should_see("For The Scarlet Gambit")

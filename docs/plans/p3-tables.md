@@ -1,6 +1,6 @@
 # P3 — Campaigns (the `Table`): design
 
-**Status: build steps 1–2 DONE 2026-09-12; step 3 (the table view shell) DONE and BROWSER-VERIFIED 2026-09-22; step 4 (the Log) DONE and BROWSER-VERIFIED 2026-09-22 (§14 is the build log). The layout was approved 2026-09-22 (§15). Steps 5–9 (the revised order, §15.4) are not started.**
+**Status: build steps 1–2 DONE 2026-09-12; steps 3, 4 and 5 DONE and BROWSER-VERIFIED 2026-09-22; step 6 (house rules) and 6b (add a character from the campaign) DONE and BROWSER-VERIFIED 2026-09-22, except phone width (§14 is the build log). The layout was approved 2026-09-22 (§15). Steps 7–9 (the revised order, §15.4) are not started.**
 Every product question the human was asked is ruled (`vtt.md` §9.1, §9.2, §9.3a, §9.10), and
 so are the six the design turned up (§13).
 
@@ -749,6 +749,179 @@ unlocks sees the new XP, or the unlocked state, on their next tab switch or relo
 The object is right at once; the page is not redrawn. After an ST Unlock with the
 page open, the player should reload before editing.
 
+### Step 6 — house rules (2026-09-22)
+
+**Shipped:** the table's `house_rules.json` (`TableStore.house_rules` /
+`write_house_rules`; it holds the TABLE-WIDE fields only, and a file that does not read
+gives the defaults). `models.character.TABLE_WIDE_HOUSE_RULES` is the one code list of
+the six TABLE-WIDE fields; a test asserts it equals the "table" scope of
+`view._HOUSE_RULES` and that the view lists every field. `engine.house_rule_actions`
+gains `apply_table_rules` (copies the six fields, never the PER-CHARACTER ones or the
+snapshot; a character with no rules and a default table keeps a clean save) and
+`set_house_rule` (the coercion of `set_rule`, on a bare `HouseRules`).
+
+**The three sites of §5:**
+1. **Approval**: `make_copy(..., adjust=)` applies the table's rules before the first
+   save. The base does not change.
+2. **The ST's switch**: `TableStoryteller.set_table_rule` writes the table file FIRST
+   (if the quota refuses it, nothing changes), then each copy through `peek` or the
+   file (the §6 trap), then posts `House rule: <label> — <setting>` to the Log. A copy
+   that cannot be saved is named; site 3 catches it up.
+3. **The context factory** (`server/home.py`): a campaign copy takes the table's
+   values each time its context is made, and the file is saved if they moved (the
+   auto-save takes its first digest after the factory, so it would not write them).
+
+**Q2 (the ST sets the PER-CHARACTER permissions):** `set_character_rule` — ST only (the
+owner too is refused), PER-CHARACTER fields only, a copy in the table only. On the page,
+a **tune** button on each row of CHARACTERS opens a dialog with that copy's permission
+rows, with the same inert notes as the ST Options tab.
+
+**The lockout (house bug type 3):** on a campaign copy the ST Options tab builds **no
+control** — each rule is text, under *"The Storyteller of this campaign sets these."*
+Both scopes (Q2). `build_storyteller(in_campaign=)` from `build_app`. Solo copies and
+the desktop are unchanged.
+
+🐞 **Found on the way: God-Blooded Inheritance priced from the LIVE rules on a locked
+sheet.** `merits.inheritance_free_rating` read `character.house_rules`, while every
+other chargen-accounting toggle reads the snapshot (`chargen_house_rules`). The existing
+test checked that the value is frozen (the write) and not that it is read (house bug
+type 2). Harmless on the desktop, where the tab is read-only after the lock; step 6 made
+it reachable, because a table switch changes the live value on locked copies. Fixed to
+read the snapshot when locked; `test_a_locked_sheet_prices_inheritance_from_the_snapshot`.
+
+**Tests:** `tests/test_table_rules.py` (29), 3 in `test_character_pages.py` (a campaign
+copy's tab has no controls; a solo copy's has — the negative control; a copy whose file
+disagrees opens with the table's values), 5 in `test_table_view.py` (a switch reaches
+the player's open object and builds no context for the other; a select rule; a
+permission for one copy; a player has no controls; a switch after deletion writes
+nothing), 1 in `test_godblooded.py`. **Mutation-checked (16, all killed):** approval
+sync dropped; factory sync dropped; the switch writing the file, not the live object;
+`ctx_for` for `peek`; each role check (switch, permission); each scope check (switch,
+permission); the copy-in-table check; `apply_table_rules` copying every field; the
+table file written after the copies; the file keeping every field; `build_app` not
+passing `in_campaign` to the ST tab; Inheritance reading live; the ST panel not drawn;
+the permission dialog showing both scopes.
+**Full suite: 3959 passed + 1 skipped — OBSERVED** on the dev machine (3921 + 38).
+
+**Design choices made without asking, reversible:**
+- **A table switch posts a Log line; a permission does not** (a notify for the ST
+  only). A table rule is everyone's business; a permission is one character's.
+- **The ST can change a switch at any time.** A creation-rule switch (Magic for
+  Everyone, the ritual and Science caps, Inheritance) changes the live value on locked
+  copies, but the accounting reads the snapshot, so it reaches a copy only if the ST
+  unlocks it. The panel says so. `mf_change_method` and `all_backgrounds_available`
+  take effect at once, as their comments intend.
+- **Permissions are editable on a locked copy**, with the tab's inert notes shown.
+- **The campaign copy's tab shows both scopes as text** — not only the TABLE-WIDE ones,
+  because Q2 gave the permissions to the ST as well.
+
+⚠ **For the human (click-through):** every campaign copy is born LOCKED (a base is
+locked), so its creation was priced under its owner's own switches, frozen in the
+snapshot. The table's creation switches never re-price it unless the ST unlocks it.
+Is that the intended reading, or should approval show the ST where the base's frozen
+rules differ from the table's?
+
+⚠ **Known limits:** as step 5, a player's open character page shows a switch on the
+next tab switch or reload; the object is right at once. A second ST device's panel
+does not repaint on the poll.
+
+✅ **BROWSER-VERIFIED 2026-09-22** (steps 6, 6b, the auto-approve and the Grant
+checkboxes): the human ran the twelve-step click-through; steps 1–11 "works". Step 12,
+phone width, **NOT checked** ("cannot currently"). The permissions button is Material's
+`tune` icon (sliders), not a gear — the handover said ⚙.
+
+### Step 6b — adding a character from the campaign (ruled 2026-09-22)
+
+**The gap (the human, after step 6):** *"Should there be a way to join & create
+characters from within a campaign?"* The campaign page was a dead end: a watcher, or a
+player who wanted a second character, had to go to `/home` and retype the code; and a
+character made for the campaign was built with no knowledge of it, under its owner's
+switches (the ❓ of step 6).
+
+**Ruled: "Correct."** to the proposal, which was:
+1. **Bring a character** from the campaign page: a member picks one of their locked
+   bases; the same join request, from the membership instead of the code.
+2. **Create a character for this campaign**, option **(a)**: the draft stays an
+   ordinary base, tagged for the campaign; it is built under the campaign's house rules
+   (and, after step 7, its homebrew); Finish & Lock sends the join request; approval
+   makes the copy as now. Rejected: (b), the draft born as the copy with no base — it
+   breaks §9.2.
+3. **Before step 7.**
+
+**Shipped (same day), tests green, NOT browser-verified:**
+* `TableStore.bring(user, table, base)`: the join request from the membership — access
+  required, the same base checks as the code path, the same duplicate check (the insert
+  is now one helper, `_insert_request`), **not throttled** (the throttle protects the code).
+* **Campaign drafts:** a new table `campaign_drafts (character_id, table_id)`, both
+  `ON DELETE CASCADE` — `CREATE TABLE IF NOT EXISTS`, as step 1's tables, no migration.
+  `start_draft` makes an ordinary draft (no `table_id`) with the table's rules;
+  `draft_table`, `drafts`; `send_draft` (owner only, locked only) inserts the request and
+  deletes the tag. Leaving or removal deletes the member's tags (the drafts stay);
+  deleting the campaign cascades.
+* ⚠ **The tag is a DB row, not a Character field**: the page cannot edit it (type 3).
+* The draft follows the table like a copy: the context factory applies the table's rules
+  (site 3), a table switch reaches drafts (site 2), and the ST can set a draft's
+  PER-CHARACTER permissions (Q2 — foreign Charms matters BEFORE the lock). Grant XP and
+  Unlock refuse a draft (`_rows(drafts=False)` by default).
+* **Pages:** PARTY has **Add a character** for every member (the ST too, Q4): pick a
+  locked base and Send request, or **Create a character** → the builder. The builder
+  shows *"For <campaign>: built under its house rules, and sent to its Storyteller when
+  you Finish & Lock."*; its ST Options tab builds no control; Finish & Lock sends the
+  request and lands on the base page. The ST tab lists **BEING MADE** with the tune
+  button. `/home` shows "For <campaign>" on a draft card.
+
+**Tests:** `tests/test_table_drafts.py` (27), 3 in `test_table_view.py`, 5 in
+`test_character_pages.py`. **Mutation-checked (14, all killed):** each access check
+(bring, start), the base check of bring, the draft without the table's rules, the
+ownership and lock checks of send, the tag kept after send, the tags kept after leave,
+the switch skipping drafts, the permission refusing drafts, Grant taking drafts, the
+factory ignoring drafts, the lock not sending, the draft's ST tab editable. Targeted run
+(table, campaign, character-page, God-Blooded, ST-tab, seam and store files): **619
+passed — OBSERVED**; the full suite was not re-run after 6b.
+
+**Design choices made without asking, reversible:** the ST sees drafts in progress
+(BEING MADE) — needed for Q2 before the lock; a draft keeps its tag until the lock, so
+a player can make one slowly; Add a character is shown to the ST too.
+
+**Then (human, 2026-09-22, "Go ahead"): the Storyteller's own request is approved at
+once.** `_insert_request` approves it as the requester, so only the Storyteller of the
+table passes `approve`; a failed approval (a full account) leaves it in REQUESTS to
+approve by hand. `JoinRequest.approved` tells the page to say "Added to the campaign."
+instead of "It waits for the Storyteller." It covers all three paths: the code, Add a
+character, and the lock of a draft. 5 tests; the mutations "never approve" and "approve
+anyone as the Storyteller" are killed ("approve anyone as the requester" is equivalent:
+`approve` refuses a non-Storyteller).
+
+**Grant XP: a checkbox per character (human, 2026-09-22: "Build the checkboxes").** The
+target was Everyone OR one character, so the ST could not leave one out (their own
+character, an absent player). Now each copy has a checkbox, each ticked at the start;
+Grant sends the ticked ids. ⚠ The list is the ticked copies at the DRAW, never "every
+copy" at the click: a copy that joins in between gets nothing the ST did not see.
+`grant_xp` refuses an empty list ("Tick at least one character.") — `[]` is nobody,
+`None` is everyone. The Everyone/one select and `EVERYONE` are gone. 4 tests (3 page,
+1 store); 4 mutations killed (the ticks ignored, `[]` as everyone, the boxes unticked
+at the start, every copy at the click).
+
+**The Storyteller's own full characters are NPCs (rulings, 2026-09-22).** The human
+asked *"could we add a way to distinguish ST NPCs?"* and ruled:
+* The word is **NPC**. A copy whose owner is the table's Storyteller carries an **NPC**
+  badge wherever it is listed. Keyed on `row.owner_id == tables.storyteller_id` — a
+  field the page cannot edit.
+* **No NPC group in the rail for now.**
+* **Grant XP: an NPC starts unticked.**
+* **Shipped, same day:** `_TableView.is_npc`; the badge in YOU PLAY, THE OTHERS, the ST
+  tab's CHARACTERS and BEING MADE, and "· NPC" on the Grant checkbox, which starts
+  unticked. 4 page tests; 3 mutations killed (never an NPC; "NPC" = the viewer's own;
+  the NPC ticked). ✅ **Browser-verified 2026-09-22** ("NPC badge looks good.").
+* **Step 8: full-character NPCs get the Enemy / Ally switch too** (as the roster's
+  `side`, R6), and are filed within the ALLIES / ENEMIES groups. ⚠ A hidden (enemy)
+  full character must reach a player's page as nothing at all — the §15.3 projection
+  rule applies: today every copy's data is sent to every member's page.
+
+⚠ **Known limit:** if the ST unlocks-then-rejects, or the player unlocks the base while
+its request waits, approval refuses it ("Finish and lock…") — the behaviour of any
+request today.
+
 ---
 
 ## 15. The table view — the approved layout (2026-09-22)
@@ -861,7 +1034,9 @@ written first and green before the next.
 6. **House rules.** It was step 5.
 7. **The table homebrew layer.** It was step 6.
 8. **The roster on the table.** It was step 7, and now includes `Adversary.side`, the ally
-   projection, the two rail sections, and each member's own Notes (Q8).
+   projection, the two rail sections, and each member's own Notes (Q8). **Plus the
+   same switch for the Storyteller's full-character NPCs** (ruled 2026-09-22, §14
+   step 6b), filed within ALLIES / ENEMIES.
 9. **Initiative for the whole table**, the gate. It was step 8. **Its results go to the
    Log**, which is where every member already looks.
 

@@ -767,6 +767,17 @@ class HouseRules(BaseModel):
         return v
 
 
+# The TABLE-WIDE fields of `HouseRules`, as the comments on the fields mark them. A
+# campaign syncs these fields onto each copy (`engine.house_rule_actions.
+# apply_table_rules`). ⚠ `ui.view._HOUSE_RULES` gives each field a scope too. A test
+# asserts that its "table" rows are this set.
+TABLE_WIDE_HOUSE_RULES = frozenset({
+    "magic_for_everyone", "restrict_chargen_ritual_level",
+    "restrict_chargen_science_rating", "all_backgrounds_available", "mf_change_method",
+    "godblooded_inheritance_rating",
+})
+
+
 class ChargenSnapshot(BaseModel):
     """Frozen at lock; the baseline the XP log is measured against."""
     attributes: dict[AttributeName, int]

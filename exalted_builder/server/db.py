@@ -84,6 +84,14 @@ CREATE TABLE IF NOT EXISTS join_requests (
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS characters_table ON characters(table_id);
+
+-- A draft that its owner makes for a campaign (p3-tables.md section 14, step 6b).
+-- The draft is an ordinary character with no table_id. Its lock sends a join
+-- request, and deletes this row. The page cannot edit this row.
+CREATE TABLE IF NOT EXISTS campaign_drafts (
+    character_id TEXT PRIMARY KEY REFERENCES characters(id) ON DELETE CASCADE,
+    table_id TEXT NOT NULL REFERENCES tables(id) ON DELETE CASCADE
+);
 """
 
 

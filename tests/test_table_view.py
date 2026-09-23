@@ -835,12 +835,13 @@ async def test_each_health_box_has_its_penalty_label(create_user) -> None:
 # --------------------------------------------------------------------------- #
 
 
-def _grant(st: User, amount: int, note: str = "", target: str | None = None) -> None:
-    """Fill the Grant XP form of the ST tab and press Grant."""
+def _grant(st: User, amount: int, note: str = "", leave_out: tuple[str, ...] = ()) -> None:
+    """Fill the Grant XP form of the ST tab, untick each copy of `leave_out`, and
+    press Grant."""
     _one(st, "st-grant-amount").set_value(amount)
     _one(st, "st-grant-note").set_value(note)
-    if target is not None:
-        _one(st, "st-grant-target").set_value(target)
+    for copy_id in leave_out:
+        _one(st, f"st-grant-to-{copy_id}").set_value(False)
     st.find(marker="st-grant").click()
 
 
@@ -869,17 +870,59 @@ async def test_a_grant_reaches_the_object_that_the_players_page_holds(create_use
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
-async def test_a_grant_to_one_character_leaves_the_other(create_user) -> None:
-    st, _, table, players = await _campaign(create_user, "Ashes of Dawn", "Gearheart")
-    (_, _, copy), (_, _, other) = players
+async def test_an_unticked_character_gets_no_xp(create_user) -> None:
+    """Human, 2026-09-22: each character is ticked at the start, and the ST unticks
+    whoever is left out — an absent player, or the ST's own character."""
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn", "Gearheart",
+                                            "Third")
+    (_, _, copy), (_, _, other), (_, _, third) = players
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="st-grant-form")
+    assert _one(st, f"st-grant-to-{copy.id}").value is True
+
+    _grant(st, 3, leave_out=(copy.id,))
+
+    await st.should_see("+3 XP to Gearheart, Third")
+    assert _load(other).xp_earned == 3 and _load(third).xp_earned == 3
+    assert _load(copy).xp_earned == 0
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_grant_with_no_character_ticked_writes_nothing(create_user) -> None:
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (_, _, copy), = players
     await st.open(chrome.table_url(table.id))
     await st.should_see(marker="st-grant-form")
 
-    _grant(st, 3, target=other.id)
+    _grant(st, 5, leave_out=(copy.id,))
 
-    await st.should_see(marker="st-award-1")
-    assert _load(other).xp_earned == 3
+    await st.should_see("Tick at least one character")
     assert _load(copy).xp_earned == 0
+    assert not (_tables().table_dir(table.id) / "awards.json").exists()
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_character_that_joins_after_the_form_is_drawn_is_not_granted(
+        create_user) -> None:
+    """The grant names the ticked characters. A copy that arrives between the draw
+    and the click is not in the list, thus it gets nothing it was not shown."""
+    st, st_id, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (_, _, copy), = players
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="st-grant-form")
+    late = _tables().characters(table.id)
+    newcomer = create_user()
+    newcomer_id = await _sign_up(newcomer, "Newcomer")
+    arrived = _member(table, newcomer_id, _base(newcomer_id, "Late").id)
+    assert len(_tables().characters(table.id)) == len(late) + 1
+
+    _grant(st, 2)
+
+    await st.should_see("+2 XP to Ashes of Dawn")
+    assert _load(copy).xp_earned == 2
+    assert _load(arrived).xp_earned == 0
 
 
 @pytest.mark.asyncio
@@ -1041,3 +1084,257 @@ async def test_the_storyteller_unlocks_a_copy_after_a_warning(create_user) -> No
     await st.should_see("unlocked")
     assert not held.chargen_locked
     assert not _load(copy).chargen_locked
+
+
+# --------------------------------------------------------------------------- #
+# Step 6: the house rules
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_table_switch_reaches_the_object_that_the_players_page_holds(
+        create_user) -> None:
+    """Site 2 of p3-tables.md section 5, through the page. ⚠ Trap section 12: the
+    player's page is open first, thus its auto-save writes the held object."""
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn", "Gearheart")
+    (player, _, copy), (_, _, other) = players
+    await player.open(chrome.character_url(copy.id))
+    held = state.REGISTRY.peek(copy.id)["char"]
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="st-house-rules")
+
+    _one(st, "st-rule-magic_for_everyone").set_value(True)
+
+    await st.should_see("House rule: Magic for Everyone — On")
+    assert state.REGISTRY.peek(copy.id)["char"] is held
+    assert held.house_rules.magic_for_everyone is True
+    assert _load(other).house_rules.magic_for_everyone is True
+    assert _tables().house_rules(table.id).magic_for_everyone is True
+    assert state.REGISTRY.peek(other.id) is None, "A context was built for a switch."
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_table_select_rule_is_set(create_user) -> None:
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (_, _, copy), = players
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="st-house-rules")
+
+    _one(st, "st-rule-godblooded_inheritance_rating").set_value("3")
+
+    await st.should_see("House rule: God-Blooded Inheritance rating — 3 ••• Notable ancestry")
+    assert _load(copy).house_rules.godblooded_inheritance_rating == 3
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_grants_one_character_a_permission(create_user) -> None:
+    """Q2: the Storyteller sets the PER-CHARACTER permissions, one copy at a time."""
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn", "Gearheart")
+    (player, _, copy), (_, _, other) = players
+    await player.open(chrome.character_url(copy.id))
+    held = state.REGISTRY.peek(copy.id)["char"]
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker=f"st-copy-{copy.id}")
+
+    st.find(marker=f"st-permissions-{copy.id}").click()
+    await st.should_see(marker="st-permission-st_foreign_charms")
+    await st.should_see("May start play knowing foreign Charms")
+    assert not _marked_all(st, "st-permission-magic_for_everyone")
+    _one(st, "st-permission-st_foreign_charms").set_value(True)
+
+    await st.should_see("Ashes of Dawn: May start play knowing foreign Charms — On")
+    assert held.house_rules.st_foreign_charms is True
+    assert _load(copy).house_rules.st_foreign_charms is True
+    rules = _load(other).house_rules
+    assert rules is None or rules.st_foreign_charms is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_player_has_no_house_rule_controls(create_user) -> None:
+    """The ST tab is not built for a player. The store refuses them as well
+    (`tests/test_table_rules.py`)."""
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, copy), = players
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="table-members")
+
+    assert not _marked_all(player, "st-house-rules")
+    assert not _marked_all(player, "st-rule-magic_for_everyone")
+    assert not _marked_all(player, f"st-permissions-{copy.id}")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_switch_after_the_campaign_is_deleted_writes_nothing(create_user) -> None:
+    """The handler asks for the role again."""
+    st, st_id, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (_, _, copy), = players
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="st-house-rules")
+    control = _one(st, "st-rule-magic_for_everyone")
+    _tables().delete(st_id, table.id)
+
+    control.set_value(True)
+
+    rules = _load(copy).house_rules
+    assert rules is None or not rules.magic_for_everyone
+
+
+def _marked_all(user: User, marker: str) -> list:
+    """Each element with `marker`, hidden or not. `user.find` skips hidden ones."""
+    return [e for e in user.client.elements.values()
+            if marker in getattr(e, "_markers", [])]
+
+
+# --------------------------------------------------------------------------- #
+# Step 6b: adding a character from the campaign
+# --------------------------------------------------------------------------- #
+
+
+async def _watcher(create_user, table):
+    """A member of `table` who watches. Return (user, id)."""
+    watcher = create_user()
+    watcher_id = await _sign_up(watcher, "Watcher")
+    _member(table, watcher_id)
+    return watcher, watcher_id
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_watcher_brings_a_base_from_the_campaign(create_user) -> None:
+    st, st_id, table, _ = await _campaign(create_user)
+    watcher, watcher_id = await _watcher(create_user, table)
+    base = _base(watcher_id, "Late Arrival")
+    await watcher.open(chrome.table_url(table.id))
+
+    watcher.find(marker="table-add-character").click()
+    await watcher.should_see(marker="add-character-base")
+    _one(watcher, "add-character-base").set_value(base.id)
+    watcher.find(marker="add-character-send").click()
+
+    await watcher.should_see("Request sent")
+    (request,) = _tables().pending(st_id, table.id)
+    assert (request.user_id, request.base_id) == (watcher_id, base.id)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_member_creates_a_character_for_the_campaign(create_user) -> None:
+    st, st_id, table, _ = await _campaign(create_user)
+    watcher, watcher_id = await _watcher(create_user, table)
+    await watcher.open(chrome.table_url(table.id))
+
+    watcher.find(marker="table-add-character").click()
+    await watcher.should_see(marker="add-character-create")
+    watcher.find(marker="add-character-create").click()
+
+    await watcher.should_see(marker="draft-for-campaign")
+    (draft,) = _tables().drafts(table.id)
+    assert draft.owner_id == watcher_id
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_sees_a_draft_and_grants_it_a_permission(create_user) -> None:
+    st, st_id, table, _ = await _campaign(create_user)
+    watcher, watcher_id = await _watcher(create_user, table)
+    draft = _tables().start_draft(watcher_id, table.id)
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker=f"st-draft-{draft.id}")
+    assert not _marked_all(st, f"st-unlock-{draft.id}")
+
+    st.find(marker=f"st-permissions-{draft.id}").click()
+    await st.should_see(marker="st-permission-st_foreign_charms")
+    _one(st, "st-permission-st_foreign_charms").set_value(True)
+
+    await st.should_see("May start play knowing foreign Charms — On")
+    assert _load(draft).house_rules.st_foreign_charms is True
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storytellers_own_character_joins_at_once(create_user) -> None:
+    """Human, 2026-09-22: the Storyteller does not approve their own request."""
+    st, st_id, table, _ = await _campaign(create_user)
+    base = _base(st_id, "Gamemaster's Own")
+    await st.open(chrome.table_url(table.id))
+
+    st.find(marker="table-add-character").click()
+    await st.should_see(marker="add-character-base")
+    _one(st, "add-character-base").set_value(base.id)
+    st.find(marker="add-character-send").click()
+
+    await st.should_see("Added to the campaign.")
+    assert _tables().pending(st_id, table.id) == []
+    (copy,) = _tables().characters(table.id)
+    assert copy.owner_id == st_id
+    await st.should_see(marker="you-play", retries=_POLL_RETRIES)
+
+
+# --------------------------------------------------------------------------- #
+# The Storyteller's own characters are NPCs (human, 2026-09-22)
+# --------------------------------------------------------------------------- #
+
+
+async def _with_npc(create_user):
+    """A campaign with one player, and a character of the Storyteller in it."""
+    st, st_id, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, copy), = players
+    _tables().bring(st_id, table.id, _base(st_id, "Gamemaster's Own").id)
+    (npc,) = [r for r in _tables().characters(table.id) if r.owner_id == st_id]
+    return st, table, player, copy, npc
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_player_sees_the_npc_badge_on_the_storytellers_character(
+        create_user) -> None:
+    st, table, player, copy, npc = await _with_npc(create_user)
+    await player.open(chrome.table_url(table.id))
+
+    await player.should_see(marker=f"npc-badge-{npc.id}")
+    assert not _marked_all(player, f"npc-badge-{copy.id}")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_sees_the_badge_in_you_play_and_the_st_tab(
+        create_user) -> None:
+    st, table, player, copy, npc = await _with_npc(create_user)
+    await st.open(chrome.table_url(table.id))
+
+    await st.should_see(marker=f"st-copy-{npc.id}")
+    assert _marked_all(st, f"npc-badge-{npc.id}")
+    assert _marked_all(st, "npc-badge-you")
+    assert not _marked_all(st, f"npc-badge-{copy.id}")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_an_npc_starts_unticked_in_grant_xp(create_user) -> None:
+    st, table, player, copy, npc = await _with_npc(create_user)
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="st-grant-form")
+
+    assert _one(st, f"st-grant-to-{npc.id}").value is False
+    assert _one(st, f"st-grant-to-{copy.id}").value is True
+    _grant(st, 4)
+
+    await st.should_see("+4 XP to Ashes of Dawn")
+    assert _load(npc).xp_earned == 0
+    assert _load(copy).xp_earned == 4
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_badge_is_keyed_on_the_owner_not_the_name(create_user) -> None:
+    """A player's character named like an NPC is not one."""
+    st, st_id, table, players = await _campaign(create_user, "NPC Gamemaster's Own")
+    (player, _, copy), = players
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker=f"st-copy-{copy.id}")
+    assert not _marked_all(st, f"npc-badge-{copy.id}")

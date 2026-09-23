@@ -140,13 +140,15 @@ class HomeCampaigns:
             def send() -> None:
                 base = None if choice.value == WATCH else choice.value
                 try:
-                    self.tables.request(self.user_id, code.value or "", base)
+                    request = self.tables.request(self.user_id, code.value or "", base)
                 except TableStoreError as exc:
                     ui.notify(str(exc), type="warning")
                     return
                 dialog.close()
                 self.refresh()
-                ui.notify("Request sent. It waits for the Storyteller.", type="info")
+                ui.notify("Added to the campaign." if request.approved else
+                          "Request sent. It waits for the Storyteller.",
+                          type="positive" if request.approved else "info")
 
             with ui.row().classes("w-full justify-end gap-2"):
                 ui.button("Cancel", on_click=dialog.close).props("flat")

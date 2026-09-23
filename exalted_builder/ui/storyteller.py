@@ -52,7 +52,13 @@ _SCOPE_LABEL = viewmod.HOUSE_RULE_SCOPES
 
 
 def build_storyteller(ruleset: RuleSet, character: Character, save_fn: SaveFn,
-                      *, with_header: bool = True) -> None:
+                      *, with_header: bool = True, in_campaign: bool = False) -> None:
+    """Build the ST Options tab of `character`.
+
+    `in_campaign` is True for a campaign copy of the hosted server. Then the tab
+    shows each setting as text, and builds no control: the Storyteller sets them
+    on the table view (p3-tables.md section 5, Q2). ⚠ Not built, not disabled.
+    """
     pal = theme.palette(character.exalt_type)
     locked = character.chargen_locked
 
@@ -60,7 +66,15 @@ def build_storyteller(ruleset: RuleSet, character: Character, save_fn: SaveFn,
     def body() -> None:
         rows = viewmod.build_house_rules(ruleset, character)
         with ui.column().classes("w-full max-w-3xl mx-auto gap-3"):
-            if locked:
+            if in_campaign:
+                with ui.card().classes(f"w-full p-3 {pal.card_soft}").mark(
+                        "house-rules-by-campaign"):
+                    ui.label("The Storyteller of this campaign sets these.").classes(
+                        "text-sm font-semibold")
+                    ui.label("The table-wide rules are the campaign's. The "
+                             "permissions of this character are granted on the "
+                             "campaign page.").classes("text-xs opacity-70")
+            elif locked:
                 with ui.card().classes("w-full p-3 bg-amber-50 border border-amber-300"):
                     ui.label("Chargen is locked — these are read-only.").classes(
                         "text-sm font-semibold text-amber-800")
@@ -86,20 +100,25 @@ def build_storyteller(ruleset: RuleSet, character: Character, save_fn: SaveFn,
     def _rule_card(row: viewmod.HouseRuleRow) -> None:
         with ui.card().classes(f"w-full p-3 gap-1 {pal.card_soft}"):
             with ui.row().classes("w-full items-center gap-2 no-wrap"):
-                if row.options:
+                if in_campaign:
+                    ui.label(row.label).classes("text-sm font-medium")
+                    ui.label(viewmod.house_rule_setting_label(row)).classes(
+                        "text-sm font-semibold").mark(f"house-rule-text-{row.field}")
+                elif row.options:
                     # A multiple-choice rule (M&F change method) renders as a select
                     # rather than a checkbox — same card, same lock behaviour.
                     ui.label(row.label).classes("text-sm font-medium")
                     sel = ui.select(
                         row.options, value=row.value,
                         on_change=lambda e, f=row.field: _toggle(f, e.value),
-                    ).props("dense outlined").classes("min-w-[22rem]")
+                    ).props("dense outlined").classes("min-w-[22rem]").mark(
+                        f"house-rule-{row.field}")
                     sel.set_enabled(not locked)
                 else:
                     box = ui.checkbox(
                         row.label, value=row.value,
                         on_change=lambda e, f=row.field: _toggle(f, e.value),
-                    ).props(f"dense color={pal.button}")
+                    ).props(f"dense color={pal.button}").mark(f"house-rule-{row.field}")
                     box.set_enabled(not locked)
                 ui.space()
                 ui.label(row.citation).classes("text-xs text-gray-400 whitespace-nowrap")
