@@ -145,10 +145,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .btn.on { background: rgba(255,255,255,.18); }
 
 /* The tab strip of the builder */
-.tabs { display: flex; justify-content: center; gap: 0; overflow-x: auto; margin: 4px 0 16px; scrollbar-width: none; }
+.tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 0; margin: 4px 0 16px; }
 .tabs::-webkit-scrollbar { display: none; }
 .tab {
-  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 18px 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 12px 10px;
   color: var(--ink); opacity: .85; font-weight: 500; text-transform: uppercase; letter-spacing: .0892em;
   font-size: 14px; white-space: nowrap; border-bottom: 2px solid transparent;
 }
@@ -215,6 +215,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .table tr:last-child td { border-bottom: 0; }
 .table td.name { font-weight: 500; min-width: 190px; }
 .table td.dim { color: color-mix(in srgb, var(--ink) 70%, transparent); font-size: 13px; }
+h2.ref { font-size: 14px; font-weight: 700; margin: 16px 0 4px; }
+h2.ref:first-of-type { margin-top: 4px; }
+.table.ref td:first-child { font-weight: 500; }
 .pager { display: flex; gap: 16px; justify-content: center; align-items: center; margin-top: 12px; }
 .crumbs { font-size: 13px; margin: 0 0 8px; }
 .entry { max-width: 820px; margin: 0 auto; }
@@ -231,7 +234,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .bar nav.quick { display: none; }
   .btn .t { display: none; }
   .btn { padding: 6px 8px; }
-  .tabs { justify-content: flex-start; }
+  .tabs { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; }
   .tab { padding: 10px 12px 8px; font-size: 12px; }
   .table thead { display: none; }
   .table, .table tbody, .table tr, .table td { display: block; }
@@ -240,6 +243,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .table td.name { display: block; }
   .table td:not(.name)::before { content: attr(data-label) ": "; color: color-mix(in srgb, var(--ink) 62%, transparent); font-size: 12px; }
   .table td:not(.name):not(:last-child)::after { content: " · "; }
+  .table td.nil { display: none; }
   .stat { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .stat dd { margin-bottom: 4px; }
 }

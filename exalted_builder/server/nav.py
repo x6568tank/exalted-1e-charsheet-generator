@@ -28,8 +28,11 @@ ABOUT_PATH = "/about"
 # Flaws" takes the icon of the builder's Advantages tab, and "Charms" the icon of
 # its Charms tab.
 SECTION_ICONS = {"charms": "account_tree", "martial-arts": "sports_martial_arts",
-                 "spells": "auto_fix_high", "merits": "workspace_premium",
-                 "backgrounds": "diversity_3"}
+                 "spells": "auto_fix_high", "thaumaturgy": "local_fire_department",
+                 "powers": "landscape", "merits": "workspace_premium",
+                 "backgrounds": "diversity_3", "traits": "person", "castes": "wb_sunny",
+                 "equipment": "inventory_2", "artifacts": "diamond",
+                 "st-screen": "table_chart"}
 
 
 @dataclass(frozen=True)

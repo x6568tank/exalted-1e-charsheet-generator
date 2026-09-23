@@ -833,9 +833,17 @@ owner, stay real. The human writes the text.
 
 **Not done, deliberately.** No `robots.txt` / `sitemap.xml` — a sitemap needs the public
 base URL, which behind the reverse proxy is not `request.base_url`; crawlers follow the
-links meanwhile. The wiki does not show the trait text, the ST-screen tables, artifacts,
-thaumaturgy or the Dragon-King Paths yet — all in `data/`, all addable as sections by the
-same pattern. ~~The logged-in builder has no link to the wiki.~~ ✅ 2026-09-23: every
+links meanwhile. ~~The wiki does not show the trait text, the ST-screen tables, artifacts,
+thaumaturgy or the Dragon-King Paths yet.~~ ✅ 2026-09-23: seven sections added, 12 in all —
+Thaumaturgy, Paths & Powers (Dragon-King Paths, elemental powers), Traits (Attributes,
+Abilities, Virtues, Natures, Virtue Flaws), Castes (castes/aspects with anima powers,
+Illuminated camps and Callings, the Sidereal Colleges as text rows with no page), Equipment
+(weapons, armor, goods, magical materials; each kind has its own columns, and a stat the
+row does not give prints "—", never "+0"), Artifacts, and the ST Screen (one page). **The
+Adversaries are left out on purpose** (human, 2026-09-23). The wiki made three dropped
+citations visible: `WeaponType`, `TrainingCamp` and `Calling` had no `source` field, so
+pydantic discarded the `source` of 12 weapons, 4 camps and 6 Callings at load — the same
+writer-with-no-reader as `BackgroundType`. Added as `Optional[Source] = None`. ~~The logged-in builder has no link to the wiki.~~ ✅ 2026-09-23: every
 hosted page has the **site menu**, a drawer behind ☰ and the site name
 (`server/nav.py` is the one entry list; `site.py` draws it in HTML, `chrome.py` in
 Quasar). It lists the account's campaigns and each wiki section; on the character and

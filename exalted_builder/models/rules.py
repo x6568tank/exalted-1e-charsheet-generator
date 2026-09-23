@@ -823,6 +823,9 @@ class TrainingCamp(BaseModel):
     # Player choices layered on top of `granted_charms`, resolved onto
     # Character.granted_charms.
     granted_charm_choices: list[GrantedCharmChoice] = Field(default_factory=list)
+    # The page that prints this row. None when no page is known. ⚠ None, not
+    # `Source()`, which names "Core". Read site: the public wiki (`ui/wiki_view`).
+    source: Optional[Source] = None
 
 
 class Calling(BaseModel):
@@ -849,6 +852,9 @@ class Calling(BaseModel):
     # "Craft (War)" — record the focus so the Craft-as-per-focus-Ability machinery
     # can match the right Craft instance. Keyed by AbilityName value.
     ability_focus: dict[str, str] = Field(default_factory=dict)
+    # The page that prints this row. None when no page is known. ⚠ None, not
+    # `Source()`, which names "Core". Read site: the public wiki (`ui/wiki_view`).
+    source: Optional[Source] = None
 
 
 class College(BaseModel):
@@ -1222,6 +1228,9 @@ class WeaponType(BaseModel):
     resources_cost: int = Field(default=0, ge=0)
     notes: str = ""                        # special cases (e.g. charge damage)
     tags: list[str] = Field(default_factory=list)
+    # The page that prints this row. None when no page is known. ⚠ None, not
+    # `Source()`, which names "Core". Read site: the public wiki (`ui/wiki_view`).
+    source: Optional[Source] = None
 
 
 class ArtifactType(BaseModel):

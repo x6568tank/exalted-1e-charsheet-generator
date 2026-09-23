@@ -29,6 +29,18 @@ def book():
     return rules_db.load_ruleset(_DATA)
 
 
+# The reference sections of the wiki: (list builder, entry page builder).
+_REFERENCE = ((wv.trait_list, wv.trait_page), (wv.caste_list, wv.caste_page),
+              (wv.equipment_list, wv.equipment_page), (wv.artifact_list, wv.artifact_page),
+              (wv.thaumaturgy_list, wv.thaumaturgy_page), (wv.power_list, wv.power_page))
+
+
+def _all_rows(book, build) -> list[wv.Row]:
+    """Return the rows of each page of a list."""
+    first = build(book)
+    return [row for number in range(1, first.pages + 1) for row in build(book, page=number).rows]
+
+
 # --------------------------------------------------------------------------- #
 # The presenter
 # --------------------------------------------------------------------------- #
@@ -140,8 +152,14 @@ def test_each_entry_and_each_filter_value_builds(book) -> None:
             assert build(book, entry_id) is not None, f"{build.__name__}({entry_id!r})"
     for card in wv.style_list(book).rows:
         assert wv.style_page(book, card.href.rsplit("/", 1)[-1]) is not None, card.href
+    # The reference sections: each row with an address opens its page.
+    for build, lookup in _REFERENCE:
+        for row in _all_rows(book, build):
+            if row.href:
+                assert lookup(book, row.href.rsplit("/", 1)[-1]) is not None, row.href
 
-    lists = (wv.charm_list, wv.style_list, wv.spell_list, wv.merit_list, wv.background_list)
+    lists = (wv.charm_list, wv.style_list, wv.spell_list, wv.merit_list, wv.background_list,
+             *(build for build, _lookup in _REFERENCE))
     for build in lists:
         for f in build(book).filters:
             for option in f.options:
@@ -260,7 +278,15 @@ async def test_each_wiki_page_kind_opens(user: User) -> None:
                  "/wiki/martial-arts", "/wiki/martial-arts/snake",
                  "/wiki/spells", "/wiki/spells?circle=Solar",
                  "/wiki/merits", "/wiki/merits/mf.acute-sense",
-                 "/wiki/backgrounds", "/wiki/backgrounds/background.abyssal-command"):
+                 "/wiki/backgrounds", "/wiki/backgrounds/background.abyssal-command",
+                 "/wiki/thaumaturgy", "/wiki/thaumaturgy/science.alchemy",
+                 "/wiki/powers", "/wiki/powers/dk.celestial-air",
+                 "/wiki/traits", "/wiki/traits/ability.archery",
+                 "/wiki/castes?splat=Sidereal", "/wiki/castes/dawn",
+                 "/wiki/castes/camp.sequestered-tabernacle",
+                 "/wiki/equipment?kind=armor", "/wiki/equipment/weapon.melee.daiklave",
+                 "/wiki/artifacts?rating=5", "/wiki/artifacts?tag=weapon",
+                 "/wiki/st-screen"):
         response = await user.http_client.get(path, follow_redirects=False)
         assert response.status_code == 200, f"{path} answered {response.status_code}."
         assert response.headers["content-type"].startswith("text/html")
@@ -303,3 +329,138 @@ async def test_the_search_query_is_escaped(user: User) -> None:
 
     assert "<script>x</script>" not in response.text
     assert "&lt;script&gt;" in response.text
+
+
+# --------------------------------------------------------------------------- #
+# The reference sections: traits, castes, equipment, artifacts, thaumaturgy,
+# Paths and powers, the Storyteller screen
+# --------------------------------------------------------------------------- #
+
+
+def test_each_section_has_a_count_and_an_icon(book) -> None:
+    """`nav.groups` and the tab strip index the icons by slug. A section with no icon
+    raises on every public page."""
+    from exalted_builder.server import nav
+
+    counts = {s.slug: s.count for s in wv.section_counts(book)}
+    assert set(counts) == {slug for slug, _title in wv.SECTIONS} == set(nav.SECTION_ICONS)
+    assert all(counts.values()), counts
+
+
+def test_an_unset_weapon_stat_is_a_dash_not_zero(book) -> None:
+    """The model gives an absent stat the value 0. The wiki must not print "+0" for a
+    stat that the book does not print."""
+    weapon = next(w for w in book.weapon_catalog.values()
+                  if "speed" not in w.model_fields_set and not w.artifact_rating)
+    (row,) = [r for r in _all_rows(book, wv.equipment_list) if r.title == weapon.name]
+
+    assert row.cells[wv._WEAPON_COLUMNS.index("Speed")] == "—"
+    assert "Speed" not in {f.label for f in wv.equipment_page(book, weapon.id).facts}
+
+
+def test_each_equipment_kind_has_its_own_columns(book) -> None:
+    listing = wv.equipment_list(book, kind="armor")
+
+    assert {row.group for row in listing.rows} <= set(listing.group_columns)
+    assert listing.group_columns["Armor"][0] == "Soak"
+    for row in listing.rows:
+        assert len(row.cells) == len(listing.group_columns[row.group]), row.title
+
+
+@pytest.mark.parametrize("path", ["weapons", "camps", "callings"])
+def test_a_source_in_the_data_reaches_the_page(book, path) -> None:
+    """🐞 These models had no `source` field, thus pydantic dropped the citation of
+    each row at load. The wiki is the read site."""
+    import json
+
+    rows = [r for r in json.loads((_DATA / f"{path}.json").read_text()) if r.get("source")]
+    assert rows, f"No row of {path}.json has a source, thus this case covers nothing."
+    row = rows[0]
+    page = (wv.equipment_page(book, row["id"]) if path == "weapons"
+            else wv.caste_page(book, f"{path[:-1]}.{row['id']}"))
+
+    assert page.source == f"{row['source']['book']} p.{row['source']['page']}"
+
+
+def test_an_uncited_row_names_no_book(book) -> None:
+    armor = next(iter(book.armor_catalog))
+
+    assert wv.equipment_page(book, armor).source == ""
+
+
+def test_a_virtue_flaw_page_has_its_limit_break(book) -> None:
+    flaw = next(iter(book.virtue_flaw_catalog.values()))
+    page = wv.trait_page(book, flaw.id)
+
+    assert [b.title for b in page.blocks][:1] == ["Limit Break"]
+    assert page.source == flaw.source
+
+
+def test_an_ability_page_has_the_rating_ladder(book) -> None:
+    page = wv.trait_page(book, "ability.archery")
+
+    assert page.extra_title == "Ratings"
+    assert len(page.extra_lines) == len(book.trait_descriptions.ability_ladder)
+
+
+def test_a_caste_page_has_its_anima_powers(book) -> None:
+    page = wv.caste_page(book, "dawn")
+
+    assert page.blocks[0].title == "Anima powers"
+    assert page.blocks[0].paragraphs[0].startswith(book.castes["dawn"].anima_powers[:20])
+
+
+def test_the_colleges_have_no_page(book) -> None:
+    colleges = [r for r in wv.caste_list(book, splat="Sidereal").rows
+                if r.group.endswith("Astrological Colleges")]
+
+    assert len(colleges) == len(book.colleges)
+    assert all(r.href == "" for r in colleges)
+
+
+def test_an_artifact_names_its_merit_not_its_id(book) -> None:
+    artifact = next(a for a in book.artifact_catalog.values() if a.requires_merit)
+    facts = {f.label: f.value for f in wv.artifact_page(book, artifact.id).facts}
+
+    assert facts["Requires"] == book.merits_flaws[artifact.requires_merit].name
+
+
+def test_one_mote_is_singular(book) -> None:
+    artifact = next(a for a in book.artifact_catalog.values() if a.attunement == 1)
+    facts = {f.label: f.value for f in wv.artifact_page(book, artifact.id).facts}
+
+    assert facts["Attunement"] == "1 mote"
+
+
+def test_a_science_page_lists_its_formulas(book) -> None:
+    page = wv.thaumaturgy_page(book, "science.alchemy")
+    formulas = [f for f in book.thaum_formulas.values() if f.science_id == "science.alchemy"]
+
+    assert page.rows_title == "Formulas"
+    assert len(page.rows) == len(formulas) > 0
+
+
+def test_the_search_reaches_the_reference_sections(book) -> None:
+    sections = {listing.section for listing, _action in wv.search_all(book, "daiklave")}
+
+    assert {"equipment", "artifacts"} <= sections
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_college_is_text_and_the_st_screen_shows_its_tables(user: User) -> None:
+    castes = await user.http_client.get("/wiki/castes", params={"splat": "Sidereal"})
+    screen = await user.http_client.get("/wiki/st-screen")
+
+    assert '<td class="name">The Captain</td>' in castes.text
+    assert "Attack Sequence" in screen.text
+    assert '<th scope="col">What happens</th>' in screen.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_an_armor_card_has_the_armor_columns(user: User) -> None:
+    response = await user.http_client.get("/wiki/equipment", params={"kind": "armor"})
+
+    assert '<th scope="col">Soak</th>' in response.text
+    assert '<th scope="col">Accuracy</th>' not in response.text

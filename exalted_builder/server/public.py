@@ -28,7 +28,7 @@ def _front_page():
         "of Exalted.</p>"
         + item_list([
             ("/wiki", "menu_book", "The Wiki",
-             "Charms, spells, martial arts, Merits and Flaws, Backgrounds. No login."),
+             "Charms, spells, martial arts, Merits, castes, equipment, artifacts. No login."),
             account,
             ("/about", "info", "About this site", "What it is, and who runs it"),
         ])

@@ -45,26 +45,33 @@ def _table(columns: list[str], rows: list[wv.Row]) -> str:
     head = "".join(f'<th scope="col">{esc(c)}</th>' for c in ["Name", *columns])
     body = []
     for row in rows:
+        # A "—" cell has the class "nil". A phone hides it: see `site.py`.
         cells = "".join(f'<td class="dim" data-label="{esc(label)}">{esc(value)}</td>'
                         if label == wv.SUMMARY else
+                        f'<td class="nil" data-label="{esc(label)}">—</td>' if value == "—" else
                         f'<td data-label="{esc(label)}">{esc(_keep_together(value))}</td>'
                         for label, value in zip(columns, row.cells))
-        body.append(f'<tr><td class="name"><a href="{esc(row.href)}">{esc(row.title)}</a></td>'
-                    f"{cells}</tr>")
+        name = (f'<a href="{esc(row.href)}">{esc(row.title)}</a>' if row.href
+                else esc(row.title))
+        body.append(f'<tr><td class="name">{name}</td>{cells}</tr>')
     return (f'<table class="table"><thead><tr>{head}</tr></thead>'
             f'<tbody>{"".join(body)}</tbody></table>')
 
 
-def _group_cards(columns: list[str], rows: list[wv.Row]) -> str:
+def _group_cards(columns: list[str], rows: list[wv.Row],
+                 group_columns: Optional[dict[str, list[str]]] = None) -> str:
     """Return one card for each group of `rows`, in order. Rows with no group go in
-    one card with no title."""
+    one card with no title. `group_columns` gives the columns of a group that does
+    not use `columns`."""
+    group_columns = group_columns or {}
     cards, group, members = [], None, []
 
     def flush() -> None:
         if members:
             title = (f'<p class="card-title">{_mark(members[0].accent)}{esc(group)}</p>'
                      if group else "")
-            cards.append(f'<section class="card">{title}{_table(columns, members)}</section>')
+            table = _table(group_columns.get(group, columns), members)
+            cards.append(f'<section class="card">{title}{table}</section>')
 
     for row in rows:
         if row.group != group:
@@ -124,7 +131,8 @@ def _pager(action: str, listing: wv.ListPage) -> str:
 def _list_page(ruleset: RuleSet, listing: wv.ListPage, description: str):
     """Return a list page. `description` goes to search engines only."""
     action = f"/wiki/{listing.section}"
-    results = (_group_cards(listing.columns, listing.rows) if listing.rows
+    results = (_group_cards(listing.columns, listing.rows, listing.group_columns)
+               if listing.rows
                else '<section class="card empty muted">Nothing matches this search.</section>')
     content = (f"{_tabs(ruleset, listing.section)}{_filter_card(action, listing)}"
                f"{results}{_pager(action, listing)}")
@@ -150,31 +158,85 @@ def _entry_page(ruleset: RuleSet, entry: wv.EntryPage):
         lines.append(f"<dt>Prerequisite Charms</dt><dd>{prerequisites}</dd>")
     stat = f'<dl class="stat">{"".join(lines)}</dl>' if lines else ""
     text = "".join(f"<p>{esc(p)}</p>" for p in entry.paragraphs)
+    blocks = "".join(
+        f'<p class="card-title" style="margin-top:14px">{esc(block.title)}</p>'
+        + "".join(f"<p>{esc(p)}</p>" for p in block.paragraphs)
+        for block in entry.blocks)
     extra = ""
     if entry.extra_lines:
         items = "".join(f"<li>{esc(line)}</li>" for line in entry.extra_lines)
         extra = f'<p class="card-title" style="margin-top:14px">{esc(entry.extra_title)}</p><ul>{items}</ul>'
     source = f'<p class="source muted">{esc(entry.source)}</p>' if entry.source else ""
-    charms = (f'<section class="card"><p class="card-title">Charms</p>'
+    charms = (f'<section class="card"><p class="card-title">{esc(entry.rows_title)}</p>'
               f"{_table(entry.columns, entry.rows)}</section>" if entry.rows else "")
     content = (f"{_tabs(ruleset, entry.section)}<div class=\"entry\">"
                f'<p class="crumbs"><a href="/wiki">Wiki</a> › '
                f'<a href="/wiki/{entry.section}">{esc(section_title)}</a></p>'
                f'<article class="card"><p class="card-title">{_mark(entry.accent)}'
                f"{esc(entry.kicker)}</p><h1>{esc(entry.title)}</h1>{stat}"
-               f'<div class="text">{text}</div>{extra}{source}</article>{charms}</div>')
+               f'<div class="text">{text}{blocks}</div>{extra}{source}</article>{charms}</div>')
     description = entry.paragraphs[0] if entry.paragraphs else entry.title
     return page(f"{entry.title} — {_WIKI}", content, current="wiki",
                 username=auth.current_username(), description=description,
                 heading=_HEADING, splat=entry.theme)
 
 
+def _search_tables(listing: wv.ListPage) -> str:
+    """Return the search matches of one section. A section with columns for each
+    group gets one table for each group, because the columns of the groups differ."""
+    if not listing.group_columns:
+        return _table(listing.columns, listing.rows)
+    parts, start = [], 0
+    for end in range(1, len(listing.rows) + 1):
+        if end == len(listing.rows) or listing.rows[end].group != listing.rows[start].group:
+            group = listing.rows[start].group
+            parts.append(f'<p class="crumbs muted">{esc(group)}</p>'
+                         + _table(listing.group_columns.get(group, listing.columns),
+                                  listing.rows[start:end]))
+            start = end
+    return "".join(parts)
+
+
+def _st_screen_page(ruleset: RuleSet):
+    """Return the Storyteller screen: one card for each group of tables."""
+    screen = ruleset.st_screen
+    cards = []
+    for group in screen.groups if screen else []:
+        tables = []
+        for table in group.tables:
+            head = "".join(f'<th scope="col">{esc(c)}</th>' for c in table.columns)
+            body = "".join(
+                "<tr>" + "".join(f'<td data-label="{esc(label)}">{esc(cell)}</td>'
+                                 for label, cell in zip(table.columns, row)) + "</tr>"
+                for row in table.rows)
+            note = f'<p class="source muted">{esc(table.note)}</p>' if table.note else ""
+            tables.append(f'<h2 class="ref">{esc(table.title)}</h2>'
+                          f'<table class="table ref"><thead><tr>{head}</tr></thead>'
+                          f"<tbody>{body}</tbody></table>{note}")
+        cards.append(f'<section class="card"><p class="card-title">{esc(group.title)}</p>'
+                     f'{"".join(tables)}</section>')
+    content = (f'{_tabs(ruleset, "st-screen")}'
+               + ("".join(cards) or '<section class="card empty muted">No tables.</section>'))
+    title = screen.title if screen and screen.title else "ST Screen"
+    return page(f"{title} — {_WIKI}", content, current="wiki",
+                username=auth.current_username(), heading=_HEADING,
+                description="Storyteller reference tables for Exalted First Edition: "
+                            "combat, actions, health, hazards and core rules.")
+
+
 _SECTION_CAPTIONS = {
     "charms": "Every Charm, by Exalt type and category",
     "martial-arts": "The styles, their form rules and their Charm trees",
     "spells": "Sorcery, necromancy and the Alchemical protocols, by Circle",
+    "thaumaturgy": "The Arts, the Sciences, the rituals and the formulas",
+    "powers": "The Dragon-King Paths and the elemental powers",
     "merits": "The Merits and Flaws",
     "backgrounds": "Each Background and the text of each rating",
+    "traits": "Attributes, Abilities, Virtues, Natures and Virtue Flaws",
+    "castes": "The castes and aspects of each Exalt type, with their anima powers",
+    "equipment": "Weapons, armor, goods and services, and the magical materials",
+    "artifacts": "The rated artifacts, by rating",
+    "st-screen": "The Storyteller's reference tables",
 }
 
 
@@ -191,7 +253,7 @@ def _index_page(ruleset: RuleSet, q: str = ""):
                     f"results in {esc(listing.title)}</a></p>"
                     if listing.total > len(listing.rows) else "")
             sections.append(f'<section class="card"><p class="card-title">{esc(listing.title)}'
-                            f"</p>{_table(listing.columns, listing.rows)}{more}</section>")
+                            f"</p>{_search_tables(listing)}{more}</section>")
         results = "".join(sections) or '<section class="card empty muted">Nothing matches this search.</section>'
     else:
         items = [(f"/wiki/{s.slug}", _TAB_ICONS[s.slug], f"{s.title} ({s.count:,})",
@@ -201,8 +263,9 @@ def _index_page(ruleset: RuleSet, q: str = ""):
     content = f'{_tabs(ruleset, "")}<div class="entry">{search}{results}</div>'
     return page(_WIKI, content, current="wiki", username=auth.current_username(),
                 heading=_HEADING,
-                description="Charms, spells, martial arts, Merits and Flaws, and "
-                            "Backgrounds for Exalted First Edition.")
+                description="Charms, spells, thaumaturgy, martial arts, Merits and Flaws, "
+                            "Backgrounds, castes, equipment and artifacts for Exalted "
+                            "First Edition.")
 
 
 def _entry_route(ruleset: RuleSet, lookup: Callable[[RuleSet, str], Optional[wv.EntryPage]]):
@@ -254,6 +317,45 @@ def register_wiki(ruleset: RuleSet) -> None:
         return _list_page(ruleset, wv.background_list(ruleset, splat=splat, query=q,
                                                       page=_positive(page)),
                           "The Backgrounds of Exalted First Edition, with the text of each rating.")
+
+    def reference(build: Callable[..., wv.ListPage], description: str):
+        """Return the endpoint of a list page whose one filter is `kind`."""
+        def endpoint(kind: str = "", q: str = "", page: int = 1):
+            return _list_page(ruleset, build(ruleset, kind=kind, query=q, page=_positive(page)),
+                              description)
+        return endpoint
+
+    def castes(splat: str = "", q: str = "", page: int = 1):
+        return _list_page(ruleset, wv.caste_list(ruleset, splat=splat, query=q,
+                                                 page=_positive(page)),
+                          "The castes and aspects of each Exalt type of Exalted First "
+                          "Edition, with their anima powers.")
+
+    def artifacts(rating: str = "", tag: str = "", q: str = "", page: int = 1):
+        return _list_page(ruleset, wv.artifact_list(ruleset, rating=rating, tag=tag, query=q,
+                                                    page=_positive(page)),
+                          "The rated artifacts of Exalted First Edition.")
+
+    for slug, build, lookup, description in (
+            ("thaumaturgy", wv.thaumaturgy_list, wv.thaumaturgy_page,
+             "The thaumaturgy of Exalted First Edition: Arts, Sciences, rituals and formulas."),
+            ("powers", wv.power_list, wv.power_page,
+             "The Dragon-King Paths and the elemental powers of Exalted First Edition."),
+            ("traits", wv.trait_list, wv.trait_page,
+             "The Attributes, Abilities, Virtues, Natures and Virtue Flaws of Exalted First "
+             "Edition."),
+            ("equipment", wv.equipment_list, wv.equipment_page,
+             "The weapons, armor, goods and magical materials of Exalted First Edition.")):
+        replace_route(f"/wiki/{slug}", reference(build, description), name=f"wiki-{slug}")
+        replace_route(f"/wiki/{slug}/{{entry_id}}", _entry_route(ruleset, lookup),
+                      name=f"wiki-{slug}-entry")
+    replace_route("/wiki/castes", castes, name="wiki-castes")
+    replace_route("/wiki/castes/{entry_id}", _entry_route(ruleset, wv.caste_page),
+                  name="wiki-caste")
+    replace_route("/wiki/artifacts", artifacts, name="wiki-artifacts")
+    replace_route("/wiki/artifacts/{entry_id}", _entry_route(ruleset, wv.artifact_page),
+                  name="wiki-artifact")
+    replace_route("/wiki/st-screen", lambda: _st_screen_page(ruleset), name="wiki-st-screen")
 
     replace_route("/wiki", index, name="wiki")
     replace_route("/wiki/charms", charms, name="wiki-charms")

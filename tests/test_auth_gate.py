@@ -77,6 +77,13 @@ PUBLIC_ROUTES = frozenset({
     "/wiki/spells", "/wiki/spells/{entry_id}",
     "/wiki/merits", "/wiki/merits/{entry_id}",
     "/wiki/backgrounds", "/wiki/backgrounds/{entry_id}",
+    "/wiki/thaumaturgy", "/wiki/thaumaturgy/{entry_id}",
+    "/wiki/powers", "/wiki/powers/{entry_id}",
+    "/wiki/traits", "/wiki/traits/{entry_id}",
+    "/wiki/castes", "/wiki/castes/{entry_id}",
+    "/wiki/equipment", "/wiki/equipment/{entry_id}",
+    "/wiki/artifacts", "/wiki/artifacts/{entry_id}",
+    "/wiki/st-screen",
 })
 
 
