@@ -33,7 +33,8 @@ def _front_page():
             ("/about", "info", "About this site", "What it is, and who runs it"),
         ])
         + "</section>")
-    return page(f"{SITE_NAME} — character builder and wiki", body, username=username,
+    return page(f"{SITE_NAME} — character builder and wiki", body, current="front",
+                username=username,
                 description="A character builder and a rules reference for the First "
                             "Edition of Exalted.")
 

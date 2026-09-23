@@ -28,8 +28,8 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import custom_content, persistence, rules_db
-from ..server import (auth, characters, config, db, home, public, quota, table_log, table_view,
-                      tables, wiki)
+from ..server import (auth, characters, chrome, config, db, home, nav, public, quota,
+                      table_log, table_view, tables, wiki)
 from ..server.session import SessionRegistry
 
 _DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -56,6 +56,14 @@ SESSION_COOKIE = {
     "path": "/",
     "same_site": "lax",
 }
+
+
+def _campaign_links(table_store: tables.TableStore) -> list[tuple[str, str]]:
+    """Return (address, name) of each campaign of the account of the request."""
+    user_id = auth.current_user_id()
+    if user_id is None:
+        return []
+    return [(chrome.table_url(row.id), row.name) for row in table_store.for_user(user_id)]
 
 
 def build_server(session_root: Path | None = None,
@@ -93,6 +101,7 @@ def build_server(session_root: Path | None = None,
     # ⚠ ONE store for the process. It holds the join throttle, and a second store
     # has a second count.
     table_store = tables.TableStore(db_path=database, root=root)
+    nav.set_campaign_source(lambda: _campaign_links(table_store))
     sessions = home.register_character_pages(
         store, book, auth.current_user_id, rules_db.load_adversary_catalog(_DATA_DIR),
         table_store)

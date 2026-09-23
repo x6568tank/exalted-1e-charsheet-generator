@@ -18,17 +18,14 @@ from typing import Callable, Optional
 
 from ..models.rules import RuleSet
 from ..ui import wiki_view as wv
-from . import auth
+from . import auth, nav
 from .site import SITE_NAME, esc, href, icon, item_list, not_found, page, replace_route
 
 _WIKI = f"{SITE_NAME} Wiki"
 _HEADING = f"{SITE_NAME} — Wiki"
 
-# The icon of each section in the tab strip. "Merits & Flaws" takes the icon of the
-# builder's Advantages tab, and "Charms" the icon of its Charms tab.
-_TAB_ICONS = {"charms": "account_tree", "martial-arts": "sports_martial_arts",
-              "spells": "auto_fix_high", "merits": "workspace_premium",
-              "backgrounds": "diversity_3"}
+# The icon of each section in the tab strip and in the site menu.
+_TAB_ICONS = nav.SECTION_ICONS
 
 
 def _mark(accent: str) -> str:

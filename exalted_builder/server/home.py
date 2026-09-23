@@ -178,8 +178,11 @@ def register_character_pages(store: CharacterStore, book: RuleSet,
                     ui.notify(str(exc), type="warning")
             ui.navigate.to(character_url(row.id))
 
+        # The page holds work in progress, thus the wiki opens in a new tab.
+        drawer = chrome.nav_drawer(theme.palette(ctx["char"].exalt_type), live=True)
         builder.build_app(ctx["ruleset"], ctx["char"], ctx["path"], ctx=ctx, hosted=True,
                           home_path=HOME_PATH,
+                          top_bar_menu=lambda: chrome.menu_button(drawer),
                           on_lock=None if row.is_copy else after_lock,
                           in_campaign=row.table_id is not None,
                           campaign_draft=draft_table.name if draft_table else None)
@@ -205,9 +208,7 @@ def _build_home(store: CharacterStore, tables: TableStore, rulesets: AccountRule
     pal = theme.palette(None)
     # The Homebrew tab draws a Charm tree.
     ui.add_head_html(cytoscape_head_html())
-    with chrome.header(pal, "Exalted 1e — Your characters"):
-        ui.button("Wiki", icon="menu_book", on_click=lambda: ui.navigate.to("/wiki")).props(
-            "flat color=white")
+    with chrome.header(pal, "Exalted 1e — Your characters", current="home"):
         chrome.logout_button()
 
     def new_character() -> None:

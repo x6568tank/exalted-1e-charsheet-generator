@@ -28,6 +28,7 @@ from nicegui import __version__ as nicegui_version
 from nicegui import app
 
 from ..ui import theme
+from . import nav
 
 SITE_NAME = "Exalted 1e"
 
@@ -106,9 +107,35 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   gap: .25rem 1rem; min-height: 64px; padding-inline: 16px; background: var(--accent); color: #fff;
   box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px rgba(0,0,0,.14), 0 1px 10px rgba(0,0,0,.12);
 }
+.bar { position: sticky; top: 0; z-index: 20; }
 .bar .title { font-size: 18px; font-weight: 700; color: #fff; }
-.bar .title:hover { text-decoration: none; }
-.bar nav { display: flex; flex-wrap: wrap; gap: 0 .25rem; }
+.bar nav.quick { display: flex; flex-wrap: wrap; gap: 0 .25rem; }
+
+/* The site menu: a drawer below the header bar */
+.menu summary {
+  display: flex; align-items: center; gap: 10px; list-style: none; cursor: pointer;
+  color: #fff; padding: 6px 10px 6px 6px; margin-left: -6px; border-radius: 4px; user-select: none;
+}
+.menu summary::-webkit-details-marker { display: none; }
+.menu summary:hover, .menu[open] summary { background: rgba(255,255,255,.12); }
+.menu .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 21; }
+.drawer {
+  position: fixed; top: 0; bottom: 0; left: 0; width: 280px; max-width: 85vw; overflow-y: auto;
+  z-index: 22; padding: 0 0 8px; background: var(--bg); color: var(--ink);
+  box-shadow: 0 8px 10px -5px rgba(0,0,0,.2), 0 16px 24px 2px rgba(0,0,0,.14), 0 6px 30px 5px rgba(0,0,0,.12);
+}
+.drawer .head {
+  display: flex; align-items: center; gap: 10px; height: 64px; padding: 0 16px; margin-bottom: 8px; flex-shrink: 0;
+  background: var(--accent); color: #fff; font-size: 18px; font-weight: 700; cursor: pointer; user-select: none;
+}
+.drawer a { display: flex; align-items: center; gap: 16px; min-height: 48px; padding: 8px 16px; color: var(--ink); font-weight: 500; }
+.drawer a:hover { background: rgba(0,0,0,.05); text-decoration: none; }
+.drawer a .mi { color: var(--accent); font-size: 22px; }
+.drawer a.sub { min-height: 32px; padding: 4px 16px 4px 40px; font-weight: 400; font-size: 13.5px; }
+.drawer a.sub .mi { font-size: 18px; opacity: .8; }
+.drawer a.on { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+.drawer a .ext { margin-left: auto; font-size: 16px; color: inherit; opacity: .5; }
+.drawer hr { border: 0; border-top: 1px solid color-mix(in srgb, var(--edge) 18%, transparent); margin: 6px 0; }
 .btn {
   display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 4px;
   color: #fff; font-weight: 500; font-size: 14px; text-transform: uppercase; letter-spacing: .0892em;
@@ -201,6 +228,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .source { margin: 12px 0 0; font-size: 12.5px; font-style: italic; }
 .empty { padding: 8px 0; }
 @media (max-width: 720px) {
+  .bar nav.quick { display: none; }
   .btn .t { display: none; }
   .btn { padding: 6px 8px; }
   .tabs { justify-content: flex-start; }
@@ -249,10 +277,54 @@ def style_sheet(splat: str = "") -> str:
     return _palette_css(splat) + _CSS
 
 
+def drawer_html(username: Optional[str], current: str = "", *, live: bool = False) -> str:
+    """Return the links of the site menu. `current` marks the entry of that key."""
+    parts = []
+    for number, group in enumerate(nav.groups(username, live=live)):
+        if number:
+            parts.append("<hr>")
+        for link in group:
+            classes = " ".join(c for c in ("sub" if link.sub else "",
+                                           "on" if current and link.key == current else "")
+                               if c)
+            attrs = f' class="{classes}"' if classes else ""
+            if current and link.key == current:
+                attrs += ' aria-current="page"'
+            if link.new_tab:
+                attrs += ' target="_blank" rel="noopener"'
+            tail = icon("open_in_new", "ext") if link.new_tab else ""
+            parts.append(f'<a href="{esc(link.href)}"{attrs}>{icon(link.icon)}'
+                         f"<span>{esc(link.label)}</span>{tail}</a>")
+    return "".join(parts)
+
+
 def header_bar(current: str, username: Optional[str], heading: str = SITE_NAME) -> str:
-    """Return the header bar of a public page. `current` marks one button."""
-    return (f'<header class="bar"><a class="title" href="/">{esc(heading)}</a>'
-            f'<nav aria-label="Site">{_nav(current, username)}</nav></header>')
+    """Return the header bar of a public page, with the site menu. `current` marks
+    one button and one menu entry.
+
+    ⚠ The menu is a `<details>` element, thus it opens with no script. `MENU_SCRIPT`
+    closes it: on Escape, on the scrim, and on the head of the drawer.
+    """
+    return (f'<header class="bar"><details class="menu">'
+            f'<summary aria-label="Site menu" data-testid="nav-menu">{icon("menu")}'
+            f'<span class="title">{esc(heading)}</span></summary>'
+            f'<div class="scrim"></div>'
+            f'<nav class="drawer" aria-label="Site menu"><div class="head shut">{icon("menu")}'
+            f"<span>{esc(SITE_NAME)}</span></div>{drawer_html(username, current)}</nav>"
+            f'</details><nav class="quick" aria-label="Site">{_nav(current, username)}</nav>'
+            "</header>")
+
+
+# Close each open site menu on Escape and on a click on the scrim or on the head of
+# the drawer (class "shut"). The listeners are
+# on the document, thus the script works before and after the menu is in the page.
+MENU_SCRIPT = (
+    "<script>(function(){function shut(){document.querySelectorAll('details.menu[open]')"
+    ".forEach(function(d){d.open=false;});}"
+    "document.addEventListener('click',function(e){if(e.target.closest&&"
+    "e.target.closest('.scrim, .shut'))shut();});"
+    "document.addEventListener('keydown',function(e){if(e.key==='Escape')shut();});"
+    "})();</script>")
 
 
 FOOTER = ('<footer class="footer muted">An unofficial fan site, not affiliated with the '
@@ -276,7 +348,7 @@ def page(title: str, body: str, *, current: str = "", username: Optional[str] = 
         f"<title>{esc(title)}</title>{meta}{_FONTS}"
         f"<style>{style_sheet(splat)}</style></head><body>"
         f"{header_bar(current, username, heading)}"
-        f'<main class="page">{body}</main>{FOOTER}'
+        f'<main class="page">{body}</main>{FOOTER}{MENU_SCRIPT}'
         "</body></html>")
     return HTMLResponse(html)
 

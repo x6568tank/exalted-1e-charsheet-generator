@@ -15,7 +15,7 @@ from nicegui import ui
 
 from ..models.rules import RuleSet
 from ..ui import theme
-from . import auth
+from . import auth, nav, site
 from .characters import CharacterRow, CharacterStore
 
 HOME_PATH = auth.HOME_PATH
@@ -33,11 +33,69 @@ def table_url(table_id: str) -> str:
     return f"{TABLE_PATH}/{table_id}"
 
 
-def header(pal, title: str) -> ui.row:
-    """Draw the top bar of the builder. Return the row for its buttons."""
+def nav_drawer(pal, *, live: bool = False, current: str = "") -> ui.left_drawer:
+    """Draw the site menu, closed. Return it, for `menu_button`.
+
+    The entries come from `nav.groups`, thus they agree with the menu of the public
+    pages. `live` opens the wiki and About in a new tab. `current` marks the entry
+    of that key. ⚠ Call it at the top level of the page, not in the header.
+    """
+    drawer = ui.left_drawer(value=False).props(
+        "overlay behavior=mobile width=280").classes("p-0 gap-0").style(
+        f"background:{pal.bg};color:{pal.ink}").mark("nav-drawer")
+    with drawer:
+        # The head repeats the menu button of the top bar, and closes the menu.
+        with ui.row().classes(
+                "w-full items-center gap-3 px-4 h-16 no-wrap cursor-pointer text-white "
+                "text-lg font-bold").style(f"background:{pal.accent}").on(
+                "click", drawer.hide).mark("nav-drawer-head"):
+            ui.icon("menu", size="24px")
+            ui.label(site.SITE_NAME)
+    with drawer, ui.list().classes("w-full py-2"):
+        for number, group in enumerate(nav.groups(auth.current_username(), live=live)):
+            if number:
+                ui.separator().classes("my-1")
+            for link in group:
+                item = ui.item().props("clickable tag=a").classes(
+                    "min-h-0 py-1 pl-10 text-[13.5px]" if link.sub else "font-medium")
+                item.props["href"] = link.href
+                if link.new_tab:
+                    item.props["target"] = "_blank"
+                    item.props["rel"] = "noopener"
+                if current and link.key == current:
+                    item.props["active"] = True
+                    item.props["active-class"] = "nav-on"
+                with item:
+                    with ui.item_section().props("avatar").classes("min-w-0 pr-4"):
+                        ui.icon(link.icon, size="18px" if link.sub else "22px").style(
+                            f"color:{pal.accent}")
+                    ui.item_section(link.label)
+                    if link.new_tab:
+                        with ui.item_section().props("side"):
+                            ui.icon("open_in_new", size="16px").classes("opacity-50")
+    ui.add_css(f".nav-on{{color:{pal.accent};"
+               f"background:color-mix(in srgb,{pal.accent} 14%,transparent)}}")
+    return drawer
+
+
+def menu_button(drawer: ui.left_drawer, title: str | None = None) -> None:
+    """Draw the button that opens the site menu. `title` adds the page title to
+    the button."""
+    with ui.button(on_click=drawer.toggle).props(
+            "flat no-caps color=white" + ("" if title else " round")).classes(
+            "px-2" if title else "").mark("nav-menu"):
+        ui.icon("menu")
+        if title:
+            ui.label(title).classes("text-lg font-bold ml-2")
+
+
+def header(pal, title: str, *, current: str = "") -> ui.row:
+    """Draw the site menu and the top bar of the builder. Return the row for its
+    buttons. The title opens the menu."""
+    drawer = nav_drawer(pal, current=current)
     with ui.header().classes("items-center justify-between px-4").style(
             f"background:{pal.accent}"):
-        ui.label(title).classes("text-lg font-bold text-white")
+        menu_button(drawer, title)
         buttons = ui.row().classes("items-center gap-2")
     ui.query("body").style(f"background:{pal.bg};color:{pal.ink}")
     return buttons

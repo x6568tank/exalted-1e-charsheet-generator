@@ -835,7 +835,11 @@ owner, stay real. The human writes the text.
 base URL, which behind the reverse proxy is not `request.base_url`; crawlers follow the
 links meanwhile. The wiki does not show the trait text, the ST-screen tables, artifacts,
 thaumaturgy or the Dragon-King Paths yet — all in `data/`, all addable as sections by the
-same pattern. The logged-in builder has no link to the wiki.
+same pattern. ~~The logged-in builder has no link to the wiki.~~ ✅ 2026-09-23: every
+hosted page has the **site menu**, a drawer behind ☰ and the site name
+(`server/nav.py` is the one entry list; `site.py` draws it in HTML, `chrome.py` in
+Quasar). It lists the account's campaigns and each wiki section; on the character and
+campaign pages the wiki and About open in a new tab.
 
 ### 9.8 SHIPPED 2026-09-12 — `/home`, the character pages, the base and the copy (piece 4)
 

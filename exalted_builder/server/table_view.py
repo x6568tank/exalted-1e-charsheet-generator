@@ -231,9 +231,12 @@ class _TableView:
     def build(self) -> None:
         pal = self.pal
         ui.query("body").style(f"background:{pal.bg};color:{pal.ink}")
+        # The page holds work in progress, thus the wiki opens in a new tab.
+        drawer = chrome.nav_drawer(pal, live=True)
         with ui.header().classes("items-center justify-between px-4 py-1").style(
                 f"background:{pal.accent}"):
             with ui.row().classes("items-center gap-1 no-wrap min-w-0"):
+                chrome.menu_button(drawer)
                 chrome.home_button()
                 ui.label("›").classes("text-white/70")
                 ui.label(self.table.name).classes(

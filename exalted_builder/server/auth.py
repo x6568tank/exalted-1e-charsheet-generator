@@ -146,6 +146,7 @@ def _frame(current: str) -> ui.element:
     # The public pages have no padding around the header bar. NiceGUI pads its content.
     ui.add_head_html(f"<style>{site.style_sheet()}"
                      ".nicegui-content{padding:0;gap:0;align-items:stretch}</style>")
+    ui.add_body_html(site.MENU_SCRIPT)
     ui.html(site.header_bar(current, None), sanitize=False)
     with ui.element("main").classes("page w-full"):
         card = ui.element("section").classes("card auth")

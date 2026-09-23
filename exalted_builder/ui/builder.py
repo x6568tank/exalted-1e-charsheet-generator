@@ -205,7 +205,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
               home_path: str | None = None,
               on_lock: Callable[[], None] | None = None,
               in_campaign: bool = False,
-              campaign_draft: str | None = None) -> None:
+              campaign_draft: str | None = None,
+              top_bar_menu: Callable[[], None] | None = None) -> None:
     """Render the single-character builder. `ctx` is the shared app context; when
     omitted (running this module standalone) a private one is created, so the
     builder still works with no party involved.
@@ -248,6 +249,9 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
     `campaign_draft` is the name of the campaign for which this draft is made
     (p3-tables.md section 14, step 6b). The page says so, and the ST Options tab
     builds no control: the draft is built under the rules of the campaign.
+
+    `top_bar_menu` draws a control at the left end of the top bar. The hosted
+    server draws the button of its site menu there.
     """
     # ⚠ The seven tabs take a callback here and this function takes a path. That
     # asymmetry is deliberate, and it misleads: a caller that passes a save
@@ -650,6 +654,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         # The left side says WHICH character this is. With several characters an
         # account cannot tell the pages apart by the splat alone.
         with ui.row().classes("items-center gap-1 no-wrap min-w-0"):
+            if top_bar_menu is not None:
+                top_bar_menu()
             if home_path is not None:
                 ui.button("Home", icon="chevron_left",
                           on_click=lambda: ui.navigate.to(home_path)).props(
