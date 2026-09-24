@@ -45,9 +45,8 @@ The Compose entry:
 
 ### The memory limit
 
-⚠ **NOT YET APPLIED** (checked 2026-09-24: the live Compose entry has no `mem_limit`).
-It is the human's Compose edit; `docker compose up -d exalted` then recreates the
-container with it.
+✅ **Applied 2026-09-24**: the container was recreated with it, and
+`docker stats` shows a limit of 2 GiB (about 100 MiB in use at idle).
 
 It protects the *other* apps on the host from this one. Without a limit, a container that
 leaks or spikes takes memory from the rest, and the kernel's OOM killer picks the victim,
