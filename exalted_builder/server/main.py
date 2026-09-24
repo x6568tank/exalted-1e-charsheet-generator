@@ -105,12 +105,13 @@ def build_server(session_root: Path | None = None,
     nav.set_campaign_source(lambda: _campaign_links(table_store))
     # ⚠ ONE set of RuleSets for the process. The Custom pages reload them in place.
     rulesets = Rulesets(book, store, table_store)
+    catalog = rules_db.load_adversary_catalog(_DATA_DIR)
     sessions = home.register_character_pages(
-        store, rulesets, auth.current_user_id,
-        rules_db.load_adversary_catalog(_DATA_DIR), table_store)
+        store, rulesets, auth.current_user_id, catalog, table_store)
     # The table view writes YOU PLAY through the character registry.
     table_view.register_table_page(table_store, store, rulesets, sessions,
-                                   auth.current_user_id, table_log.TableLog(table_store))
+                                   auth.current_user_id, table_log.TableLog(table_store),
+                                   catalog)
     return sessions
 
 

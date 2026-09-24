@@ -51,11 +51,17 @@ a dumb manual tracker — nothing auto-wraps, auto-heals or auto-accounts.
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
 from .rules import Damage
+
+
+# The two sides of a roster entry (p3-tables.md section 15.1, R6).
+ENEMY = "enemy"
+ALLY = "ally"
+Side = Literal["enemy", "ally"]
 
 
 class AdversaryAttack(BaseModel):
@@ -111,6 +117,11 @@ class Adversary(BaseModel):
     # under both. This is the GM's own filing label with no printed meaning, which is
     # why it can be several at once where `caste` cannot.
     categories: list[str] = Field(default_factory=list)
+    # The side of the entry at a campaign table (R6). The default is the old
+    # meaning, thus each roster in a `.party.json` loads as enemies.
+    # ⚠ An enemy never reaches the page of a player. An ally reaches it as a name
+    # and a health track only (`view.ally_view`, R7).
+    side: Side = ENEMY
     nature: str = ""
     caste: str = ""
 

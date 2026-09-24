@@ -1,6 +1,55 @@
-# Session handoff — 2026-09-24 (P3 step 7 clicked; the request views; the login name)
+# Session handoff — 2026-09-24 (P3 step 8 clicked: the roster, the NPC sides, the Storyteller view)
 
 # 👉 YOU ARE HERE
+
+**P3 step 8 is DONE and BROWSER-VERIFIED (2026-09-24).** `docs/plans/p3-tables.md` §14
+"Step 8" is the record, the click-through at its end.
+
+* **Rulings, 2026-09-24:** an NPC's side is picked **when the ST adds it** (Add a
+  character, ST only, starts on Enemy); a player sees an ally NPC as **name + health
+  only**; an NPC with no side (every NPC made before step 8) is an **enemy**; the Log
+  line of Grant XP does not name an enemy NPC (full-character NPCs only; a roster entry
+  takes no XP); **+** on both ALLIES and ENEMIES; roster cards are **compact, expand
+  in place**.
+* New: `server/table_roster.py` (the live roster per table, `adversaries.json`),
+  `server/table_notes.py` (`notes/<user id>.json`, private), `Adversary.side`,
+  `view.AllyView`, the NPC sides in `TableStore` (`npc_sides.json`, moved from base to
+  copy at approval). `ui/adversaries.py`: `roster_card` (with a compact mode) and
+  `open_add_dialog` split out of `build_roster`; the Party page keeps its full card.
+* **The click-through found the missing Storyteller view** (the human: *"there's no
+  way to 'view as ST'"*). Now the ST's first Open-as choice is **Storyteller** (the
+  default, in place of Spectate): every NPC is under ALLIES / ENEMIES with its switch
+  and live trackers. It also found white roster dialogs (themed now, the Party page
+  too) and cards too big for the rail (compact now).
+* ⚠ The roster's dialogs live in `dialog_host`, one at a time (a closed dialog stays in
+  its element and caught a click meant for the next one).
+
+**Full suite: 4148 passed + 1 skipped — OBSERVED** on the dev machine after all of the
+above, the flake fix included (4141 + 1 skipped before the click-through fixes). ⚠ The count moves
+by machine (`docs/testing.md`). ⚠ **The failure was the old flake, and it is FIXED** (the human: *"if we have a flaky
+test we should look at it"*). Cause: the NiceGUI user simulation has one global
+`ui.navigate`, pointed at the simulated user read last; the Storyteller's open table page
+sent JavaScript during the newcomer's sign-up await, and the redirect went to the
+Storyteller's browser. Reproduced deterministically; `tests/conftest.py` now routes
+navigate and notify by `context.client`; `tests/test_user_simulation_routing.py` (2)
+fails without the patch. `docs/testing.md` has the trap. Suite after the fix: **4148 passed + 1 skipped — OBSERVED**, no failure.
+
+**Working tree:** step 8 is **uncommitted** unless a later commit says otherwise. Check
+`git status`. **Not deployed.** The click-through server ran from `/tmp/exalted-click9/`
+(accounts `storyteller`, `alice`, `bob`, password `clickthrough`).
+
+🖱 **Owed:** nothing.
+
+❓ **Open for the human:** nothing.
+
+**Next:** P3 **step 9**, initiative for the whole table, its results to the Log
+(§9, §15.4). ⚠ With the Storyteller view, the initiative button belongs to the ST's
+page; NPCs and roster entries roll too, and an enemy's result must not reach a
+player's Log by name (the step-8 Log rule).
+
+---
+
+## The session before — P3 step 7 clicked; the request views; the login name (2026-09-24)
 
 **P3 step 7 (the campaign homebrew) PASSED its click-through on 2026-09-24**, all eight
 steps. The click-through found one defect and two requests; all three are built, tested
@@ -50,7 +99,6 @@ rules or secrets (the human, 2026-09-24).
 
 **Next:** P3 **step 8**, the roster on the table, with the Enemy / Ally switch for roster
 entries AND for full-character NPCs (ruled).
-
 ---
 
 ## The session before — P3 step 7 built (2026-09-23)

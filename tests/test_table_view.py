@@ -1272,7 +1272,8 @@ async def test_the_storytellers_own_character_joins_at_once(create_user) -> None
     assert _tables().pending(st_id, table.id) == []
     (copy,) = _tables().characters(table.id)
     assert copy.owner_id == st_id
-    await st.should_see(marker="you-play", retries=_POLL_RETRIES)
+    # The Storyteller view: the NPC is in ENEMIES, with its live controls.
+    await st.should_see(marker=f"npc-{copy.id}-play", retries=_POLL_RETRIES)
 
 
 # --------------------------------------------------------------------------- #
@@ -1291,13 +1292,17 @@ async def _with_npc(create_user):
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
-async def test_a_player_sees_the_npc_badge_on_the_storytellers_character(
-        create_user) -> None:
+async def test_a_player_gets_nothing_of_an_npc_with_no_side(create_user) -> None:
+    """Step 8: an NPC with no side is an enemy. It reaches the page of a player as
+    nothing at all, not as a hidden element."""
     st, table, player, copy, npc = await _with_npc(create_user)
     await player.open(chrome.table_url(table.id))
 
-    await player.should_see(marker=f"npc-badge-{npc.id}")
-    assert not _marked_all(player, f"npc-badge-{copy.id}")
+    await player.should_see(marker="you-play")
+    await player.should_see("PARTY (1)")
+    assert "Gamemaster's Own" not in _page_text(player)
+    assert not _marked_all(player, f"npc-badge-{npc.id}")
+    assert not _marked_all(player, f"other-{npc.id}")
 
 
 @pytest.mark.asyncio
@@ -1306,10 +1311,11 @@ async def test_the_storyteller_sees_the_badge_in_you_play_and_the_st_tab(
         create_user) -> None:
     st, table, player, copy, npc = await _with_npc(create_user)
     await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="table-open-as")
+    _one(st, "table-open-as").set_value(npc.id)
 
-    await st.should_see(marker=f"st-copy-{npc.id}")
+    await st.should_see(marker="npc-badge-you")
     assert _marked_all(st, f"npc-badge-{npc.id}")
-    assert _marked_all(st, "npc-badge-you")
     assert not _marked_all(st, f"npc-badge-{copy.id}")
 
 
@@ -1360,3 +1366,341 @@ async def test_a_request_card_warns_of_different_house_rules(create_user) -> Non
                         content="ST house rules are different on this character")
     await st.should_see("Magic for Everyone: Off (campaign: On)")
     assert not _marked_all(st, f"table-request-rules-{agrees.id}")
+
+
+# --------------------------------------------------------------------------- #
+# Step 8: the roster on the table, the NPC sides and the notes
+# --------------------------------------------------------------------------- #
+
+
+async def _eventually(check) -> None:
+    """Wait up to two polls for `check()` to be True."""
+    import asyncio
+    for _ in range(_POLL_RETRIES):
+        if check():
+            return
+        await asyncio.sleep(0.1)
+    assert check()
+
+
+def _page_text(user: User) -> str:
+    """Each text, value and prop of each element of the page of `user`, hidden or
+    not: what the browser gets."""
+    parts = []
+    for element in user.client.elements.values():
+        parts.append(str(getattr(element, "text", "") or ""))
+        parts.append(str(getattr(element, "value", "") or ""))
+        parts.append(" ".join(str(v) for v in element._props.values()))
+    return "\n".join(parts)
+
+
+async def _add_entry(st: User, side: str, template_id: str) -> str:
+    """Add the catalogue template `template_id` on `side` through the page of the
+    Storyteller. Return the id of the new entry."""
+    before = {m for e in st.client.elements.values() for m in e._markers
+              if m.startswith("adv-card-")}
+    st.find(marker=f"table-add-{side}").click()
+    await st.should_see(marker=f"adv-tpl-{template_id}")
+    st.find(marker=f"adv-tpl-{template_id}").click()
+    for _ in range(50):
+        after = {m for e in st.client.elements.values() for m in e._markers
+                 if m.startswith("adv-card-")}
+        if after - before:
+            (new,) = after - before
+            return new.removeprefix("adv-card-")
+        await st.should_see(marker=f"table-{side}")
+    raise AssertionError("no entry was added")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_player_sees_an_ally_as_a_name_and_health_and_no_enemy(create_user) -> None:
+    """R4 and R7. ⚠ The walk covers each element, hidden or not."""
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, _), = players
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="table-enemy")
+    enemy = await _add_entry(st, "enemy", "adv.heretic")
+    ally = await _add_entry(st, "ally", "adv.bandit")
+    await st.should_see(marker=f"adv-side-{ally}")
+
+    await player.open(chrome.table_url(table.id))
+
+    await player.should_see(marker=f"ally-{ally}")
+    await player.should_see("ALLIES (1)")
+    text = _page_text(player)
+    assert "Bandit" in text
+    assert "Heretic" not in text
+    # The stats of the ally stay with the Storyteller.
+    for stat in ("Init 6", "Short Sword", "buff jacket", "Soak", "Larceny"):
+        assert stat not in text, stat
+    assert not _marked_all(player, f"adv-card-{ally}")
+    assert not _marked_all(player, f"adv-card-{enemy}")
+    assert not _marked_all(player, "table-enemy")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_sees_both_sides_with_full_cards_and_switches(
+        create_user) -> None:
+    st, _, table, _ = await _campaign(create_user, "Ashes of Dawn")
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="table-enemy")
+    enemy = await _add_entry(st, "enemy", "adv.heretic")
+
+    await st.should_see("ENEMIES (1)")
+    await st.should_see(marker=f"adv-card-{enemy}")
+    assert _one(st, f"adv-side-{enemy}").value == "enemy"
+    await st.should_see("ALLIES (0)")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_switch_moves_an_entry_and_the_player_sees_it_at_the_poll(
+        create_user) -> None:
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, _), = players
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="table-enemy")
+    entry = await _add_entry(st, "enemy", "adv.heretic")
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="table-board")
+    assert "Heretic" not in _page_text(player)
+
+    _one(st, f"adv-side-{entry}").set_value("ally")
+
+    await st.should_see("ALLIES (1)")
+    await player.should_see(marker=f"ally-{entry}", retries=_POLL_RETRIES)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_mark_on_an_ally_reaches_the_player_at_the_poll(create_user) -> None:
+    """R8: the Storyteller marks the ally. The player sees the mark."""
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, _), = players
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="table-ally")
+    entry = await _add_entry(st, "ally", "adv.bandit")
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker=f"ally-health-{entry}-0")
+    assert _one(player, f"ally-health-{entry}-0").text == ""
+
+    st.find(marker=f"adv-health-{entry}-0").click()
+
+    await _eventually(lambda: _one(player, f"ally-health-{entry}-0").text == "/")
+    # The ally row has no handler: a player cannot mark it.
+    assert not _one(player, f"ally-health-{entry}-0")._event_listeners
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_roster_is_saved_in_the_table_folder(create_user) -> None:
+    st, _, table, _ = await _campaign(create_user, "Ashes of Dawn")
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="table-ally")
+    await _add_entry(st, "ally", "adv.bandit")
+
+    import json as _json
+    saved = _json.loads((_tables().table_dir(table.id) / "adversaries.json").read_text())
+    assert [(a["name"], a["side"]) for a in saved] == [("Bandit", "ally")]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_an_edit_dialog_survives_a_repaint_of_the_roster(create_user) -> None:
+    """The poll clears ALLIES and ENEMIES. A dialog in them would be deleted."""
+    st, table, player, copy, npc = await _with_npc(create_user)
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="table-enemy")
+    entry = await _add_entry(st, "enemy", "adv.heretic")
+    _one(st, "table-open-as").set_value(table_view.SPECTATE)
+    await st.should_see(marker=f"npc-side-{npc.id}")
+    st.find(marker=f"adv-toggle-{entry}").click()
+    await st.should_see(marker=f"adv-edit-{entry}")
+    st.find(marker=f"adv-edit-{entry}").click()
+    await st.should_see("Edit adversary")
+
+    # A second device of the Storyteller moves the NPC: the poll repaints.
+    _tables().set_npc_side(table.storyteller_id, table.id, npc.id, "ally")
+    await _eventually(lambda: _one(st, f"npc-side-{npc.id}").value == "ally")
+
+    assert any(getattr(e, "text", "") == "Edit adversary"
+               for e in st.client.elements.values())
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_an_ally_npc_reaches_a_player_as_a_name_and_health_only(create_user) -> None:
+    st, table, player, copy, npc = await _with_npc(create_user)
+    _tables().set_npc_side(table.storyteller_id, table.id, npc.id, "ally")
+
+    await player.open(chrome.table_url(table.id))
+
+    await player.should_see(marker=f"ally-{npc.id}")
+    assert _marked_all(player, f"ally-health-{npc.id}-0")
+    assert not _marked_all(player, f"other-{npc.id}")
+    assert not _marked_all(player, f"npc-badge-{npc.id}")
+    # Nothing of the row of THE OTHERS: the identity line, the motes, the Willpower.
+    ally = _one(player, f"ally-{npc.id}")
+    texts = [getattr(e, "text", "") for e in ally.descendants()]
+    assert not any(t.startswith(("WP ", "Motes ")) or "Dawn" in t for t in texts), texts
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_files_an_npc_by_side_and_switches_it(create_user) -> None:
+    st, table, player, copy, npc = await _with_npc(create_user)
+    # Open as the player character of nobody: the Storyteller spectates.
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="table-enemy")
+    _one(st, "table-open-as").set_value(table_view.SPECTATE)
+    await st.should_see(marker=f"npc-side-{npc.id}")
+    assert any(f"npc-{npc.id}-play" in e._markers
+               for e in _one(st, "table-enemy").descendants())
+
+    _one(st, f"npc-side-{npc.id}").set_value("ally")
+
+    await st.should_see("ALLIES (1)")
+    assert _tables().npc_side(table.id, npc.id) == "ally"
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker=f"ally-{npc.id}")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_picks_the_side_when_adding_an_npc(create_user) -> None:
+    """Human, 2026-09-24: "Switch when adding an NPC." """
+    st, st_id, table, _ = await _campaign(create_user, "Ashes of Dawn")
+    _base(st_id, "Friendly Sage")
+    await st.open(chrome.table_url(table.id))
+    st.find(marker="table-add-character").click()
+    await st.should_see(marker="add-character-side")
+    assert _one(st, "add-character-side").value == "enemy"
+
+    _one(st, "add-character-side").set_value("ally")
+    st.find(marker="add-character-send").click()
+
+    await st.should_see("ALLIES (1)")
+    (npc,) = [r for r in _tables().characters(table.id) if r.owner_id == st_id]
+    assert _tables().npc_side(table.id, npc.id) == "ally"
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_player_has_no_side_switch_when_adding(create_user) -> None:
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, player_id, _), = players
+    _base(player_id, "Second")
+    await player.open(chrome.table_url(table.id))
+    player.find(marker="table-add-character").click()
+    await player.should_see(marker="add-character-send")
+    assert not _marked_all(player, "add-character-side")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_notes_are_kept_and_private(create_user) -> None:
+    """Q8 and Q9: each member writes their own notes. The Storyteller does not read
+    a player's notes."""
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, _), = players
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="table-notes-text")
+    _one(player, "table-notes-text").set_value("The sage lies.")
+
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="table-notes-text")
+    assert _one(player, "table-notes-text").value == "The sage lies."
+
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="table-notes-text")
+    assert _one(st, "table-notes-text").value == ""
+    assert "The sage lies." not in _page_text(st)
+
+
+# --------------------------------------------------------------------------- #
+# Step 8 click-through: the Storyteller view, the compact cards (2026-09-24)
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_opens_in_the_storyteller_view(create_user) -> None:
+    """Human, 2026-09-24: "there's no way to 'view as ST'". The first choice of Open
+    as is Storyteller, and it is the default. No NPC is in YOU PLAY."""
+    st, table, player, copy, npc = await _with_npc(create_user)
+    await st.open(chrome.table_url(table.id))
+
+    await st.should_see(marker=f"npc-side-{npc.id}")
+    select = _one(st, "table-open-as")
+    assert select.value == table_view.SPECTATE
+    assert list(select.options.values())[0] == "Storyteller"
+    assert "Spectate" not in select.options.values()
+    assert not _marked_all(st, "you-play")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_marks_an_npc_from_its_side(create_user) -> None:
+    """The NPC rows of the Storyteller view have live controls, through the
+    character registry, as YOU PLAY has."""
+    st, table, player, copy, npc = await _with_npc(create_user)
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker=f"npc-{npc.id}-health-0")
+
+    st.find(marker=f"npc-{npc.id}-health-0").click()
+
+    await _eventually(lambda: _one(st, f"npc-{npc.id}-health-0").text != "")
+    live = state.REGISTRY.peek(npc.id)["char"]
+    assert live.play is not None and live.play.health[0] is not None
+    assert _load(npc).play.health[0] is not None
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_an_npc_row_is_compact_until_expanded(create_user) -> None:
+    st, table, player, copy, npc = await _with_npc(create_user)
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker=f"npc-{npc.id}-line")
+    assert not _marked_all(st, f"npc-{npc.id}-wp-0")
+
+    st.find(marker=f"npc-toggle-{npc.id}").click()
+
+    await st.should_see(marker=f"npc-{npc.id}-wp-0")
+    assert not _marked_all(st, f"npc-{npc.id}-line")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_roster_card_is_compact_until_expanded(create_user) -> None:
+    st, _, table, _ = await _campaign(create_user, "Ashes of Dawn")
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="table-enemy")
+    entry = await _add_entry(st, "enemy", "adv.bandit")
+    await st.should_see(marker=f"adv-line-{entry}")
+    assert "Short Sword" not in _page_text(st)
+    assert not _marked_all(st, f"adv-edit-{entry}")
+    # The health boxes stay live in a compact card.
+    assert _marked_all(st, f"adv-health-{entry}-0")
+
+    st.find(marker=f"adv-toggle-{entry}").click()
+
+    await st.should_see(marker=f"adv-edit-{entry}")
+    assert "Short Sword" in _page_text(st)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_roster_dialogs_have_the_colours_of_the_page(create_user) -> None:
+    st, _, table, _ = await _campaign(create_user, "Ashes of Dawn")
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="table-enemy")
+    solid = table_view.theme.palette(None).card_solid.split()
+
+    st.find(marker="table-add-enemy").click()
+    await st.should_see(marker="adv-add-blank")
+    cards = [e for e in st.client.elements.values()
+             if type(e).__name__ == "Card" and any(
+                 "adv-add-blank" in d._markers for d in e.descendants())]
+    assert cards and all(c in cards[0].classes for c in solid)

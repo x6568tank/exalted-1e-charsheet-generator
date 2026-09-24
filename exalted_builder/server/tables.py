@@ -16,6 +16,9 @@ sections 2 and 3. The rulings are `docs/plans/vtt.md` section 9.10 (human,
   * The homebrew of the table is `<table folder>/custom`. The approval of a base
     adds the homebrew that the base carries. A copy that becomes solo puts its
     homebrew in the library of its owner. p3-tables.md section 14, step 7.
+  * A character of the Storyteller is an NPC. Each NPC has a side, enemy or ally
+    (`npc_side`). The Storyteller picks the side when the NPC is added (human,
+    2026-09-24). p3-tables.md section 14, step 8.
   * The table has a folder of its own, `<root>/table-<hex>/`. A table folder never
     holds a character. A copy stays in the folder of its owner.
 
@@ -44,6 +47,7 @@ import sqlite3
 
 from .. import custom_content
 from ..engine.house_rule_actions import apply_table_rules
+from ..models.adversary import ALLY, ENEMY
 from ..models.character import (
     TABLE_WIDE_HOUSE_RULES, Character, HouseRules, new_character_id)
 from ..persistence import atomic_write
@@ -58,6 +62,12 @@ log = logging.getLogger(__name__)
 
 # The TABLE-WIDE house rules of a table, in its folder (p3-tables.md section 5).
 HOUSE_RULES_FILE = "house_rules.json"
+# The side of each NPC, keyed by the id of the copy, or by the id of a base or a
+# draft that waits for its approval.
+NPC_SIDES_FILE = "npc_sides.json"
+# The notes of each member, one file for each account (p3-tables.md section 15.6, Q8).
+NOTES_DIRNAME = "notes"
+SIDES = (ENEMY, ALLY)
 
 # No 0, O, 1, I or L. 31 characters, thus 31**6 codes (about 887 million).
 CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
@@ -171,6 +181,11 @@ class TableStore:
         `custom_content`. Raise `ValueError` for a malformed id."""
         return self.table_dir(table_id) / CUSTOM_DIRNAME
 
+    def notes_path(self, table_id: str, user_id: int) -> Path:
+        """Return the file of the notes of `user_id` in `table_id`. Raise
+        `ValueError` for a malformed id."""
+        return self.table_dir(table_id) / NOTES_DIRNAME / f"{int(user_id)}.json"
+
     def _characters(self) -> CharacterStore:
         return CharacterStore(db_path=self.db_path, root=self.root)
 
@@ -202,6 +217,74 @@ class TableStore:
         """
         atomic_write(self.table_dir(table_id) / HOUSE_RULES_FILE, json.dumps(
             rules.model_dump(include=set(TABLE_WIDE_HOUSE_RULES)), sort_keys=True))
+
+    # ---- the sides of the NPCs --------------------------------------------- #
+
+    def npc_sides(self, table_id: str) -> dict[str, str]:
+        """Return the side of each NPC of `table_id` that has one, by character id.
+        Do not check the access.
+
+        An absent file gives no sides. A file that does not read gives no sides, and
+        a warning in the server log.
+        """
+        path = self.table_dir(table_id) / NPC_SIDES_FILE
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except FileNotFoundError:
+            return {}
+        except ValueError as exc:
+            log.warning("The NPC sides %s do not read: %s", path, exc)
+            return {}
+        if not isinstance(raw, dict):
+            return {}
+        return {str(k): v for k, v in raw.items() if v in SIDES}
+
+    def npc_side(self, table_id: str, character_id: str) -> str:
+        """Return the side of the NPC `character_id`. An NPC with no side is an
+        enemy. ⚠ Do not call it for a character of a player: it is not an NPC."""
+        return self.npc_sides(table_id).get(character_id, ENEMY)
+
+    def set_npc_side(self, st_id: int, table_id: str, character_id: str,
+                     side: str) -> None:
+        """Put the NPC `character_id` of `table_id` on `side`.
+
+        Refuse all but the Storyteller, a side that is not `SIDES`, and a character
+        that is not a copy of the Storyteller in the table.
+        """
+        self._require_storyteller(st_id, table_id)
+        if side not in SIDES:
+            raise TableStoreError("A side is enemy or ally.")
+        row = self._characters().row(character_id)
+        if row is None or row.table_id != table_id or row.owner_id != st_id:
+            raise TableStoreError("That character is not an NPC of this campaign.")
+        self._write_side(table_id, character_id, side)
+
+    def _write_side(self, table_id: str, key: str, side: str | None) -> None:
+        """Write `side` for `key`, or delete the side of `key` for None.
+
+        ⚠ The quota of the table folder applies (`atomic_write`). Its error propagates.
+        """
+        sides = self.npc_sides(table_id)
+        if side is None:
+            if sides.pop(key, None) is None:
+                return
+        else:
+            sides[key] = side
+        atomic_write(self.table_dir(table_id) / NPC_SIDES_FILE,
+                     json.dumps(sides, sort_keys=True))
+
+    def _pending_side(self, user_id: int, table_id: str, key: str,
+                      side: str | None) -> None:
+        """Keep `side` for the base or draft `key` of the Storyteller until the
+        approval gives it to the copy. Do nothing for None. Refuse a side from a
+        player, and a side that is not `SIDES`."""
+        if side is None:
+            return
+        if self.access(user_id, table_id) != STORYTELLER:
+            raise TableStoreError("Only the Storyteller picks a side.")
+        if side not in SIDES:
+            raise TableStoreError("A side is enemy or ally.")
+        self._write_side(table_id, key, side)
 
     # ---- reads -------------------------------------------------------------- #
 
@@ -345,34 +428,43 @@ class TableStore:
             self._check_base(user_id, base_id)
         return self._insert_request(user_id, table_id, base_id)
 
-    def bring(self, user_id: int, table_id: str, base_id: str) -> JoinRequest:
+    def bring(self, user_id: int, table_id: str, base_id: str,
+              side: str | None = None) -> JoinRequest:
         """Ask to bring the base `base_id` into `table_id`, from the membership of
         `user_id` instead of the code. The Storyteller approves it as a join.
 
-        Refuse a user with no access, and each base that `request` refuses. Do not
-        count the attempt in `throttle`: a member does not guess a code.
+        `side` is the side of an NPC: the Storyteller gives it, and a player gives
+        None. Refuse a user with no access, and each base that `request` refuses. Do
+        not count the attempt in `throttle`: a member does not guess a code.
         """
         if self.access(user_id, table_id) is None:
             raise TableStoreError("You are not in this campaign.")
         if base_id is None:
             raise TableStoreError("Pick a character to bring.")
         self._check_base(user_id, base_id)
+        self._pending_side(user_id, table_id, base_id, side)
         return self._insert_request(user_id, table_id, base_id)
 
     # ---- drafts for a campaign (section 14, step 6b) ------------------------ #
 
-    def start_draft(self, user_id: int, table_id: str) -> CharacterRow:
+    def start_draft(self, user_id: int, table_id: str,
+                    side: str | None = None) -> CharacterRow:
         """Make a new draft of `user_id` for `table_id`, with the TABLE-WIDE house
         rules of the table. Return its row. Refuse a user with no access.
+
+        `side` is the side of an NPC, as for `bring`.
 
         The draft has no `table_id`: it is an ordinary character until its lock
         (`send_draft`) and the approval.
         """
         if self.access(user_id, table_id) is None:
             raise TableStoreError("You are not in this campaign.")
+        if side is not None and self.access(user_id, table_id) != STORYTELLER:
+            raise TableStoreError("Only the Storyteller picks a side.")
         character = Character(id=new_character_id())
         apply_table_rules(self.house_rules(table_id), character)
         row = self._characters().create(user_id, character)
+        self._pending_side(user_id, table_id, row.id, side)
         with closing(db.connect(self.db_path)) as connection, connection:
             connection.execute(
                 "INSERT INTO campaign_drafts (character_id, table_id) VALUES (?, ?)",
@@ -456,6 +548,7 @@ class TableStore:
         is its consent.
 
         The copy gets the TABLE-WIDE house rules of the table (section 5, site 1).
+        A copy of the Storyteller gets the side that waits for its base.
         """
         request = self._request(request_id)
         self._require_storyteller(st_id, request.table_id)
@@ -473,6 +566,11 @@ class TableStore:
                         self.house_rules(request.table_id), character))
             except CharacterStoreError as exc:
                 raise TableStoreError(str(exc)) from exc
+            if request.user_id == st_id:
+                side = self.npc_sides(request.table_id).get(request.base_id)
+                if side is not None:
+                    self._write_side(request.table_id, copy.id, side)
+                    self._write_side(request.table_id, request.base_id, None)
         with closing(db.connect(self.db_path)) as connection, connection:
             if request.user_id != st_id:
                 connection.execute(
@@ -612,8 +710,11 @@ class TableStore:
                     listener(row.owner_id)
 
     def _drop_member(self, user_id: int, table_id: str) -> bool:
+        """Take `user_id` out of `table_id`. Delete the notes of the member
+        (p3-tables.md section 15.6, Q8)."""
         if not TABLE_ID.fullmatch(table_id or ""):
             return False
+        self.notes_path(table_id, user_id).unlink(missing_ok=True)
         self._keep_homebrew([row for row in self.characters(table_id)
                              if row.owner_id == user_id])
         with closing(db.connect(self.db_path)) as connection, connection:

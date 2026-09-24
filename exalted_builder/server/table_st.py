@@ -39,6 +39,7 @@ import time
 
 from ..engine import advancement, lifecycle
 from ..engine.house_rule_actions import apply_table_rules, set_house_rule, set_rule
+from ..models.adversary import ENEMY
 from ..models.character import TABLE_WIDE_HOUSE_RULES, Character, HouseRules
 from ..persistence import atomic_write
 from ..ui import view as viewmod
@@ -217,9 +218,17 @@ class TableStoryteller:
                 log.warning("Could not restore the XP of %s: %s", row.id, exc)
 
     def _post(self, st_id: int, table_id: str, award: Award) -> None:
-        """Post the award to the Log. A post that fails leaves the award as it is."""
+        """Post the award to the Log. A post that fails leaves the award as it is.
+
+        ⚠ The Log does not name an enemy NPC: each member reads the Log. An award
+        to enemy NPCs only posts nothing. The award log keeps each name.
+        """
+        shown = [r for r in award.recipients if not self._hidden(st_id, table_id,
+                                                                  r.character_id)]
+        if not shown:
+            return
         text = (f"{award.amount:+d} XP to "
-                + ", ".join(r.name for r in award.recipients)
+                + ", ".join(r.name for r in shown)
                 + (f" — {award.note}" if award.note else ""))
         if len(text) > MAX_TEXT:
             text = text[:MAX_TEXT - 1] + "…"
@@ -315,6 +324,12 @@ class TableStoryteller:
             log.warning("Could not post the house rule %s to the Log: %s", field, exc)
 
     # ---- helpers ------------------------------------------------------------ #
+
+    def _hidden(self, st_id: int, table_id: str, character_id: str) -> bool:
+        """Return True for an NPC of the Storyteller `st_id` on the enemy side."""
+        row = self.store.row(character_id)
+        return (row is not None and row.owner_id == st_id
+                and self.tables.npc_side(table_id, character_id) == ENEMY)
 
     def _require_storyteller(self, user_id: int, table_id: str) -> None:
         if self.tables.access(user_id, table_id) != STORYTELLER:

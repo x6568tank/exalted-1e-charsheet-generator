@@ -336,7 +336,9 @@ def test_trait_line_round_trips():
 
 # Everything that is not a printed stat: identity, provenance, tracked state.
 _NOT_STATS = {"id", "name", "template_id", "categories", "nature", "caste",
-              "damage", "willpower_spent", "motes_spent", "notes"}
+              "damage", "willpower_spent", "motes_spent", "notes",
+              # The side at a campaign table. The switch on the card sets it.
+              "side"}
 
 
 def test_every_stat_field_survives_an_edit():
@@ -364,7 +366,7 @@ def test_every_stat_field_reaches_the_card():
     from exalted_builder.engine import adversaries as adv_engine
 
     source = "".join(inspect.getsource(f) for f in
-                     (adv_ui.build_roster, adv_ui.summary_line, adv_ui.attack_line,
+                     (adv_ui.roster_card, adv_ui.summary_line, adv_ui.attack_line,
                       adv_ui.trait_line, adv_ui.trait_map_line))
     source += inspect.getsource(adv_engine)
     for field in Adversary.model_fields:

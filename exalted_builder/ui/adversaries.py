@@ -163,7 +163,7 @@ def edit_dialog(ruleset: RuleSet, a: Adversary, on_save: Callable[[], None],
     armor_labels = {"": "(none)"} | {arm.id: arm.name for arm in adv.armor_options(ruleset)}
     shield_labels = {"": "(none)"} | {s.id: s.name for s in adv.shield_options(ruleset)}
 
-    with ui.dialog() as dialog, ui.card().classes("w-full max-w-3xl gap-2"):
+    with ui.dialog() as dialog, ui.card().classes(f"w-full max-w-3xl gap-2 {pal.card_solid}"):
         ui.label("Edit adversary").classes("text-lg font-bold")
 
         with ui.row().classes("w-full gap-2 no-wrap"):
@@ -332,6 +332,237 @@ def edit_dialog(ruleset: RuleSet, a: Adversary, on_save: Callable[[], None],
 # The roster
 # --------------------------------------------------------------------------- #
 
+def open_add_dialog(ruleset: RuleSet, catalog: dict[str, Adversary],
+                    party_of: Callable[[], Party], refresh: Callable[[], None], *,
+                    adjust: Optional[Callable[[Adversary], None]] = None,
+                    title: str = "Add an adversary",
+                    pal: Optional[theme.Palette] = None) -> None:
+    """Open the dialog that adds an entry to the roster of `party_of()`: from a
+    catalogue template, or blank. Call `adjust` on the new entry, then `refresh`.
+
+    ⚠ The add goes through `engine.adversaries`. The native Party window runs the
+    same operation.
+    """
+    def added(entry: Adversary, message: str, kind: str) -> None:
+        if adjust is not None:
+            adjust(entry)
+        refresh()
+        ui.notify(message, type=kind)
+
+    def add_blank(dialog) -> None:
+        dialog.close()
+        added(adv.add_blank(party_of()),
+              "Added a blank adversary — use Edit to fill it in", "positive")
+
+    def add_from_template(template: Adversary, dialog) -> None:
+        dialog.close()
+        entry = adv.add_from_template(party_of(), template)
+        added(entry, f"Added {entry.name}", "positive")
+
+    pal = pal or theme.palette(None)
+    templates = sorted(catalog.values(), key=lambda t: (adv.category_label(t), t.name))
+    with ui.dialog() as dialog, ui.card().classes(f"w-full max-w-2xl gap-2 {pal.card_solid}"):
+        ui.label(title).classes("text-lg font-bold")
+        if templates:
+            ui.label("Pick a template to start from — you get an editable copy, "
+                     "and the catalogue entry is untouched.").classes(
+                "text-xs text-gray-600")
+            search = ui.input(placeholder="Filter…").props(
+                "dense outlined clearable").classes("w-full")
+
+            @ui.refreshable
+            def rows() -> None:
+                needle = (search.value or "").lower()
+                shown = [t for t in templates
+                         if needle in t.name.lower()
+                         or needle in adv.category_label(t).lower()]
+                with ui.column().classes("w-full gap-1 max-h-96 overflow-y-auto"):
+                    for template in shown:
+                        # The whole row is the click target (a bare button
+                        # could not hold the two-line summary), so it carries
+                        # the marker the render tests select it by.
+                        with ui.row().classes(
+                                "w-full items-center justify-between no-wrap "
+                                "hover:bg-black/5 rounded px-2 py-1 cursor-pointer"
+                        ).mark(f"adv-tpl-{template.id}").on(
+                                "click", lambda t=template: add_from_template(t, dialog)):
+                            with ui.column().classes("gap-0 min-w-0"):
+                                ui.label(template.name).classes(
+                                    "text-sm font-semibold truncate")
+                                ui.label(summary_line(ruleset, template)).classes(
+                                    "text-xs text-gray-600 truncate")
+                            ui.label(adv.category_label(template)).classes(
+                                "text-xs text-gray-500 shrink-0")
+                    if not shown:
+                        ui.label("Nothing matches.").classes(
+                            "text-sm text-gray-500 p-2")
+
+            search.on_value_change(rows.refresh)
+            rows()
+            ui.separator()
+        ui.button("Add a blank adversary", icon="note_add",
+                  on_click=lambda: add_blank(dialog)).props("flat").mark("adv-add-blank")
+        with ui.row().classes("justify-end w-full"):
+            ui.button("Cancel", on_click=dialog.close).props("flat")
+    dialog.open()
+
+
+def roster_card(ruleset: RuleSet, party_of: Callable[[], Party], index: int,
+                a: Adversary, pal: theme.Palette, refresh: Callable[[], None], *,
+                extra: Optional[Callable[[], None]] = None,
+                dialog_host=None, expanded: Optional[bool] = None,
+                on_toggle: Optional[Callable[[], None]] = None) -> None:
+    """Draw the card of entry `index` of the roster of `party_of()`: the stats, the
+    trackers, and Reset, Duplicate, Edit and Remove. Call `refresh` after each change.
+
+    `expanded` None draws the full card (the Party page). True or False draws the
+    compact card of a narrow rail: the name, the health boxes and one line of
+    Willpower and motes, and a chevron that calls `on_toggle`. An expanded compact
+    card adds the full stats, the trackers and the buttons.
+
+    `extra` draws more controls: in the header of a compact card, else at the end
+    of the card. `dialog_host` is the element that holds the Edit dialog. ⚠ Give
+    one that is not cleared by `refresh`: a dialog in a cleared element is deleted.
+    The host holds one dialog at a time: Edit clears it first, because a closed
+    dialog stays in its element.
+    """
+    def duplicate() -> None:
+        adv.duplicate(party_of(), index)
+        refresh()
+
+    def remove() -> None:
+        gone = adv.remove(party_of(), index)
+        refresh()
+        ui.notify(f"Removed {gone}", type="warning")
+
+    def clear_damage() -> None:
+        adv.reset_tracking(party_of().adversaries[index])
+        refresh()
+
+    def edit() -> None:
+        if dialog_host is None:
+            edit_dialog(ruleset, a, refresh, pal)
+            return
+        dialog_host.clear()
+        with dialog_host:
+            edit_dialog(ruleset, a, refresh, pal)
+
+    marks = adv.normalize_damage(a)
+    compact = expanded is not None
+    mote_cap = adv.mote_cap(a)
+    identity = "  ·  ".join(x for x in (adv.category_label(a), a.nature, a.caste) if x)
+
+    def health() -> None:
+        if not a.health_levels:
+            return
+        penalty = adv.worst_penalty(a)
+        shown = ("none" if penalty is None
+                 else "Incap" if penalty == adv.INCAPACITATED else str(penalty))
+        ui.label(f"HEALTH  ·  penalty {shown}").classes(
+            "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
+        with ui.row().classes("gap-1 flex-wrap items-end"):
+            for i in range(len(a.health_levels)):
+                _health_box(a, i, marks[i], pal, refresh)
+
+    with ui.card().classes(f"w-full {'p-2 gap-1' if compact else 'p-3 gap-2'} "
+                           f"{pal.card_soft}").mark(f"adv-card-{a.id}"):
+        if compact:
+            with ui.row().classes("w-full items-center no-wrap gap-1"):
+                with ui.column().classes("gap-0 min-w-0 flex-1"):
+                    ui.label(a.name or "(unnamed)").classes(
+                        "text-sm font-bold truncate").style(f"color:{pal.accent}")
+                    if identity:
+                        ui.label(identity).classes("text-xs text-gray-600 truncate")
+                if extra is not None:
+                    extra()
+                ui.button(icon="expand_less" if expanded else "expand_more",
+                          on_click=on_toggle).props("flat dense round size=sm").mark(
+                    f"adv-toggle-{a.id}").tooltip(
+                    "Hide the stats" if expanded else "Show the stats")
+            health()
+            if not expanded:
+                bits = []
+                if a.willpower:
+                    bits.append(f"WP {a.willpower - a.willpower_spent}/{a.willpower}")
+                if mote_cap:
+                    bits.append(f"Motes {max(0, mote_cap - a.motes_spent)}/{mote_cap}")
+                if bits:
+                    ui.label("  ·  ".join(bits)).classes("text-xs text-gray-700").mark(
+                        f"adv-line-{a.id}")
+                return
+            ui.label(summary_line(ruleset, a)).classes("text-xs text-gray-700")
+        else:
+            with ui.row().classes("w-full items-start justify-between no-wrap"):
+                with ui.column().classes("gap-0 min-w-0"):
+                    ui.label(a.name or "(unnamed)").classes(
+                        "text-base font-bold truncate").style(f"color:{pal.accent}")
+                    if identity:
+                        ui.label(identity).classes("text-xs text-gray-600 truncate")
+                ui.label(summary_line(ruleset, a)).classes(
+                    "text-xs text-gray-700 text-right shrink-0")
+            health()
+
+        if a.willpower:
+            ui.label(f"WILLPOWER  ({a.willpower - a.willpower_spent}/{a.willpower})"
+                     ).classes("text-xs font-bold tracking-widest").style(
+                f"color:{pal.accent}")
+            with ui.row().classes("gap-1 flex-wrap"):
+                for i in range(a.willpower):
+                    _count_box(a, i, i < a.willpower_spent, "willpower_spent",
+                               a.willpower, refresh)
+
+        # One mote counter, whichever pool shape the entry uses. A spirit's
+        # single pool and an Exalt's Personal+Peripheral both spend downward;
+        # splitting the tracker in two would be tracking for its own sake.
+        if mote_cap:
+            shape = ("pool" if a.essence_pool
+                     else f"{a.personal_essence} personal + {a.peripheral_essence} peripheral")
+            with ui.row().classes("items-center gap-2"):
+                ui.number("Motes spent", value=a.motes_spent, min=0, max=mote_cap,
+                          format="%d",
+                          on_change=lambda e, x=a: (
+                              adv.set_motes_spent(x, e.value),
+                              refresh())).props("dense outlined").classes("w-32")
+                ui.label(f"{max(0, mote_cap - a.motes_spent)}/{mote_cap} left "
+                         f"({shape})").classes("text-xs text-gray-600")
+
+        for label, values, order in (("", a.attributes, _ATTRIBUTES),
+                                     ("Virtues: ", a.virtues, _VIRTUES)):
+            line = trait_map_line(values, order)
+            if line:
+                ui.label(label + line).classes("text-xs text-gray-600")
+        for atk in a.attacks:
+            ui.label(attack_line(atk)).classes("text-xs text-gray-700")
+        if a.abilities:
+            ui.label(trait_line(a.abilities)).classes("text-xs text-gray-600")
+        if a.backgrounds:
+            ui.label(f"Backgrounds: {trait_line(a.backgrounds)}").classes(
+                "text-xs text-gray-600")
+        for label, prose in (("Powers", a.powers), ("Charms", a.charms),
+                             ("Spells", a.spells)):
+            if prose:
+                ui.label(f"{label}: {prose}").classes("text-xs text-gray-600")
+        if a.notes:
+            ui.label(a.notes).classes("text-xs text-gray-600 italic")
+
+        # Icon-only buttons, so each is marked for the render tests.
+        with ui.row().classes("gap-1 justify-end w-full items-center"):
+            if extra is not None and not compact:
+                extra()
+                ui.space()
+            ui.button(icon="restart_alt", on_click=clear_damage
+                      ).props("flat dense").tooltip(
+                "Clear damage and spent pools").mark(f"adv-reset-{a.id}")
+            ui.button(icon="content_copy", on_click=duplicate
+                      ).props("flat dense").tooltip(
+                "Duplicate — a separate tracker").mark(f"adv-dup-{a.id}")
+            ui.button(icon="edit", on_click=edit
+                      ).props("flat dense").tooltip("Edit stats").mark(f"adv-edit-{a.id}")
+            ui.button(icon="delete", on_click=remove).props(
+                "flat dense color=red").tooltip(
+                "Remove from roster").mark(f"adv-del-{a.id}")
+
+
 def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
                  party_of: Callable[[], Party], pal: theme.Palette,
                  refresh: Callable[[], None]) -> None:
@@ -348,165 +579,6 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
     character-domain Adversary, which would be a cycle."""
     party = party_of()
 
-    # ⚠ Every one of these goes through `engine.adversaries`. The native Party
-    # window runs the same four interactions, and a duplicate that inserts in the
-    # wrong place in one shell only is exactly the drift nothing catches.
-    def add_blank() -> None:
-        adv.add_blank(party_of())
-        refresh()
-        ui.notify("Added a blank adversary — use Edit to fill it in", type="positive")
-
-    def add_from_template(template: Adversary, dialog) -> None:
-        entry = adv.add_from_template(party_of(), template)
-        dialog.close()
-        refresh()
-        ui.notify(f"Added {entry.name}", type="positive")
-
-    def duplicate(index: int) -> None:
-        adv.duplicate(party_of(), index)
-        refresh()
-
-    def remove(index: int) -> None:
-        gone = adv.remove(party_of(), index)
-        refresh()
-        ui.notify(f"Removed {gone}", type="warning")
-
-    def clear_damage(index: int) -> None:
-        adv.reset_tracking(party_of().adversaries[index])
-        refresh()
-
-    def add_dialog() -> None:
-        templates = sorted(catalog.values(),
-                           key=lambda t: (adv.category_label(t), t.name))
-        with ui.dialog() as dialog, ui.card().classes("w-full max-w-2xl gap-2"):
-            ui.label("Add an adversary").classes("text-lg font-bold")
-            if templates:
-                ui.label("Pick a template to start from — you get an editable copy, "
-                         "and the catalogue entry is untouched.").classes(
-                    "text-xs text-gray-600")
-                search = ui.input(placeholder="Filter…").props(
-                    "dense outlined clearable").classes("w-full")
-
-                @ui.refreshable
-                def rows() -> None:
-                    needle = (search.value or "").lower()
-                    shown = [t for t in templates
-                             if needle in t.name.lower()
-                             or needle in adv.category_label(t).lower()]
-                    with ui.column().classes("w-full gap-1 max-h-96 overflow-y-auto"):
-                        for template in shown:
-                            # The whole row is the click target (a bare button
-                            # could not hold the two-line summary), so it carries
-                            # the marker the render tests select it by.
-                            with ui.row().classes(
-                                    "w-full items-center justify-between no-wrap "
-                                    "hover:bg-black/5 rounded px-2 py-1 cursor-pointer"
-                            ).mark(f"adv-tpl-{template.id}").on(
-                                    "click", lambda t=template: add_from_template(t, dialog)):
-                                with ui.column().classes("gap-0 min-w-0"):
-                                    ui.label(template.name).classes(
-                                        "text-sm font-semibold truncate")
-                                    ui.label(summary_line(ruleset, template)).classes(
-                                        "text-xs text-gray-600 truncate")
-                                ui.label(adv.category_label(template)).classes(
-                                    "text-xs text-gray-500 shrink-0")
-                        if not shown:
-                            ui.label("Nothing matches.").classes(
-                                "text-sm text-gray-500 p-2")
-
-                search.on_value_change(rows.refresh)
-                rows()
-                ui.separator()
-            ui.button("Add a blank adversary", icon="note_add",
-                      on_click=lambda: (dialog.close(), add_blank())).props("flat")
-            with ui.row().classes("justify-end w-full"):
-                ui.button("Cancel", on_click=dialog.close).props("flat")
-        dialog.open()
-
-    # ---- one card --------------------------------------------------------- #
-    def _card(index: int, a: Adversary) -> None:
-        marks = adv.normalize_damage(a)
-        with ui.card().classes(f"w-full p-3 gap-2 {pal.card_soft}"):
-            with ui.row().classes("w-full items-start justify-between no-wrap"):
-                with ui.column().classes("gap-0 min-w-0"):
-                    ui.label(a.name or "(unnamed)").classes(
-                        "text-base font-bold truncate").style(f"color:{pal.accent}")
-                    line = "  ·  ".join(x for x in (adv.category_label(a), a.nature,
-                                                    a.caste) if x)
-                    if line:
-                        ui.label(line).classes("text-xs text-gray-600 truncate")
-                ui.label(summary_line(ruleset, a)).classes(
-                    "text-xs text-gray-700 text-right shrink-0")
-
-            if a.health_levels:
-                penalty = adv.worst_penalty(a)
-                shown = ("none" if penalty is None
-                         else "Incap" if penalty == adv.INCAPACITATED else str(penalty))
-                ui.label(f"HEALTH  ·  penalty {shown}").classes(
-                    "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
-                with ui.row().classes("gap-1 flex-wrap items-end"):
-                    for i in range(len(a.health_levels)):
-                        _health_box(a, i, marks[i], pal, refresh)
-
-            if a.willpower:
-                ui.label(f"WILLPOWER  ({a.willpower - a.willpower_spent}/{a.willpower})"
-                         ).classes("text-xs font-bold tracking-widest").style(
-                    f"color:{pal.accent}")
-                with ui.row().classes("gap-1 flex-wrap"):
-                    for i in range(a.willpower):
-                        _count_box(a, i, i < a.willpower_spent, "willpower_spent",
-                                   a.willpower, refresh)
-
-            # One mote counter, whichever pool shape the entry uses. A spirit's
-            # single pool and an Exalt's Personal+Peripheral both spend downward;
-            # splitting the tracker in two would be tracking for its own sake.
-            mote_cap = adv.mote_cap(a)
-            if mote_cap:
-                shape = ("pool" if a.essence_pool
-                         else f"{a.personal_essence} personal + {a.peripheral_essence} peripheral")
-                with ui.row().classes("items-center gap-2"):
-                    ui.number("Motes spent", value=a.motes_spent, min=0, max=mote_cap,
-                              format="%d",
-                              on_change=lambda e, x=a: (
-                                  adv.set_motes_spent(x, e.value),
-                                  refresh())).props("dense outlined").classes("w-32")
-                    ui.label(f"{max(0, mote_cap - a.motes_spent)}/{mote_cap} left "
-                             f"({shape})").classes("text-xs text-gray-600")
-
-            for label, values, order in (("", a.attributes, _ATTRIBUTES),
-                                         ("Virtues: ", a.virtues, _VIRTUES)):
-                line = trait_map_line(values, order)
-                if line:
-                    ui.label(label + line).classes("text-xs text-gray-600")
-            for atk in a.attacks:
-                ui.label(attack_line(atk)).classes("text-xs text-gray-700")
-            if a.abilities:
-                ui.label(trait_line(a.abilities)).classes("text-xs text-gray-600")
-            if a.backgrounds:
-                ui.label(f"Backgrounds: {trait_line(a.backgrounds)}").classes(
-                    "text-xs text-gray-600")
-            for label, prose in (("Powers", a.powers), ("Charms", a.charms),
-                                 ("Spells", a.spells)):
-                if prose:
-                    ui.label(f"{label}: {prose}").classes("text-xs text-gray-600")
-            if a.notes:
-                ui.label(a.notes).classes("text-xs text-gray-600 italic")
-
-            # Icon-only buttons, so each is marked for the render tests.
-            with ui.row().classes("gap-1 justify-end w-full"):
-                ui.button(icon="restart_alt", on_click=lambda i=index: clear_damage(i)
-                          ).props("flat dense").tooltip(
-                    "Clear damage and spent pools").mark(f"adv-reset-{a.id}")
-                ui.button(icon="content_copy", on_click=lambda i=index: duplicate(i)
-                          ).props("flat dense").tooltip(
-                    "Duplicate — a separate tracker").mark(f"adv-dup-{a.id}")
-                ui.button(icon="edit",
-                          on_click=lambda x=a: edit_dialog(ruleset, x, refresh, pal)
-                          ).props("flat dense").tooltip("Edit stats").mark(f"adv-edit-{a.id}")
-                ui.button(icon="delete", on_click=lambda i=index: remove(i)).props(
-                    "flat dense color=red").tooltip(
-                    "Remove from roster").mark(f"adv-del-{a.id}")
-
     # ---- section ----------------------------------------------------------- #
     with ui.row().classes("w-full items-center gap-2 mt-4"):
         ui.label("ADVERSARIES").classes("text-xs font-bold tracking-widest").style(
@@ -514,7 +586,9 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
         ui.label(f"({len(party.adversaries)})").classes("text-xs text-gray-500")
         ui.space()
         ui.button("Add adversary", icon="pest_control_rodent",
-                  on_click=add_dialog).props("flat")
+                  on_click=lambda: open_add_dialog(ruleset, catalog, party_of, refresh,
+                                                   pal=pal)
+                  ).props("flat")
 
     if not party.adversaries:
         with ui.card().classes("w-full p-4 items-center"):
@@ -526,4 +600,4 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
     with ui.grid().classes("w-full gap-3").style(
             "grid-template-columns:repeat(auto-fit,minmax(20rem,1fr))"):
         for index, entry in enumerate(party.adversaries):
-            _card(index, entry)
+            roster_card(ruleset, party_of, index, entry, pal, refresh)

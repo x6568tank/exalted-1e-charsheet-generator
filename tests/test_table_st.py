@@ -212,6 +212,22 @@ def test_a_grant_posts_one_line_to_the_log(st, the_log, table) -> None:
     assert entry.text == "+5 XP to Ashes, Gearheart — Session 1"
 
 
+def test_the_log_line_of_a_grant_does_not_name_an_enemy_npc(
+        st, tables, store, the_log, table) -> None:
+    """Each member reads the Log. The award log keeps each name (step 8)."""
+    for name, side in (("Hidden Assassin", "enemy"), ("Friendly Sage", "ally")):
+        tables.bring(ST, table.id, store.create(ST, _locked(name)).id, side=side)
+    copies = _copies(tables, table)
+
+    award = st.grant_xp(ST, table.id, 3, "", [copies[n].id for n in (
+        "Ashes", "Hidden Assassin", "Friendly Sage")]).award
+    st.grant_xp(ST, table.id, 1, "", [copies["Hidden Assassin"].id])
+
+    assert [e.text for e in the_log.entries(table.id)] == [
+        "+3 XP to Ashes, Friendly Sage"]
+    assert "Hidden Assassin" in [r.name for r in award.recipients]
+
+
 def test_a_grant_with_no_note_posts_no_dash(st, tables, the_log, table) -> None:
     st.grant_xp(ST, table.id, -2, "", [_copies(tables, table)["Ashes"].id])
 

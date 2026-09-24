@@ -1,6 +1,6 @@
 # P3 — Campaigns (the `Table`): design
 
-**Status: build steps 1–2 DONE 2026-09-12; steps 3, 4 and 5 DONE and BROWSER-VERIFIED 2026-09-22; step 6 (house rules) and 6b (add a character from the campaign) DONE and BROWSER-VERIFIED 2026-09-22 (phone width not tested; the request-card house-rules warning browser-verified 2026-09-23); step 7 (the campaign homebrew) DONE and deployed 2026-09-23, NOT browser-verified (§14 is the build log). The layout was approved 2026-09-22 (§15). Steps 8–9 (the revised order, §15.4) are not started.**
+**Status: build steps 1–2 DONE 2026-09-12; steps 3, 4 and 5 DONE and BROWSER-VERIFIED 2026-09-22; step 6 (house rules) and 6b (add a character from the campaign) DONE and BROWSER-VERIFIED 2026-09-22 (phone width not tested; the request-card house-rules warning browser-verified 2026-09-23); step 7 (the campaign homebrew) DONE and BROWSER-VERIFIED 2026-09-24; step 8 (the roster, the NPC sides, the notes) DONE and BROWSER-VERIFIED 2026-09-24 (§14 is the build log). The layout was approved 2026-09-22 (§15). Step 9 (initiative, §15.4) is not started.**
 Every product question the human was asked is ruled (`vtt.md` §9.1, §9.2, §9.3a, §9.10), and
 so are the six the design turned up (§13).
 
@@ -1055,6 +1055,91 @@ requests, all three fixed and clicked the same day:
 Tests: `test_table_homebrew_pages.py` +5 (19), `test_table_homebrew.py` +3 (32, the
 presenter). Not mutation-checked beyond the negative runs of each new test before the
 code existed.
+
+---
+
+### Step 8 — the roster on the table, the NPC sides, the notes (2026-09-24)
+
+**Ruled at the start (human, 2026-09-24):** a full-character NPC's side is **picked
+when the ST adds it** ("Switch when adding an NPC."), and a player sees an ally NPC as
+**name + health only**, like a roster ally (R7).
+
+What shipped:
+* `Adversary.side` (`enemy` / `ally`, default enemy, so every `.party.json` loads as
+  enemies). The Party page and Qt are unchanged (a parity port is not wanted); the
+  two field-coverage tests list `side` as not a stat.
+* **`server/table_roster.py`** — `TableRoster`: `<table folder>/adversaries.json`. The
+  ST gets the LIVE roster, one `Party` object per table held by the store (the
+  engine's four roster operations take a `Party`, so the roster is a `Party` with no
+  members); every change calls `save`, which bumps a version the poll compares.
+  Members get `allies()` — `view.AllyView` projections, never an `Adversary`.
+* **The NPC sides** live in `TableStore` (`<table folder>/npc_sides.json`), because
+  the approval is where a base's side becomes the copy's: `bring(..., side=)` and
+  `start_draft(..., side=)` keep the side under the base / draft id, `approve` moves it
+  to the copy. Only the ST may give one; `set_npc_side` refuses a player's copy. **An
+  NPC with no entry is an enemy** — so the NPCs made before step 8 are hidden from
+  players until the ST switches them. ✅ *Confirmed by the human, 2026-09-24.*
+* **`view.ally_view` / `view.character_ally_view` → `AllyView(key, name, boxes)`.**
+  The player's ALLIES rows are drawn from it and nothing else.
+* **The rail:** PARTY holds the players' copies only (its count too). Then ALLIES and
+  ENEMIES. The ST sees each NPC as its read-only row and each roster entry as the
+  Party page's full card (`adversaries.roster_card`, split out of `build_roster`
+  with `open_add_dialog`), each with an **Enemy / Ally** toggle, and **+** on BOTH
+  sections (the plan named + on ENEMIES only; ✅ confirmed 2026-09-24). A player sees ALLIES
+  (only when there is one) and no ENEMIES section at all. The ST opened as an NPC
+  still has it in YOU PLAY. The **Add a character** dialog has the side toggle for the
+  ST only (starts on Enemy), and its button reads "Add".
+* **Notes (Q8, Q9):** `server/table_notes.py` — `notes/<user id>.json`, keyed on the
+  page's account. MY NOTES heads the Notes tab. `TableStore._drop_member` deletes the
+  notes of a leaver or a removed member.
+* **Grant XP's Log line no longer names an enemy NPC** (every member reads the Log);
+  an award to enemy NPCs only posts no line. The award log keeps every name. *Found
+  while building.* ✅ *Confirmed 2026-09-24*; it concerns full-character NPCs only,
+  since a roster entry takes no XP.
+
+Mechanics worth knowing:
+* ⚠ **The roster's dialogs live in `dialog_host`**, an element outside both rails,
+  because the poll clears the rails and a dialog in a cleared element dies. The host
+  holds **one dialog at a time** (cleared before each open): a closed dialog stays in
+  its element, and the first build let the second "+" click the template row of the
+  FIRST, hidden dialog — the entry landed on the wrong side.
+* The poll has two keys: PARTY's digests (the players' copies, and an NPC the ST opens
+  as) and `sides_key` (the roster version, the sides, each other NPC's digest).
+* **Deviation from §8:** no second `SessionRegistry` for tables. The roster's shared
+  object is held by `TableRoster`; notes and the Log are files read per call.
+
+Tests: `test_table_roster.py` (20: the model, the projection, the roster, the sides,
+the notes), `test_table_st.py` +1, `test_table_view.py` +12 (one step-6b NPC test
+rewritten: a player now gets nothing of an NPC with no side). **10 mutations, 9
+killed**; the survivor (the access check in `TableNotes.read`) is equivalent — a
+non-member has no notes file, and a leave deletes it.
+
+**Known limit:** a member with two devices on the Notes tab: the last write wins and
+the other device shows its old text until a reload.
+
+**Click-through, 2026-09-24 (server from `/tmp/exalted-click9/`).** First round: the
+roster, the privacy, the ally marks, the Edit-survives-a-repaint, the notes and the
+player's dialog passed. It found three things:
+* **There was no Storyteller view** (the human: *"there's no way to 'view as ST'"*).
+  "Open as" defaulted the ST to their first NPC, so that NPC sat in YOU PLAY with no
+  switch, and every other NPC was a read-only row the ST could not mark. **Fixed:**
+  for the ST, the first Open-as choice is **Storyteller** (it replaces Spectate) and
+  is the default; in it every NPC is under ALLIES / ENEMIES with its switch and the
+  YOU PLAY live controls (`_you_play` takes a marker `prefix`; the ST owns the NPC,
+  so R3 does not apply). Opening as an NPC is still the GMPC path.
+* **The roster dialogs were white** (the Add and the Edit dialog). Both now take
+  `pal.card_solid` — on the desktop Party page too, which had the same white dialogs.
+* **The full cards were too big for the rail.** Ruled: **compact, expand in place.**
+  `roster_card(expanded=…)`: collapsed is the name, the identity, the switch, the
+  live health boxes and one "WP · Motes" line; the chevron shows the stats, the
+  trackers and the buttons. NPC rows collapse the same way. The Party page passes
+  no `expanded` and keeps its full card. The open cards are per page, kept across
+  repaints.
+
+Second round, the same day: all five checks passed (the default view, the NPC switch,
+the card size, the NPC trackers from ALLIES, the themed dialogs). +5 page tests; 3
+mutations killed (the ST defaulting to an NPC, NPC rows never compact, the add dialog
+unthemed).
 
 ---
 

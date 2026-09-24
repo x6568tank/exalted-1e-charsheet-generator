@@ -20,6 +20,14 @@ section 15.2 (shape A of `spikes/campaign_page/`):
   * The homebrew of the campaign is step 7 (section 14): the Homebrew button opens
     `server/table_custom.py`. The request card says what an approval adds, and the
     ST tab lists the HOMEBREW REQUESTS.
+  * The roster is step 8 (section 15.3): ALLIES and ENEMIES below PARTY. The
+    Storyteller sees the full card of each entry and each NPC, with the Enemy / Ally
+    switch. A player sees each ally as a name and a health track, and no enemy.
+    The Notes tab holds the private notes of the viewer (Q8, Q9).
+
+⚠ The page of a player is built from `view.AllyView` for each ally, and gets
+nothing of an enemy. An element that is hidden with CSS still goes to the browser.
+An NPC is a character of the Storyteller (`is_npc`), thus THE OTHERS never holds one.
 
 ⚠ `TableStore.access` is the check. The page calls it in the page body, before it
 reads anything of the table. Each handler and each poll calls it again. A hidden
@@ -47,8 +55,11 @@ import time
 from nicegui import app, ui
 
 from ..engine import derive, dice, play as engineplay, validate
+from ..models.adversary import ALLY, ENEMY, Adversary
 from ..models.character import Character, HouseRules, PlayState
+from ..models.party import Party
 from ..models.rules import RuleSet
+from ..ui import adversaries as adversaries_mod
 from ..ui import play as play_mod
 from ..ui import saving, theme
 from ..ui import view as viewmod
@@ -60,6 +71,8 @@ from .session import SessionRegistry
 from .table_custom import custom_url, register_table_custom
 from .table_homebrew import TableHomebrew, TableHomebrewError
 from .table_log import MAX_TEXT, LogEntry, TableLog, TableLogError
+from .table_notes import MAX_NOTES, TableNotes, TableNotesError
+from .table_roster import TableRoster
 from .table_st import MAX_GRANT, MAX_NOTE, Award, TableStoryteller
 from .tables import STORYTELLER, TableRow, TableStore, TableStoreError
 
@@ -94,15 +107,19 @@ def _open_as_key(table_id: str) -> str:
 def register_table_page(tables: TableStore, store: CharacterStore, rulesets: Rulesets,
                         sessions: SessionRegistry,
                         current_user_id: Callable[[], int | None],
-                        log: TableLog) -> None:
+                        log: TableLog, catalog: dict[str, Adversary] | None = None) -> None:
     """Register `/table/<id>` and `/table/<id>/custom`.
 
     `rulesets` gives the RuleSet of a character that has no live context. `sessions`
     is the character registry of `server/home.py`. `current_user_id` returns the
-    account of the request. `log` reads and writes the Log of each table.
+    account of the request. `log` reads and writes the Log of each table. `catalog`
+    is the adversary templates (`rules_db.load_adversary_catalog`).
     """
     storyteller = TableStoryteller(tables, store, sessions, log)
     homebrew = TableHomebrew(tables)
+    # ⚠ ONE roster store for the process: it holds the live roster of each table.
+    roster = TableRoster(tables)
+    notes = TableNotes(tables)
     register_table_custom(tables, store, rulesets, homebrew, current_user_id)
 
     @ui.page(TABLE_PATH + "/{table_id}")
@@ -115,7 +132,8 @@ def register_table_page(tables: TableStore, store: CharacterStore, rulesets: Rul
             chrome.table_not_found()
             return
         _TableView(tables, store, rulesets, sessions, log, storyteller, homebrew,
-                   user_id, table).build()
+                   user_id, table, roster=roster, notes=notes,
+                   catalog=catalog or {}).build()
 
 
 # --------------------------------------------------------------------------- #
@@ -147,8 +165,12 @@ class _TableView:
     def __init__(self, tables: TableStore, store: CharacterStore, rulesets: Rulesets,
                  sessions: SessionRegistry, log: TableLog,
                  storyteller: TableStoryteller, homebrew: TableHomebrew, user_id: int,
-                 table: TableRow) -> None:
+                 table: TableRow, *, roster: TableRoster, notes: TableNotes,
+                 catalog: dict[str, Adversary]) -> None:
         self.tables = tables
+        self.roster = roster
+        self.notes = notes
+        self.catalog = catalog
         self.log = log
         self.storyteller = storyteller
         self.homebrew = homebrew
@@ -164,7 +186,10 @@ class _TableView:
         self.gone = False
         self._structure = None
         self._digests: dict[str, object] = {}
+        self._sides_key = None
         self._log_version = None
+        # The keys of the compact cards that show their stats: "adv:<id>", "npc:<id>".
+        self._expanded: set[str] = set()
 
     # ---- reads -------------------------------------------------------------- #
 
@@ -179,15 +204,35 @@ class _TableView:
         2026-09-22). ⚠ Keyed on the owner, which the page cannot edit."""
         return row.owner_id == self.table.storyteller_id
 
+    def party_rows(self, copies: list[CharacterRow]) -> list[CharacterRow]:
+        """Return the copies of the players: each copy that is not an NPC."""
+        return [row for row in copies if not self.is_npc(row)]
+
+    def npcs(self, copies: list[CharacterRow]) -> list[CharacterRow]:
+        return [row for row in copies if self.is_npc(row)]
+
+    def sides_key(self, copies: list[CharacterRow]):
+        """What decides ALLIES and ENEMIES: the roster, the sides and each NPC."""
+        chosen = self.chosen(copies)
+        chosen_id = chosen.id if chosen is not None else None
+        return (self.roster.version(self.table.id),
+                tuple(sorted(self.tables.npc_sides(self.table.id).items())),
+                tuple((row.id, self.digest(row)) for row in self.npcs(copies)
+                      if row.id != chosen_id),
+                chosen_id)
+
     def chosen(self, copies: list[CharacterRow]) -> CharacterRow | None:
-        """Return the copy that the viewer opens as, or None to spectate.
+        """Return the copy that the viewer opens as, or None to spectate. For the
+        Storyteller, None is the Storyteller view.
 
         The choice is in `app.storage.user`. A choice that is not a copy of the
-        viewer in the table gives the first copy of the viewer.
+        viewer in the table gives the first copy of the viewer. ⚠ The Storyteller
+        with no choice gets the Storyteller view (human, 2026-09-24): an NPC in YOU
+        PLAY has no switch, and the other NPCs lose their live controls.
         """
         mine = self.mine(copies)
         stored = app.storage.user.get(_open_as_key(self.table.id))
-        if stored == SPECTATE:
+        if stored == SPECTATE or (self.is_st and stored is None):
             return None
         for row in mine:
             if row.id == stored:
@@ -258,16 +303,22 @@ class _TableView:
                     "w-full md:w-[19rem] md:shrink-0 md:overflow-y-auto flex flex-col gap-2 "
                     "md:pr-1"):
                 self.rail = ui.column().classes("w-full gap-2")
+                self.sides = ui.column().classes("w-full gap-2")
             with ui.element("div").classes("flex-1 min-w-0 min-h-[16rem] flex flex-col"):
                 self._board()
             with ui.element("div").classes(
                     "w-full md:w-[19rem] md:shrink-0 flex flex-col gap-1 md:overflow-y-auto"):
                 self._right_rail()
 
+            # ⚠ The dialogs of the roster go here. A dialog in an element that a
+            # repaint clears is deleted, and the poll repaints the rails.
+            self.dialog_host = ui.element("div")
+
         copies = self.copies()
         self._structure = self.structure(copies)
         self._draw_top(copies)
         self._draw_rail(copies)
+        self._draw_sides(copies)
         ui.timer(POLL_SECONDS, self.poll)
 
     def refresh_all(self) -> None:
@@ -275,6 +326,7 @@ class _TableView:
         self._structure = self.structure(copies)
         self._draw_top(copies)
         self._draw_rail(copies)
+        self._draw_sides(copies)
         self._draw_members(copies)
         if self.is_st:
             self._draw_st()
@@ -308,9 +360,13 @@ class _TableView:
         if self.structure(copies) != self._structure:
             self.refresh_all()
             return
-        digests = {row.id: self.digest(row) for row in copies}
-        if digests != self._digests:
+        players = self.party_rows(copies)
+        chosen = self.chosen(copies)
+        shown = players + ([chosen] if chosen is not None and self.is_npc(chosen) else [])
+        if {row.id: self.digest(row) for row in shown} != self._digests:
             self._draw_rail(copies)
+        if self.sides_key(copies) != self._sides_key:
+            self._draw_sides(copies)
 
     # ---- the top bar -------------------------------------------------------- #
 
@@ -321,10 +377,12 @@ class _TableView:
             if mine:
                 chosen = self.chosen(copies)
                 characters = {row.id: self.read(row).character for row in mine}
-                options = {row_id: "Open as: " + (c.name if c is not None and c.name
-                                                  else "(unnamed)")
-                           for row_id, c in characters.items()}
-                options[SPECTATE] = "Spectate"
+                options = {SPECTATE: "Storyteller"} if self.is_st else {}
+                options |= {row_id: "Open as: " + (c.name if c is not None and c.name
+                                                   else "(unnamed)")
+                            for row_id, c in characters.items()}
+                if not self.is_st:
+                    options[SPECTATE] = "Spectate"
                 ui.select(options, value=chosen.id if chosen else SPECTATE,
                           on_change=lambda e: self._open_as(e.value)).props(
                     "dense dark borderless options-dense").classes(
@@ -354,35 +412,184 @@ class _TableView:
 
     def _open_as(self, value: str) -> None:
         app.storage.user[_open_as_key(self.table.id)] = value
-        self._draw_rail(self.copies())
+        copies = self.copies()
+        self._draw_rail(copies)
+        self._draw_sides(copies)
 
     # ---- the left rail ------------------------------------------------------ #
 
     def _draw_rail(self, copies: list[CharacterRow]) -> None:
-        """Draw PARTY: YOU PLAY, then THE OTHERS. Record the digest of each copy."""
+        """Draw PARTY: YOU PLAY, then THE OTHERS. Record the digest of each copy
+        that PARTY shows.
+
+        ⚠ THE OTHERS holds the copies of the players only. An NPC is in ALLIES or
+        ENEMIES (`_draw_sides`). The Storyteller can open as an NPC: YOU PLAY.
+        """
         pal = self.pal
         chosen = self.chosen(copies)
+        players = self.party_rows(copies)
         self.rail.clear()
         with self.rail:
             with ui.row().classes("w-full items-center justify-between no-wrap"):
-                chrome.section_label(pal, "PARTY", len(copies))
+                chrome.section_label(pal, "PARTY", len(players))
                 ui.button("Add a character", icon="person_add",
                           on_click=self._add_character).props(
                     "flat dense no-caps size=sm").mark("table-add-character")
-            if not copies:
+            if not players and chosen is None:
                 ui.label("No characters yet. An approved request that brings a "
                          "character puts its campaign copy here.").classes(
                     "text-sm opacity-70")
             if chosen is not None:
                 _heading(pal, "YOU PLAY")
                 self._you_play(self.read_own(chosen))
-            others = [row for row in copies if chosen is None or row.id != chosen.id]
+            others = [row for row in players if chosen is None or row.id != chosen.id]
             if others and chosen is not None:
                 _heading(pal, "THE OTHERS")
             for row in others:
                 _other_row(self.read(row), _username(self.tables, row.owner_id),
-                           mine=row.owner_id == self.user_id, npc=self.is_npc(row))
-        self._digests = {row.id: self.digest(row) for row in copies}
+                           mine=row.owner_id == self.user_id, npc=False)
+        shown = players + ([chosen] if chosen is not None and self.is_npc(chosen) else [])
+        self._digests = {row.id: self.digest(row) for row in shown}
+
+    # ---- ALLIES and ENEMIES ------------------------------------------------- #
+
+    def _draw_sides(self, copies: list[CharacterRow]) -> None:
+        """Draw ALLIES and ENEMIES. Record what decides them (`sides_key`)."""
+        self._sides_key = self.sides_key(copies)
+        self.sides.clear()
+        with self.sides:
+            if self.is_st:
+                self._st_sides(copies)
+            else:
+                self._player_allies(copies)
+
+    def _player_allies(self, copies: list[CharacterRow]) -> None:
+        """ALLIES for a player: a name and a health track for each ally (R7).
+
+        ⚠ Build each row from a `view.AllyView`. Nothing of an enemy is read here.
+        """
+        sides = self.tables.npc_sides(self.table.id)
+        views = []
+        for row in self.npcs(copies):
+            if sides.get(row.id, ENEMY) != ALLY:
+                continue
+            shown = self.read(row)
+            if shown.character is not None:
+                views.append(viewmod.character_ally_view(shown.ruleset, shown.character,
+                                                         row.id))
+        views += self.roster.allies(self.user_id, self.table.id)
+        if not views:
+            return
+        with ui.column().classes("w-full gap-1").mark("table-allies"):
+            _heading(self.pal, f"ALLIES ({len(views)})")
+            for view in views:
+                _ally_row(view, self.pal)
+
+    def _st_sides(self, copies: list[CharacterRow]) -> None:
+        """ALLIES and ENEMIES for the Storyteller: each NPC as a read-only row and
+        each roster entry as its full card, each with the Enemy / Ally switch."""
+        chosen = self.chosen(copies)
+        sides = self.tables.npc_sides(self.table.id)
+        npcs = [row for row in self.npcs(copies) if chosen is None or row.id != chosen.id]
+        party = self._party()
+        for side, title in ((ALLY, "ALLIES"), (ENEMY, "ENEMIES")):
+            rows = [row for row in npcs if sides.get(row.id, ENEMY) == side]
+            entries = [(i, a) for i, a in enumerate(party.adversaries) if a.side == side]
+            with ui.column().classes("w-full gap-2").mark(f"table-{side}"):
+                with ui.row().classes("w-full items-center justify-between no-wrap"):
+                    _heading(self.pal, f"{title} ({len(rows) + len(entries)})")
+                    ui.button(icon="add", on_click=lambda _=None, s=side:
+                              self._add_entry(s)).props(
+                        "flat dense round size=sm").mark(f"table-add-{side}").tooltip(
+                        "Add from the catalogue")
+                if not rows and not entries:
+                    ui.label("Players see each ally as a name and a health track."
+                             if side == ALLY else "Only you see the enemies.").classes(
+                        "text-xs opacity-60")
+                for row in rows:
+                    self._npc_row(row, side)
+                for index, entry in entries:
+                    key = f"adv:{entry.id}"
+                    adversaries_mod.roster_card(
+                        self.ruleset, self._party, index, entry, self.pal,
+                        self._roster_changed, dialog_host=self.dialog_host,
+                        expanded=key in self._expanded,
+                        on_toggle=lambda k=key: self._toggle(k),
+                        extra=lambda e=entry: _side_switch(
+                            e.side, f"adv-side-{e.id}",
+                            lambda value, i=e.id: self._set_entry_side(i, value)))
+
+    def _toggle(self, key: str) -> None:
+        """Show or hide the stats of the compact card `key`."""
+        self._expanded ^= {key}
+        self._draw_sides(self.copies())
+
+    def _npc_row(self, row: CharacterRow, side: str) -> None:
+        """One NPC in ALLIES or ENEMIES for the Storyteller: the switch, and the live
+        controls of YOU PLAY. A compact row has the health boxes and one line of
+        Willpower and motes. ⚠ The Storyteller owns the NPC: R3 does not apply."""
+        key = f"npc:{row.id}"
+        expanded = key in self._expanded
+
+        def header() -> None:
+            _side_switch(side, f"npc-side-{row.id}",
+                         lambda value: self._set_npc_side(row.id, value))
+            ui.button(icon="expand_less" if expanded else "expand_more",
+                      on_click=lambda: self._toggle(key)).props(
+                "flat dense round size=sm").mark(f"npc-toggle-{row.id}").tooltip(
+                "Hide the trackers" if expanded else "Show the trackers")
+
+        self._you_play(self.read_own(row), prefix=f"npc-{row.id}", extra=header,
+                       compact=not expanded, outline=False)
+
+    def _party(self) -> Party:
+        """Return the live roster. ⚠ A viewer who is not the Storyteller now gets an
+        empty roster that no file holds: a change to it goes nowhere."""
+        try:
+            return self.roster.party(self.user_id, self.table.id)
+        except TableStoreError:
+            return Party(id=self.table.id)
+
+    def _roster_changed(self) -> None:
+        """Save the live roster, and draw ALLIES and ENEMIES. Each change of the
+        roster calls this."""
+        try:
+            self.roster.save(self.user_id, self.table.id)
+        except (TableStoreError, QuotaExceeded) as exc:
+            ui.notify(str(exc), type="warning")
+        self._draw_sides(self.copies())
+
+    def _add_entry(self, side: str) -> None:
+        if not self._still_storyteller():
+            return
+
+        def adjust(entry: Adversary) -> None:
+            entry.side = side
+
+        # ⚠ A closed dialog stays in its element. One dialog at a time.
+        self.dialog_host.clear()
+        with self.dialog_host:
+            adversaries_mod.open_add_dialog(
+                self.ruleset, self.catalog, self._party, self._roster_changed,
+                adjust=adjust, title="Add an ally" if side == ALLY else "Add an enemy",
+                pal=self.pal)
+
+    def _set_entry_side(self, entry_id: str, side: str) -> None:
+        if not self._still_storyteller():
+            return
+        for entry in self._party().adversaries:
+            if entry.id == entry_id:
+                entry.side = side
+        self._roster_changed()
+
+    def _set_npc_side(self, character_id: str, side: str) -> None:
+        if not self._still_storyteller():
+            return
+        try:
+            self.tables.set_npc_side(self.user_id, self.table.id, character_id, side)
+        except (TableStoreError, QuotaExceeded) as exc:
+            ui.notify(str(exc), type="warning")
+        self._draw_sides(self.copies())
 
     def _add_character(self) -> None:
         """A dialog: bring one of the viewer's locked bases, or create a character
@@ -400,14 +607,23 @@ class _TableView:
         with ui.dialog() as dialog, ui.card().classes(
                 f"w-[28rem] max-w-full p-4 gap-2 {self.pal.card_solid}"):
             ui.label("Add a character").classes("text-base font-bold")
-            ui.label("The Storyteller approves each character. An approval makes a "
-                     "campaign copy.").classes("text-xs")
+            side = None
+            if self.is_st:
+                # The Storyteller picks the side of an NPC here (human, 2026-09-24).
+                ui.label("Your characters are NPCs. Players see an ally as a name "
+                         "and a health track, and do not see an enemy.").classes("text-xs")
+                side = ui.toggle({ENEMY: "Enemy", ALLY: "Ally"}, value=ENEMY).props(
+                    "dense no-caps").mark("add-character-side")
+            else:
+                ui.label("The Storyteller approves each character. An approval makes "
+                         "a campaign copy.").classes("text-xs")
             if bases:
                 choice = ui.select(bases, value=next(iter(bases)),
                                    label="Bring a finished character").classes(
                     "w-full").mark("add-character-base")
-                ui.button("Send request", icon="send",
-                          on_click=lambda: self._bring(dialog, choice.value)).props(
+                ui.button("Add" if self.is_st else "Send request", icon="send",
+                          on_click=lambda: self._bring(
+                              dialog, choice.value, side.value if side else None)).props(
                     f"dense no-caps color={self.pal.button}").mark("add-character-send")
             else:
                 ui.label("You have no finished character to bring.").classes(
@@ -417,16 +633,17 @@ class _TableView:
                      "rules of the campaign, and Finish & Lock sends it to the "
                      "Storyteller.").classes("text-xs")
             ui.button("Create a character", icon="note_add",
-                      on_click=lambda: self._create(dialog)).props(
+                      on_click=lambda: self._create(
+                          dialog, side.value if side else None)).props(
                 f"outline dense no-caps color={self.pal.button}").mark(
                 "add-character-create")
             with ui.row().classes("w-full justify-end"):
                 ui.button("Cancel", on_click=dialog.close).props("flat")
         dialog.open()
 
-    def _bring(self, dialog, base_id: str | None) -> None:
+    def _bring(self, dialog, base_id: str | None, side: str | None = None) -> None:
         try:
-            request = self.tables.bring(self.user_id, self.table.id, base_id)
+            request = self.tables.bring(self.user_id, self.table.id, base_id, side=side)
         except TableStoreError as exc:
             ui.notify(str(exc), type="warning")
             return
@@ -436,9 +653,9 @@ class _TableView:
                   type="positive" if request.approved else "info")
         self.refresh_all()
 
-    def _create(self, dialog) -> None:
+    def _create(self, dialog, side: str | None = None) -> None:
         try:
-            row = self.tables.start_draft(self.user_id, self.table.id)
+            row = self.tables.start_draft(self.user_id, self.table.id, side=side)
         except (TableStoreError, QuotaExceeded) as exc:
             ui.notify(str(exc), type="warning")
             return
@@ -466,12 +683,21 @@ class _TableView:
             self.store.save(row, character)
         except QuotaExceeded as exc:
             ui.notify(str(exc), type="negative")
-        self._draw_rail(self.copies())
+        copies = self.copies()
+        self._draw_rail(copies)
+        if self.is_npc(row):
+            self._draw_sides(copies)
 
-    def _you_play(self, shown: _Shown) -> None:
-        """The copy of the viewer, with live controls (R2)."""
+    def _you_play(self, shown: _Shown, *, prefix: str = "you",
+                  extra: Callable[[], None] | None = None, compact: bool = False,
+                  outline: bool = True) -> None:
+        """The copy of the viewer, with live controls (R2).
+
+        `prefix` starts each marker. `extra` draws more controls in the header.
+        `compact` draws the health boxes and one line of Willpower and motes only.
+        """
         row, character = shown.row, shown.character
-        with ui.column().classes("w-full gap-0").mark("you-play"):
+        with ui.column().classes("w-full gap-0").mark(f"{prefix}-play"):
             if character is None:
                 ui.label(f"(unreadable: {row.id})").classes("text-sm opacity-70")
                 return
@@ -484,22 +710,24 @@ class _TableView:
 
             with ui.row().classes(
                     f"w-full no-wrap gap-0 rounded overflow-hidden {cpal.card_soft}").style(
-                    f"outline:2px solid {cpal.accent}"):
+                    f"outline:2px solid {cpal.accent}" if outline else ""):
                 ui.element("div").classes("w-1 self-stretch").style(
                     f"background:{cpal.accent}")
                 with ui.column().classes("gap-1.5 px-2 py-2 min-w-0 flex-1"):
                     with ui.row().classes(
                             "w-full items-baseline justify-between no-wrap gap-2"):
                         ui.label(cv.name).classes("text-sm font-bold truncate").style(
-                            f"color:{cpal.accent}").mark("you-name")
-                        if self.is_npc(row):
-                            _npc_badge(cpal, "npc-badge-you")
+                            f"color:{cpal.accent}").mark(f"{prefix}-name")
+                        if self.is_npc(row) and extra is None:
+                            _npc_badge(cpal, f"npc-badge-{prefix}")
                         ui.space()
                         with ui.link(target=chrome.character_url(row.id)).mark(
-                                "you-open-sheet"):
+                                f"{prefix}-open-sheet"):
                             ui.icon("open_in_new", size="1rem").style(
                                 f"color:{cpal.accent}")
-                            ui.tooltip("Open my sheet")
+                            ui.tooltip("Open the sheet")
+                        if extra is not None:
+                            extra()
                     ui.label(cv.identity_line).classes("text-xs opacity-70 truncate -mt-1.5")
 
                     _heading(cpal, "HEALTH · penalty "
@@ -507,12 +735,17 @@ class _TableView:
                     with ui.row().classes("gap-0.5"):
                         for i, (health, mark) in enumerate(zip(cv.play.health_boxes, marks)):
                             box = _health_box(mark, cpal, 1.35, health.label,
-                                              f"you-health-label-{i}").mark(f"you-health-{i}")
+                                              f"{prefix}-health-label-{i}").mark(
+                                f"{prefix}-health-{i}")
                             box.classes("cursor-pointer select-none").on(
                                 "click", lambda _=None, i=i: act(
                                     lambda c: engineplay.cycle_mark(c, i, n)))
 
                     spent_p, spent_pp = viewmod.spent_motes(cv.play, cur)
+                    if compact:
+                        _pool_line(cv.play, cur, spent_p, spent_pp).classes(
+                            "text-xs").mark(f"{prefix}-line")
+                        return
                     pools = ([("All motes", "peripheral", "motes_peripheral_spent", spent_pp,
                                cv.play.peripheral_max, cv.play.committed_peripheral)]
                              if cv.play.single_pool else
@@ -525,37 +758,39 @@ class _TableView:
                         # A pool with no motes and none attuned is a pool that the
                         # splat does not have (a Mortal).
                         if cap or committed:
-                            _mote_bar(label, key, spent, cap, self.pal,
+                            _mote_bar(label, f"{prefix}-motes-{key}", spent, cap, self.pal,
                                       lambda value, f=field, c=cap: act(
                                           lambda ch: engineplay.set_motes(ch, f, value, c)))
                     for note in (viewmod.committed_note(cv.play, compact=True),
                                  viewmod.free_motes_note(cv.play)):
                         if note:
-                            ui.label(note).classes("text-xs opacity-70").mark("you-motes-note")
+                            ui.label(note).classes("text-xs opacity-70").mark(
+                                f"{prefix}-motes-note")
 
                     wp_max = cv.play.willpower_max
                     wp_left = wp_max - cur.willpower_spent
                     # A click on box i leaves i dots. A click on the first empty box
                     # fills it again (`engine.play.set_count`).
-                    _track(f"WP {wp_left}/{wp_max}", "you-wp", wp_max, wp_left,
+                    _track(f"WP {wp_left}/{wp_max}", f"{prefix}-wp", wp_max, wp_left,
                            lambda i: act(lambda c: engineplay.set_count(
                                c, "willpower_spent", wp_max - i, wp_max)))
                     if derive.uses_clarity(shown.ruleset, character):
                         clarity = derive.clarity(shown.ruleset, character)
                         _track(f"Clarity {clarity.total}/{derive.CLARITY_MAX} "
                                f"({clarity.permanent} perm) · band {clarity.band}",
-                               "you-clarity", derive.CLARITY_MAX, cur.clarity_temporary,
+                               f"{prefix}-clarity", derive.CLARITY_MAX,
+                               cur.clarity_temporary,
                                lambda i: act(lambda c: engineplay.set_count(
                                    c, "clarity_temporary", i + 1, derive.CLARITY_MAX)))
                         ui.label(clarity.effects).classes("text-xs opacity-70").mark(
-                            "you-clarity-effects")
+                            f"{prefix}-clarity-effects")
                     else:
                         # ⚠ `derive.limit_max`, not 10: Greater Curse (p.40) and
                         # permanent Resonance shorten the track.
                         lim = derive.limit_label(shown.ruleset, character)
                         lim_max = derive.limit_max(shown.ruleset, character)
                         broken = f" — {lim.upper()} BREAK" if cur.limit >= lim_max else ""
-                        _track(f"{lim} {cur.limit}/{lim_max}{broken}", "you-limit",
+                        _track(f"{lim} {cur.limit}/{lim_max}{broken}", f"{prefix}-limit",
                                lim_max, cur.limit,
                                lambda i: act(lambda c: engineplay.set_count(
                                    c, "limit", i + 1, lim_max)))
@@ -564,6 +799,7 @@ class _TableView:
                     # It shows for a character with armour, or with points left.
                     if character.armor or cur.fatigue:
                         _fatigue(cur.fatigue, cv.play.fatigue_difficulties, self.pal,
+                                 prefix,
                                  lambda step: act(lambda c: engineplay.set_fatigue(
                                      c, engineplay.play_state(c).fatigue + step)))
 
@@ -598,12 +834,40 @@ class _TableView:
             with ui.tab_panel("log").classes("p-0 gap-1"):
                 self._log_panel()
             with ui.tab_panel("notes").classes("p-0 gap-2"):
+                self._notes_panel()
                 self.members_panel = ui.column().classes("w-full gap-1")
                 self._draw_members(self.copies())
             if self.is_st:
                 with ui.tab_panel("st").classes("p-0 gap-2"):
                     self.st_panel = ui.column().classes("w-full gap-2")
                     self._draw_st()
+
+    # ---- the notes ---------------------------------------------------------- #
+
+    def _notes_panel(self) -> None:
+        """MY NOTES: the private notes of the viewer (Q8, Q9). ⚠ The store keys them
+        on the account of the page, never on a value from the browser."""
+        with ui.column().classes("w-full gap-1").mark("table-notes"):
+            _heading(self.pal, "MY NOTES")
+            ui.label("Only you can read these, the Storyteller too.").classes(
+                "text-xs opacity-60")
+            ui.textarea(placeholder="Plans, names, loose ends…",
+                        value=self.notes.read(self.user_id, self.table.id),
+                        on_change=lambda e: self._write_notes(e.value)).props(
+                f"outlined autogrow maxlength={MAX_NOTES}").classes("w-full").mark(
+                "table-notes-text")
+
+    def _write_notes(self, text: str | None) -> None:
+        if self.gone:
+            return
+        try:
+            self.notes.write(self.user_id, self.table.id, text or "")
+        except TableNotesError as exc:
+            ui.notify(str(exc), type="warning")
+            if self.tables.access(self.user_id, self.table.id) is None:
+                self.stop()
+        except QuotaExceeded as exc:
+            ui.notify(str(exc), type="negative")
 
     # ---- the Log ------------------------------------------------------------ #
 
@@ -1196,6 +1460,17 @@ def _dots(filled: int, total: int, size: float) -> list[ui.element]:
     return boxes
 
 
+def _pool_line(play, cur: PlayState, spent_p: int, spent_pp: int) -> ui.label:
+    """One line of Willpower and motes left, as THE OTHERS shows them."""
+    bits = [f"WP {play.willpower_max - cur.willpower_spent}/{play.willpower_max}"]
+    if play.single_pool:
+        bits.append(f"Motes {play.peripheral_max - spent_pp}/{play.peripheral_max}")
+    elif play.personal_max or play.peripheral_max:
+        bits.append(f"Motes {play.personal_max - spent_p}/{play.personal_max} · "
+                    f"{play.peripheral_max - spent_pp}/{play.peripheral_max}")
+    return ui.label("  ·  ".join(bits))
+
+
 def _track(label: str, marker: str, total: int, filled: int,
            on_click: Callable[[int], None]) -> None:
     """A dot track with a label. A click on box i calls `on_click(i)`."""
@@ -1210,17 +1485,18 @@ def _track(label: str, marker: str, total: int, filled: int,
                     f"{marker}-{i}").on("click", lambda _=None, i=i: on_click(i))
 
 
-def _fatigue(points: int, difficulties: list[str], pal,
+def _fatigue(points: int, difficulties: list[str], pal, prefix: str,
              step: Callable[[int], None]) -> None:
     """The armour fatigue counter, with − and +. `step` takes −1 or +1.
-    `difficulties` names the fatigue roll difficulty of each worn piece."""
+    `difficulties` names the fatigue roll difficulty of each worn piece. `prefix`
+    starts each marker."""
     with ui.row().classes("w-full items-center no-wrap gap-1"):
         text = f"Fatigue {points}" + (f" (-{points} to all actions)" if points else "")
-        ui.label(text).classes("text-xs shrink-0").mark("you-fatigue-label")
+        ui.label(text).classes("text-xs shrink-0").mark(f"{prefix}-fatigue-label")
         ui.button(icon="remove", on_click=lambda: step(-1)).props(
-            f"flat dense round size=xs color={pal.button}").mark("you-fatigue-minus")
+            f"flat dense round size=xs color={pal.button}").mark(f"{prefix}-fatigue-minus")
         ui.button(icon="add", on_click=lambda: step(1)).props(
-            f"flat dense round size=xs color={pal.button}").mark("you-fatigue-plus")
+            f"flat dense round size=xs color={pal.button}").mark(f"{prefix}-fatigue-plus")
         if difficulties:
             ui.label("Roll difficulty: " + ", ".join(difficulties)).classes(
                 "text-xs opacity-70 truncate")
@@ -1231,7 +1507,8 @@ def _mote_bar(label: str, key: str, spent: int, cap: int, pal,
     """One pool as a bar of what is left, with − and + at its ends. A click on the
     bar opens a box: type an amount, then Spend, Regain or Full.
 
-    `set_spent` takes the new number of spent motes. The engine clamps it.
+    `set_spent` takes the new number of spent motes. The engine clamps it. `key`
+    starts each marker, for example "you-motes-peripheral".
     """
     left = cap - spent
     pct = 0 if cap == 0 else 100 * left / cap
@@ -1239,20 +1516,20 @@ def _mote_bar(label: str, key: str, spent: int, cap: int, pal,
         ui.label(label).classes("text-xs w-16 shrink-0")
         ui.button(icon="remove", on_click=lambda: set_spent(spent + 1)).props(
             f"flat dense round size=xs color={pal.button}").mark(
-            f"you-motes-{key}-minus").tooltip("Spend 1")
+            f"{key}-minus").tooltip("Spend 1")
         with ui.element("div").classes("relative flex-1 cursor-pointer rounded").style(
                 f"height:1.25rem;border:1px solid {_BORDER};background:{_WHITE}"):
             ui.element("div").classes("absolute inset-y-0 left-0 rounded-sm").style(
                 f"width:{pct}%;background:{_GOLD}")
             ui.label(f"{left}/{cap}").classes(
                 "absolute inset-0 text-center text-xs font-bold").style(
-                "line-height:1.2rem").mark(f"you-motes-{key}-left")
+                "line-height:1.2rem").mark(f"{key}-left")
             ui.tooltip("Click to spend or regain an amount")
             with ui.menu().props("anchor='bottom middle' self='top middle'") as menu:
                 with ui.column().classes("p-2 gap-1"):
                     amount = ui.number(f"{label}", value=None, min=0, format="%d").props(
                         "dense outlined autofocus").classes("w-32").mark(
-                        f"you-motes-{key}-amount")
+                        f"{key}-amount")
 
                     def apply(sign: int) -> None:
                         menu.close()
@@ -1262,14 +1539,14 @@ def _mote_bar(label: str, key: str, spent: int, cap: int, pal,
                     with ui.row().classes("gap-1 no-wrap"):
                         ui.button("Spend", on_click=lambda: apply(1)).props(
                             f"dense no-caps size=sm color={pal.button}").mark(
-                            f"you-motes-{key}-spend")
+                            f"{key}-spend")
                         ui.button("Regain", on_click=lambda: apply(-1)).props(
-                            "dense no-caps size=sm outline").mark(f"you-motes-{key}-regain")
+                            "dense no-caps size=sm outline").mark(f"{key}-regain")
                         ui.button("Full", on_click=lambda: (menu.close(), set_spent(0))) \
-                            .props("dense no-caps size=sm flat").mark(f"you-motes-{key}-full")
+                            .props("dense no-caps size=sm flat").mark(f"{key}-full")
         ui.button(icon="add", on_click=lambda: set_spent(spent - 1)).props(
             f"flat dense round size=xs color={pal.button}").mark(
-            f"you-motes-{key}-plus").tooltip("Regain 1")
+            f"{key}-plus").tooltip("Regain 1")
 
 
 def _log_entry(entry: LogEntry, name: str, pal, *, mine: bool, storyteller: bool) -> None:
@@ -1318,9 +1595,11 @@ def _award_row(award: Award) -> None:
             ui.label(award.note).classes("text-xs opacity-70 break-words")
 
 
-def _other_row(shown: _Shown, player: str, *, mine: bool, npc: bool) -> None:
+def _other_row(shown: _Shown, player: str, *, mine: bool, npc: bool,
+               extra: Callable[[], None] | None = None) -> None:
     """One copy that the viewer does not play now, read-only (R3): the name, the
     player, the identity line, the health strip, the motes and the Willpower.
+    `extra` draws more controls at the end of the row.
 
     ⚠ No element here has a handler. The Storyteller cannot mark a player's row.
     """
@@ -1368,6 +1647,31 @@ def _other_row(shown: _Shown, player: str, *, mine: bool, npc: bool) -> None:
                 with ui.row().classes("items-center gap-1 no-wrap"):
                     ui.label(f"WP {wp_left}/{cv.play.willpower_max}")
                     _dots(wp_left, cv.play.willpower_max, 0.7)
+            if extra is not None:
+                extra()
+
+
+def _side_switch(value: str, marker: str, on_change: Callable[[str], None]) -> None:
+    """The Enemy / Ally switch of an NPC or a roster entry (R6)."""
+    ui.toggle({ENEMY: "Enemy", ALLY: "Ally"}, value=value,
+              on_change=lambda e: on_change(e.value)).props(
+        "dense no-caps size=sm").mark(marker)
+
+
+def _ally_row(view: viewmod.AllyView, pal) -> None:
+    """One ally on the page of a player: the name and the health track (R7).
+
+    ⚠ `view` is all that this row reads. No stat of the ally reaches the page.
+    """
+    with ui.column().classes("w-full gap-0.5 px-2 py-1.5 rounded").style(
+            "background:#00000008").mark(f"ally-{view.key}"):
+        ui.label(view.name).classes("text-sm font-bold truncate").style(
+            f"color:{pal.accent}")
+        with ui.row().classes("gap-0.5"):
+            for i, box in enumerate(view.boxes):
+                _health_box(box.mark, pal, 0.95, box.label,
+                            f"ally-health-label-{view.key}-{i}").mark(
+                    f"ally-health-{view.key}-{i}")
 
 
 def _requests(tables: TableStore, store: CharacterStore, rulesets: Rulesets, user_id: int,

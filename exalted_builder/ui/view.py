@@ -4858,6 +4858,44 @@ def summary_line(ruleset: RuleSet, a: Adversary) -> str:
     return "  ·  ".join(bits)
 
 
+@dataclass(frozen=True)
+class AllyBox:
+    """One health box of an ally: the label and the mark, or None."""
+    label: str
+    mark: Optional[Damage]
+
+
+@dataclass(frozen=True)
+class AllyView:
+    """What the page of a player gets of an ally: the name and the health track (R7).
+
+    ⚠ The page of a player is built from this and from nothing else. An attribute
+    added here reaches the browser of each player. `key` is the id of the entry or
+    of the copy. It identifies the element, and it is not shown.
+    """
+    key: str
+    name: str
+    boxes: tuple[AllyBox, ...]
+
+
+def ally_view(a: Adversary) -> AllyView:
+    """Project the roster entry `a` to its name and health track."""
+    marks = advmod.normalize_damage(a)
+    return AllyView(a.id, a.name or "(unnamed)", tuple(
+        AllyBox(advmod.level_label(penalty), mark)
+        for penalty, mark in zip(a.health_levels, marks)))
+
+
+def character_ally_view(ruleset: RuleSet, character: Character, key: str) -> AllyView:
+    """Project the full character `character` to its name and health track. `key` is
+    the id of the copy."""
+    play = build_party_card_view(ruleset, character).play
+    health = list((character.play.health if character.play else []))
+    return AllyView(key, character.name or "(unnamed)", tuple(
+        AllyBox(box.label, health[i] if i < len(health) else None)
+        for i, box in enumerate(play.health_boxes)))
+
+
 def trait_map_line(values: dict[str, int], order: list[str]) -> str:
     """"Str 4  Dex 2  Sta 4" — the printed Attributes/Virtues, abbreviated to fit
     a card. Absent keys are skipped, never shown as 0 (a beast prints three of the

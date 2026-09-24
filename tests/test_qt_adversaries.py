@@ -33,7 +33,8 @@ from exalted_builder.qt.adversaries import AdversariesPage
 
 # Fields that are not stats a GM types: the id, the provenance, and the three tracked
 # ones (which the trackers own, not the editor).
-_NOT_STATS = {"id", "template_id", "damage", "willpower_spent", "motes_spent"}
+# `side` is for a campaign table. The Party window does not set it.
+_NOT_STATS = {"id", "template_id", "damage", "willpower_spent", "motes_spent", "side"}
 
 
 @pytest.fixture
