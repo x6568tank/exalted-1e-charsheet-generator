@@ -145,3 +145,29 @@ early in the alphabet.
 reads the syntax tree of every `tests/test_*.py` and fails on a `monkeypatch.setattr` /
 `delattr` whose first argument is a string starting with `exalted_builder`. It names the
 file and the line. **Never patch by dotted string in this repo.**
+
+## The trap where a second simulated user takes the navigation
+
+⚠ **The NiceGUI user simulation has ONE `ui.navigate` and ONE `ui.notify` for the whole
+process.** `User.__getattribute__` points them at whichever simulated user had an attribute
+read *last* — and each client's outbox reads its own user every time it sends a
+`run_javascript` message (a `scroll_area.scroll_to`, a drawer check…).
+
+So with two pages open, an async handler that awaits (the sign-up awaits
+`run.io_bound(db.create_user)`) can resume after the OTHER page's outbox fired, and its
+`ui.navigate.to(...)` sends the **other** browser to the page. The handler's own user stays
+where it was. `test_table_view.py::test_a_character_that_joins_after_the_form_is_drawn_is_not_granted`
+failed this way for weeks — the Storyteller's table page is open while a newcomer signs up,
+and the table's Log scrolls on every draw — about one full-file run in five, more often as
+step 8 added drawing to that page. Waiting longer never helped: the navigation never came.
+
+**The fix is in `tests/conftest.py`**: `UserNavigate` and `UserNotify` forward each call to
+the simulated user whose client runs the handler (`context.client`). Outside a client, the
+simulation's own choice stands. `tests/test_user_simulation_routing.py` pins both, and fails
+with the patch removed.
+
+**Diagnosing the next one.** A probe that reads the users after the failure lies —
+`should_see` itself reads its user and resets the globals. Read a user's fields with
+`object.__getattribute__(user, name)`, and reproduce by touching the other user
+(`other.javascript_rules`) right after the click, which makes the race deterministic.
+Probes that add timing (stderr writes, log handlers) made it vanish for 25 runs.
