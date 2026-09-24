@@ -387,9 +387,10 @@ def test_approval_of_a_watch_request_makes_no_copy(store: TableStore) -> None:
     assert store.characters(table.id) == []
 
 
-def test_approval_does_not_absorb_homebrew_into_the_table(store: TableStore,
-                                                         characters) -> None:
-    """Section 4: nothing reaches the table layer as a side effect of a join."""
+def test_a_join_request_writes_nothing_to_the_table(store: TableStore,
+                                                   characters) -> None:
+    """Nothing reaches the table layer before the Storyteller approves. The approval
+    adds the carried homebrew (ruled 2026-09-23; tests/test_table_homebrew.py)."""
     from exalted_builder import custom_content
 
     custom_content.save_charm(
@@ -400,12 +401,11 @@ def test_approval_does_not_absorb_homebrew_into_the_table(store: TableStore,
     lifecycle.lock_chargen(character)
     base = characters.create(PLAYER, character)
     table = store.create(ST, "Clean")
+    _member(store, table, PLAYER)
 
-    copy = _member(store, table, PLAYER, base.id)
+    store.request(PLAYER, table.join_code, base.id)
 
-    carried = characters.load(copy).custom_definitions
-    assert [r["id"] for r in carried["charms"]] == ["custom.house-strike"]
-    assert not any(store.table_dir(table.id).rglob("*"))
+    assert not any(store.homebrew_dir(table.id).rglob("*"))
 
 
 def test_only_the_storyteller_approves(store: TableStore, characters) -> None:

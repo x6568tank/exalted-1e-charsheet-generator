@@ -1,6 +1,6 @@
 # P3 — Campaigns (the `Table`): design
 
-**Status: build steps 1–2 DONE 2026-09-12; steps 3, 4 and 5 DONE and BROWSER-VERIFIED 2026-09-22; step 6 (house rules) and 6b (add a character from the campaign) DONE and BROWSER-VERIFIED 2026-09-22 (phone width not tested; the request-card house-rules warning not browser-verified) (§14 is the build log). The layout was approved 2026-09-22 (§15). Steps 7–9 (the revised order, §15.4) are not started.**
+**Status: build steps 1–2 DONE 2026-09-12; steps 3, 4 and 5 DONE and BROWSER-VERIFIED 2026-09-22; step 6 (house rules) and 6b (add a character from the campaign) DONE and BROWSER-VERIFIED 2026-09-22 (phone width not tested; the request-card house-rules warning browser-verified 2026-09-23); step 7 (the campaign homebrew) DONE 2026-09-23, NOT browser-verified (§14 is the build log). The layout was approved 2026-09-22 (§15). Steps 8–9 (the revised order, §15.4) are not started.**
 Every product question the human was asked is ruled (`vtt.md` §9.1, §9.2, §9.3a, §9.10), and
 so are the six the design turned up (§13).
 
@@ -133,6 +133,12 @@ handler. A hidden button is not a check.
 ---
 
 ## 4. Rules layers — which RuleSet a campaign copy sees
+
+> ⚠ **Superseded in part by the step-7 rulings (§14 "Step 7", 2026-09-23):** one campaign
+> layer, no per-character layer; the approval adds the carried homebrew (no separate
+> "Add to campaign homebrew" button); player proposals. `AccountRulesets` became
+> `server/rulesets.Rulesets`. The mechanics below (layers, precedence, the reload trap)
+> are what was built.
 
 Today a character's context gets `AccountRulesets.for_account(owner)`: book + the owner's
 library. For a copy in a table it becomes **book → table layer → owner's library?** — and
@@ -924,6 +930,96 @@ asked *"could we add a way to distinguish ST NPCs?"* and ruled:
 ⚠ **Known limit:** if the ST unlocks-then-rejects, or the player unlocks the base while
 its request waits, approval refuses it ("Finish and lock…") — the behaviour of any
 request today.
+
+### Step 7 — the campaign homebrew layer (ruled 2026-09-23)
+
+**Found before building (2026-09-23):**
+* A campaign copy resolved its homebrew only through the OWNER'S library
+  (`rulesets.for_account(owner)` in the context factory). Q1 ("no") switches that off, so
+  the homebrew it carried in needs another home.
+* 🐞 **A side door Q1 did not see:** every save of a copy re-embeds its carried rows from
+  the owner's library (`CharacterStore.save` → `embed_definitions(custom_dir=owner)`).
+  An owner who edits a homebrew Charm at home changes it on the campaign copy at the next
+  save, with no Storyteller.
+
+**Ruled (the human, 2026-09-23, "Yes, build it"), replacing §4's per-character layer and
+§4's separate "Add to campaign homebrew" button:**
+* **One campaign layer.** A campaign copy sees book → the campaign's homebrew. No
+  per-character layer; no owner library (Q1).
+* **Three ways in, each through the ST:**
+  1. **Approving a character adds the homebrew it carries** to the campaign. The request
+     card says so before the click. The ST cannot approve a character and refuse its
+     homebrew (its bought Charms would not resolve); they reject, and the player changes
+     the character.
+  2. **Player proposals.** A member picks rows from their own library and proposes them;
+     the ST sees **HOMEBREW REQUESTS**, approves (added) or rejects (dropped).
+  3. **The ST authors** on the campaign's Homebrew page, `/table/<id>/custom`. Members and
+     watchers read it.
+* **An id clash: the campaign's version wins**, and the card flags the difference.
+* **A draft for a campaign (6b)** builds under book → campaign → the owner's library; what
+  it uses of the library shows on the request card and is added by route 1.
+* **The Custom tab is hidden on a campaign copy.** A copy re-embeds its carried rows from
+  the campaign layer, never the owner's library (closes the side door).
+
+**Shipped (same day), tests green, NOT browser-verified:**
+* **Loader:** `rules_db.with_custom_layers(book, [dirs])` / `reload_custom_layers(rs,
+  [dirs])` clear once and merge each folder in order; the first folder wins. A clash with
+  an earlier folder says "already defined by an earlier homebrew layer", not "rulebook"
+  (Charms, spells, rituals, gear). `reload_custom_layer` is the one-folder case.
+* **`server/rulesets.Rulesets`** replaces `home.AccountRulesets`: `for_account`,
+  `for_table`, `for_draft(table, user)` (campaign → owner), `for_row`. One per process,
+  built in `main.build_server`. ⚠ **The store tells it of each write**
+  (`TableStore.homebrew_listeners` / `library_listeners`): the Storyteller's own request
+  is approved INSIDE the store, so a reload in a page handler would miss it.
+* **The side door:** `CharacterStore.homebrew_dir(row)` — the campaign folder for a copy,
+  the library otherwise; `save` embeds from it. The context gets `custom_dir` (embed
+  source), `library_dir` (None on a copy: no "Save to my library" on its Gear tab) and
+  `reload_library`.
+* **Approval** absorbs the base's carried rows into `<table>/custom` (campaign wins);
+  `TableStore.homebrew_preview` gives the card's two lines: *"Approving adds to the
+  campaign homebrew: …"* and *"Different from the campaign's version, which stays: …"*.
+  `campaigns.carried_summary` is gone (replaced by the preview).
+* **Leaving, removal, deletion:** each copy's carried rows go into its owner's library
+  first (the library wins; a full account logs a warning and the leave still happens).
+  *Found while building, not asked:* without this a copy that became solo lost its
+  campaign homebrew (⚠ rows). Ruled "Correct" 2026-09-23.
+* **Proposals:** `server/table_homebrew.TableHomebrew` — `propose` (a copy of the row +
+  its homebrew prerequisites the campaign lacks; refuses a non-member, a row not in the
+  library, a row the campaign has, a duplicate), `approve` / `reject` (ST only),
+  `withdraw` (own only), `proposals` / `proposals_by`. The Storyteller's own proposal is
+  added at once. Stored in `<table>/homebrew_requests.json`.
+* **Pages:** `/table/<id>/custom` (`server/table_custom.py`): the ST gets the authoring
+  page on the campaign folder (its save reloads every kept stack); members and watchers
+  get a read-only list with text; everyone gets FROM YOUR LIBRARY (Propose, or Add for
+  the ST) and YOUR PROPOSALS (Withdraw). The table view's top bar has a **Homebrew**
+  button (construction icon) for everyone; the ST tab has **HOMEBREW REQUESTS** after
+  REQUESTS; the request badge counts both. The THE OTHERS rows read under the campaign
+  RuleSet (closes step 3's "known limit").
+
+**Tests:** `test_custom_layers.py` (10), `test_table_homebrew.py` (29),
+`test_rulesets.py` (12), `test_table_homebrew_pages.py` (14); one step-1 test rewritten
+(`test_a_join_request_writes_nothing_to_the_table` — the old "approval absorbs nothing"
+was the superseded design). **Mutation-checked (23, all killed after one test was
+added):** approval absorbing nothing; the side door reopened; the factory on the account
+rules; a copy keeping a library; leave / delete keeping no homebrew; propose without
+access; proposal approval without the ST check; no listeners; approval / proposal /
+leave telling no listener; a draft's stack in the wrong order (survived until
+`test_the_campaign_wins_a_clash_on_a_draft`); the preview calling everything new; a
+proposal overwriting the campaign; `reload_account` skipping drafts; the Gear button
+ignoring the flag; a member getting the editor; the page without access; the ST page,
+`/home` and the Gear tab each without their reload hook. **Not mutation-checked:** the
+table view reading THE OTHERS under the campaign RuleSet (no test drives it).
+
+**Design choices, ruled "Correct" by the human (2026-09-23), all three:** (1) leaving,
+removal and deletion put the copy's homebrew in the owner's library, the library winning a
+clash; (2) proposals cover Charms, spells and rituals only — gear is carried inline on a
+character (decision 0007), and the ST can author campaign gear on the Homebrew page;
+(3) a proposed Charm brings its homebrew prerequisites. Also without asking: the
+Storyteller's "Add" from their own library is immediate.
+
+⚠ **Known limit:** after a leave, an open page of that copy keeps the campaign RuleSet and
+embed folder until its context is rebuilt (a reload after eviction). The homebrew is
+already in the owner's library by then.
 
 ---
 

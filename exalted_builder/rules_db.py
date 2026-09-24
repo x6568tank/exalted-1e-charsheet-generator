@@ -579,6 +579,11 @@ def _check_sorcery_reachable(
             )
 
 
+# The problem text for an id that an earlier folder of a stack already defined. See
+# `with_custom_layers`: the first folder wins.
+_EARLIER_LAYER = "is already defined by an earlier homebrew layer; ignored"
+
+
 def _merge_custom_gear(custom_dir: Path, catalogs: dict, problems: list[str]) -> None:
     """Overlay the user's gear library onto the book catalogues, in place.
 
@@ -602,8 +607,9 @@ def _merge_custom_gear(custom_dir: Path, catalogs: dict, problems: list[str]) ->
                 continue
             if entry.id in catalog:
                 problems.append(
-                    f"custom {kind} {entry.id!r} shadows an entry from the rulebook; "
-                    f"ignored")
+                    f"custom {kind} {entry.id!r} "
+                    + (_EARLIER_LAYER if "custom" in catalog[entry.id].tags
+                       else "shadows an entry from the rulebook; ignored"))
                 continue
             catalog[entry.id] = entry.model_copy(
                 update={"tags": list(entry.tags) + ["custom"]})
@@ -646,7 +652,9 @@ def _load_custom_layer(
             for row in _load_array(f, Charm, problems):
                 if row.id in charms:
                     problems.append(
-                        f"custom charm {row.id!r} shadows a Charm from the rulebook; ignored")
+                        f"custom charm {row.id!r} " + (
+                            _EARLIER_LAYER if charms[row.id].custom
+                            else "shadows a Charm from the rulebook; ignored"))
                 elif row.id in custom_charms:
                     problems.append(
                         f"custom charm {row.id!r} is defined twice in the library; "
@@ -680,7 +688,9 @@ def _load_custom_layer(
     for sp in custom_spells:
         if sp.id in spells:
             problems.append(
-                f"custom spell {sp.id!r} shadows a spell from the rulebook; ignored")
+                f"custom spell {sp.id!r} " + (
+                    _EARLIER_LAYER if spells[sp.id].custom
+                    else "shadows a spell from the rulebook; ignored"))
         elif sp.circle not in granted:
             problems.append(
                 f"custom spell {sp.id!r} is {sp.circle.value} circle, but no Charm grants "
@@ -697,8 +707,9 @@ def _load_custom_layer(
                 continue
             if entry.id in rituals:
                 problems.append(
-                    f"custom ritual {entry.id!r} shadows a ritual from the rulebook; "
-                    f"ignored")
+                    f"custom ritual {entry.id!r} " + (
+                        _EARLIER_LAYER if rituals[entry.id].custom
+                        else "shadows a ritual from the rulebook; ignored"))
             else:
                 rituals[entry.id] = entry.model_copy(update={"custom": True})
 
@@ -880,6 +891,20 @@ def reload_custom_layer(ruleset: RuleSet, custom_dir: str | Path | None = None) 
     was dropped for a dangling prerequisite comes back when the prerequisite is
     authored, without the caller having to know that.
     """
+    target = Path(custom_dir) if custom_dir is not None else custom_content.custom_data_dir()
+    return reload_custom_layers(ruleset, [target])
+
+
+def reload_custom_layers(ruleset: RuleSet, custom_dirs: list[str | Path]) -> list[str]:
+    """Re-read each folder of `custom_dirs` into `ruleset`, in place and in order.
+    Return the problems found (also stored on `ruleset.custom_problems`).
+
+    Delete each custom row one time, then merge each folder. The first folder wins
+    an id clash. An absent folder adds nothing.
+
+    ⚠ Give the full stack at each reload. Two calls of `reload_custom_layer` keep
+    only the second folder, because each call deletes each custom row first.
+    """
     for cid in [cid for cid, ch in ruleset.charms.items() if ch.custom]:
         del ruleset.charms[cid]
     for sid in [sid for sid, sp in ruleset.spells.items() if sp.custom]:
@@ -895,22 +920,26 @@ def reload_custom_layer(ruleset: RuleSet, custom_dir: str | Path | None = None) 
     #
     # ⚠ Custom gear is identified by its TAG, not a `custom` field: `WeaponType` and
     # friends are frozen and shared with the book data (`_merge_custom_gear`).
-    gear_catalogs = {
+    gear_catalogs = _gear_catalogs(ruleset)
+    for catalog, _model in gear_catalogs.values():
+        for row_id in [i for i, row in catalog.items() if "custom" in row.tags]:
+            del catalog[row_id]
+
+    problems: list[str] = []
+    for folder in (Path(d) for d in custom_dirs):
+        if folder.is_dir():
+            problems += _load_custom_layer(folder, ruleset.charms, ruleset.spells,
+                                           gear_catalogs, ruleset.thaum_rituals)
+    ruleset.custom_problems = problems
+    return problems
+
+def _gear_catalogs(ruleset: RuleSet) -> dict:
+    return {
         "weapons": (ruleset.weapon_catalog, WeaponType),
         "armor": (ruleset.armor_catalog, ArmorType),
         "gear": (ruleset.gear_catalog, GearType),
         "artifacts": (ruleset.artifact_catalog, ArtifactType),
     }
-    for catalog, _model in gear_catalogs.values():
-        for row_id in [i for i, row in catalog.items() if "custom" in row.tags]:
-            del catalog[row_id]
-
-    target = Path(custom_dir) if custom_dir is not None else custom_content.custom_data_dir()
-    problems = _load_custom_layer(target, ruleset.charms, ruleset.spells,
-                                  gear_catalogs,
-                                  ruleset.thaum_rituals) if target.is_dir() else []
-    ruleset.custom_problems = problems
-    return problems
 
 
 # The RuleSet dicts that the custom layer writes. `with_custom_layer` copies these
@@ -929,9 +958,18 @@ def with_custom_layer(book: RuleSet, custom_dir: str | Path) -> RuleSet:
     `reload_custom_layer` on the result changes the result only. The cost is about
     0.1 MB plus the homebrew. See hosting-state-model.md section 5.3.
     """
+    return with_custom_layers(book, [custom_dir])
+
+
+def with_custom_layers(book: RuleSet, custom_dirs: list[str | Path]) -> RuleSet:
+    """Return a RuleSet of `book` with each folder of `custom_dirs` merged over it,
+    in order. The first folder wins an id clash. See `reload_custom_layers`.
+
+    The copy rule of `with_custom_layer` applies. p3-tables.md section 14, step 7.
+    """
     ruleset = book.model_copy(
         update={name: dict(getattr(book, name)) for name in CUSTOM_POOLS})
-    reload_custom_layer(ruleset, custom_dir)
+    reload_custom_layers(ruleset, list(custom_dirs))
     return ruleset
 
 

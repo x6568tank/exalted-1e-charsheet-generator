@@ -22,8 +22,9 @@ registry. A character of another account gets the same answer as one that does
 not exist, and no context is made for it.
 
 ⚠ One context for each CHARACTER, keyed on its id. Thus two devices on one
-character share it, and two devices can open two characters (section 9.1). One
-RuleSet for each ACCOUNT: all its characters see the homebrew of its library.
+character share it, and two devices can open two characters (section 9.1). The
+RuleSet of a character comes from `server/rulesets.py`: the library of the account
+for a solo character, the homebrew of the campaign for a campaign copy (Q1).
 """
 
 from __future__ import annotations
@@ -32,12 +33,11 @@ from collections.abc import Callable
 
 from nicegui import ui
 
-from .. import custom_content, persistence, rules_db
+from .. import custom_content, persistence
 from ..engine import lifecycle
 from ..engine.house_rule_actions import apply_table_rules
 from ..models.character import Character, new_character_id
 from ..models.party import Party
-from ..models.rules import RuleSet
 from ..ui import app as sheet_app
 from ..ui import builder, theme
 from ..ui.assets import cytoscape_head_html
@@ -47,6 +47,7 @@ from . import chrome
 from .campaigns import HomeCampaigns
 from .characters import CharacterRow, CharacterStore, CharacterStoreError
 from .quota import QuotaExceeded
+from .rulesets import Rulesets
 from .session import SessionRegistry
 from .tables import TableStore, TableStoreError
 
@@ -66,27 +67,7 @@ character_url = chrome.character_url
 MAX_IMPORT_BYTES = 2 * 1024 * 1024
 
 
-class AccountRulesets:
-    """One RuleSet for each account: the book with the library of the account.
-
-    Made on first use, and kept. The Custom tab and an import reload it in place,
-    thus each character of the account sees a change at once.
-    """
-
-    def __init__(self, book: RuleSet, store: CharacterStore) -> None:
-        self._book = book
-        self._store = store
-        self._rulesets: dict[int, RuleSet] = {}
-
-    def for_account(self, user_id: int) -> RuleSet:
-        """Return the RuleSet of account `user_id`."""
-        if user_id not in self._rulesets:
-            self._rulesets[user_id] = rules_db.with_custom_layer(
-                self._book, self._store.custom_dir(user_id))
-        return self._rulesets[user_id]
-
-
-def import_character(store: CharacterStore, rulesets: AccountRulesets, user_id: int,
+def import_character(store: CharacterStore, rulesets: Rulesets, user_id: int,
                      text: str) -> tuple[CharacterRow, list[str]]:
     """Store the character in the JSON `text` as a new character of `user_id`.
 
@@ -98,21 +79,21 @@ def import_character(store: CharacterStore, rulesets: AccountRulesets, user_id: 
     custom_dir = store.custom_dir(user_id)
     added = custom_content.absorb_definitions(character, custom_dir=custom_dir)
     if added:
-        rules_db.reload_custom_layer(rulesets.for_account(user_id), custom_dir)
+        rulesets.reload_account(user_id)
     return store.create(user_id, character), added
 
 
-def register_character_pages(store: CharacterStore, book: RuleSet,
+def register_character_pages(store: CharacterStore, rulesets: Rulesets,
                              current_user_id: Callable[[], int | None],
                              adversary_catalog: dict,
                              tables: TableStore) -> SessionRegistry:
     """Register `/home` and `/character/<id>`. Return the registry of the contexts.
 
-    `current_user_id` returns the account of the request. The server gives
-    `auth.current_user_id`; the gate sends a visitor with no login away first.
-    `tables` gives the Campaigns section of `/home`.
+    `rulesets` gives the RuleSet of each character. `current_user_id` returns the
+    account of the request. The server gives `auth.current_user_id`; the gate sends
+    a visitor with no login away first. `tables` gives the Campaigns section of
+    `/home`.
     """
-    rulesets = AccountRulesets(book, store)
 
     def factory(character_id: str) -> dict:
         row = store.row(character_id)
@@ -132,10 +113,15 @@ def register_character_pages(store: CharacterStore, book: RuleSet,
                     store.save(row, character)
                 except (QuotaExceeded, OSError):
                     pass
+        # "custom_dir" is the folder from which a save copies the homebrew.
+        # "library_dir" is the library that the Gear tab writes, and a campaign
+        # copy has none: its homebrew comes through the Storyteller (step 7).
         return {"char": character, "path": path, "dir": path.parent,
                 "home_dir": store.account_dir(row.owner_id),
-                "custom_dir": store.custom_dir(row.owner_id),
-                "ruleset": rulesets.for_account(row.owner_id),
+                "custom_dir": store.homebrew_dir(row),
+                "library_dir": None if row.table_id else store.custom_dir(row.owner_id),
+                "reload_library": lambda: rulesets.reload_account(row.owner_id),
+                "ruleset": rulesets.for_row(row),
                 "party": Party(id="party.new"), "party_path": None, "member": None,
                 "adversary_catalog": adversary_catalog, "row": row}
 
@@ -203,7 +189,7 @@ def _not_found() -> None:
     ui.label("There is no such character.").classes("text-base p-4").mark("not-found")
 
 
-def _build_home(store: CharacterStore, tables: TableStore, rulesets: AccountRulesets,
+def _build_home(store: CharacterStore, tables: TableStore, rulesets: Rulesets,
                 sessions: SessionRegistry, user_id: int) -> None:
     pal = theme.palette(None)
     # The Homebrew tab draws a Charm tree.
@@ -278,7 +264,8 @@ def _build_home(store: CharacterStore, tables: TableStore, rulesets: AccountRule
                 "w-full bg-transparent"):
             with ui.tab_panel("homebrew").classes("p-0"):
                 custom_mod.build_custom(ruleset, custom_dir=store.custom_dir(user_id),
-                                        with_header=False, show_path=False)
+                                        with_header=False, show_path=False,
+                                        reload=lambda: rulesets.reload_account(user_id))
             with ui.tab_panel("characters").classes("p-0"):
                 # The characters sit in a centred column; the homebrew form
                 # needs the full width.

@@ -29,6 +29,7 @@ Run:
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 import json
 from pathlib import Path
 
@@ -53,13 +54,18 @@ _DELETE_WARNING = (
 
 
 def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
-                 with_header: bool = True, show_path: bool = True) -> None:
+                 with_header: bool = True, show_path: bool = True,
+                 reload: Callable[[], list[str]] | None = None) -> None:
     """Render the authoring page against `ruleset`, which is updated IN PLACE as
     rows are saved (see rules_db.reload_custom_layer).
 
     `show_path` prints the folder of the library. ⚠ The hosted server gives
     False: the folder is a path on the SERVER, and it shows the layout of the
-    account folders to the player."""
+    account folders to the player.
+
+    `reload` re-reads the library after a save and returns the problems. None
+    reloads `ruleset` from `custom_dir`. ⚠ The hosted server gives its own: other
+    kept RuleSets hold this library in a stack (`server/rulesets.py`)."""
     pal = theme.palette(None)
     root = custom_dir if custom_dir is not None else custom_content.custom_data_dir()
 
@@ -102,7 +108,7 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
         """Re-merge the library into the live rule set, then repaint everything that
         reads it. Problems are shown rather than raised — the same non-fatal contract
         the loader has."""
-        problems = rules_db.reload_custom_layer(ruleset, root)
+        problems = reload() if reload else rules_db.reload_custom_layer(ruleset, root)
         library.refresh()
         if problems:
             ui.notify(f"{len(problems)} problem(s) in the library — see the list",
@@ -294,7 +300,8 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
                 ui.label("NEW " + state["kind"].upper() if not state["editing"]
                          else f"EDITING {state['editing']}").classes(
                     "text-xs font-bold tracking-widest").style(f"color:{pal.accent}")
-                ui.input("Name", value=form["name"], on_change=bind("name")).classes("w-full")
+                ui.input("Name", value=form["name"], on_change=bind("name")).classes(
+                    "w-full").mark("custom-name")
 
                 if state["kind"] == "charm":
                     _charm_fields(form, bind, ruleset, pal, editor.refresh)
@@ -311,7 +318,8 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
                     ui.number("Page", value=form["page"], format="%d",
                               on_change=bind("page")).classes("w-24")
                 with ui.row().classes("w-full justify-end gap-2"):
-                    ui.button("Save", icon="save", on_click=_save).props(f"color={pal.button}")
+                    ui.button("Save", icon="save", on_click=_save).props(
+                        f"color={pal.button}").mark("custom-save")
 
         # The form and, below it, the tree it joins: one column, thus the tree is
         # as wide as the form.

@@ -1,6 +1,64 @@
-# Session handoff — 2026-09-22 (P3 step 6, house rules; step 6b, add a character from the campaign)
+# Session handoff — 2026-09-23 (P3 step 7, the campaign homebrew)
 
 # 👉 YOU ARE HERE
+
+**P3 step 7 (the campaign homebrew) is DONE, committed and pushed. 🖱 IT NEEDS A
+CLICK-THROUGH: nothing of it is browser-verified.** `docs/plans/p3-tables.md` §14
+"Step 7" is the record: the rulings, what shipped, 23 mutations, the known limits.
+
+In one breath (rulings 2026-09-23, "Yes, build it"): **one campaign homebrew layer**,
+`<table folder>/custom`. A campaign copy sees book → campaign (Q1: not the owner's
+library); a draft for a campaign sees book → campaign → the owner's library. Rows get in
+three ways, each through the ST: **approving a character adds the homebrew it carries**
+(the card says so; the campaign wins a clash, flagged in amber), **player proposals**
+(HOMEBREW REQUESTS in the ST tab), **the ST authors** on `/table/<id>/custom` (members read
+it). New modules: `server/rulesets.py` (`Rulesets` replaced `home.AccountRulesets`),
+`server/table_homebrew.py`, `server/table_custom.py`; the loader has
+`with_custom_layers` / `reload_custom_layers`.
+
+🐞 **Closed on the way:** each save of a campaign copy re-embedded its homebrew from the
+OWNER'S library, so an edit at home changed the copy with no ST
+(`CharacterStore.homebrew_dir`). ⚠ **The store notifies the RuleSets of each homebrew
+write** (`TableStore.homebrew_listeners` / `library_listeners`): the ST's own request is
+approved inside the store, where a page-handler reload would miss it.
+
+**Three design choices, ruled "Correct" (2026-09-23):** leaving puts the copy's homebrew
+in the owner's library; proposals are Charms/spells/rituals only; a proposed Charm brings
+its homebrew prerequisites.
+
+**Full suite: 4080 passed + 1 skipped — OBSERVED** on the dev machine after all of step 7.
+⚠ The count moves by machine and optional dependency (`docs/testing.md`).
+
+**Deploy:** the code of this commit is rsynced to `gilserver:exalted-app`
+(`DEPLOYED_COMMIT`). ⚠ **Not rebuilt**: `claude` has no docker. The human runs
+`cd ~/homelab && docker compose up -d --build exalted`. This deploy carries steps 2–7
+(the server was on `4a614bb`).
+
+🖱 **Click-through owed (step 7)**, accounts `storyteller`, `alice`, `bob`, `watcher`:
+1. alice authors a Charm on `/home` → Homebrew, builds a base that buys it, joins. The ST's
+   request card says *"Approving adds to the campaign homebrew: <name>"*. Approve.
+2. The campaign's Homebrew button (construction icon, top bar) → the ST gets the editor
+   with the row; alice sees it read-only with its text.
+3. alice edits that Charm at home, then saves her campaign copy: the copy keeps the
+   campaign's version (the side door).
+4. bob authors a Charm with the same id as the campaign's, brings a base with it: the
+   card says *"Different from the campaign's version, which stays"* in amber.
+5. bob proposes a library Charm on the Homebrew page → *YOUR PROPOSALS*; the ST sees it
+   under HOMEBREW REQUESTS (and the badge), approves → it is in the campaign and buyable
+   on bob's copy; a rejected one goes. Withdraw works.
+6. The ST authors a Charm on the Homebrew page: it is buyable on a copy AND on an open
+   draft for the campaign (Add a character → Create).
+7. A campaign copy's Gear tab has no "Save to my library" button; a solo copy's has.
+8. alice leaves: her copy on `/home` still shows the campaign Charm, now in her library.
+
+❓ **Open for the human:** nothing.
+
+**Next:** P3 **step 8**, the roster on the table, with the Enemy / Ally switch for roster
+entries AND for full-character NPCs (ruled).
+
+---
+
+## The session before — P3 steps 6 and 6b closed out (2026-09-22/23)
 
 **P3 steps 6 and 6b are DONE and BROWSER-VERIFIED** (human, 2026-09-22: click-through
 steps 1–11 "works"; "NPC badge looks good."). **The request-card house-rules warning**,
