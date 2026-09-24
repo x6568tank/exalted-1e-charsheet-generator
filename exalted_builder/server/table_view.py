@@ -17,6 +17,9 @@ section 15.2 (shape A of `spikes/campaign_page/`):
     tab, and the PER-CHARACTER permissions of each copy in a dialog.
   * Add a character is step 6b (section 14): a member brings a locked base, or
     creates a draft for the campaign. The ST tab lists the drafts.
+  * The homebrew of the campaign is step 7 (section 14): the Homebrew button opens
+    `server/table_custom.py`. The request card says what an approval adds, and the
+    ST tab lists the HOMEBREW REQUESTS.
 
 ⚠ `TableStore.access` is the check. The page calls it in the page body, before it
 reads anything of the table. Each handler and each poll calls it again. A hidden
@@ -50,10 +53,12 @@ from ..ui import play as play_mod
 from ..ui import saving, theme
 from ..ui import view as viewmod
 from . import chrome, db
-from .campaigns import carried_summary
 from .characters import CharacterRow, CharacterStore
 from .quota import QuotaExceeded
+from .rulesets import Rulesets
 from .session import SessionRegistry
+from .table_custom import custom_url, register_table_custom
+from .table_homebrew import TableHomebrew, TableHomebrewError
 from .table_log import MAX_TEXT, LogEntry, TableLog, TableLogError
 from .table_st import MAX_GRANT, MAX_NOTE, Award, TableStoryteller
 from .tables import STORYTELLER, TableRow, TableStore, TableStoreError
@@ -86,17 +91,19 @@ def _open_as_key(table_id: str) -> str:
     return f"table-open-as:{table_id}"
 
 
-def register_table_page(tables: TableStore, store: CharacterStore, book: RuleSet,
+def register_table_page(tables: TableStore, store: CharacterStore, rulesets: Rulesets,
                         sessions: SessionRegistry,
                         current_user_id: Callable[[], int | None],
                         log: TableLog) -> None:
-    """Register `/table/<id>`.
+    """Register `/table/<id>` and `/table/<id>/custom`.
 
-    `book` gives the RuleSet of a character that has no live context. `sessions` is
-    the character registry of `server/home.py`. `current_user_id` returns the
+    `rulesets` gives the RuleSet of a character that has no live context. `sessions`
+    is the character registry of `server/home.py`. `current_user_id` returns the
     account of the request. `log` reads and writes the Log of each table.
     """
     storyteller = TableStoryteller(tables, store, sessions, log)
+    homebrew = TableHomebrew(tables)
+    register_table_custom(tables, store, rulesets, homebrew, current_user_id)
 
     @ui.page(TABLE_PATH + "/{table_id}")
     def table_page(table_id: str) -> None:
@@ -105,18 +112,10 @@ def register_table_page(tables: TableStore, store: CharacterStore, book: RuleSet
         role = tables.access(user_id, table_id)
         table = tables.table(table_id) if role is not None else None
         if table is None:
-            _not_found()
+            chrome.table_not_found()
             return
-        _TableView(tables, store, book, sessions, log, storyteller, user_id,
-                   table).build()
-
-
-def _not_found() -> None:
-    """The answer for a campaign of which the account is not a member, and for
-    one that is absent."""
-    with chrome.header(theme.palette(None), "Exalted 1e"):
-        chrome.home_button()
-    ui.label("There is no such campaign.").classes("text-base p-4").mark("table-not-found")
+        _TableView(tables, store, rulesets, sessions, log, storyteller, homebrew,
+                   user_id, table).build()
 
 
 # --------------------------------------------------------------------------- #
@@ -145,14 +144,18 @@ def _file_digest(store: CharacterStore, row: CharacterRow):
 class _TableView:
     """The page of one table for one account. Build it with `build`."""
 
-    def __init__(self, tables: TableStore, store: CharacterStore, book: RuleSet,
+    def __init__(self, tables: TableStore, store: CharacterStore, rulesets: Rulesets,
                  sessions: SessionRegistry, log: TableLog,
-                 storyteller: TableStoryteller, user_id: int, table: TableRow) -> None:
+                 storyteller: TableStoryteller, homebrew: TableHomebrew, user_id: int,
+                 table: TableRow) -> None:
         self.tables = tables
         self.log = log
         self.storyteller = storyteller
+        self.homebrew = homebrew
         self.store = store
-        self.book = book
+        # A copy with no live context reads under the homebrew of the campaign.
+        self.rulesets = rulesets
+        self.ruleset = rulesets.for_table(table.id)
         self.sessions = sessions
         self.user_id = user_id
         self.table = table
@@ -198,9 +201,9 @@ class _TableView:
         if ctx is not None:
             return _Shown(row, ctx["char"], ctx["ruleset"])
         try:
-            return _Shown(row, self.store.load(row), self.book)
+            return _Shown(row, self.store.load(row), self.ruleset)
         except Exception:                           # noqa: BLE001 - show it as unreadable
-            return _Shown(row, None, self.book)
+            return _Shown(row, None, self.ruleset)
 
     def read_own(self, row: CharacterRow) -> _Shown:
         """Read the copy that the viewer opens as, through its live context. Build
@@ -208,7 +211,7 @@ class _TableView:
         try:
             ctx = self.sessions.ctx_for(row.id)
         except Exception:                           # noqa: BLE001 - the factory could not read it
-            return _Shown(row, None, self.book)
+            return _Shown(row, None, self.ruleset)
         return _Shown(row, ctx["char"], ctx["ruleset"])
 
     def digest(self, row: CharacterRow):
@@ -220,6 +223,8 @@ class _TableView:
     def structure(self, copies: list[CharacterRow]):
         """What decides the layout: the copies, the members and the requests."""
         pending = (tuple(r.id for r in self.tables.pending(self.user_id, self.table.id))
+                   + tuple(f"homebrew-{p.id}" for p in
+                           self.homebrew.proposals(self.user_id, self.table.id))
                    if self.is_st else ())
         drafts = (tuple(r.id for r in self.tables.drafts(self.table.id))
                   if self.is_st else ())
@@ -324,15 +329,20 @@ class _TableView:
                           on_change=lambda e: self._open_as(e.value)).props(
                     "dense dark borderless options-dense").classes(
                     "text-white w-56").mark("table-open-as")
+            with ui.button(icon="construction",
+                           on_click=lambda: ui.navigate.to(custom_url(self.table.id))
+                           ).props("flat round color=white").mark("table-homebrew"):
+                ui.tooltip("Campaign homebrew")
             if self.is_st:
-                count = len(self.tables.pending(self.user_id, self.table.id))
+                count = (len(self.tables.pending(self.user_id, self.table.id))
+                         + len(self.homebrew.proposals(self.user_id, self.table.id)))
                 with ui.button(icon="how_to_reg",
                                on_click=lambda: self.tabs.set_value("st")).props(
                         "flat round color=white").mark("table-requests-button"):
                     if count:
                         ui.badge(str(count), color="red").props("floating").mark(
                             "table-requests-badge")
-                    ui.tooltip("Join requests")
+                    ui.tooltip("Requests")
             with ui.button(icon="more_vert").props("flat round color=white"):
                 with ui.menu():
                     if not self.is_st:
@@ -719,8 +729,9 @@ class _TableView:
                         "flat dense no-caps size=sm").mark("st-new-code")
                 ui.label("Give this code to your players. You approve each request "
                          "below.").classes("text-xs opacity-70")
-            _requests(self.tables, self.store, self.book, self.user_id, self.table,
+            _requests(self.tables, self.store, self.rulesets, self.user_id, self.table,
                       self._approve, self._reject)
+            self._proposals()
             self._grant_form(copies)
             self._awards()
             self._house_rules()
@@ -749,6 +760,59 @@ class _TableView:
             ui.notify(str(exc), type="warning")
         else:
             ui.notify("Approved.", type="positive")
+        self.refresh_all()
+
+    # ---- homebrew requests -------------------------------------------------- #
+
+    def _proposals(self) -> None:
+        """HOMEBREW REQUESTS: the rows that members propose from their libraries
+        (step 7). Approve adds them to the homebrew of the campaign."""
+        pal = self.pal
+        proposals = self.homebrew.proposals(self.user_id, self.table.id)
+        with ui.column().classes("w-full gap-2").mark("table-proposals"):
+            _heading(pal, f"HOMEBREW REQUESTS ({len(proposals)})")
+            if not proposals:
+                ui.label("No homebrew is waiting.").classes("text-sm opacity-70")
+            for proposal in proposals:
+                with ui.card().classes(f"w-full px-2 py-1.5 gap-0 {pal.card_soft}").mark(
+                        f"table-proposal-{proposal.id}"):
+                    ui.label(_username(self.tables, proposal.user_id)).classes(
+                        "text-sm font-bold")
+                    ui.label("Proposes: " + ", ".join(proposal.names)).classes("text-xs")
+                    for row in proposal.rows:
+                        if row.get("description"):
+                            ui.label(f"{row.get('name')}: {row['description']}").classes(
+                                "text-xs opacity-80 whitespace-pre-line")
+                    with ui.row().classes("gap-1 justify-end w-full"):
+                        ui.button("Approve", icon="check",
+                                  on_click=lambda _=None, p=proposal.id:
+                                  self._approve_proposal(p)).props(
+                            f"dense no-caps size=sm color={pal.button}").mark(
+                            f"table-proposal-approve-{proposal.id}")
+                        ui.button("Reject", icon="close",
+                                  on_click=lambda _=None, p=proposal.id:
+                                  self._reject_proposal(p)).props(
+                            "flat dense no-caps size=sm color=negative").mark(
+                            f"table-proposal-reject-{proposal.id}")
+
+    def _approve_proposal(self, proposal_id: int) -> None:
+        if not self._still_storyteller():
+            return
+        try:
+            self.homebrew.approve(self.user_id, self.table.id, proposal_id)
+        except (TableHomebrewError, QuotaExceeded) as exc:
+            ui.notify(str(exc), type="warning")
+        else:
+            ui.notify("Added to the campaign homebrew.", type="positive")
+        self.refresh_all()
+
+    def _reject_proposal(self, proposal_id: int) -> None:
+        if not self._still_storyteller():
+            return
+        try:
+            self.homebrew.reject(self.user_id, self.table.id, proposal_id)
+        except TableHomebrewError as exc:
+            ui.notify(str(exc), type="warning")
         self.refresh_all()
 
     def _reject(self, request_id: int) -> None:
@@ -1307,7 +1371,7 @@ def _other_row(shown: _Shown, player: str, *, mine: bool, npc: bool) -> None:
                     _dots(wp_left, cv.play.willpower_max, 0.7)
 
 
-def _requests(tables: TableStore, store: CharacterStore, book: RuleSet, user_id: int,
+def _requests(tables: TableStore, store: CharacterStore, rulesets: Rulesets, user_id: int,
               table: TableRow, approve: Callable[[int], None],
               reject: Callable[[int], None]) -> None:
     """Draw the requests of `table` for its Storyteller, with what each base carries."""
@@ -1326,8 +1390,11 @@ def _requests(tables: TableStore, store: CharacterStore, book: RuleSet, user_id:
                 if base is None:
                     ui.label("Asks to watch.").classes("text-xs opacity-80")
                 else:
-                    _request_base(store, book, base, tables.house_rules(table.id),
+                    _request_base(store, rulesets.for_table(table.id), base,
+                                  tables.house_rules(table.id),
                                   f"table-request-rules-{request.id}")
+                    _request_homebrew(tables.homebrew_preview(user_id, request.id),
+                                      request.id)
                 with ui.row().classes("gap-1 justify-end w-full"):
                     ui.button("Approve", icon="check",
                               on_click=lambda _=None, r=request.id: approve(r)).props(
@@ -1339,21 +1406,30 @@ def _requests(tables: TableStore, store: CharacterStore, book: RuleSet, user_id:
                         f"table-reject-{request.id}")
 
 
-def _request_base(store: CharacterStore, book: RuleSet, base: CharacterRow,
+def _request_homebrew(preview, request_id: int) -> None:
+    """Draw what the approval of a request adds to the homebrew of the campaign, and
+    each carried row that differs from the row of the campaign (step 7)."""
+    if preview.adds:
+        ui.label("Approving adds to the campaign homebrew: "
+                 + ", ".join(preview.adds)).classes("text-xs").mark(
+            f"table-request-adds-{request_id}")
+    if preview.differs:
+        ui.label("Different from the campaign's version, which stays: "
+                 + ", ".join(preview.differs)).classes(
+            "text-xs font-bold text-amber-800").mark(f"table-request-differs-{request_id}")
+
+
+def _request_base(store: CharacterStore, ruleset: RuleSet, base: CharacterRow,
                   table_rules: HouseRules, marker: str) -> None:
-    """Draw what a request brings: the base, the homebrew that it carries, and the
-    TABLE-WIDE house rules under which it was made, where they differ from the
-    table's (human, 2026-09-22). The copy keeps its creation rules unless the
-    Storyteller unlocks it."""
-    shown = chrome.entry(store, book, base)
+    """Draw what a request brings: the base, and the TABLE-WIDE house rules under
+    which it was made, where they differ from the table's (human, 2026-09-22). The
+    copy keeps its creation rules unless the Storyteller unlocks it."""
+    shown = chrome.entry(store, ruleset, base)
     ui.label(f"Asks to bring {shown.name} ({shown.kind}).").classes("text-xs opacity-80")
     try:
         character = store.load(base)
     except Exception:                               # noqa: BLE001 - the entry says unreadable
         return
-    summary = carried_summary(character)
-    if summary:
-        ui.label(summary).classes("text-xs")
     differences = viewmod.house_rule_differences(
         validate.chargen_house_rules(character), table_rules)
     if differences:

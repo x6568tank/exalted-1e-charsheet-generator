@@ -27,7 +27,6 @@ from collections.abc import Callable
 
 from nicegui import ui
 
-from ..models.character import Character
 from ..ui import theme
 from . import chrome, db
 from .characters import CharacterStore
@@ -38,26 +37,6 @@ table_url = chrome.table_url
 
 # The value of the join form for "just watch": a request with no base.
 WATCH = "watch"
-
-# The words for each kind of carried homebrew, singular and plural.
-_CARRIED_WORDS = {"charms": ("Charm", "Charms"), "spells": ("spell", "spells"),
-                  "rituals": ("ritual", "rituals")}
-
-
-def carried_summary(character: Character) -> str | None:
-    """Return one line that names the homebrew that `character` carries, or None.
-
-    Section 4 of p3-tables.md: the Storyteller sees this before an approval.
-    """
-    parts = []
-    for key, (one, many) in _CARRIED_WORDS.items():
-        rows = [row for row in (character.custom_definitions or {}).get(key, [])
-                if isinstance(row, dict)]
-        if rows:
-            names = ", ".join(str(row.get("name") or row.get("id") or "?") for row in rows)
-            parts.append(f"{len(rows)} {one if len(rows) == 1 else many} ({names})")
-    return "Carries homebrew: " + "; ".join(parts) if parts else None
-
 
 def _username(tables: TableStore, user_id: int) -> str:
     return db.username_for(tables.db_path, user_id) or "(a deleted account)"

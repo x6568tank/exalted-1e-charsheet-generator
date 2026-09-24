@@ -101,6 +101,14 @@ def header(pal, title: str, *, current: str = "") -> ui.row:
     return buttons
 
 
+def table_not_found() -> None:
+    """The answer for a campaign of which the account is not a member, and for one
+    that is absent."""
+    with header(theme.palette(None), "Exalted 1e"):
+        home_button()
+    ui.label("There is no such campaign.").classes("text-base p-4").mark("table-not-found")
+
+
 def home_button() -> None:
     ui.button("Home", icon="home", on_click=lambda: ui.navigate.to(HOME_PATH)).props(
         "flat color=white").mark("top-bar-home")

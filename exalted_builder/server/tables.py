@@ -13,6 +13,9 @@ sections 2 and 3. The rulings are `docs/plans/vtt.md` section 9.10 (human,
     (`send_draft`). p3-tables.md section 14, step 6b.
   * A leaver keeps each copy as a solo copy. A delete of the table does the same
     for each member.
+  * The homebrew of the table is `<table folder>/custom`. The approval of a base
+    adds the homebrew that the base carries. A copy that becomes solo puts its
+    homebrew in the library of its owner. p3-tables.md section 14, step 7.
   * The table has a folder of its own, `<root>/table-<hex>/`. A table folder never
     holds a character. A copy stays in the folder of its owner.
 
@@ -29,33 +32,32 @@ column. This store clears the column at each leave, removal and delete.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from contextlib import closing
 from dataclasses import dataclass, field, replace
 import json
 import logging
 from pathlib import Path
-import re
 import secrets
 import shutil
 import sqlite3
 
+from .. import custom_content
 from ..engine.house_rule_actions import apply_table_rules
 from ..models.character import (
     TABLE_WIDE_HOUSE_RULES, Character, HouseRules, new_character_id)
 from ..persistence import atomic_write
 from . import db
-from .characters import CharacterRow, CharacterStore, CharacterStoreError, is_locked
-from .quota import TABLE_FOLDER_PREFIX, QuotaExceeded
+from .characters import (
+    CUSTOM_DIRNAME, TABLE_ID, CharacterRow, CharacterStore, CharacterStoreError, is_locked,
+    table_folder)
+from .quota import QuotaExceeded
 from .throttle import LoginThrottle
 
 log = logging.getLogger(__name__)
 
 # The TABLE-WIDE house rules of a table, in its folder (p3-tables.md section 5).
 HOUSE_RULES_FILE = "house_rules.json"
-
-# The shape of a table id. A URL gives the id, thus the store refuses each other
-# shape before it reads the DB or makes a path.
-TABLE_ID = re.compile(r"table\.([0-9a-f]{12})")
 
 # No 0, O, 1, I or L. 31 characters, thus 31**6 codes (about 887 million).
 CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
@@ -102,6 +104,32 @@ class JoinRequest:
     approved: bool = False
 
 
+@dataclass(frozen=True)
+class HomebrewPreview:
+    """What the approval of a join request does to the homebrew of the table.
+
+    `adds` names the rows that the approval adds. `differs` names the rows of the
+    base that have the id of a row of the table and different content. The row of
+    the table stays.
+    """
+
+    adds: list[str]
+    differs: list[str]
+
+
+# The kinds of homebrew that a character carries (`Character.custom_definitions`).
+CARRIED_KINDS = ("charms", "spells", "rituals")
+
+_LIBRARY_ROWS = {"charms": custom_content.library_charms,
+                 "spells": custom_content.library_spells,
+                 "rituals": custom_content.library_rituals}
+
+
+def library_rows(kind: str, folder: Path) -> dict[str, dict]:
+    """Return the `kind` rows of the library at `folder`, by id."""
+    return {row["id"]: row for row in _LIBRARY_ROWS[kind](folder) if row.get("id")}
+
+
 def new_join_code() -> str:
     """Return a random join code of `CODE_LENGTH` characters from `CODE_ALPHABET`."""
     return "".join(secrets.choice(CODE_ALPHABET) for _ in range(CODE_LENGTH))
@@ -120,6 +148,14 @@ class TableStore:
     root: Path
     throttle: JoinThrottle = field(default_factory=JoinThrottle, compare=False,
                                    repr=False)
+    # Called with a table id after a write to the homebrew of that table, and with
+    # an account id after a write to the library of that account. `Rulesets` adds
+    # its reloads. ⚠ The approval of a request of the Storyteller runs inside this
+    # store, thus a reload in a page handler does not see it.
+    homebrew_listeners: list[Callable[[str], object]] = field(
+        default_factory=list, compare=False, repr=False)
+    library_listeners: list[Callable[[int], object]] = field(
+        default_factory=list, compare=False, repr=False)
 
     # ---- paths -------------------------------------------------------------- #
 
@@ -128,10 +164,12 @@ class TableStore:
 
         Raise `ValueError` for a malformed id.
         """
-        match = TABLE_ID.fullmatch(table_id or "")
-        if match is None:
-            raise ValueError(f"Not a table id: {table_id!r}")
-        return self.root / f"{TABLE_FOLDER_PREFIX}{match.group(1)}"
+        return table_folder(self.root, table_id)
+
+    def homebrew_dir(self, table_id: str) -> Path:
+        """Return the homebrew of table `table_id`: a library in the shape of
+        `custom_content`. Raise `ValueError` for a malformed id."""
+        return self.table_dir(table_id) / CUSTOM_DIRNAME
 
     def _characters(self) -> CharacterStore:
         return CharacterStore(db_path=self.db_path, root=self.root)
@@ -410,8 +448,12 @@ class TableStore:
         request to watch.
 
         Make the membership if it is absent, and the copy of the base in the table.
-        Refuse all but the Storyteller of the table of the request. ⚠ Do not import
-        the homebrew of the base into the table (p3-tables.md section 4).
+        Refuse all but the Storyteller of the table of the request.
+
+        Add the homebrew that the base carries to the homebrew of the table. The row
+        of the table wins an id clash (ruled 2026-09-23). ⚠ This is the only write
+        of a join to the homebrew of the table, and the approval of the Storyteller
+        is its consent.
 
         The copy gets the TABLE-WIDE house rules of the table (section 5, site 1).
         """
@@ -419,6 +461,11 @@ class TableStore:
         self._require_storyteller(st_id, request.table_id)
         copy = None
         if request.base_id is not None:
+            base = self._characters().owned(request.user_id, request.base_id)
+            if base is not None and custom_content.absorb_definitions(
+                    self._characters().load(base),
+                    custom_dir=self.homebrew_dir(request.table_id)):
+                self.homebrew_changed(request.table_id)
             try:
                 copy = self._characters().make_copy(
                     request.user_id, request.base_id, table_id=request.table_id,
@@ -433,6 +480,32 @@ class TableStore:
                     (request.table_id, request.user_id))
             connection.execute("DELETE FROM join_requests WHERE id = ?", (request.id,))
         return copy
+
+    def homebrew_preview(self, st_id: int, request_id: int) -> HomebrewPreview:
+        """Return what the approval of request `request_id` does to the homebrew of
+        its table. Refuse all but the Storyteller of the table."""
+        request = self._request(request_id)
+        self._require_storyteller(st_id, request.table_id)
+        adds: list[str] = []
+        differs: list[str] = []
+        store = self._characters()
+        base = (store.owned(request.user_id, request.base_id)
+                if request.base_id is not None else None)
+        if base is None:
+            return HomebrewPreview(adds, differs)
+        carried = store.load(base).custom_definitions or {}
+        folder = self.homebrew_dir(request.table_id)
+        for kind in CARRIED_KINDS:
+            have = library_rows(kind, folder)
+            for row in carried.get(kind, []):
+                if not isinstance(row, dict) or not row.get("id"):
+                    continue
+                name = str(row.get("name") or row["id"])
+                if row["id"] not in have:
+                    adds.append(name)
+                elif have[row["id"]] != row:
+                    differs.append(name)
+        return HomebrewPreview(adds, differs)
 
     def reject(self, st_id: int, request_id: int) -> None:
         """Delete request `request_id`. Refuse all but the Storyteller of its table."""
@@ -476,12 +549,19 @@ class TableStore:
         `st_id` is not its Storyteller. Each copy in the table becomes a solo copy."""
         if self.access(st_id, table_id) != STORYTELLER:
             return False
+        # ⚠ Before the folder goes: the homebrew of the table is in it.
+        self._keep_homebrew(self.characters(table_id))
         with closing(db.connect(self.db_path)) as connection, connection:
             connection.execute(
                 "UPDATE characters SET table_id = NULL WHERE table_id = ?", (table_id,))
             connection.execute("DELETE FROM tables WHERE id = ?", (table_id,))
         shutil.rmtree(self.table_dir(table_id), ignore_errors=True)
         return True
+
+    def homebrew_changed(self, table_id: str) -> None:
+        """Tell each listener that the homebrew of `table_id` changed."""
+        for listener in self.homebrew_listeners:
+            listener(table_id)
 
     # ---- helpers ------------------------------------------------------------ #
 
@@ -512,9 +592,30 @@ class TableStore:
                 f"WHERE {where} ORDER BY created_at, id", args).fetchall()
         return [JoinRequest(*found) for found in rows]
 
+    def _keep_homebrew(self, rows: list[CharacterRow]) -> None:
+        """Put the homebrew that each copy of `rows` carries into the library of its
+        owner, before the copy becomes solo. The library wins an id clash.
+
+        A full account keeps the copy without the rows, and the server log has a
+        warning: a leave does not fail for a quota.
+        """
+        store = self._characters()
+        for row in rows:
+            try:
+                added = custom_content.absorb_definitions(
+                    store.load(row), custom_dir=store.custom_dir(row.owner_id))
+            except (QuotaExceeded, OSError, ValueError) as exc:
+                log.warning("Could not keep the homebrew of %s: %s", row.id, exc)
+                continue
+            if added:
+                for listener in self.library_listeners:
+                    listener(row.owner_id)
+
     def _drop_member(self, user_id: int, table_id: str) -> bool:
         if not TABLE_ID.fullmatch(table_id or ""):
             return False
+        self._keep_homebrew([row for row in self.characters(table_id)
+                             if row.owner_id == user_id])
         with closing(db.connect(self.db_path)) as connection, connection:
             cursor = connection.execute(
                 "DELETE FROM memberships WHERE table_id = ? AND user_id = ?",

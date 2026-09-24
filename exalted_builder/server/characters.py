@@ -12,6 +12,8 @@ Section 5 piece 4 of `docs/plans/hosting-state-model.md`. The layout is
   * A campaign copy is made from a locked base. It records the base. A delete of
     the base keeps the copy and clears its `base_id`.
   * The homebrew library of the account is `<root>/user-<id>/custom`.
+  * A campaign copy takes its homebrew from the campaign, `<table folder>/custom`,
+    not from the library of its owner (p3-tables.md section 14, step 7).
 
 ⚠ The ownership check is here, not in a page. `owned` returns None for the
 character of another account and for a malformed id. A page that shows a
@@ -32,14 +34,27 @@ import re
 from .. import persistence
 from ..models.character import Character, new_character_id
 from . import db
+from .quota import TABLE_FOLDER_PREFIX
 
 # The shape of `models.character.new_character_id`. A URL gives the id, thus the
 # store refuses each other shape before it reads the DB or makes a path.
 CHARACTER_ID = re.compile(r"char\.[0-9a-f]{12}")
 
+# The shape of a table id. `TableStore.table_dir` uses it too.
+TABLE_ID = re.compile(r"table\.([0-9a-f]{12})")
+
 CHARACTERS_DIRNAME = "characters"
 CUSTOM_DIRNAME = "custom"
 SUFFIX = ".character.json"
+
+
+def table_folder(root: Path, table_id: str) -> Path:
+    """Return the folder of table `table_id` below `root`. Raise `ValueError` for a
+    malformed id."""
+    match = TABLE_ID.fullmatch(table_id or "")
+    if match is None:
+        raise ValueError(f"Not a table id: {table_id!r}")
+    return root / f"{TABLE_FOLDER_PREFIX}{match.group(1)}"
 
 
 class CharacterStoreError(ValueError):
@@ -79,6 +94,17 @@ class CharacterStore:
         """Return the homebrew library of account `user_id`."""
         return self.account_dir(user_id) / CUSTOM_DIRNAME
 
+    def homebrew_dir(self, row: CharacterRow) -> Path:
+        """Return the folder from which a save of `row` copies its homebrew: the
+        homebrew of its campaign for a campaign copy, else the library of the owner.
+
+        ⚠ A copy that read the library of its owner changed at each save to follow
+        an edit at home, with no Storyteller (p3-tables.md section 14, step 7).
+        """
+        if row.table_id is not None:
+            return table_folder(self.root, row.table_id) / CUSTOM_DIRNAME
+        return self.custom_dir(row.owner_id)
+
     def path_for(self, row: CharacterRow) -> Path:
         """Return the file of the character of `row`."""
         return self.account_dir(row.owner_id) / CHARACTERS_DIRNAME / f"{row.id}{SUFFIX}"
@@ -116,9 +142,10 @@ class CharacterStore:
                                           custom_dir=self.custom_dir(row.owner_id))
 
     def save(self, row: CharacterRow, character: Character) -> None:
-        """Write `character` to the file of `row`, with the homebrew of the account."""
+        """Write `character` to the file of `row`, with the homebrew of
+        `homebrew_dir(row)`."""
         persistence.save_character(character, self.path_for(row),
-                                   custom_dir=self.custom_dir(row.owner_id))
+                                   custom_dir=self.homebrew_dir(row))
 
     # ---- operations --------------------------------------------------------- #
 

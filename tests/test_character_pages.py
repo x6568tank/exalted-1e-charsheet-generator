@@ -21,6 +21,8 @@ from exalted_builder.engine import lifecycle  # noqa: E402
 from exalted_builder.models.character import Character  # noqa: E402
 from exalted_builder.server import db, home  # noqa: E402
 from exalted_builder.server.characters import CharacterStore  # noqa: E402
+from exalted_builder.server.rulesets import Rulesets  # noqa: E402
+from exalted_builder.server.tables import TableStore  # noqa: E402
 
 from . import _auth_state as state  # noqa: E402
 
@@ -502,7 +504,8 @@ def test_import_makes_a_new_character_and_takes_its_homebrew(tmp_path) -> None:
     with db.connect(database) as connection:
         connection.execute("INSERT INTO users (id, username, password_hash) VALUES (1, 'a', 'x')")
     store = CharacterStore(db_path=database, root=tmp_path / "sessions")
-    rulesets = home.AccountRulesets(rules_db.load_ruleset("exalted_builder/data"), store)
+    rulesets = Rulesets(rules_db.load_ruleset("exalted_builder/data"), store,
+                        TableStore(db_path=database, root=tmp_path / "sessions"))
 
     source = Character(id="char.aaaaaaaaaaaa", name="Travelling Brewer")
     source.charms.append("custom.road-strike")

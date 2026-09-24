@@ -465,6 +465,11 @@ def _closure(rows: dict[str, dict], wanted: set[str]) -> list[dict]:
     return [out[k] for k in sorted(out)]
 
 
+def closure_rows(rows: dict[str, dict], wanted: set[str]) -> list[dict]:
+    """The rows for `wanted`, and each homebrew row they depend on. See `_closure`."""
+    return _closure(rows, wanted)
+
+
 def collect_definitions(character, *, custom_dir: str | Path | None = None) -> dict:
     """The custom definitions `character` depends on, ready to embed. Empty dict when
     it uses no homebrew, which is the overwhelmingly common case."""
@@ -544,33 +549,30 @@ def absorb_definitions(character, *, custom_dir: str | Path | None = None) -> li
         return []
     root = _dir(custom_dir)
     added: list[str] = []
-
-    have_charms = {r.get("id") for r in library_charms(root)}
-    new_charms = [r for r in carried.get("charms", [])
-                  if isinstance(r, dict) and r.get("id") and r["id"] not in have_charms]
-    if new_charms:
-        path = root / CHARMS_FILE
-        _atomic_rows(path, _read_rows(path) + new_charms)
-        added += [r["id"] for r in new_charms]
-
-    have_spells = {r.get("id") for r in library_spells(root)}
-    new_spells = [r for r in carried.get("spells", [])
-                  if isinstance(r, dict) and r.get("id") and r["id"] not in have_spells]
-    if new_spells:
-        path = root / SPELLS_FILE
-        _atomic_rows(path, _read_rows(path) + new_spells)
-        added += [r["id"] for r in new_spells]
-
-    have_rituals = {r.get("id") for r in library_rituals(root)}
-    new_rituals = [r for r in carried.get("rituals", [])
-                   if isinstance(r, dict) and r.get("id")
-                   and r["id"] not in have_rituals]
-    if new_rituals:
-        path = root / RITUALS_FILE
-        _atomic_rows(path, _read_rows(path) + new_rituals)
-        added += [r["id"] for r in new_rituals]
-
+    for kind in ("charms", "spells", "rituals"):
+        added += add_rows(kind, carried.get(kind, []), custom_dir=root)
     return added
+
+
+# The file that `add_rows` writes for each kind.
+_ADD_FILES = {"charms": CHARMS_FILE, "spells": SPELLS_FILE, "rituals": RITUALS_FILE}
+_LIBRARY_READERS = {"charms": library_charms, "spells": library_spells,
+                    "rituals": library_rituals}
+
+
+def add_rows(kind: str, rows: list, *, custom_dir: str | Path | None = None) -> list[str]:
+    """Add each `kind` row of `rows` whose id the library does not have. Return the
+    ids added. The library wins an id clash. The rows are written raw, as
+    `absorb_definitions` says."""
+    root = _dir(custom_dir)
+    have = {r.get("id") for r in _LIBRARY_READERS[kind](root)}
+    new = [r for r in rows
+           if isinstance(r, dict) and r.get("id") and r["id"] not in have]
+    if not new:
+        return []
+    path = root / _ADD_FILES[kind]
+    _atomic_rows(path, _read_rows(path) + new)
+    return [r["id"] for r in new]
 
 
 def _atomic_rows(path: Path, rows: list[dict]) -> None:

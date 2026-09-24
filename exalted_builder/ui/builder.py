@@ -322,8 +322,11 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             editor.build_editor(ruleset, char, tab_save, with_header=False,
                                 on_theme_change=_apply_chrome, in_campaign=in_campaign)
         elif state["tab"] == "Gear":
+            # ⚠ A hosted campaign copy has "library_dir" None: it has no library.
             gear_mod.build_gear(ruleset, char, tab_save, with_header=False,
-                                custom_dir=ctx["custom_dir"])
+                                custom_dir=ctx.get("library_dir", ctx["custom_dir"]),
+                                library=ctx.get("library_dir", True) is not None,
+                                reload_library=ctx.get("reload_library"))
         elif state["tab"] == "Advantages":
             advantages.build_advantages(ruleset, char, tab_save, with_header=False)
         elif state["tab"] == "Charms":

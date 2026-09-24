@@ -23,6 +23,7 @@ Presentation only. Every derived list comes from `ui/view.py` and every rule fro
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 
 from nicegui import ui
@@ -39,11 +40,16 @@ from .saving import SaveFn
 
 
 def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
-               *, with_header: bool = True, custom_dir: Path | None = None) -> None:
+               *, with_header: bool = True, custom_dir: Path | None = None,
+               library: bool = True,
+               reload_library: Callable[[], list[str]] | None = None) -> None:
     """Render the Gear tab — the inventory, the per-kind editors, and the price list.
 
     `custom_dir` is the homebrew library that "Save to my library" writes to. None
-    is the default library. A hosted session gives its own."""
+    is the default library. A hosted session gives its own. `library` False shows no
+    "Save to my library" button: a campaign copy has no library (p3-tables.md
+    section 14, step 7). `reload_library` re-reads the library after a save; None
+    reloads `ruleset` from `custom_dir`."""
     rs = ruleset
     pal = theme.palette(character.exalt_type)
 
@@ -392,11 +398,16 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         extra = " (armour weight defaults to Light)" if kind == "armor" else ""
         # ⚠ Re-merge NOW — see the same comment in qt/gear.py. The restart this used to
         # ask for was `reload_custom_layer` skipping the gear catalogues.
-        rules_db.reload_custom_layer(rs, custom_dir)
+        if reload_library is not None:
+            reload_library()
+        else:
+            rules_db.reload_custom_layer(rs, custom_dir)
         ui.notify(f"Saved {item.name} to your library{extra}. It is in Buy now, and on "
                   f"the Custom tab's Gear list.", type="positive")
 
     def _library_button(kind: str, item) -> None:
+        if not library:
+            return
         ui.button(icon="bookmark_add",
                   on_click=lambda e=None, k=kind, it=item: _save_to_library(k, it)
                   ).props("flat dense round").tooltip(

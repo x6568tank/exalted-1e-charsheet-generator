@@ -421,21 +421,3 @@ async def test_an_unknown_campaign_gets_the_same_answer(user: User) -> None:
     for hostile in ("table.000000000000", "table.XYZ", "x"):
         await user.open(campaigns.table_url(hostile))
         await user.should_see(marker="table-not-found")
-
-
-# --------------------------------------------------------------------------- #
-# The summary of carried homebrew (a pure helper)
-# --------------------------------------------------------------------------- #
-
-
-def test_carried_summary_names_each_row() -> None:
-    character = Character(id="x", custom_definitions={
-        "charms": [{"id": "custom.a", "name": "Fang"}, {"id": "custom.b", "name": "Claw"}],
-        "spells": [{"id": "custom.c", "name": "Ember"}]})
-
-    assert campaigns.carried_summary(character) == (
-        "Carries homebrew: 2 Charms (Fang, Claw); 1 spell (Ember)")
-
-
-def test_carried_summary_is_none_for_no_homebrew() -> None:
-    assert campaigns.carried_summary(Character(id="x")) is None
