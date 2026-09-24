@@ -84,8 +84,9 @@ most the edit in flight, and logs in again only if the secret changed.
 * **Backups:** the host's backup makes a consistent copy of the account database first,
   with the SQLite backup API, as `/data/accounts/exalted.snapshot.db`. To restore, stop the
   container and copy `exalted.snapshot.db` over `exalted.db`.
-* **Monitoring:** an Uptime Kuma HTTP monitor on `https://exalted.x6568tank.com/` covers
-  the proxy and the app together.
+* **Monitoring:** ⚠ NONE (checked 2026-09-24). An Uptime Kuma HTTP monitor on
+  `https://exalted.x6568tank.com/` would cover the proxy and the app together; it was
+  planned but never created. Adding one is the human's step in the Kuma UI.
 
 ## Before it is public
 
