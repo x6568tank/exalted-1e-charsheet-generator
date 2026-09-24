@@ -34,10 +34,10 @@ Storyteller's browser. Reproduced deterministically; `tests/conftest.py` now rou
 navigate and notify by `context.client`; `tests/test_user_simulation_routing.py` (2)
 fails without the patch. `docs/testing.md` has the trap. Suite after the fix: **4148 passed + 1 skipped — OBSERVED**, no failure.
 
-**Working tree:** clean, on `main`, in step with `origin/main` (checked with `git status`
-at close-out). Step 8 is `e7aadc6`; the flake fix is `48df0ae`; this handoff edit is the
-close-out commit after them, if it was made. **Not deployed:** the live site is still
-`c7153ec`. Deploy when the human asks (`docs/deploy/homeserver.md`). The click-through server ran from `/tmp/exalted-click9/`
+**Working tree:** clean, on `main`, in step with `origin/main` (checked at close-out). Step 8
+is `e7aadc6`, the flake fix `48df0ae`. **Deployed 2026-09-24: `555688e` is LIVE** on
+`https://exalted.x6568tank.com`. Checked from outside: `/`, `/wiki` and `/login` gave 200 and
+`/home` redirected to login; the container log says NiceGUI is ready. The click-through server ran from `/tmp/exalted-click9/`
 (accounts `storyteller`, `alice`, `bob`, password `clickthrough`).
 
 🖱 **Owed:** nothing.
