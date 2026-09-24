@@ -3,8 +3,9 @@
 # 👉 YOU ARE HERE
 
 **P3 steps 6 and 6b are DONE and BROWSER-VERIFIED** (human, 2026-09-22: click-through
-steps 1–11 "works"; "NPC badge looks good."). **One piece is NOT browser-verified: the
-request-card house-rules warning** (built after the click-through). Phone width was
+steps 1–11 "works"; "NPC badge looks good."). **The request-card house-rules warning**,
+built after that click-through, **passed its own click-through on 2026-09-23** (steps
+1–5 "works"). Phone width was
 not tested (human: "we're not testing for phone width right now"): not verified, and
 not owed. **`docs/plans/p3-tables.md` §14 "Step 6" and "Step 6b" are the record.**
 
@@ -37,12 +38,11 @@ is not observed. ⚠ The count moves by machine and optional dependency (`docs/t
 
 **Working tree:** clean, committed on `main` and **pushed** (`b3eb99a`, `a3c9528`, and this close-out commit). Check `git status`.
 
-🖱 **Not browser-verified:** the request-card warning. As the ST, with a table switch
-on (e.g. Magic for Everyone), let a member bring a base made without it: the request
-card shows the heading and `Magic for Everyone: Off (campaign: On)`; a base that
-agrees shows nothing. The click-through server ran from `/tmp/exalted-click6/`
-(accounts `storyteller`, `alice`, `bob`, `watcher`, password `clickthrough`) and may
-still be on :8080 with the OLD code (started before the warning) — restart it.
+✅ **Click-through (request-card warning) — PASSED 2026-09-23**, all five steps: a
+base made without a switched-on table rule shows the heading and
+`Magic for Everyone: Off (campaign: On)`; a base that agrees shows nothing; two
+differing rules list both. The server ran from `/tmp/exalted-click7/` (same accounts,
+password `clickthrough`) and is stopped.
 
 ❓ **Open for the human:** nothing from this session.
 
