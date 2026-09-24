@@ -135,6 +135,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .drawer a.sub .mi { font-size: 18px; opacity: .8; }
 .drawer a.on { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
 .drawer a .ext { margin-left: auto; font-size: 16px; color: inherit; opacity: .5; }
+.drawer .who { display: flex; align-items: center; gap: 16px; min-height: 40px; padding: 8px 16px; color: var(--ink); opacity: .75; font-size: 13.5px; }
+.drawer .who .mi { color: var(--accent); font-size: 22px; }
 .drawer hr { border: 0; border-top: 1px solid color-mix(in srgb, var(--edge) 18%, transparent); margin: 6px 0; }
 .btn {
   display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 4px;
@@ -269,7 +271,7 @@ def _nav(current: str, username: Optional[str]) -> str:
              _button("/about", "info", "About", current == "about")]
     if username:
         parts.append(_button("/home", "edit", "Your characters"))
-        parts.append(_button("/logout", "logout", "Log out"))
+        parts.append(_button("/logout", "account_circle", nav.logout_label(username)))
     else:
         parts.append(_button("/login", "login", "Log in", current == "login"))
         parts.append(_button("/signup", "person_add", "Sign up", current == "signup"))
@@ -294,6 +296,10 @@ def drawer_html(username: Optional[str], current: str = "", *, live: bool = Fals
             attrs = f' class="{classes}"' if classes else ""
             if current and link.key == current:
                 attrs += ' aria-current="page"'
+            if not link.href:
+                parts.append(f'<div class="who">{icon(link.icon)}'
+                             f"<span>{esc(link.label)}</span></div>")
+                continue
             if link.new_tab:
                 attrs += ' target="_blank" rel="noopener"'
             tail = icon("open_in_new", "ext") if link.new_tab else ""

@@ -1021,6 +1021,41 @@ Storyteller's "Add" from their own library is immediate.
 embed folder until its context is rebuilt (a reload after eviction). The homebrew is
 already in the owner's library by then.
 
+✅ **Click-through — PASSED 2026-09-24**, all eight steps, with one defect and two
+requests, all three fixed and clicked the same day:
+
+* 🐞 **The Storyteller's editor was squished to unreadability.** `ui/custom.build_custom`
+  is ONE no-wrap row: a 24 rem list card, the form, a 26 rem JSON card. `/home` gives it
+  the full width; `/table/<id>/custom` put it in a `max-w-5xl` (64 rem) column, which
+  left the form about 13 rem. The page is now full width.
+  `test_the_editor_is_not_in_a_narrow_column` walks the editor's ancestors for a
+  `max-w-` class. ⚠ Any new host of `build_custom` has the same trap.
+* **Ruled 2026-09-24 — the Storyteller sees what is requested.** A join request card
+  has **View character**: the base's full sheet, read-only, in a dialog
+  (`chrome.sheet_dialog`, the desktop party screen's `render_sheet` path), drawn under
+  `rulesets.for_row(base)`, which is how its owner sees it. Each row the base carries,
+  and each row of a proposal, has **View**: a pop-up of the row as the wiki draws an
+  entry (`chrome.homebrew_dialog` over the new pure `wiki_view.homebrew_page`, which
+  validates the raw rows with the loader's models over a COPY of the campaign RuleSet).
+  It shows the COPY the request holds: a proposal's snapshot (a library edit after it
+  does not reach it) and, on a clash, the player's version, not the campaign's. A row
+  that does not load shows its name, its text and a warning.
+  ⚠ `render_sheet` adds a body `<style>` in the page head in the character's splat
+  colour. The campaign page keeps its colours only because it sets an INLINE body
+  style, which wins. Clicked with that in mind.
+* **Ruled 2026-09-24 — a player writes a new row on the campaign's Homebrew page**:
+  library + propose (not proposal-only). A member's page has **WRITE A NEW ROW**, the
+  `/home` editor on the member's OWN library (`reload_account`, then FROM YOUR LIBRARY
+  redraws), so a saved row is offered for Propose with no trip to `/home`. It never
+  writes to the campaign folder (asserted). This reverses step 7's "a member getting
+  the editor" mutation: the member now has AN editor, on their library, not the
+  campaign's; the test became `test_a_member_reads_the_homebrew_of_the_campaign`.
+* The proposal card's inline descriptions are gone; its rows have View instead.
+
+Tests: `test_table_homebrew_pages.py` +5 (19), `test_table_homebrew.py` +3 (32, the
+presenter). Not mutation-checked beyond the negative runs of each new test before the
+code existed.
+
 ---
 
 ## 15. The table view — the approved layout (2026-09-22)

@@ -63,6 +63,15 @@ def _base(owner: int, name: str, *charm_ids: str, **shape):
     return _characters().create(owner, character)
 
 
+def _entry_text(user: User) -> str:
+    """Return the text of the one open homebrew pop-up. `should_see` with a marker
+    matches the text of the marked card only, and the card has its text in
+    children."""
+    (card,) = user.find(marker="homebrew-entry").elements
+    return "\n".join(text for element in card.descendants()
+                     if (text := getattr(element, "text", "")))
+
+
 async def _campaign(create_user):
     """An ST and one watching player. Return (st, st id, table, player, player id)."""
     st = create_user()
@@ -102,6 +111,48 @@ async def test_the_request_card_names_what_the_approval_adds(create_user) -> Non
                         content="Player Oath")
 
 
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_views_the_requested_character(create_user) -> None:
+    """The human, 2026-09-24: the Storyteller sees the character before approving."""
+    st, _, table, _, player_id = await _campaign(create_user)
+    request = _tables().bring(player_id, table.id,
+                              _base(player_id, "Ashes", concept="Wandering Sword").id)
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker=f"table-request-{request.id}")
+    await st.should_see(marker=f"table-request-view-{request.id}")
+
+    st.find(marker=f"table-request-view-{request.id}").click()
+
+    await st.should_see(marker=f"table-request-sheet-{request.id}")
+    await st.should_see("Concept: Wandering Sword")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_views_a_carried_row_as_the_player_has_it(create_user) -> None:
+    """The pop-up shows the CARRIED row. For a clash that is the player's version,
+    not the campaign's, thus the two names discriminate."""
+    st, _, table, _, player_id = await _campaign(create_user)
+    custom_content.save_charm(_charm("custom.oath", name="Campaign Oath"),
+                              custom_dir=_tables().homebrew_dir(table.id))
+    custom_content.save_charm(_charm("custom.oath", name="Player Oath",
+                                     description="The oath as the player wrote it."),
+                              custom_dir=_characters().custom_dir(player_id))
+    request = _tables().bring(player_id, table.id,
+                              _base(player_id, "Ashes", "custom.oath").id)
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker=f"table-request-{request.id}")
+
+    st.find(marker=f"table-request-row-view-{request.id}-custom.oath").click()
+
+    await st.should_see(marker="homebrew-entry")
+    text = _entry_text(st)
+    assert "Player Oath" in text and "Campaign Oath" not in text
+    assert "The oath as the player wrote it." in text
+    assert "Type: Supplemental" in text
+
+
 # --------------------------------------------------------------------------- #
 # The Homebrew page
 # --------------------------------------------------------------------------- #
@@ -134,7 +185,25 @@ async def test_the_storyteller_gets_the_editor(create_user) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
-async def test_a_member_reads_the_homebrew_and_has_no_editor(create_user) -> None:
+async def test_the_editor_is_not_in_a_narrow_column(create_user) -> None:
+    """🐞 Click-through, 2026-09-24. The editor is one row that does not wrap: two
+    cards of 24 and 26 rem and the form. A 64 rem column left the form about
+    13 rem. `/home` gives the editor the full width; this page must too."""
+    st, _, table, _, _ = await _campaign(create_user)
+    await st.open(table_custom.custom_url(table.id))
+    await st.should_see(marker="custom-name")
+
+    (field,) = st.find(marker="custom-name").elements
+    element = field
+    while element.parent_slot is not None:
+        element = element.parent_slot.parent
+        assert not any(c.startswith("max-w-") for c in element.classes), (
+            f"The editor is in a column of limited width: {element.classes}")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_member_reads_the_homebrew_of_the_campaign(create_user) -> None:
     _, _, table, player, _ = await _campaign(create_user)
     custom_content.save_charm(_charm("custom.oath"),
                               custom_dir=_tables().homebrew_dir(table.id))
@@ -143,7 +212,25 @@ async def test_a_member_reads_the_homebrew_and_has_no_editor(create_user) -> Non
 
     await player.should_see(marker="table-homebrew-row-custom.oath", content="Oath")
     await player.should_see("The text of custom.oath.")
-    await player.should_not_see(marker="custom-export")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_member_writes_to_their_library_and_then_proposes(create_user) -> None:
+    """The human, 2026-09-24: a player writes a new row on this page. The row goes
+    to the library of the player, not to the campaign. It is then offered for a
+    proposal, with no return to `/home`."""
+    _, _, table, player, player_id = await _campaign(create_user)
+
+    await player.open(table_custom.custom_url(table.id))
+    await _author_in_the_form(player, "Bright Fang")
+
+    await player.should_see(marker="table-propose-charms-custom.bright-fang")
+    mine = custom_content.library_charms(_characters().custom_dir(player_id))
+    assert "custom.bright-fang" in {row["id"] for row in mine}
+    campaign = custom_content.library_charms(_tables().homebrew_dir(table.id))
+    assert "custom.bright-fang" not in {row["id"] for row in campaign}, (
+        "The member's editor wrote to the campaign.")
 
 
 @pytest.mark.asyncio
@@ -159,6 +246,30 @@ async def test_the_table_view_links_to_the_homebrew_page(create_user) -> None:
 # --------------------------------------------------------------------------- #
 # Proposals
 # --------------------------------------------------------------------------- #
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_views_a_proposed_row(create_user) -> None:
+    """The pop-up shows the COPY that the proposal holds, thus an edit to the
+    library after the proposal does not reach it."""
+    st, st_id, table, _, player_id = await _campaign(create_user)
+    library = _characters().custom_dir(player_id)
+    custom_content.save_charm(_charm("custom.fang", description="As proposed."),
+                              custom_dir=library)
+    proposal = TableHomebrew(_tables()).propose(player_id, table.id, "charms",
+                                                "custom.fang")
+    custom_content.save_charm(_charm("custom.fang", description="Edited later."),
+                              custom_dir=library)
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker=f"table-proposal-{proposal.id}")
+
+    st.find(marker=f"table-proposal-view-{proposal.id}-custom.fang").click()
+
+    await st.should_see(marker="homebrew-entry")
+    text = _entry_text(st)
+    assert "As proposed." in text
+    assert "Edited later." not in text
 
 
 @pytest.mark.asyncio

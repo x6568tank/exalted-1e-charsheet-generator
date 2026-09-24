@@ -13,8 +13,12 @@ from dataclasses import dataclass
 
 from nicegui import ui
 
+from ..models.character import Character
 from ..models.rules import RuleSet
+from ..ui import app as sheet_app
 from ..ui import theme
+from ..ui import view as viewmod
+from ..ui import wiki_view
 from . import auth, nav, site
 from .characters import CharacterRow, CharacterStore
 
@@ -56,6 +60,12 @@ def nav_drawer(pal, *, live: bool = False, current: str = "") -> ui.left_drawer:
             if number:
                 ui.separator().classes("my-1")
             for link in group:
+                if not link.href:
+                    with ui.item().classes("text-[13.5px] opacity-75").mark("nav-account"):
+                        with ui.item_section().props("avatar").classes("min-w-0 pr-4"):
+                            ui.icon(link.icon, size="22px").style(f"color:{pal.accent}")
+                        ui.item_section(link.label)
+                    continue
                 item = ui.item().props("clickable tag=a").classes(
                     "min-h-0 py-1 pl-10 text-[13.5px]" if link.sub else "font-medium")
                 item.props["href"] = link.href
@@ -115,8 +125,9 @@ def home_button() -> None:
 
 
 def logout_button() -> None:
-    ui.button("Log out", icon="logout", on_click=lambda: ui.navigate.to("/logout")).props(
-        "flat color=white").mark("top-bar-logout")
+    ui.button(nav.logout_label(auth.current_username()), icon="account_circle",
+              on_click=lambda: ui.navigate.to("/logout")).props(
+        "flat no-caps color=white").mark("top-bar-logout")
 
 
 def grid():
@@ -196,3 +207,57 @@ def character_card(entry: Entry, row: CharacterRow, detail: str | None = None,
                 ui.label(detail).classes("text-xs opacity-70 pt-1")
         actions = ui.row().classes("w-full items-center justify-end gap-1 px-2 pb-1")
     return actions
+
+
+def sheet_dialog(ruleset: RuleSet, character: Character, marker: str) -> None:
+    """Open the sheet of `character`, read-only, in a dialog. `marker` marks the
+    sheet.
+
+    ⚠ `render_sheet` adds a body style to the page head. The page keeps its colours
+    only because each logged-in page sets an inline body style, which wins.
+    """
+    with ui.dialog().props("full-width") as dialog, ui.card().classes("w-full"):
+        with ui.row().classes("w-full justify-end"):
+            ui.button(icon="close", on_click=dialog.close).props("flat dense")
+        with ui.column().classes("w-full").mark(marker):
+            sheet_app.render_sheet(viewmod.build_sheet_view(ruleset, character))
+    dialog.open()
+
+
+def homebrew_dialog(ruleset: RuleSet, kind: str, rows: list[dict], row_id: str) -> None:
+    """Open row `row_id` of `rows` in a dialog, as the wiki shows an entry.
+
+    `kind` is "charms", "spells" or "rituals". `wiki_view.homebrew_page` makes the
+    page over `ruleset`. A row that does not load shows its name and its text.
+    """
+    page = wiki_view.homebrew_page(ruleset, kind, rows, row_id)
+    raw = next((row for row in rows if row.get("id") == row_id), {})
+    with ui.dialog() as dialog, ui.card().classes("w-[36rem] max-w-full p-4 gap-2").mark(
+            "homebrew-entry"):
+        with ui.row().classes("w-full items-start justify-between no-wrap"):
+            with ui.column().classes("gap-0 min-w-0"):
+                if page is not None:
+                    ui.label(page.kicker).classes("text-xs font-bold tracking-wide").style(
+                        f"color:{page.accent}" if page.accent else "")
+                ui.label(page.title if page is not None
+                         else str(raw.get("name") or row_id)).classes("text-lg font-bold")
+            ui.button(icon="close", on_click=dialog.close).props("flat dense round")
+        if page is None:
+            ui.label("This row does not load. It has errors that its author must "
+                     "fix.").classes("text-xs font-bold text-amber-800")
+            paragraphs = [str(raw["description"])] if raw.get("description") else []
+        else:
+            with ui.column().classes("w-full gap-0").mark("homebrew-entry-facts"):
+                for fact in page.facts:
+                    ui.label(f"{fact.label}: {fact.value}").classes("text-sm")
+                if page.section == "charms":
+                    groups = [" or ".join(link.text for link in group)
+                              for group in page.prerequisites]
+                    ui.label("Prerequisite Charms: " + ("; ".join(groups) or "None")
+                             ).classes("text-sm")
+            paragraphs = page.paragraphs
+        for paragraph in paragraphs:
+            ui.label(paragraph).classes("text-sm whitespace-pre-line")
+        if page is not None and page.source:
+            ui.label(page.source).classes("text-xs opacity-60")
+    dialog.open()

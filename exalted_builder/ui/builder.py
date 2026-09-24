@@ -33,6 +33,7 @@ from ..engine import lifecycle, validate
 from ..models.character import Character, new_character_id
 from ..models.party import Party
 from ..models.rules import RuleSet
+from ..server import auth, nav
 from ..server.config import storage_secret
 from ..server.session import SessionRegistry
 from . import advantages
@@ -705,7 +706,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
                     if hosted:
                         ui.separator()
                         # The server registers `/logout`. See server/auth.py.
-                        ui.menu_item("Log out", on_click=lambda: ui.navigate.to("/logout")
+                        ui.menu_item(nav.logout_label(auth.current_username()),
+                                     on_click=lambda: ui.navigate.to("/logout")
                                      ).mark("top-bar-logout")
 
     def _apply_chrome() -> None:

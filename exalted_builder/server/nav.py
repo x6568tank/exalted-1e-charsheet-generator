@@ -41,6 +41,7 @@ class Link:
 
     `key` is the name of the page, for the mark of the current page. `sub` indents
     the entry below the entry before it. `new_tab` opens the address in a new tab.
+    An empty `href` makes the entry a line of text, not a link.
     """
 
     href: str
@@ -86,5 +87,11 @@ def groups(username: Optional[str], *, live: bool = False) -> list[list[Link]]:
 
     result = [places, reference]
     if username:
-        result.append([Link("/logout", "logout", "Log out", "logout")])
+        result.append([Link("", "account_circle", f"Logged in as {username}", "account"),
+                       Link("/logout", "logout", "Log out", "logout")])
     return result
+
+
+def logout_label(username: Optional[str]) -> str:
+    """Return the label of the Log out control of the top bar. It names the login."""
+    return f"{username} · Log out" if username else "Log out"

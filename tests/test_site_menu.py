@@ -63,7 +63,14 @@ def test_an_account_gets_its_campaigns_below_your_characters(campaigns) -> None:
     assert [link.label for link in places] == [
         "Front page", "Your characters", "Nexus Nights", "<b>Loud</b>"]
     assert [link.sub for link in places] == [False, False, True, True]
-    assert [link.key for link in account] == ["logout"]
+    assert [link.key for link in account] == ["account", "logout"]
+
+
+def test_the_account_group_names_the_login_and_is_not_a_link(campaigns) -> None:
+    (_places, _reference, account) = nav.groups("gil")
+    (who, _logout) = account
+    assert who.label == "Logged in as gil"
+    assert who.href == "", "The account line is a link."
 
 
 def test_the_menu_lists_each_wiki_section() -> None:
@@ -88,6 +95,26 @@ def test_the_html_drawer_escapes_a_campaign_name(campaigns) -> None:
     html = site.header_bar("", "gil")
     assert "&lt;b&gt;Loud&lt;/b&gt;" in html
     assert "<b>Loud</b>" not in html
+
+
+def test_the_html_bar_names_the_login_in_the_menu_and_the_log_out_button(campaigns) -> None:
+    html = site.header_bar("", "gil")
+    drawer = html[html.index('<nav class="drawer"'):html.index("</nav>")]
+    quick = html[html.index('<nav class="quick"'):]
+    assert "Logged in as gil" in drawer
+    assert '<a href=""' not in drawer, "The account line is a link."
+    assert nav.logout_label("gil") in quick
+    assert "gil" in nav.logout_label("gil") and "Log out" in nav.logout_label("gil")
+
+
+def test_the_html_bar_escapes_the_username(campaigns) -> None:
+    html = site.header_bar("", "<b>gil</b>")
+    assert "<b>gil</b>" not in html
+    assert "&lt;b&gt;gil&lt;/b&gt;" in html
+
+
+def test_a_visitor_has_no_account_line() -> None:
+    assert "Logged in as" not in site.header_bar("", None)
 
 
 def test_the_html_drawer_marks_the_current_page() -> None:
@@ -121,7 +148,22 @@ def _drawer_items(user: User) -> dict[str, ui.item]:
     """Return the entries of the one site menu of the page, by address."""
     (drawer,) = user.find(marker="nav-drawer").elements
     return {item.props["href"]: item for item in drawer.descendants()
-            if isinstance(item, ui.item)}
+            if isinstance(item, ui.item) and "href" in item.props}
+
+
+def _drawer_text(user: User) -> list[str]:
+    """Return the text of each label in the one site menu of the page."""
+    (drawer,) = user.find(marker="nav-drawer").elements
+    return [element.text for element in drawer.descendants()
+            if isinstance(element, ui.item_section) and getattr(element, "text", "")]
+
+
+def _logout_text(user: User) -> str:
+    """Return the label of the Log out control: a button, or a menu item that
+    holds its label in a child section."""
+    (control,) = user.find(marker="top-bar-logout").elements
+    return " ".join(text for element in [control, *control.descendants()]
+                    if (text := getattr(element, "text", "")))
 
 
 @pytest.mark.asyncio
@@ -139,6 +181,8 @@ async def test_the_home_menu_lists_the_campaigns_of_the_account(user: User) -> N
     assert chrome.table_url(mine.id) in items
     assert chrome.table_url(theirs.id) not in items
     assert "target" not in items["/wiki"].props
+    assert "Logged in as Menuholder" in _drawer_text(user)
+    assert _logout_text(user) == nav.logout_label("Menuholder")
 
 
 @pytest.mark.asyncio
@@ -154,6 +198,8 @@ async def test_the_character_page_opens_the_wiki_in_a_new_tab(user: User) -> Non
     assert items["/wiki"].props["target"] == "_blank"
     assert items["/about"].props["target"] == "_blank"
     assert "target" not in items["/home"].props
+    assert "Logged in as Sheetholder" in _drawer_text(user)
+    assert _logout_text(user) == nav.logout_label("Sheetholder")
 
 
 @pytest.mark.asyncio
@@ -167,3 +213,5 @@ async def test_the_campaign_page_has_the_menu(user: User) -> None:
     items = _drawer_items(user)
     assert items["/wiki"].props["target"] == "_blank"
     assert chrome.table_url(table.id) in items
+    assert "Logged in as Tableholder" in _drawer_text(user)
+    assert _logout_text(user) == nav.logout_label("Tableholder")

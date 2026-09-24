@@ -848,6 +848,13 @@ hosted page has the **site menu**, a drawer behind ☰ and the site name
 (`server/nav.py` is the one entry list; `site.py` draws it in HTML, `chrome.py` in
 Quasar). It lists the account's campaigns and each wiki section; on the character and
 campaign pages the wiki and About open in a new tab.
+✅ **The login name (human, 2026-09-24, browser-verified the same day):** *"There's no
+way to see who you're logged in as."* Ruled: menu AND top bar. The menu's last group
+starts with **"Logged in as <name>"**, a `nav.Link` with an empty `href` that both
+drawers draw as text, not a link. The top bar's Log out reads **"<name> · Log out"**
+(`nav.logout_label`), and so does the ⋮ menu item on the builder and campaign pages,
+which have no top-bar Log out. "Logged in as" is the front page's wording (one word for
+one thing). Tests: `test_site_menu.py`.
 
 ### 9.8 SHIPPED 2026-09-12 — `/home`, the character pages, the base and the copy (piece 4)
 

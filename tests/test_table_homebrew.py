@@ -406,3 +406,54 @@ def test_an_approval_after_a_clash_keeps_the_campaign_row(homebrew, store, table
     homebrew.approve(ST, table.id, proposal.id)
 
     assert _campaign_names(tables, table.id) == {"custom.fang": "ST Fang"}
+
+
+# --------------------------------------------------------------------------- #
+# The pop-up of a requested row: `wiki_view.homebrew_page`
+# --------------------------------------------------------------------------- #
+
+
+def test_a_requested_charm_is_a_page_with_its_facts_and_prerequisites() -> None:
+    from exalted_builder import rules_db
+    from exalted_builder.ui import wiki_view
+
+    book = rules_db.load_ruleset(Path(__file__).parent.parent / "data")
+    rows = [{"id": "custom.root", "name": "Root Strike", "category": "melee",
+             "type": "Simple", "min_ability": 1, "min_essence": 1,
+             "description": "The first."},
+            {"id": "custom.leaf", "name": "Leaf Strike", "category": "melee",
+             "type": "Supplemental", "min_ability": 2, "min_essence": 1,
+             "prerequisites": [["custom.root"]], "description": "The second."}]
+
+    page = wiki_view.homebrew_page(book, "charms", rows, "custom.leaf")
+
+    assert page is not None
+    assert page.title == "Leaf Strike"
+    assert page.paragraphs == ["The second."]
+    assert {fact.label: fact.value for fact in page.facts}["Type"] == "Supplemental"
+    assert [[link.text for link in group] for group in page.prerequisites] == [["Root Strike"]]
+    assert "custom.leaf" not in book.charms, "The page changed the book."
+
+
+def test_a_requested_spell_and_ritual_are_pages() -> None:
+    from exalted_builder import rules_db
+    from exalted_builder.ui import wiki_view
+
+    book = rules_db.load_ruleset(Path(__file__).parent.parent / "data")
+    spell = {"id": "custom.bolt", "name": "Home Bolt", "circle": "Terrestrial",
+             "cost": {"motes": 15}, "description": "A bolt."}
+    ritual = {"id": "custom.rite", "name": "Home Rite", "level": 2,
+              "description": "A rite."}
+
+    assert wiki_view.homebrew_page(book, "spells", [spell], "custom.bolt").title == "Home Bolt"
+    assert wiki_view.homebrew_page(book, "rituals", [ritual], "custom.rite").title == "Home Rite"
+
+
+def test_a_requested_row_that_does_not_load_has_no_page() -> None:
+    from exalted_builder import rules_db
+    from exalted_builder.ui import wiki_view
+
+    book = rules_db.load_ruleset(Path(__file__).parent.parent / "data")
+    broken = {"id": "custom.broken", "name": "Broken", "type": "Not a type"}
+
+    assert wiki_view.homebrew_page(book, "charms", [broken], "custom.broken") is None

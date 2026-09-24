@@ -1,65 +1,66 @@
-# Session handoff — 2026-09-23 (P3 step 7, the campaign homebrew)
+# Session handoff — 2026-09-24 (P3 step 7 clicked; the request views; the login name)
 
 # 👉 YOU ARE HERE
 
-**P3 step 7 (the campaign homebrew) is DONE, committed, pushed and LIVE on the home
-server. 🖱 IT NEEDS A CLICK-THROUGH: nothing of it is browser-verified.** `docs/plans/p3-tables.md` §14
-"Step 7" is the record: the rulings, what shipped, 23 mutations, the known limits.
+**P3 step 7 (the campaign homebrew) PASSED its click-through on 2026-09-24**, all eight
+steps. The click-through found one defect and two requests; all three are built, tested
+and **browser-verified the same day**. `docs/plans/p3-tables.md` §14 "Step 7" is the
+record (the click-through paragraph is at its end).
 
-In one breath (rulings 2026-09-23, "Yes, build it"): **one campaign homebrew layer**,
-`<table folder>/custom`. A campaign copy sees book → campaign (Q1: not the owner's
-library); a draft for a campaign sees book → campaign → the owner's library. Rows get in
-three ways, each through the ST: **approving a character adds the homebrew it carries**
-(the card says so; the campaign wins a clash, flagged in amber), **player proposals**
-(HOMEBREW REQUESTS in the ST tab), **the ST authors** on `/table/<id>/custom` (members read
-it). New modules: `server/rulesets.py` (`Rulesets` replaced `home.AccountRulesets`),
-`server/table_homebrew.py`, `server/table_custom.py`; the loader has
-`with_custom_layers` / `reload_custom_layers`.
+* 🐞 **The Storyteller's editor on `/table/<id>/custom` was squished to unreadability.**
+  `build_custom` is one no-wrap row of two fixed cards and the form; the page put it in a
+  64 rem column. The page is full width now. ⚠ Any new host of `build_custom` has the
+  same trap (a test walks the ancestors for `max-w-`).
+* **Ruled 2026-09-24 — the ST sees what is requested:** **View character** on a join
+  request (the full sheet, read-only, in a dialog), and **View** on each carried or
+  proposed homebrew row (a pop-up of the row as the wiki draws it, from the COPY the
+  request holds). New: `chrome.sheet_dialog`, `chrome.homebrew_dialog`, the pure
+  `wiki_view.homebrew_page`.
+* **Ruled 2026-09-24 — a player writes a new row on the campaign's Homebrew page:**
+  library + propose. A member gets **WRITE A NEW ROW**, the `/home` editor on their OWN
+  library; a saved row appears at once in FROM YOUR LIBRARY with Propose.
+* **The login name** (the human: *"There's no way to see who you're logged in as"*),
+  ruled menu AND top bar: **"Logged in as <name>"** in the site menu, **"<name> · Log
+  out"** in the top bar and in the ⋮ menu of the builder and campaign pages. One source,
+  `server/nav.py`. Record: `docs/plans/vtt.md` §9.7, after the site menu.
 
-🐞 **Closed on the way:** each save of a campaign copy re-embedded its homebrew from the
-OWNER'S library, so an edit at home changed the copy with no ST
-(`CharacterStore.homebrew_dir`). ⚠ **The store notifies the RuleSets of each homebrew
-write** (`TableStore.homebrew_listeners` / `library_listeners`): the ST's own request is
-approved inside the store, where a page-handler reload would miss it.
+**Also this session:** the other machine's wiki commit (`03fdb22`, seven reference
+sections) was merged with step 7 (`7869480`, no conflicts) and pushed.
 
-**Three design choices, ruled "Correct" (2026-09-23):** leaving puts the copy's homebrew
-in the owner's library; proposals are Charms/spells/rituals only; a proposed Charm brings
-its homebrew prerequisites.
+**Full suite: 4109 passed + 1 skipped — OBSERVED** on the dev machine at this close-out, after all of
+the above. ⚠ The count moves by machine and optional dependency (`docs/testing.md`).
+⚠ `test_table_view.py::test_a_character_that_joins_after_the_form_is_drawn_is_not_granted`
+failed 3 times in about 20 runs mid-session (the second user's sign-up timed out before
+`/home`), 0 in 42 runs without the login-name change, then passed 43 runs in a row with it.
+Not explained; watch for it.
 
-**Full suite: 4080 passed + 1 skipped — OBSERVED** on the dev machine after all of step 7
-(reused at close-out: only docs changed since; the human said not to re-run).
-⚠ The count moves by machine and optional dependency (`docs/testing.md`).
+**Working tree:** clean after this session's one commit (the login name, the step-7
+follow-ups and these docs, on top of the merge `7869480`), pushed. Check `git status`.
 
-**Working tree:** clean after the step-7 commit (`58eb41a`, pushed); this close-out edits
-only this file and `p3-tables.md`. Check `git status`.
+**Deployed:** NOT. The live site still runs `58eb41a` (steps 2–7, the login restyle, the
+site menu). The wiki sections, the login name and this session's step-7 follow-ups need a
+rsync to `gilserver:exalted-app` and the human's rebuild
+(`cd ~/homelab && docker compose up -d --build exalted`; `claude` has no docker).
 
-**Deployed (2026-09-23):** `58eb41a` rsynced to `gilserver:exalted-app`, and the human
-rebuilt the container: **the live site runs steps 2–7**, the login restyle and the site
-menu. ⚠ `claude` still has no docker; each rebuild is the human's
-(`cd ~/homelab && docker compose up -d --build exalted`). A later docs-only commit need not
-be deployed.
-
-🖱 **Click-through owed (step 7)**, accounts `storyteller`, `alice`, `bob`, `watcher`:
-1. alice authors a Charm on `/home` → Homebrew, builds a base that buys it, joins. The ST's
-   request card says *"Approving adds to the campaign homebrew: <name>"*. Approve.
-2. The campaign's Homebrew button (construction icon, top bar) → the ST gets the editor
-   with the row; alice sees it read-only with its text.
-3. alice edits that Charm at home, then saves her campaign copy: the copy keeps the
-   campaign's version (the side door).
-4. bob authors a Charm with the same id as the campaign's, brings a base with it: the
-   card says *"Different from the campaign's version, which stays"* in amber.
-5. bob proposes a library Charm on the Homebrew page → *YOUR PROPOSALS*; the ST sees it
-   under HOMEBREW REQUESTS (and the badge), approves → it is in the campaign and buyable
-   on bob's copy; a rejected one goes. Withdraw works.
-6. The ST authors a Charm on the Homebrew page: it is buyable on a copy AND on an open
-   draft for the campaign (Add a character → Create).
-7. A campaign copy's Gear tab has no "Save to my library" button; a solo copy's has.
-8. alice leaves: her copy on `/home` still shows the campaign Charm, now in her library.
+🖱 **Owed:** nothing from P3. The click-through server ran from `/tmp/exalted-click8/`
+(accounts `storyteller`, `alice`, `bob`, `watcher`, password `clickthrough`).
 
 ❓ **Open for the human:** nothing.
 
 **Next:** P3 **step 8**, the roster on the table, with the Enemy / Ally switch for roster
 entries AND for full-character NPCs (ruled).
+
+---
+
+## The session before — P3 step 7 built (2026-09-23)
+
+Step 7 shipped and deployed: one campaign homebrew layer, `<table folder>/custom`; a copy
+sees book → campaign, a draft book → campaign → the owner's library; rows come in by
+approval of a carrying character, by player proposal, or by the ST authoring. 🐞 Closed:
+a copy's save re-embedded homebrew from the OWNER'S library (`CharacterStore.homebrew_dir`).
+⚠ The store notifies the RuleSets of each homebrew write (`homebrew_listeners` /
+`library_listeners`). Suite then: 4080 passed + 1 skipped, observed. Detail: `p3-tables.md`
+§14 "Step 7".
 
 ---
 

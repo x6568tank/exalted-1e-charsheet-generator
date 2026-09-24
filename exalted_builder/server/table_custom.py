@@ -5,10 +5,13 @@ Step 7 of `docs/plans/p3-tables.md` section 14 (ruled 2026-09-23):
 
   * The Storyteller gets the authoring page (`ui/custom.build_custom`) on the
     homebrew of the table. A save reloads each kept RuleSet that holds it.
-  * A member or a watcher reads the rows. There is no editor.
+  * A member or a watcher reads the rows. There is no editor on the rows of the
+    table.
   * Each member, the Storyteller too, sees the rows of their own library that the
     table does not have. A member proposes one; the Storyteller adds one at once.
     The Storyteller approves a proposal in the ST tab of the table view.
+  * A member gets the editor on their OWN library below (human, 2026-09-24). A
+    saved row then appears in the list of rows to propose.
 
 ⚠ `TableStore.access` is the check, in the page body, before anything of the table
 is read. Each handler calls the store, which checks it again.
@@ -79,7 +82,9 @@ def _build(tables: TableStore, store: CharacterStore, rulesets: Rulesets,
             "min-w-0 max-w-[45vw] truncate").mark("homebrew-campaign")
         ui.label("› Homebrew").classes("text-white/90 shrink-0")
 
-    with ui.column().classes("w-full max-w-5xl mx-auto px-4 py-2 gap-4"):
+    # ⚠ The editor is one row of fixed cards that does not wrap. It needs the full
+    # width, as on `/home`. Each viewer has an editor, thus the page has no limit.
+    with ui.column().classes("w-full px-4 py-2 gap-4"):
         if is_st:
             ui.label("The homebrew of this campaign. Each character in it can buy these "
                      "rows. Players propose rows from their own libraries; you approve "
@@ -87,9 +92,23 @@ def _build(tables: TableStore, store: CharacterStore, rulesets: Rulesets,
             custom_mod.build_custom(rulesets.for_table(table.id), custom_dir=folder,
                                     with_header=False, show_path=False,
                                     reload=lambda: rulesets.reload_table(table.id))
-        else:
-            _read_only(pal, folder)
-        _from_library(pal, tables, store, homebrew, user_id, table, is_st)
+            _from_library(pal, tables, store, homebrew, user_id, table, is_st)
+            return
+        _read_only(pal, folder)
+        offer = _from_library(pal, tables, store, homebrew, user_id, table, is_st)
+
+        def reload() -> list[str]:
+            problems = rulesets.reload_account(user_id)
+            offer()
+            return problems
+
+        with ui.column().classes("w-full gap-1 pt-4").mark("table-member-editor"):
+            ui.label("WRITE A NEW ROW").classes("text-xs font-bold tracking-wide")
+            ui.label("A row that you save here goes to your own library, as on your "
+                     "Homebrew page. Then propose it above.").classes("text-sm opacity-80")
+            custom_mod.build_custom(rulesets.for_account(user_id),
+                                    custom_dir=store.custom_dir(user_id),
+                                    with_header=False, show_path=False, reload=reload)
 
 
 def _read_only(pal, folder) -> None:
@@ -115,9 +134,11 @@ def _read_only(pal, folder) -> None:
 
 
 def _from_library(pal, tables: TableStore, store: CharacterStore,
-                  homebrew: TableHomebrew, user_id: int, table, is_st: bool) -> None:
-    """The rows of the library of the viewer that the campaign does not have, and the
-    proposals of the viewer that wait."""
+                  homebrew: TableHomebrew, user_id: int, table,
+                  is_st: bool) -> Callable[[], None]:
+    """Draw the rows of the library of the viewer that the campaign does not have,
+    and the proposals of the viewer that wait. Return the function that draws them
+    again."""
 
     @ui.refreshable
     def section() -> None:
@@ -177,3 +198,4 @@ def _from_library(pal, tables: TableStore, store: CharacterStore,
 
     with ui.column().classes("w-full gap-1"):
         section()
+    return section.refresh

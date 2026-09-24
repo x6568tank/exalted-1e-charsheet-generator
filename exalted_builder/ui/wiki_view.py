@@ -20,7 +20,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional, Sequence
 
-from ..models.rules import RuleSet, SpellCircle
+from pydantic import ValidationError
+
+from ..models.rules import Charm, RuleSet, Spell, SpellCircle, ThaumaturgicRitual
 from . import theme
 from . import view
 
@@ -1235,3 +1237,36 @@ def search_all(ruleset: RuleSet, query: str, limit: int = 12) -> list[tuple[List
             result.rows = result.rows[:limit]
             results.append((result, f"/wiki/{result.section}"))
     return results
+
+
+# --------------------------------------------------------------------------- #
+# A homebrew row that is not in a ruleset: a proposal or a carried row
+# --------------------------------------------------------------------------- #
+
+
+# The model, the pool of the ruleset, and the page function of each kind.
+_HOMEBREW_KINDS = {"charms": (Charm, "charms", charm_page),
+                   "spells": (Spell, "spells", spell_page),
+                   "rituals": (ThaumaturgicRitual, "thaum_rituals", thaumaturgy_page)}
+
+
+def homebrew_page(ruleset: RuleSet, kind: str, rows: Sequence[dict],
+                  row_id: str) -> Optional[EntryPage]:
+    """Return the page of row `row_id` of `rows`, or None if that row does not load.
+
+    `rows` are raw rows of one `kind`: "charms", "spells" or "rituals". Validate
+    each row with its model. Put the rows over a copy of `ruleset`, thus a row
+    wins an id clash and names the other rows as prerequisites. Then make the page
+    with the page function of the kind. `ruleset` does not change.
+    """
+    model, pool, page = _HOMEBREW_KINDS[kind]
+    merged = dict(getattr(ruleset, pool))
+    for row in rows:
+        try:
+            entry = model(**row)
+        except (ValidationError, TypeError):
+            continue
+        merged[entry.id] = entry.model_copy(update={"custom": True})
+    if row_id not in merged or not merged[row_id].custom:
+        return None
+    return page(ruleset.model_copy(update={pool: merged}), row_id)

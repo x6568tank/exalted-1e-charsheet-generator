@@ -52,7 +52,7 @@ from ..models.rules import RuleSet
 from ..ui import play as play_mod
 from ..ui import saving, theme
 from ..ui import view as viewmod
-from . import chrome, db
+from . import auth, chrome, db, nav
 from .characters import CharacterRow, CharacterStore
 from .quota import QuotaExceeded
 from .rulesets import Rulesets
@@ -348,7 +348,8 @@ class _TableView:
                     if not self.is_st:
                         ui.menu_item("Leave campaign", on_click=self._confirm_leave) \
                             .mark("table-leave")
-                    ui.menu_item("Log out", on_click=lambda: ui.navigate.to("/logout")) \
+                    ui.menu_item(nav.logout_label(auth.current_username()),
+                                 on_click=lambda: ui.navigate.to("/logout")) \
                         .mark("top-bar-logout")
 
     def _open_as(self, value: str) -> None:
@@ -779,10 +780,8 @@ class _TableView:
                     ui.label(_username(self.tables, proposal.user_id)).classes(
                         "text-sm font-bold")
                     ui.label("Proposes: " + ", ".join(proposal.names)).classes("text-xs")
-                    for row in proposal.rows:
-                        if row.get("description"):
-                            ui.label(f"{row.get('name')}: {row['description']}").classes(
-                                "text-xs opacity-80 whitespace-pre-line")
+                    _row_buttons(self.rulesets.for_table(self.table.id), proposal.kind,
+                                 proposal.rows, f"table-proposal-view-{proposal.id}")
                     with ui.row().classes("gap-1 justify-end w-full"):
                         ui.button("Approve", icon="check",
                                   on_click=lambda _=None, p=proposal.id:
@@ -1390,11 +1389,13 @@ def _requests(tables: TableStore, store: CharacterStore, rulesets: Rulesets, use
                 if base is None:
                     ui.label("Asks to watch.").classes("text-xs opacity-80")
                 else:
-                    _request_base(store, rulesets.for_table(table.id), base,
-                                  tables.house_rules(table.id),
-                                  f"table-request-rules-{request.id}")
+                    character = _request_base(store, rulesets.for_table(table.id), base,
+                                              tables.house_rules(table.id),
+                                              f"table-request-rules-{request.id}")
                     _request_homebrew(tables.homebrew_preview(user_id, request.id),
                                       request.id)
+                    if character is not None:
+                        _request_views(rulesets, table, base, character, request.id)
                 with ui.row().classes("gap-1 justify-end w-full"):
                     ui.button("Approve", icon="check",
                               on_click=lambda _=None, r=request.id: approve(r)).props(
@@ -1404,6 +1405,21 @@ def _requests(tables: TableStore, store: CharacterStore, rulesets: Rulesets, use
                               on_click=lambda _=None, r=request.id: reject(r)).props(
                         "flat dense no-caps size=sm color=negative").mark(
                         f"table-reject-{request.id}")
+
+
+def _row_buttons(ruleset: RuleSet, kind: str, rows: list[dict], marker: str) -> None:
+    """Draw one line for each row of `rows`: its name and a View button. The button
+    opens the row. Its mark is `marker` and the id of the row."""
+    for row in rows:
+        row_id = str(row.get("id") or "")
+        if not row_id:
+            continue
+        with ui.row().classes("w-full items-center gap-1 no-wrap"):
+            ui.label(str(row.get("name") or row_id)).classes("text-xs truncate min-w-0")
+            ui.button("View", icon="visibility",
+                      on_click=lambda _=None, i=row_id: chrome.homebrew_dialog(
+                          ruleset, kind, rows, i)).props(
+                "flat dense no-caps size=sm").mark(f"{marker}-{row_id}")
 
 
 def _request_homebrew(preview, request_id: int) -> None:
@@ -1419,17 +1435,39 @@ def _request_homebrew(preview, request_id: int) -> None:
             "text-xs font-bold text-amber-800").mark(f"table-request-differs-{request_id}")
 
 
+def _request_views(rulesets: Rulesets, table: TableRow, base: CharacterRow,
+                   character: Character, request_id: int) -> None:
+    """Draw the View character button, and one View button for each homebrew row
+    that the base carries (human, 2026-09-24).
+
+    The sheet uses the RuleSet of the base, thus it shows the base as its owner
+    sees it. A carried row shows the copy that the base holds.
+    """
+    carried = character.custom_definitions or {}
+    table_rules = rulesets.for_table(table.id)
+    for kind in ("charms", "spells", "rituals"):
+        if carried.get(kind):
+            _row_buttons(table_rules, kind, carried[kind],
+                         f"table-request-row-view-{request_id}")
+    ui.button("View character", icon="description",
+              on_click=lambda: chrome.sheet_dialog(
+                  rulesets.for_row(base), character, f"table-request-sheet-{request_id}")
+              ).props("flat dense no-caps size=sm").mark(f"table-request-view-{request_id}")
+
+
 def _request_base(store: CharacterStore, ruleset: RuleSet, base: CharacterRow,
-                  table_rules: HouseRules, marker: str) -> None:
+                  table_rules: HouseRules, marker: str) -> Character | None:
     """Draw what a request brings: the base, and the TABLE-WIDE house rules under
     which it was made, where they differ from the table's (human, 2026-09-22). The
-    copy keeps its creation rules unless the Storyteller unlocks it."""
+    copy keeps its creation rules unless the Storyteller unlocks it.
+
+    Return the character of the base, or None if its file does not read."""
     shown = chrome.entry(store, ruleset, base)
     ui.label(f"Asks to bring {shown.name} ({shown.kind}).").classes("text-xs opacity-80")
     try:
         character = store.load(base)
     except Exception:                               # noqa: BLE001 - the entry says unreadable
-        return
+        return None
     differences = viewmod.house_rule_differences(
         validate.chargen_house_rules(character), table_rules)
     if differences:
@@ -1438,3 +1476,4 @@ def _request_base(store: CharacterStore, ruleset: RuleSet, base: CharacterRow,
                 "text-xs font-bold text-amber-800").mark(marker)
             for line in differences:
                 ui.label(line).classes("text-xs")
+    return character
