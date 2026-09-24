@@ -34,8 +34,10 @@ Storyteller's browser. Reproduced deterministically; `tests/conftest.py` now rou
 navigate and notify by `context.client`; `tests/test_user_simulation_routing.py` (2)
 fails without the patch. `docs/testing.md` has the trap. Suite after the fix: **4148 passed + 1 skipped — OBSERVED**, no failure.
 
-**Working tree:** step 8 is **uncommitted** unless a later commit says otherwise. Check
-`git status`. **Not deployed.** The click-through server ran from `/tmp/exalted-click9/`
+**Working tree:** clean, on `main`, in step with `origin/main` (checked with `git status`
+at close-out). Step 8 is `e7aadc6`; the flake fix is `48df0ae`; this handoff edit is the
+close-out commit after them, if it was made. **Not deployed:** the live site is still
+`c7153ec`. Deploy when the human asks (`docs/deploy/homeserver.md`). The click-through server ran from `/tmp/exalted-click9/`
 (accounts `storyteller`, `alice`, `bob`, password `clickthrough`).
 
 🖱 **Owed:** nothing.
