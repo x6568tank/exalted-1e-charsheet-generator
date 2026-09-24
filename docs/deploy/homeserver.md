@@ -1,185 +1,97 @@
-# Deploying to the home server (`gilserver`, 192.168.1.2)
+# Deploying to the home server
 
-Written 2026-09-12 from a read-only look at the server as the `claude` account.
-**APPLIED 2026-09-12** — the human ran steps 2–4; `https://exalted.x6568tank.com` serves
-commit `7cd594f`. Checked from outside through Cloudflare: the public pages and `HEAD` answer
-200, `/home` and `/gm` send a visitor to the login page, and the session cookie arrives as
-`__Host-exalted-session; path=/; httponly; samesite=lax; secure`. The first `curl -I` gave
-405 (FastAPI adds no HEAD to a GET route) — fixed in `7cd594f`. Step 6 (the backup
-snapshot) is the human's to add; `claude` cannot write `backup.sh`. Steps marked **(gil)** need the `docker` or `sudo` group;
-`claude` has neither, on purpose. The one exception is the rebuild (2026-09-24), which the
-human set up for `claude`; how it works is kept OUT of this repo.
+⚠ **This repository is PUBLIC**, so this file is published. It holds what the app needs
+from its host and how a build reaches it, and nothing about the host itself. Keep out of
+it: secrets, keys, access rules, addresses, ports of other services, the backup layout.
+The server is described in the human's private homelab repository.
 
-⚠ **The repository is PUBLIC** (checked 2026-09-24), so this file is published. It holds no
-credential and must never hold one. Keep out of it: secrets, keys, sudoers rules, and any
-other access rule for the server. Record those on the dev machine, outside the repo.
+The live site is `https://exalted.x6568tank.com`. First deployed 2026-09-12 (`7cd594f`).
+Checked from outside then: the public pages and `HEAD` answer 200, `/home` and `/gm` send
+a visitor to the login page, and the session cookie arrives as
+`__Host-exalted-session; path=/; httponly; samesite=lax; secure`.
 
-⚠ One line of step 3 is now AHEAD of the running server: `mem_limit: 2g`, added 2026-09-18.
-See "The memory limit". Everything else in steps 2–4 is what the server runs.
+## What the app needs from the host
 
-## What the server already looks like
+* **HTTPS in front of it.** The session cookie is `Secure` + `__Host-`, and a browser only
+  keeps it over HTTPS. A plain-HTTP address cannot log anyone in, so the container is
+  published on `127.0.0.1` only and reached through the HTTPS proxy. **Players use
+  `https://exalted.x6568tank.com`**, even on the LAN.
+* **One secret**, `EXALTED_STORAGE_SECRET`, in the Compose `.env`. ⚠ Keep it: a new key
+  logs every player out.
+* **One data folder**, mounted at `/data`: accounts, characters, homebrew, NiceGUI storage.
+* **One process.** `reload=False`; the registry holds live objects (`server/main.py`).
 
-* Ubuntu 24.04, 8 cores, 15 GB RAM, 408 GB free on `/`.
-* **Every app is a container in one Compose file**, `/home/gil/homelab/docker-compose.yml`,
-  one folder per app bind-mounted as `./<app>/…`, `restart: unless-stopped`,
-  `container_name` set. Watchtower (`nickfedor/watchtower`) auto-updates images.
-* **HTTPS is a Cloudflare Tunnel**: `cloudflared` runs as a root systemd service from
-  `/etc/cloudflared/config.yml`, which maps each `*.x6568tank.com` hostname to a
-  `localhost` port and ends in an `http_status:404` catch-all. Nothing listens on 80/443.
-  ⚠ This is what makes login work: the session cookie is `Secure` + `__Host-`, and the
-  browser only keeps it over HTTPS. **Players use `https://exalted.x6568tank.com`, never
-  `http://192.168.1.2:…`**, even on the LAN.
-* Ports in use: 8080 (Filebrowser), 8082, 8083, 8096, 3001, 6233, 6234. **8090 is free.**
-* `backup.sh` tars all of `/home/gil/homelab/` daily into `/storage/backups/<date>/`
-  (30 days kept), so `./exalted/data` and the `.env` are backed up with no new tar line.
-  `/storage` is a separate **~12 TB ZFS RAIDZ2 pool** (the human, 2026-09-12); the source
-  data sits on the NVMe root disk. So an NVMe failure loses at most a day. What it does not
-  cover is loss of the whole machine or pool (fire, theft, ransomware, a root `rm -rf`) —
-  an off-site copy is the human's call, not a deploy step.
-
-## One-time setup
-
-### 1. The code (claude)
-
-The code goes to `/home/claude/exalted-app` by `rsync` from the dev machine — no GitHub
-key on the server. The build runs as root through Docker, so the folder must be readable
-to other accounts:
-
-```bash
-# from the dev machine, in the repo — ship the COMMIT, not the working tree:
-E=$(mktemp -d) && git archive HEAD | tar -x -C "$E" && git rev-parse --short HEAD > "$E/DEPLOYED_COMMIT"
-rsync -a --delete --delete-excluded --exclude-from=.dockerignore "$E/" claude@192.168.1.2:exalted-app/
-rm -rf "$E"
-# on the server, as claude (the chmod 711 once; the a+rX after every sync):
-chmod 711 /home/claude && chmod -R a+rX /home/claude/exalted-app
-```
-
-`cat /home/claude/exalted-app/DEPLOYED_COMMIT` says which commit the server builds.
-
-### 2. The data folder and the secret (gil)
-
-```bash
-mkdir -p ~/homelab/exalted/data
-# The key that signs the session cookie. ⚠ Keep it: a new key logs every player out.
-echo "EXALTED_STORAGE_SECRET=$(openssl rand -hex 32)" >> ~/homelab/.env
-chmod 600 ~/homelab/.env
-```
-
-### 3. The Compose entry (gil)
-
-Add under `services:` in `~/homelab/docker-compose.yml`:
+The Compose entry:
 
 ```yaml
   exalted:
-    build: /home/claude/exalted-app
+    build: <the synced code folder>
     image: exalted-builder:local
     container_name: exalted
     restart: unless-stopped
     mem_limit: 2g                      # see "The memory limit" below
     ports:
-      - "127.0.0.1:8090:8080"          # only cloudflared on this host can reach it
+      - "127.0.0.1:8090:8080"
     environment:
       EXALTED_STORAGE_SECRET: ${EXALTED_STORAGE_SECRET}
       EXALTED_SESSION_ROOT: /data/sessions
       EXALTED_DB_PATH: /data/accounts/exalted.db
       EXALTED_ADMIN_CONTACT: admin@x6568tank.com
     volumes:
-      - ./exalted/data:/data           # accounts, characters, homebrew, NiceGUI storage
+      - ./exalted/data:/data
     labels:
-      - com.centurylinklabs.watchtower.enable=false   # built here; nothing to pull
+      - com.centurylinklabs.watchtower.enable=false   # built locally; nothing to pull
 ```
 
-Then:
+### The memory limit
 
-```bash
-cd ~/homelab && docker compose up -d --build exalted
-curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8090/     # expect: 200
-```
+⚠ **NOT YET APPLIED** (checked 2026-09-24: the live Compose entry has no `mem_limit`).
+It is the human's Compose edit; `docker compose up -d exalted` then recreates the
+container with it.
 
-⚠ The port is published on `127.0.0.1` only, unlike the other services. That is on
-purpose: the plain-HTTP LAN address cannot log anyone in, so it should not be reachable.
-
-#### The memory limit
-
-**NOT YET APPLIED** (2026-09-18) — the running server predates the `mem_limit: 2g` line
-above, and the human had no access when it was written. Apply it at the next deploy;
-`docker compose up -d exalted` recreates the container and picks it up.
-
-It protects the *other* homelab apps from this one, not this one from its users. Without a
-limit, a container that leaks or spikes takes memory from Filebrowser, Jellyfin and the
-rest of the Compose file, and the kernel's OOM killer picks the victim — which need not be
-`exalted`. With the limit, only `exalted` dies, and `restart: unless-stopped` brings it
-back.
-
-2 GB is well above what it needs. `SessionRegistry` caps at 200 live contexts with LRU
-eviction (`server/session.py`), so the usage is bounded by design, not by hope. Raise the
-limit if `docker stats exalted` shows it near the ceiling in normal play.
-
-### 4. The tunnel (gil, sudo)
-
-In `/etc/cloudflared/config.yml`, add **above** the final `- service: http_status:404`:
-
-```yaml
-  - hostname: exalted.x6568tank.com
-    service: http://localhost:8090
-```
-
-Then the DNS record, and a restart:
-
-```bash
-sudo cloudflared tunnel route dns <tunnel-name-or-id> exalted.x6568tank.com
-sudo systemctl restart cloudflared
-```
-
-If `route dns` complains about a missing `cert.pem`, add the record in the Cloudflare
-dashboard instead: a proxied `CNAME` `exalted` → `<tunnel-id>.cfargotunnel.com`. (The
-tunnel id is the name of the `.json` file in `/etc/cloudflared/`.)
-
-### 5. Check it
-
-* `https://exalted.x6568tank.com/` shows the front page; `/wiki` works logged out.
-* Sign up → lands on the builder at `/home`. Log out → back on `/`.
-* In the browser's dev tools, the cookie `__Host-exalted-session` is `Secure`.
-
-### 6. The backup snapshot (gil) — recommended
-
-`tar` copies the account database while the app may be writing it. Add this line to
-`backup.sh` **before** the first `tar`, so the archive holds a consistent copy too:
-
-```bash
-docker exec exalted python -c "import sqlite3; s=sqlite3.connect('/data/accounts/exalted.db'); d=sqlite3.connect('/data/accounts/exalted.snapshot.db'); s.backup(d); d.close(); s.close()"
-```
-
-To restore, stop the container and copy `exalted.snapshot.db` over `exalted.db`.
+It protects the *other* apps on the host from this one. Without a limit, a container that
+leaks or spikes takes memory from the rest, and the kernel's OOM killer picks the victim,
+which need not be `exalted`. With it, only `exalted` dies, and `restart: unless-stopped`
+brings it back. 2 GB is well above the need: `SessionRegistry` caps at 200 live contexts
+with LRU eviction (`server/session.py`). Raise it if `docker stats exalted` shows it near
+the ceiling in normal play.
 
 ## Updating to a new build
 
-1. (claude) Commit, then sync as in step 1.
-2. (gil) `cd ~/homelab && docker compose up -d --build exalted`, or `claude` by the
-   rebuild set up 2026-09-24 (not described here, see the ⚠ at the top). First used for
-   `c7153ec`, 2026-09-24.
+1. Commit. Ship the COMMIT, not the working tree:
 
-A restart drops the live sessions; hosted saves are written through, so a player loses
-at most the edit in flight, and logs in again only if the secret changed.
+   ```bash
+   E=$(mktemp -d) && git archive HEAD | tar -x -C "$E" && git rev-parse --short HEAD > "$E/DEPLOYED_COMMIT"
+   # then rsync "$E/" to the server's code folder, with --delete --exclude-from=.dockerignore
+   rm -rf "$E"
+   ```
+
+   The host, the account, the folder and the permissions step are in the dev machine's
+   notes, not here. `DEPLOYED_COMMIT` in the code folder says which commit the server builds.
+2. Rebuild: `docker compose up -d --build exalted`, by the human or by the route the human
+   set up for Claude (2026-09-24; not described here).
+3. Check from outside: `/`, `/wiki` and `/login` answer 200; `/home` sends a visitor to the
+   login page; the container log says NiceGUI is ready.
+
+A restart drops the live sessions. Hosted saves are written through, so a player loses at
+most the edit in flight, and logs in again only if the secret changed.
 
 ## Running it
 
-* **`claude` logs in by key only**: `ssh -i ~/.ssh/id_ed25519_gilserver_claude claude@192.168.1.2`
-  from a dev machine; each dev machine has its own key under that name (the laptop's was
-  added 2026-09-24, reached over Tailscale as `claude@gilserver`). Its password is locked
-  (`passwd -l`, the human, 2026-09-12). It can read `/home/gil/homelab` (a read-only ACL)
-  and nothing else of `gil`'s; it has no `docker` group and no general `sudo`, so Compose,
-  the tunnel and every other container stay the human's.
-* **Reset a password** (the reset is manual by design — `hosting-state-model.md` §5.1d):
+* **Reset a password** (manual by design, `hosting-state-model.md` §5.1d):
   `docker exec -it exalted python -m exalted_builder.server.users reset <username>`
   (and `… users list`). It asks for the new password on the terminal.
 * **Logs:** `docker logs -f exalted`.
-* **Uptime Kuma** (port 3001): an HTTP monitor on `https://exalted.x6568tank.com/` covers
-  the tunnel and the app together.
+* **Backups:** the host's backup makes a consistent copy of the account database first,
+  with the SQLite backup API, as `/data/accounts/exalted.snapshot.db`. To restore, stop the
+  container and copy `exalted.snapshot.db` over `exalted.db`.
+* **Monitoring:** an Uptime Kuma HTTP monitor on `https://exalted.x6568tank.com/` covers
+  the proxy and the app together.
 
 ## Before it is public
 
-* The About prose is **Lorem Ipsum by the human's choice** (*"feel free to change it to Lorem Ipsum for now"*, 2026-09-12) (`exalted_builder/server/public.py`).
+* The About prose is **Lorem Ipsum by the human's choice** (*"feel free to change it to
+  Lorem Ipsum for now"*, 2026-09-12) (`exalted_builder/server/public.py`).
 * ✅ A real browser signup worked through the tunnel (the human, 2026-09-12).
 * The known limits of the login gate are in `docs/plans/hosting-state-model.md` §5.1d
   (a reset does not end existing logins; signup is not rate-limited; no account delete;
