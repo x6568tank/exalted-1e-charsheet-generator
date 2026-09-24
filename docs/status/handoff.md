@@ -37,10 +37,11 @@ Not explained; watch for it.
 **Working tree:** clean after this session's one commit (the login name, the step-7
 follow-ups and these docs, on top of the merge `7869480`), pushed. Check `git status`.
 
-**Deployed:** NOT. The live site still runs `58eb41a` (steps 2–7, the login restyle, the
-site menu). The wiki sections, the login name and this session's step-7 follow-ups need a
-rsync to `gilserver:exalted-app` and the human's rebuild
-(`cd ~/homelab && docker compose up -d --build exalted`; `claude` has no docker).
+**Deployed (2026-09-24):** `c7153ec` is LIVE on `https://exalted.x6568tank.com` (checked
+from outside: `/`, `/wiki`, `/login` 200, `/home` → login; the log says NiceGUI ready). The
+laptop now has its own deploy key, and `claude` can run the rebuild itself; see
+`docs/deploy/homeserver.md`. ⚠ **The repo is PUBLIC**: that doc must never gain access
+rules or secrets (the human, 2026-09-24).
 
 🖱 **Owed:** nothing from P3. The click-through server ran from `/tmp/exalted-click8/`
 (accounts `storyteller`, `alice`, `bob`, `watcher`, password `clickthrough`).

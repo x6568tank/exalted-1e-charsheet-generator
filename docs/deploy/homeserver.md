@@ -7,7 +7,12 @@ commit `7cd594f`. Checked from outside through Cloudflare: the public pages and 
 `__Host-exalted-session; path=/; httponly; samesite=lax; secure`. The first `curl -I` gave
 405 (FastAPI adds no HEAD to a GET route) — fixed in `7cd594f`. Step 6 (the backup
 snapshot) is the human's to add; `claude` cannot write `backup.sh`. Steps marked **(gil)** need the `docker` or `sudo` group;
-`claude` has neither, on purpose.
+`claude` has neither, on purpose. The one exception is the rebuild (2026-09-24), which the
+human set up for `claude`; how it works is kept OUT of this repo.
+
+⚠ **The repository is PUBLIC** (checked 2026-09-24), so this file is published. It holds no
+credential and must never hold one. Keep out of it: secrets, keys, sudoers rules, and any
+other access rule for the server. Record those on the dev machine, outside the repo.
 
 ⚠ One line of step 3 is now AHEAD of the running server: `mem_limit: 2g`, added 2026-09-18.
 See "The memory limit". Everything else in steps 2–4 is what the server runs.
@@ -37,8 +42,8 @@ See "The memory limit". Everything else in steps 2–4 is what the server runs.
 ### 1. The code (claude)
 
 The code goes to `/home/claude/exalted-app` by `rsync` from the dev machine — no GitHub
-key on the server (the repo is private). `gil` runs the build, so the folder must be
-readable to `gil`:
+key on the server. The build runs as root through Docker, so the folder must be readable
+to other accounts:
 
 ```bash
 # from the dev machine, in the repo — ship the COMMIT, not the working tree:
@@ -150,7 +155,9 @@ To restore, stop the container and copy `exalted.snapshot.db` over `exalted.db`.
 ## Updating to a new build
 
 1. (claude) Commit, then sync as in step 1.
-2. (gil) `cd ~/homelab && docker compose up -d --build exalted`
+2. (gil) `cd ~/homelab && docker compose up -d --build exalted`, or `claude` by the
+   rebuild set up 2026-09-24 (not described here, see the ⚠ at the top). First used for
+   `c7153ec`, 2026-09-24.
 
 A restart drops the live sessions; hosted saves are written through, so a player loses
 at most the edit in flight, and logs in again only if the secret changed.
@@ -158,9 +165,11 @@ at most the edit in flight, and logs in again only if the secret changed.
 ## Running it
 
 * **`claude` logs in by key only**: `ssh -i ~/.ssh/id_ed25519_gilserver_claude claude@192.168.1.2`
-  from the dev machine. Its password is locked (`passwd -l`, the human, 2026-09-12). It
-  can read `/home/gil/homelab` (a read-only ACL) and nothing else of `gil`'s; it has no
-  `docker` or `sudo`, so builds, Compose and the tunnel stay the human's.
+  from a dev machine; each dev machine has its own key under that name (the laptop's was
+  added 2026-09-24, reached over Tailscale as `claude@gilserver`). Its password is locked
+  (`passwd -l`, the human, 2026-09-12). It can read `/home/gil/homelab` (a read-only ACL)
+  and nothing else of `gil`'s; it has no `docker` group and no general `sudo`, so Compose,
+  the tunnel and every other container stay the human's.
 * **Reset a password** (the reset is manual by design — `hosting-state-model.md` §5.1d):
   `docker exec -it exalted python -m exalted_builder.server.users reset <username>`
   (and `… users list`). It asks for the new password on the terminal.
