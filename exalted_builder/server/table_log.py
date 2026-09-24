@@ -8,6 +8,7 @@ section 15.3 (rulings R5, 2026-09-22):
   * Each member can post, the Storyteller too. A member who spectates is a member.
   * A roll is a dice COUNT. If the text box holds text, the text is the caption of
     the roll. The app never names a roll (decision 0019).
+  * The initiative roll of the table (step 9) is one entry with its turn order.
   * The file keeps the newest `MAX_ENTRIES` entries. A text has `MAX_TEXT`
     characters at most.
 
@@ -67,10 +68,34 @@ class LogRoll:
 
 
 @dataclass(frozen=True)
+class InitiativeLine:
+    """One combatant of an initiative roll, in the turn order.
+
+    `name` is for each member. `st_name` is for the Storyteller only, and is empty
+    when it is the same as `name`. `group` is "party", "ally" or "enemy".
+
+    ⚠ An enemy NPC has the `name` "Enemy" (the step-8 Log rule). Its real name is in
+    `st_name`. The page draws `st_name` for the Storyteller only.
+    """
+
+    name: str
+    group: str
+    rating: int
+    d10: int
+    tied: bool = False
+    st_name: str = ""
+
+    @property
+    def total(self) -> int:
+        return self.rating + self.d10
+
+
+@dataclass(frozen=True)
 class LogEntry:
     """One entry of the Log. `roll` is None for a message. `at` is epoch seconds.
 
-    For a roll, `text` is the caption, and it can be empty.
+    For a roll, `text` is the caption, and it can be empty. `initiative` is the turn
+    order of an initiative roll of the table, else None.
     """
 
     id: int
@@ -78,16 +103,23 @@ class LogEntry:
     at: float
     text: str
     roll: LogRoll | None = None
+    initiative: tuple[InitiativeLine, ...] | None = None
 
 
 def _entry_from(data: dict) -> LogEntry:
     roll = data.get("roll")
+    lines = data.get("initiative")
     return LogEntry(
         id=int(data["id"]), user_id=int(data["user_id"]), at=float(data["at"]),
         text=str(data.get("text") or ""),
         roll=None if roll is None else LogRoll(
             count=int(roll["count"]), faces=tuple(int(f) for f in roll["faces"]),
-            successes=int(roll["successes"]), botch=bool(roll["botch"])))
+            successes=int(roll["successes"]), botch=bool(roll["botch"])),
+        initiative=None if lines is None else tuple(
+            InitiativeLine(name=str(ln["name"]), group=str(ln["group"]),
+                           rating=int(ln["rating"]), d10=int(ln["d10"]),
+                           tied=bool(ln.get("tied")), st_name=str(ln.get("st_name") or ""))
+            for ln in lines))
 
 
 class TableLog:
@@ -160,12 +192,25 @@ class TableLog:
             count=count, faces=result.faces, successes=result.successes,
             botch=result.botch))
 
+    def post_initiative(self, user_id: int, table_id: str,
+                        lines: list[InitiativeLine]) -> LogEntry:
+        """Add the turn order `lines` of an initiative roll. Return the entry.
+
+        Refuse a viewer who is not a member, and no lines. ⚠ The caller rolls with
+        `engine.dice.roll` and asks that `user_id` is the Storyteller.
+        """
+        self._require_member(user_id, table_id)
+        if not lines:
+            raise TableLogError("Tick at least one character that can roll.")
+        return self._append(table_id, user_id, "", None, tuple(lines))
+
     def _require_member(self, user_id: int, table_id: str) -> None:
         if self.tables.access(user_id, table_id) is None:
             raise TableLogError("You are not in this campaign.")
 
     def _append(self, table_id: str, user_id: int, text: str,
-                roll: LogRoll | None) -> LogEntry:
+                roll: LogRoll | None,
+                initiative: tuple[InitiativeLine, ...] | None = None) -> LogEntry:
         """Add one entry, and keep the newest `MAX_ENTRIES`. The id of the entry is
         one more than the id of the newest entry.
 
@@ -173,7 +218,7 @@ class TableLog:
         """
         entries = self.entries(table_id)
         entry = LogEntry(id=(entries[-1].id + 1) if entries else 1, user_id=user_id,
-                         at=time.time(), text=text, roll=roll)
+                         at=time.time(), text=text, roll=roll, initiative=initiative)
         entries = (entries + [entry])[-MAX_ENTRIES:]
         atomic_write(self.path(table_id),
                      json.dumps([asdict(e) for e in entries], ensure_ascii=False))

@@ -199,3 +199,60 @@ def test_jade_does_add_its_speed_for_a_dragon_blooded(app_ruleset):
     db.attributes[AttributeName.WITS] = 2
     weapon = Weapon(name="Jade Daiklave", speed=3, material="jade")
     assert initiative.initiative(app_ruleset, db, weapon=weapon).total == 12
+
+
+# --- the turn order of a table (P3 step 9) --------------------------------
+#
+# Human, 2026-09-24: ties break on the higher Dexterity + Wits (p.227) when each
+# tied entry has it; a tie that remains is marked "tied" and the table rolls off.
+
+def _roll(key, rating, d10, dex_wits=None):
+    return initiative.TurnRoll(key=key, rating=rating, d10=d10, dex_wits=dex_wits)
+
+
+def test_the_total_is_the_rating_plus_the_d10():
+    assert _roll("a", 6, 7).total == 13
+    assert _roll("a", -2, 1).total == -1
+
+
+def test_the_order_is_the_highest_total_first():
+    placed = initiative.turn_order([_roll("a", 5, 2), _roll("b", 4, 9), _roll("c", 6, 5)])
+    assert [p.roll.key for p in placed] == ["b", "c", "a"]
+    assert not any(p.tied for p in placed)
+
+
+def test_a_tie_breaks_on_the_higher_dexterity_plus_wits():
+    placed = initiative.turn_order([_roll("a", 5, 5, dex_wits=5),
+                                    _roll("b", 7, 3, dex_wits=7)])
+    assert [p.roll.key for p in placed] == ["b", "a"]
+    assert not any(p.tied for p in placed)
+
+
+def test_a_tie_on_dexterity_plus_wits_too_is_marked_tied():
+    placed = initiative.turn_order([_roll("a", 5, 5, dex_wits=5),
+                                    _roll("b", 5, 5, dex_wits=5),
+                                    _roll("c", 9, 5, dex_wits=9)])
+    assert [p.roll.key for p in placed] == ["c", "a", "b"]
+    assert [p.tied for p in placed] == [False, True, True]
+
+
+def test_a_tie_with_an_entry_that_has_no_dexterity_plus_wits_stays_tied():
+    """A roster entry that does not print both Attributes cannot lose the
+    tie-break by default. The whole tie stays for the table."""
+    placed = initiative.turn_order([_roll("a", 5, 5, dex_wits=9),
+                                    _roll("b", 5, 5, dex_wits=None),
+                                    _roll("c", 4, 6, dex_wits=2)])
+    assert [p.roll.key for p in placed] == ["a", "b", "c"]
+    assert all(p.tied for p in placed)
+
+
+def test_only_the_equal_dexterity_plus_wits_stay_tied_inside_a_tie():
+    placed = initiative.turn_order([_roll("a", 5, 5, dex_wits=5),
+                                    _roll("b", 8, 2, dex_wits=8),
+                                    _roll("c", 5, 5, dex_wits=5)])
+    assert [p.roll.key for p in placed] == ["b", "a", "c"]
+    assert [p.tied for p in placed] == [False, True, True]
+
+
+def test_dexterity_plus_wits_of_a_character():
+    assert initiative.dex_wits(_char(dex=4, wits=2)) == 6

@@ -67,6 +67,11 @@ def set_fatigue(character: Character, value) -> None:
     play_state(character).fatigue = max(0, int(value or 0))
 
 
+def set_in_hand(character: Character, name: str | None) -> None:
+    """Set the name of the weapon in hand. None or "" is unarmed."""
+    play_state(character).in_hand = name or ""
+
+
 def set_count(character: Character, field: str, clicked: int, cap: int) -> None:
     """Dot-track click: clicking the top filled box clears it, else fill up to it."""
     cur = getattr(play_state(character), field)

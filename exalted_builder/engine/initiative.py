@@ -137,3 +137,67 @@ def initiative(ruleset: RuleSet, character: Character, *,
 
     return InitiativeRating(lines=tuple(lines),
                             total=sum(ln.value for ln in lines))
+
+
+# --------------------------------------------------------------------------- #
+# The turn order of a table (p.227)
+#
+# ⚠ Nothing here rolls. The caller rolls the one d10 and gives the face. The d10
+# count is printed and fixed: do not make it a parameter.
+# --------------------------------------------------------------------------- #
+
+
+def dex_wits(character: Character) -> int:
+    """In: a character. Out: Dexterity + Wits, the first tie-break (p.227)."""
+    return (character.attributes[AttributeName.DEXTERITY]
+            + character.attributes[AttributeName.WITS])
+
+
+@dataclass(frozen=True)
+class TurnRoll:
+    """One entry of one turn: the rating, the face of its d10, and Dexterity + Wits.
+    `dex_wits` is None for an entry that does not have both Attributes."""
+    key: str
+    rating: int
+    d10: int
+    dex_wits: Optional[int] = None
+
+    @property
+    def total(self) -> int:
+        return self.rating + self.d10
+
+
+@dataclass(frozen=True)
+class Placed:
+    """One entry in the turn order. `tied` is True when the tie-break did not
+    separate it from its neighbour: the table rolls off (p.227)."""
+    roll: TurnRoll
+    tied: bool = False
+
+
+def turn_order(rolls: list[TurnRoll]) -> list[Placed]:
+    """In: the rolls of one turn. Out: the rolls, the highest total first.
+
+    Entries with the same total go in the order of the higher Dexterity + Wits,
+    if each of them has it. Entries that stay equal are `tied`. A tie with an
+    entry that has no Dexterity + Wits stays whole: each entry of it is `tied`.
+    Tied entries keep the order of `rolls`.
+    """
+    groups: dict[int, list[TurnRoll]] = {}
+    for r in rolls:
+        groups.setdefault(r.total, []).append(r)
+    placed: list[Placed] = []
+    for total in sorted(groups, reverse=True):
+        group = groups[total]
+        if len(group) == 1:
+            placed.append(Placed(group[0]))
+        elif any(r.dex_wits is None for r in group):
+            placed += [Placed(r, tied=True) for r in group]
+        else:
+            by_dw: dict[int, list[TurnRoll]] = {}
+            for r in group:
+                by_dw.setdefault(r.dex_wits, []).append(r)
+            for dw in sorted(by_dw, reverse=True):
+                same = by_dw[dw]
+                placed += [Placed(r, tied=len(same) > 1) for r in same]
+    return placed

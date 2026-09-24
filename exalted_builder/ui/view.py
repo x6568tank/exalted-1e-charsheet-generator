@@ -3686,6 +3686,18 @@ class InitiativeView:
     tie_break: str = ""
 
 
+def wielded_index(character: Character) -> Optional[int]:
+    """In: a character. Out: the index of the first weapon whose name is
+    `PlayState.in_hand`, or None for unarmed and for a name that no weapon has."""
+    name = character.play.in_hand if character.play is not None else ""
+    if not name:
+        return None
+    for i, weapon in enumerate(character.weapons):
+        if weapon.name == name:
+            return i
+    return None
+
+
 def build_initiative(ruleset: RuleSet, character: Character, *,
                      weapon_index: Optional[int] = None) -> InitiativeView:
     """The initiative rating for the weapon at `weapon_index` (None = unarmed).

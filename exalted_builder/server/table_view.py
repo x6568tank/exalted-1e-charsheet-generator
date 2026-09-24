@@ -24,6 +24,9 @@ section 15.2 (shape A of `spikes/campaign_page/`):
     Storyteller sees the full card of each entry and each NPC, with the Enemy / Ally
     switch. A player sees each ally as a name and a health track, and no enemy.
     The Notes tab holds the private notes of the viewer (Q8, Q9).
+  * Initiative is step 9 (sections 9 and 15.4): the ST tab rolls it for the ticked
+    combatants (`server/table_initiative.py`), and the turn order goes to the Log.
+    YOU PLAY sets the weapon in hand that the rating reads.
 
 ⚠ The page of a player is built from `view.AllyView` for each ally, and gets
 nothing of an enemy. An element that is hidden with CSS still goes to the browser.
@@ -70,7 +73,8 @@ from .rulesets import Rulesets
 from .session import SessionRegistry
 from .table_custom import custom_url, register_table_custom
 from .table_homebrew import TableHomebrew, TableHomebrewError
-from .table_log import MAX_TEXT, LogEntry, TableLog, TableLogError
+from .table_initiative import PARTY, TableInitiative
+from .table_log import MAX_TEXT, InitiativeLine, LogEntry, TableLog, TableLogError
 from .table_notes import MAX_NOTES, TableNotes, TableNotesError
 from .table_roster import TableRoster
 from .table_st import MAX_GRANT, MAX_NOTE, Award, TableStoryteller
@@ -120,6 +124,7 @@ def register_table_page(tables: TableStore, store: CharacterStore, rulesets: Rul
     # ⚠ ONE roster store for the process: it holds the live roster of each table.
     roster = TableRoster(tables)
     notes = TableNotes(tables)
+    initiative = TableInitiative(tables, store, rulesets, sessions, roster, log)
     register_table_custom(tables, store, rulesets, homebrew, current_user_id)
 
     @ui.page(TABLE_PATH + "/{table_id}")
@@ -132,7 +137,7 @@ def register_table_page(tables: TableStore, store: CharacterStore, rulesets: Rul
             chrome.table_not_found()
             return
         _TableView(tables, store, rulesets, sessions, log, storyteller, homebrew,
-                   user_id, table, roster=roster, notes=notes,
+                   user_id, table, roster=roster, notes=notes, initiative=initiative,
                    catalog=catalog or {}).build()
 
 
@@ -166,8 +171,9 @@ class _TableView:
                  sessions: SessionRegistry, log: TableLog,
                  storyteller: TableStoryteller, homebrew: TableHomebrew, user_id: int,
                  table: TableRow, *, roster: TableRoster, notes: TableNotes,
-                 catalog: dict[str, Adversary]) -> None:
+                 initiative: TableInitiative, catalog: dict[str, Adversary]) -> None:
         self.tables = tables
+        self.initiative = initiative
         self.roster = roster
         self.notes = notes
         self.catalog = catalog
@@ -190,6 +196,8 @@ class _TableView:
         self._log_version = None
         # The keys of the compact cards that show their stats: "adv:<id>", "npc:<id>".
         self._expanded: set[str] = set()
+        # The combatants that the Storyteller unticked at the last initiative roll.
+        self._init_skip: set[str] = set()
 
     # ---- reads -------------------------------------------------------------- #
 
@@ -795,6 +803,9 @@ class _TableView:
                                lambda i: act(lambda c: engineplay.set_count(
                                    c, "limit", i + 1, lim_max)))
 
+                    _in_hand(shown.ruleset, character, prefix,
+                             lambda value: act(lambda c: engineplay.set_in_hand(c, value)))
+
                     # Accumulated armour fatigue (p.332). A counter with no maximum.
                     # It shows for a character with armour, or with points left.
                     if character.armor or cur.fatigue:
@@ -923,7 +934,8 @@ class _TableView:
                     names[entry.user_id] = _username(self.tables, entry.user_id)
                 _log_entry(entry, names[entry.user_id], self.pal,
                            mine=entry.user_id == self.user_id,
-                           storyteller=entry.user_id == self.table.storyteller_id)
+                           storyteller=entry.user_id == self.table.storyteller_id,
+                           viewer_is_st=self.is_st)
         self.log_area.scroll_to(percent=1.0)
 
     def _log_write(self, write: Callable[[], LogEntry]) -> None:
@@ -984,6 +996,13 @@ class _TableView:
         copies = self.copies()
         self.st_panel.clear()
         with self.st_panel:
+            with ui.column().classes("w-full gap-1").mark("st-initiative"):
+                _heading(pal, "INITIATIVE")
+                ui.button("Roll initiative", icon="bolt",
+                          on_click=self._open_initiative).props(
+                    f"dense no-caps color={pal.button}").mark("st-roll-initiative")
+                ui.label("Each ticked character rolls 1d10 + its rating (p.227). The "
+                         "turn order goes to the Log.").classes("text-xs opacity-70")
             with ui.column().classes("w-full gap-0").mark("table-code"):
                 _heading(pal, "JOIN CODE")
                 with ui.row().classes("w-full items-center justify-between no-wrap"):
@@ -1026,6 +1045,65 @@ class _TableView:
         else:
             ui.notify("Approved.", type="positive")
         self.refresh_all()
+
+    # ---- initiative --------------------------------------------------------- #
+
+    def _open_initiative(self) -> None:
+        """A dialog: a checkbox for each combatant, ticked unless the Storyteller
+        unticked it at the last roll. A roster entry with no Base initiative has no
+        checkbox that can tick."""
+        if not self._still_storyteller():
+            return
+        try:
+            combatants = self.initiative.combatants(self.user_id, self.table.id)
+        except TableStoreError as exc:
+            ui.notify(str(exc), type="warning")
+            return
+        pal = self.pal
+        ticks: dict[str, ui.checkbox] = {}
+        # ⚠ A closed dialog stays in its element. One dialog at a time.
+        self.dialog_host.clear()
+        with self.dialog_host, ui.dialog() as dialog, ui.card().classes(
+                f"w-[26rem] max-w-full p-4 gap-1 {pal.card_solid}").mark("init-dialog"):
+            ui.label("Roll initiative").classes("text-base font-bold")
+            ui.label("Untick each character that is not in this fight.").classes("text-xs")
+            if not combatants:
+                ui.label("No characters and no roster entries yet.").classes(
+                    "text-sm opacity-70")
+            for group, title in ((PARTY, "PARTY"), (ALLY, "ALLIES"), (ENEMY, "ENEMIES")):
+                members = [c for c in combatants if c.group == group]
+                if members:
+                    _heading(pal, title)
+                for c in members:
+                    marker = "init-tick-" + c.key.replace(":", "-")
+                    if c.rating is None:
+                        ui.checkbox(f"{c.name} · no Base initiative", value=False).props(
+                            "dense disable").classes("text-sm opacity-60").mark(marker)
+                        continue
+                    label = f"{c.name} · {c.rating}" + (f" ({c.weapon})" if c.weapon else "")
+                    ticks[c.key] = ui.checkbox(
+                        label, value=c.key not in self._init_skip).props(
+                        f"dense color={pal.button}").classes("text-sm").mark(marker)
+            with ui.row().classes("w-full justify-end gap-1 pt-2"):
+                ui.button("Cancel", on_click=dialog.close).props("flat no-caps")
+                ui.button("Roll", icon="casino",
+                          on_click=lambda: self._roll_initiative(dialog, ticks)).props(
+                    f"dense no-caps color={pal.button}").mark("init-roll")
+        dialog.open()
+
+    def _roll_initiative(self, dialog, ticks: dict[str, ui.checkbox]) -> None:
+        if not self._still_storyteller():
+            return
+        keys = [key for key, box in ticks.items() if box.value]
+        self._init_skip = {key for key, box in ticks.items() if not box.value}
+        try:
+            self.initiative.roll(self.user_id, self.table.id, keys)
+        except (TableStoreError, TableLogError, QuotaExceeded) as exc:
+            ui.notify(str(exc), type="warning")
+            return
+        dialog.close()
+        self.tabs.set_value("log")
+        self._draw_log()
 
     # ---- homebrew requests -------------------------------------------------- #
 
@@ -1549,8 +1627,11 @@ def _mote_bar(label: str, key: str, spent: int, cap: int, pal,
             f"{key}-plus").tooltip("Regain 1")
 
 
-def _log_entry(entry: LogEntry, name: str, pal, *, mine: bool, storyteller: bool) -> None:
-    """One entry of the Log: the name, the time, the text, and the dice of a roll.
+def _log_entry(entry: LogEntry, name: str, pal, *, mine: bool, storyteller: bool,
+               viewer_is_st: bool = False) -> None:
+    """One entry of the Log: the name, the time, the text, the dice of a roll, and
+    the turn order of an initiative roll. `viewer_is_st` is True on the page of the
+    Storyteller of the table.
 
     ⚠ `ui.label` only. A member types the text.
     """
@@ -1579,6 +1660,63 @@ def _log_entry(entry: LogEntry, name: str, pal, *, mine: bool, storyteller: bool
             ui.label(" ".join(str(f) for f in sorted(entry.roll.faces, reverse=True))
                      ).classes("text-xs font-mono opacity-60 break-words").mark(
                 f"log-faces-{entry.id}")
+        if entry.initiative is not None:
+            _initiative_lines(entry.id, entry.initiative, pal, viewer_is_st=viewer_is_st)
+
+
+def _initiative_lines(entry_id: int, lines: tuple[InitiativeLine, ...], pal, *,
+                      viewer_is_st: bool) -> None:
+    """The turn order of an initiative roll: the total and the name of each
+    combatant, the highest first.
+
+    ⚠ The page of a player never gets `st_name`, and gets the rating and the d10 of
+    the party only: the stats of an ally or an enemy are for the Storyteller (R4, R7).
+    """
+    with ui.row().classes("items-center gap-1 no-wrap"):
+        ui.icon("bolt", size="1rem").style(f"color:{pal.accent}")
+        ui.label("Initiative").classes("text-sm font-bold").mark(
+            f"log-initiative-{entry_id}")
+    for i, ln in enumerate(lines):
+        shown = ln.st_name if viewer_is_st and ln.st_name else ln.name
+        with ui.row().classes("w-full items-baseline gap-2 no-wrap min-w-0").mark(
+                f"log-init-{entry_id}-{i}"):
+            ui.label(str(ln.total)).classes(
+                "text-sm font-bold font-mono w-7 text-right shrink-0")
+            ui.label(shown).classes("text-sm truncate min-w-0").mark(
+                f"log-init-name-{entry_id}-{i}")
+            if viewer_is_st and ln.st_name:
+                ui.label(f"({ln.name} to players)").classes("text-xs opacity-50 shrink-0")
+            ui.space()
+            if ln.tied:
+                ui.label("tied").classes("text-xs font-bold shrink-0").style(
+                    f"color:{pal.accent}").mark(f"log-init-tied-{entry_id}-{i}")
+            if viewer_is_st or ln.group == PARTY:
+                ui.label(f"{ln.rating} + {ln.d10}").classes(
+                    "text-xs font-mono opacity-50 shrink-0")
+    if any(ln.tied for ln in lines):
+        ui.label("A tie that Dexterity + Wits does not break: roll off (p.227).").classes(
+            "text-xs opacity-60")
+
+
+def _in_hand(ruleset: RuleSet, character: Character, prefix: str,
+             on_change: Callable[[str], None]) -> None:
+    """The weapon in hand (`PlayState.in_hand`) and the initiative rating that it
+    gives. The initiative roll of the table reads the same field.
+
+    ⚠ A rating, not a pool (decision 0019). Nothing here rolls.
+    """
+    options = {"": "Unarmed"} | {w.name: w.name for w in character.weapons if w.name}
+    index = viewmod.wielded_index(character)
+    iv = viewmod.build_initiative(ruleset, character, weapon_index=index)
+    value = character.weapons[index].name if index is not None else ""
+    with ui.row().classes("w-full items-center no-wrap gap-2"):
+        ui.select(options, value=value, label="In hand",
+                  on_change=lambda e: on_change(e.value or "")).props(
+            "dense outlined options-dense").classes("flex-1 min-w-0").mark(
+            f"{prefix}-in-hand")
+        ui.label(f"Init {iv.total}").classes("text-xs font-bold shrink-0").mark(
+            f"{prefix}-init").tooltip(f"{iv.compact}. A rating: the table adds 1d10 "
+                                      "each turn.")
 
 
 def _award_row(award: Award) -> None:

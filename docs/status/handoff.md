@@ -1,53 +1,45 @@
-# Session handoff — 2026-09-24 (P3 step 8 clicked: the roster, the NPC sides, the Storyteller view)
+# Session handoff — 2026-09-24 (P3 step 9 built: initiative for the whole table)
 
 # 👉 YOU ARE HERE
 
-**P3 step 8 is DONE and BROWSER-VERIFIED (2026-09-24).** `docs/plans/p3-tables.md` §14
-"Step 8" is the record, the click-through at its end.
+**P3 step 9 (initiative, the P3 gate) is BUILT, committed and pushed. NOT browser-verified,
+and the FULL SUITE WAS NOT COMPLETED** — the human stopped it at ~18 minutes to leave
+work. The step-9 tests pass (`test_initiative.py`, `test_table_initiative.py` 18,
+`test_table_view.py` step-9 block 4 + the 90 other tests in that file were selected-out,
+not run). **First thing next session: run the full suite** (`.venv/bin/python -m pytest -q`,
+output to a file). A `PlayState` field and a `LogEntry` field were added, so a
+field-coverage test elsewhere may need `in_hand` listed. Not deployed.
 
-* **Rulings, 2026-09-24:** an NPC's side is picked **when the ST adds it** (Add a
-  character, ST only, starts on Enemy); a player sees an ally NPC as **name + health
-  only**; an NPC with no side (every NPC made before step 8) is an **enemy**; the Log
-  line of Grant XP does not name an enemy NPC (full-character NPCs only; a roster entry
-  takes no XP); **+** on both ALLIES and ENEMIES; roster cards are **compact, expand
-  in place**.
-* New: `server/table_roster.py` (the live roster per table, `adversaries.json`),
-  `server/table_notes.py` (`notes/<user id>.json`, private), `Adversary.side`,
-  `view.AllyView`, the NPC sides in `TableStore` (`npc_sides.json`, moved from base to
-  copy at approval). `ui/adversaries.py`: `roster_card` (with a compact mode) and
-  `open_add_dialog` split out of `build_roster`; the Party page keeps its full card.
-* **The click-through found the missing Storyteller view** (the human: *"there's no
-  way to 'view as ST'"*). Now the ST's first Open-as choice is **Storyteller** (the
-  default, in place of Spectate): every NPC is under ALLIES / ENEMIES with its switch
-  and live trackers. It also found white roster dialogs (themed now, the Party page
-  too) and cards too big for the rail (compact now).
-* ⚠ The roster's dialogs live in `dialog_host`, one at a time (a closed dialog stays in
-  its element and caught a click meant for the next one).
+* **Rulings, 2026-09-24** (four questions, all answered): the player sets the **weapon
+  in hand** on YOU PLAY (`PlayState.in_hand`, saved); the ST rolls from a **checklist,
+  all ticked**, unticks remembered for the page; **roster enemies are named** in the
+  Log, a full-character enemy NPC is **"Enemy"** (the ST sees the real name); ties
+  break on **Dex + Wits**, else "tied"; a roster entry with no Base initiative cannot roll.
+* New: `server/table_initiative.py`, `engine/initiative.turn_order`,
+  `table_log.InitiativeLine`. Detail and the mutation record: `docs/plans/p3-tables.md`
+  §14 "Step 9".
+* ⚠ A player sees an ally's / enemy's **total** (the order needs it) but not its
+  `rating + d10`. Flag at the click-through: a subtraction reveals the rating.
 
-**Full suite: 4148 passed + 1 skipped — OBSERVED** on the dev machine after all of the
-above, the flake fix included (4141 + 1 skipped before the click-through fixes). ⚠ The count moves
-by machine (`docs/testing.md`). ⚠ **The failure was the old flake, and it is FIXED** (the human: *"if we have a flaky
-test we should look at it"*). Cause: the NiceGUI user simulation has one global
-`ui.navigate`, pointed at the simulated user read last; the Storyteller's open table page
-sent JavaScript during the newcomer's sign-up await, and the redirect went to the
-Storyteller's browser. Reproduced deterministically; `tests/conftest.py` now routes
-navigate and notify by `context.client`; `tests/test_user_simulation_routing.py` (2)
-fails without the patch. `docs/testing.md` has the trap. Suite after the fix: **4148 passed + 1 skipped — OBSERVED**, no failure.
+**Working tree:** clean after this commit, pushed to `origin/main`. The deployed
+server is still `555688e` (step 8).
 
-**Working tree:** clean, on `main`, in step with `origin/main` (checked at close-out). Step 8
-is `e7aadc6`, the flake fix `48df0ae`. **Deployed 2026-09-24: `555688e` is LIVE** on
-`https://exalted.x6568tank.com`. Checked from outside: `/`, `/wiki` and `/login` gave 200 and
-`/home` redirected to login; the container log says NiceGUI is ready. The click-through server ran from `/tmp/exalted-click9/`
-(accounts `storyteller`, `alice`, `bob`, password `clickthrough`).
+🖱 **Owed:** the full suite, then a click-through of step 9: YOU PLAY In hand → Init
+changes; ST tab → Roll initiative → dialog ticks, a roster entry with no Base
+initiative disabled; the Log on a player's page shows "Enemy" for an enemy NPC and
+no breakdown for enemies/allies; the next Roll keeps the unticks.
 
-🖱 **Owed:** nothing.
+❓ **Open for the human:** nothing new beyond the total-reveals-rating flag above.
 
-❓ **Open for the human:** nothing.
+**Next:** the suite, the click-through, deploy. Then P4 (the board).
 
-**Next:** P3 **step 9**, initiative for the whole table, its results to the Log
-(§9, §15.4). ⚠ With the Storyteller view, the initiative button belongs to the ST's
-page; NPCs and roster entries roll too, and an enemy's result must not reach a
-player's Log by name (the step-8 Log rule).
+---
+
+## The session before — P3 step 8 clicked (2026-09-24)
+
+Step 8 (the roster, the NPC sides, the Storyteller view) DONE and BROWSER-VERIFIED,
+deployed as `555688e`; the navigate/notify flake fixed in `tests/conftest.py`. Suite then:
+4148 passed + 1 skipped, observed. Detail: `p3-tables.md` §14 "Step 8".
 
 ---
 

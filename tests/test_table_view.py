@@ -1704,3 +1704,139 @@ async def test_the_roster_dialogs_have_the_colours_of_the_page(create_user) -> N
              if type(e).__name__ == "Card" and any(
                  "adv-add-blank" in d._markers for d in e.descendants())]
     assert cards and all(c in cards[0].classes for c in solid)
+
+
+# --------------------------------------------------------------------------- #
+# Step 9: initiative for the whole table (sections 9 and 15.4)
+# --------------------------------------------------------------------------- #
+
+
+def _log_rows(user: User, entry_id: int) -> list[str]:
+    """The names of the turn order of the initiative entry `entry_id`, in order."""
+    names = []
+    for i in range(50):
+        found = _marked_all(user, f"log-init-name-{entry_id}-{i}")
+        if not found:
+            break
+        (element,) = found
+        names.append(element.text)
+    return names
+
+
+async def _roll_initiative(st: User) -> int:
+    """Open the dialog of the Storyteller and press Roll. Return the Log entry id."""
+    st.find(marker="st-roll-initiative").click()
+    await st.should_see(marker="init-roll")
+    st.find(marker="init-roll").click()
+    await _eventually(lambda: bool(st.find(marker="log-list").elements)
+                      and any(m.startswith("log-initiative-")
+                              for e in st.client.elements.values() for m in e._markers))
+    ids = [int(m.removeprefix("log-initiative-")) for e in st.client.elements.values()
+           for m in e._markers if m.startswith("log-initiative-")]
+    return max(ids)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_weapon_in_hand_is_set_on_you_play_through_the_live_context(
+        create_user) -> None:
+    """⚠ Trap 15.5 row 1: the change goes to the object of the character page."""
+    from exalted_builder.models.character import Weapon
+    st = create_user()
+    st_id = await _sign_up(st, "Harmonious")
+    table = _tables().create(st_id, "The Scarlet Gambit")
+    player = create_user()
+    player_id = await _sign_up(player, "Player0")
+    character = Character(id="x", name="Ashes", caste="dawn",
+                          weapons=[Weapon(name="Daiklave", speed=3)])
+    lifecycle.lock_chargen(character)
+    copy = _member(table, player_id, _characters().create(player_id, character).id)
+    await player.open(chrome.character_url(copy.id))
+    held = state.REGISTRY.peek(copy.id)["char"]
+
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="you-in-hand")
+    unarmed = _one(player, "you-init").text
+    _one(player, "you-in-hand").set_value("Daiklave")
+
+    await _eventually(lambda: _one(player, "you-init").text != unarmed)
+    assert held.play.in_hand == "Daiklave"
+    assert _load(copy).play.in_hand == "Daiklave"
+    assert int(_one(player, "you-init").text.split()[1]) == \
+        int(unarmed.split()[1]) + 3
+    assert state.REGISTRY.peek(copy.id)["char"] is held
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_rolls_initiative_and_each_member_sees_it_in_the_log(
+        create_user) -> None:
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn", "Gearheart")
+    (player, _, _), _ = players
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="tab-log")
+    await player.should_not_see(marker="st-roll-initiative")
+
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="st-roll-initiative")
+    entry = await _roll_initiative(st)
+
+    assert sorted(_log_rows(st, entry)) == ["Ashes of Dawn", "Gearheart"]
+    await player.should_see(marker=f"log-initiative-{entry}", retries=_POLL_RETRIES)
+    assert sorted(_log_rows(player, entry)) == ["Ashes of Dawn", "Gearheart"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_an_unticked_character_does_not_roll_and_stays_unticked(create_user) -> None:
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn", "Gearheart")
+    (_, _, ashes), (_, _, gear) = players
+    await st.open(chrome.table_url(table.id))
+    st.find(marker="st-roll-initiative").click()
+    await st.should_see(marker="init-roll")
+    assert _one(st, f"init-tick-char-{gear.id}").value is True
+    _one(st, f"init-tick-char-{gear.id}").set_value(False)
+    st.find(marker="init-roll").click()
+    await _eventually(lambda: any(m.startswith("log-initiative-")
+                                  for e in st.client.elements.values() for m in e._markers))
+    (entry,) = [int(m.removeprefix("log-initiative-")) for e in st.client.elements.values()
+                for m in e._markers if m.startswith("log-initiative-")]
+    assert _log_rows(st, entry) == ["Ashes of Dawn"]
+
+    st.find(marker="st-roll-initiative").click()
+    await st.should_see(marker="init-roll")
+    assert _one(st, f"init-tick-char-{gear.id}").value is False
+    assert _one(st, f"init-tick-char-{ashes.id}").value is True
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_an_enemy_npc_is_enemy_to_a_player_and_named_to_the_storyteller(
+        create_user) -> None:
+    """The step-8 Log rule. A roster enemy is named (human, 2026-09-24).
+    ⚠ The walk covers each element of the page of the player, hidden or not."""
+    st, st_id, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, _), = players
+    _tables().bring(st_id, table.id, _base(st_id, "The Bandit Lord").id, side="enemy")
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="table-enemy")
+    await _add_entry(st, "enemy", "adv.heretic")
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="tab-log")
+
+    entry = await _roll_initiative(st)
+
+    assert sorted(_log_rows(st, entry)) == ["Ashes of Dawn", "Heretic", "The Bandit Lord"]
+    await player.should_see(marker=f"log-initiative-{entry}", retries=_POLL_RETRIES)
+    assert sorted(_log_rows(player, entry)) == ["Ashes of Dawn", "Enemy", "Heretic"]
+    text = _page_text(player)
+    assert "The Bandit Lord" not in text
+    # The rating and the d10 of an enemy stay with the Storyteller. The party's show.
+    import re
+    arithmetic = re.compile(r"^-?\d+ \+ \d+$")
+    for user, shown in ((player, {"Ashes of Dawn"}),
+                        (st, {"Ashes of Dawn", "Heretic", "The Bandit Lord"})):
+        for i, name in enumerate(_log_rows(user, entry)):
+            (row,) = _marked_all(user, f"log-init-{entry}-{i}")
+            texts = [c.text for c in row.descendants() if hasattr(c, "text")]
+            assert any(arithmetic.match(t or "") for t in texts) == (name in shown), name

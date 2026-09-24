@@ -1,6 +1,6 @@
 # P3 — Campaigns (the `Table`): design
 
-**Status: build steps 1–2 DONE 2026-09-12; steps 3, 4 and 5 DONE and BROWSER-VERIFIED 2026-09-22; step 6 (house rules) and 6b (add a character from the campaign) DONE and BROWSER-VERIFIED 2026-09-22 (phone width not tested; the request-card house-rules warning browser-verified 2026-09-23); step 7 (the campaign homebrew) DONE and BROWSER-VERIFIED 2026-09-24; step 8 (the roster, the NPC sides, the notes) DONE and BROWSER-VERIFIED 2026-09-24 (§14 is the build log). The layout was approved 2026-09-22 (§15). Step 9 (initiative, §15.4) is not started.**
+**Status: build steps 1–2 DONE 2026-09-12; steps 3, 4 and 5 DONE and BROWSER-VERIFIED 2026-09-22; step 6 (house rules) and 6b (add a character from the campaign) DONE and BROWSER-VERIFIED 2026-09-22 (phone width not tested; the request-card house-rules warning browser-verified 2026-09-23); step 7 (the campaign homebrew) DONE and BROWSER-VERIFIED 2026-09-24; step 8 (the roster, the NPC sides, the notes) DONE and BROWSER-VERIFIED 2026-09-24 (§14 is the build log). The layout was approved 2026-09-22 (§15). Step 9 (initiative, §15.4, the gate) BUILT 2026-09-24, tests green, **not browser-verified**.**
 Every product question the human was asked is ruled (`vtt.md` §9.1, §9.2, §9.3a, §9.10), and
 so are the six the design turned up (§13).
 
@@ -1140,6 +1140,57 @@ Second round, the same day: all five checks passed (the default view, the NPC sw
 the card size, the NPC trackers from ALLIES, the themed dialogs). +5 page tests; 3
 mutations killed (the ST defaulting to an NPC, NPC rows never compact, the add dialog
 unthemed).
+
+### Step 9 — initiative for the whole table, the gate (2026-09-24)
+
+**Ruled at the start (human, 2026-09-24),** from four questions:
+* **The weapon in hand is the player's**, set on YOU PLAY and saved on the copy
+  (`PlayState.in_hand`, a weapon NAME, `""` = unarmed). The roll reads it. Before
+  this, the only weapon choice was the Play tab's "Attack with", which is page state.
+* **The ST rolls from a checklist**: every player copy, NPC and roster entry,
+  all ticked. The ST's unticks are remembered for the page (the next turn's
+  dialog opens with them unticked). This is the "choose who rolls" that the
+  human asked of the desktop batch roll.
+* **Roster enemies are NAMED in the Log; a full-character enemy NPC is "Enemy"**
+  ("Enemy 1", "Enemy 2" when several roll), per the step-8 Log rule. The ST's
+  page shows the real name with "(Enemy 1 to players)".
+* **Ties:** higher Dexterity + Wits (p.227) when every tied entry has it; what
+  is left is marked **tied** ("roll off"). A roster entry with no Base
+  initiative is shown disabled, "no Base initiative", and cannot roll.
+
+What shipped:
+* `engine/initiative.py`: `dex_wits`, `TurnRoll`, `Placed`, `turn_order`: pure,
+  and nothing in it rolls (the existing no-random test still holds).
+* `server/table_initiative.py`, `TableInitiative`: `combatants(st, table)` (party,
+  then allies, then enemies; characters before roster entries) and `roll(st,
+  table, keys)`. The server rolls each d10 with `engine.dice.roll(1)`; the browser
+  sends keys only, and a key that is not a combatant now is skipped. Characters
+  are read with `peek` (the live object, since the player sets the weapon there),
+  never `ctx_for`. A roster entry's Dex + Wits are its printed `dexterity` and
+  `wits`, only when it prints both.
+* `table_log.InitiativeLine` and `LogEntry.initiative`: one Log entry per roll,
+  with the turn order. `name` is what every member sees; `st_name` (the real
+  name of an enemy NPC) is drawn on the ST's page only.
+* The page: **INITIATIVE → Roll initiative** heads the ST tab; the dialog lives
+  in `dialog_host` (one at a time, as for the roster). After Roll, the right rail
+  switches to the Log. YOU PLAY (and an expanded NPC row) has **In hand** and
+  **Init N** (a rating, with the arithmetic in its tooltip).
+* **What a player sees of a line:** the total and the name. The `rating + d10`
+  breakdown is shown for the party only; an ally's or an enemy's is for the ST
+  (R4, R7). ⚠ The total of an ally or an enemy still shows, since the turn order
+  cannot be given without it, so a player can work out an enemy's rating with
+  a subtraction.
+
+Tests: `test_initiative.py` +7 (the order and the tie-break), `test_table_initiative.py`
+(18, new: the weapon field, the combatants, the live-context read, the ST check,
+the roll, the Log names, the ties, the refusals), and `test_table_view.py` +4 (In hand
+through the live context, the roll reaching a player at the poll, the remembered
+unticks, the enemy name and breakdown walk). **10 mutations, 9 killed**; the
+survivor (`combatants` without its own ST check) is equivalent, because
+`roster.party` refuses a non-ST first. The check stays, since that equivalence is
+an accident.
+
+**Not browser-verified.**
 
 ---
 

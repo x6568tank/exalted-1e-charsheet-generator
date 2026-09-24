@@ -129,7 +129,9 @@ number you type."*
 
 ## Planned — roll initiative for everyone, once the GM page holds real characters
 
-**Not now, and it has a hard precondition.** Today the party surface owns its own
+✅ **BUILT for the campaign table, 2026-09-24** (P3 step 9; `docs/plans/p3-tables.md` §14 "Step 9"). The desktop Party page and Qt do not have it. The text below is the reasoning it was built on.
+
+**Originally: not now, and it has a hard precondition.** Today the party surface owns its own
 roster entries, not links to the players' characters, so it has no Dexterity, Wits or
 wielded weapon to read. **Once the GM page is linked to the players' actual characters
 rather than being its own separate thing** — the hosted/VTT shape in

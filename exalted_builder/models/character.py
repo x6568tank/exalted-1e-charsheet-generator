@@ -874,6 +874,10 @@ class PlayState(BaseModel):
     # dissipate one — the ST does both. It carries no printed maximum, so the model
     # imposes none; it is stored as a positive point count and SUBTRACTS from a pool.
     fatigue: int = Field(default=0, ge=0)
+    # The name of the weapon in hand, "" for unarmed. The player sets it on the
+    # table view (P3 step 9). The initiative roll of the table reads it through
+    # `view.wielded_index`. A name that no weapon has now gives unarmed.
+    in_hand: str = ""
     renown: dict[str, int] = Field(
         default_factory=lambda: {"succor": 0, "mettle": 0, "cunning": 0, "glory": 0})
     face: int = Field(default=0, ge=0, le=10)
