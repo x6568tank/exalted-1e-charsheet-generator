@@ -2,8 +2,8 @@
 
 # 👉 YOU ARE HERE
 
-**P3 step 7 (the campaign homebrew) is DONE, committed and pushed. 🖱 IT NEEDS A
-CLICK-THROUGH: nothing of it is browser-verified.** `docs/plans/p3-tables.md` §14
+**P3 step 7 (the campaign homebrew) is DONE, committed, pushed and LIVE on the home
+server. 🖱 IT NEEDS A CLICK-THROUGH: nothing of it is browser-verified.** `docs/plans/p3-tables.md` §14
 "Step 7" is the record: the rulings, what shipped, 23 mutations, the known limits.
 
 In one breath (rulings 2026-09-23, "Yes, build it"): **one campaign homebrew layer**,
@@ -26,13 +26,18 @@ approved inside the store, where a page-handler reload would miss it.
 in the owner's library; proposals are Charms/spells/rituals only; a proposed Charm brings
 its homebrew prerequisites.
 
-**Full suite: 4080 passed + 1 skipped — OBSERVED** on the dev machine after all of step 7.
+**Full suite: 4080 passed + 1 skipped — OBSERVED** on the dev machine after all of step 7
+(reused at close-out: only docs changed since; the human said not to re-run).
 ⚠ The count moves by machine and optional dependency (`docs/testing.md`).
 
-**Deploy:** the code of this commit is rsynced to `gilserver:exalted-app`
-(`DEPLOYED_COMMIT`). ⚠ **Not rebuilt**: `claude` has no docker. The human runs
-`cd ~/homelab && docker compose up -d --build exalted`. This deploy carries steps 2–7
-(the server was on `4a614bb`).
+**Working tree:** clean after the step-7 commit (`58eb41a`, pushed); this close-out edits
+only this file and `p3-tables.md`. Check `git status`.
+
+**Deployed (2026-09-23):** `58eb41a` rsynced to `gilserver:exalted-app`, and the human
+rebuilt the container: **the live site runs steps 2–7**, the login restyle and the site
+menu. ⚠ `claude` still has no docker; each rebuild is the human's
+(`cd ~/homelab && docker compose up -d --build exalted`). A later docs-only commit need not
+be deployed.
 
 🖱 **Click-through owed (step 7)**, accounts `storyteller`, `alice`, `bob`, `watcher`:
 1. alice authors a Charm on `/home` → Homebrew, builds a base that buys it, joins. The ST's
