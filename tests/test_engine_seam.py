@@ -155,3 +155,42 @@ def test_no_test_patches_by_dotted_string() -> None:
         + ". Import the module and patch the object instead — a string target "
           "breaks after any NiceGUI main-file test, depending only on file order."
     )
+
+
+# --------------------------------------------------------------------------- #
+# Shell text: the two Advantages tabs must not copy a display string
+# --------------------------------------------------------------------------- #
+
+# A shared literal shorter than this is a label or a key, e.g. "Merits & Flaws".
+_SHARED_TEXT_MIN = 40
+
+
+def _display_literals(path: Path) -> set[str]:
+    """Return the string constants of `path` with `_SHARED_TEXT_MIN` or more characters.
+
+    Read the syntax tree. Do not include docstrings: a docstring is not display text.
+    """
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    docstrings = {id(node.body[0].value) for node in ast.walk(tree)
+                  if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef,
+                                       ast.AsyncFunctionDef))
+                  and ast.get_docstring(node, clean=False) is not None}
+    return {node.value for node in ast.walk(tree)
+            if isinstance(node, ast.Constant) and isinstance(node.value, str)
+            and len(node.value) >= _SHARED_TEXT_MIN and id(node) not in docstrings}
+
+
+def test_the_advantages_tabs_share_no_display_text() -> None:
+    """⚠ A string in both shells drifts: one copy gets the correction, the other does
+    not, and no test sees the difference. `ui/view.py` holds the text for both.
+
+    ⚠ This test covers the Advantages pair only. Other shell pairs still copy text.
+    """
+    shared = (_display_literals(_PKG / "qt" / "advantages.py")
+              & _display_literals(_PKG / "ui" / "advantages.py"))
+
+    assert not shared, (
+        "qt/advantages.py and ui/advantages.py both contain: "
+        + "; ".join(repr(text) for text in sorted(shared))
+        + ". Move the text into ui/view.py and read it from both shells."
+    )

@@ -86,8 +86,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 ui.label("XP available").classes("text-xs text-gray-600")
             debt = advancement.xp_debt(character)
             if debt:
-                ui.label(f"⚠ {debt} XP owed — all further experience clears this first."
-                         ).classes("text-xs font-semibold text-amber-700")
+                ui.label(viewmod.xp_debt_note(debt)).classes("text-xs font-semibold text-amber-700")
             ui.label("The ledger and undo are in the Edit tab's Experience card."
                      ).classes("text-xs text-gray-500")
             return
@@ -344,7 +343,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                                   setattr(bg, "is_demesne", bool(e.value)),
                                   refresh_all())
                               ).props("dense size=sm").tooltip(
-                                  "Demesne rather than Manse — grows no Hearthstones"
+                                  viewmod.DEMESNE_TOGGLE_LABEL
                               ).mark("demesne-toggle")
                 if _grows_stones(bg):
                     ui.button(icon="diamond",
@@ -639,11 +638,8 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
             # the CAPPED number, and a player who took 13 points of Flaws and sees "+10"
             # has no way to tell the cap from a bug in our arithmetic.
             if eff.flaw_points_raw > eff.bonus_point_grant:
-                ui.label(f"⚠ {eff.flaw_points_raw} points of Flaws taken, "
-                         f"{eff.bonus_point_grant} granted — the excess "
-                         f"{eff.flaw_points_raw - eff.bonus_point_grant} is lost to the "
-                         f"{meritsmod.FLAW_POINT_CAP}-point cap (p.17). The Flaws still "
-                         f"apply.").classes("text-xs font-semibold text-amber-700")
+                ui.label(viewmod.flaw_excess_note(
+                    eff.flaw_points_raw, eff.bonus_point_grant)).classes("text-xs font-semibold text-amber-700")
             _mf_filter_bar(_apply_filter)
             count = ui.label(_mf_count_label(
                 sum(1 for m in available if _mf_matches(m)), len(available))
@@ -913,29 +909,17 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
             ui.label("Merits & Flaws").classes(
                 "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
             if method != "experience":
-                ui.label(f"This table uses the '{method}' method (Player's Guide p.17), "
-                         f"under which gaining or losing a Merit costs and rewards "
-                         f"nothing. Unlock chargen to edit them.").classes(
+                ui.label(viewmod.merit_method_note(method)).classes(
                     "text-xs text-gray-600")
                 return
-            ui.label("Gaining a Merit or losing a Flaw costs twice its point value; "
-                     "losing a Merit or gaining a Flaw pays the same. An unaffordable "
-                     "change runs a debt against future XP."
-                     ).classes("text-xs text-gray-600")
+            ui.label(viewmod.MERIT_EXPERIENCE_PRICING_NOTE).classes("text-xs text-gray-600")
             # The p.17 cap applies in play too, and here it truncates the XP AWARD rather
             # than a bonus-point grant — a Flaw taken past the ceiling pays for its legal
             # part only. Silently paying less than the table expects is the worse
             # failure, so the remaining room is stated before anything is bought.
-            room = max(0, meritsmod.FLAW_POINT_CAP - eff.flaw_points_raw)
-            if room:
-                ui.label(f"{eff.flaw_points_raw} of {meritsmod.FLAW_POINT_CAP} points of "
-                         f"Flaws taken — a new Flaw pays for at most {room} more."
-                         ).classes("text-xs text-gray-600")
-            else:
-                ui.label(f"⚠ {eff.flaw_points_raw} points of Flaws taken — at the "
-                         f"{meritsmod.FLAW_POINT_CAP}-point cap (p.17). A further Flaw "
-                         f"still applies, but pays no XP."
-                         ).classes("text-xs font-semibold text-amber-700")
+            text, warn = viewmod.flaw_room_note(eff.flaw_points_raw)
+            ui.label(text).classes("text-xs font-semibold text-amber-700" if warn
+                                   else "text-xs text-gray-600")
             # --- gain ------------------------------------------------------ #
             available = _available_merits(
                 validate.effective_budgets(rs, character).essence_start)
@@ -973,8 +957,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                     with ui.dialog() as dlg, ui.card().classes(
                             f"w-[26rem] p-4 gap-2 {pal.card_solid}"):
                         ui.label("Custom Merit / Flaw").classes("text-base font-bold")
-                        ui.label("Display-only — recorded on the sheet, no mechanical "
-                                 "effect.").classes("text-xs text-gray-600")
+                        ui.label(viewmod.CUSTOM_MERIT_NOTE).classes("text-xs text-gray-600")
                         name = ui.input(
                             placeholder="name (e.g. a bloodline trait)").props(
                             "dense").classes("w-full")
@@ -1025,9 +1008,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 # rather than implying the Merit branch.
                 chosen = gain_state.get("taken_as", "")
                 effective = chosen if definition.kind == "either" else definition.kind
-                side = ("Flaw — GAINING this pays the character" if effective == "flaw"
-                        else "Merit — gaining this costs XP" if effective == "merit"
-                        else "Merit OR Flaw — choose a side before gaining it")
+                side = viewmod.merit_side_label(effective)
                 with ui.row().classes("w-full items-center gap-2 no-wrap"):
                     ui.label(definition.name).classes("text-sm font-semibold")
                     ui.label(definition.cost_note).classes("text-xs font-mono opacity-60")
@@ -1156,8 +1137,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
             # The cap is Willpower + Essence and it MOVES, so it is stated as a live
             # number on both sides of the lock rather than as a chargen note.
             over = spent > cap
-            ui.label(f"{spent} of {cap} dots (cap = Willpower + Essence, p.127)"
-                     ).classes("text-xs font-semibold" if over else "text-xs").style(
+            ui.label(viewmod.fetter_budget_text(spent, cap)).classes("text-xs font-semibold" if over else "text-xs").style(
                 f"color:{'#b91c1c' if over else 'inherit'}")
             for idx, f in enumerate(character.fetters):
                 with ui.row().classes("w-full items-center gap-2 flex-wrap"):

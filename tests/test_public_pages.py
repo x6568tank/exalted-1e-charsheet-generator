@@ -464,3 +464,78 @@ async def test_an_armor_card_has_the_armor_columns(user: User) -> None:
 
     assert '<th scope="col">Soak</th>' in response.text
     assert '<th scope="col">Accuracy</th>' not in response.text
+
+
+# --------------------------------------------------------------------------- #
+# robots.txt and the sitemap
+# --------------------------------------------------------------------------- #
+
+_LIST_BUILDERS = (wv.charm_list, wv.style_list, wv.spell_list, wv.merit_list,
+                  wv.background_list, wv.trait_list, wv.caste_list, wv.equipment_list,
+                  wv.artifact_list, wv.thaumaturgy_list, wv.power_list)
+
+
+def test_the_entry_list_is_each_linked_row_of_each_section(book) -> None:
+    """The sitemap reads the list pages. Thus an entry with a page in a list is in
+    the sitemap, and an entry with no page is not."""
+    expected = {row.href for build in _LIST_BUILDERS for row in _all_rows(book, build)
+                if row.href}
+    hrefs = wv.entry_hrefs(book)
+
+    assert len(hrefs) == len(set(hrefs)), "The entry list has a duplicate."
+    assert set(hrefs) == expected
+    assert wv.charm_href(next(iter(book.charms))) in hrefs
+
+
+def _locs(xml: str) -> list[str]:
+    import xml.etree.ElementTree as ET
+
+    ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+    return [loc.text for loc in ET.fromstring(xml).findall("s:url/s:loc", ns)]
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_robots_txt_keeps_crawlers_on_the_public_pages(user: User) -> None:
+    response = await user.http_client.get(
+        "/robots.txt", headers={"host": "exalted.example", "x-forwarded-proto": "https"})
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/plain")
+    lines = response.text.splitlines()
+    for path in ("/home", "/character/", "/table/", "/login", "/signup", "/logout"):
+        assert f"Disallow: {path}" in lines
+    # ⚠ The public pages load their icon font from /_nicegui/.
+    assert not any(line.startswith("Disallow: /_nicegui/") for line in lines)
+    assert "Sitemap: https://exalted.example/sitemap.xml" in lines
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_sitemap_lists_the_public_pages_and_each_entry(
+        user: User, book, homebrew_library) -> None:
+    """⚠ The sitemap is public, like the wiki. It must read the wiki's book ruleset,
+    not the builder's, which merges the homebrew library."""
+    response = await user.http_client.get(
+        "/sitemap.xml", headers={"host": "exalted.example", "x-forwarded-proto": "https"})
+
+    assert response.status_code == 200
+    assert "xml" in response.headers["content-type"]
+    locs = _locs(response.text)
+    base = "https://exalted.example"
+    assert {f"{base}/", f"{base}/about", f"{base}/wiki"} <= set(locs)
+    assert {f"{base}/wiki/{slug}" for slug, _ in wv.SECTIONS} <= set(locs)
+    assert {base + href for href in wv.entry_hrefs(book)} <= set(locs)
+    assert not any("/home" in loc or "/character/" in loc for loc in locs)
+    # The positive control is in `test_the_wiki_does_not_show_homebrew`.
+    assert not any(homebrew_library.HOMEBREW_ID in loc for loc in locs), (
+        "The sitemap lists a homebrew Charm.")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_sitemap_takes_the_scheme_of_the_request(user: User) -> None:
+    """With no forwarded scheme, the address is the one of the request."""
+    response = await user.http_client.get("/sitemap.xml", headers={"host": "lan.test:8080"})
+
+    assert _locs(response.text)[0] == "http://lan.test:8080/"

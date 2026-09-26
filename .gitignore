@@ -40,3 +40,4 @@ tools/bg_provenance.json
 
 # NiceGUI per-browser storage, written at run time
 .nicegui/
+exalted_builder/BUILD_COMMIT

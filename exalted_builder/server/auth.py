@@ -44,7 +44,9 @@ from .throttle import LoginThrottle
 # The paths that a visitor with no login can open. The icon is here because the
 # login page shows it. "/" and "/about" are the public front page and the About
 # page, by the site map of docs/plans/vtt.md section 9.4.
-OPEN_PATHS = frozenset({"/", "/about", "/login", "/signup", "/logout", "/favicon.ico"})
+# The two files for crawlers are open too (`server/crawl.py`).
+OPEN_PATHS = frozenset({"/", "/about", "/login", "/signup", "/logout", "/favicon.ico",
+                        "/robots.txt", "/sitemap.xml"})
 
 # The public wiki: "/wiki" and each path under it. Section 9.5 of vtt.md.
 # ⚠ Public ON PURPOSE (human ruling, 2026-09-12). `tests/test_auth_gate.py` names

@@ -16,6 +16,7 @@ from nicegui.testing import User
 
 pytest.importorskip("bcrypt")
 
+from exalted_builder import build_info  # noqa: E402
 from exalted_builder.server import chrome, db, nav, site  # noqa: E402
 from exalted_builder.server.characters import CharacterStore  # noqa: E402
 from exalted_builder.server.tables import TableStore  # noqa: E402
@@ -27,6 +28,14 @@ from . import _auth_state as state  # noqa: E402
 MAIN = "tests/_auth_main.py"
 
 _CAMPAIGNS = [("/table/a", "Nexus Nights"), ("/table/b", "<b>Loud</b>")]
+
+
+@pytest.fixture(autouse=True)
+def _no_build_line(monkeypatch):
+    """⚠ The build line depends on the machine: a checkout has one, a copy with no
+    `.git` has none. Remove it, thus the group counts here do not change by machine.
+    `tests/test_build_info.py` covers the line."""
+    monkeypatch.setattr(build_info, "label", lambda: "")
 
 
 @pytest.fixture

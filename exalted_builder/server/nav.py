@@ -17,6 +17,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Optional
 
+from .. import build_info
 from ..ui import wiki_view
 
 FRONT_PATH = "/"
@@ -89,6 +90,9 @@ def groups(username: Optional[str], *, live: bool = False) -> list[list[Link]]:
     if username:
         result.append([Link("", "account_circle", f"Logged in as {username}", "account"),
                        Link("/logout", "logout", "Log out", "logout")])
+    build = build_info.label()
+    if build:
+        result.append([Link("", "tag", build, "build")])
     return result
 
 

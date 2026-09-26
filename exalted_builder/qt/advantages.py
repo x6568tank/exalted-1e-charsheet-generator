@@ -301,8 +301,7 @@ class AdvantagesPage(QWidget):
             debt = advancement.xp_debt(char)
             text = f"{available} XP available"
             if debt:
-                text += (f" · ⚠ {debt} XP owed — all further experience clears this "
-                         f"first.")
+                text += f" · {viewmod.xp_debt_note(debt)}"
             self.issues.setText(text)
             self.issues.setStyleSheet(
                 "font-weight:600; color:%s;"
@@ -454,29 +453,15 @@ class AdvantagesPage(QWidget):
         if method != "experience":
             # Under the other two methods, a change "does not cost or reward", and it
             # belongs to chargen. Show that text. Do not offer buttons that all show 0 XP.
-            notes.addWidget(self._muted(
-                f"This table uses the '{method}' method (Player's Guide p.17), under "
-                f"which gaining or losing a Merit costs and rewards nothing. Unlock "
-                f"chargen to edit them."))
+            notes.addWidget(self._muted(viewmod.merit_method_note(method)))
             return
-        notes.addWidget(self._muted(
-            "Gaining a Merit or losing a Flaw costs twice its point value; losing a "
-            "Merit or gaining a Flaw pays the same. An unaffordable change runs a debt "
-            "against future XP."))
+        notes.addWidget(self._muted(viewmod.MERIT_EXPERIENCE_PRICING_NOTE))
         # The limit on p.17 also applies in play. Here it reduces the XP AWARD, not a
         # bonus-point grant. A Flaw above the limit pays for its legal part only. ⚠ Show the
         # remaining room before the purchase. An award that is smaller than the table gives,
         # with no message, is the worse failure.
-        room = max(0, meritsmod.FLAW_POINT_CAP - eff.flaw_points_raw)
-        if room:
-            notes.addWidget(self._muted(
-                f"{eff.flaw_points_raw} of {meritsmod.FLAW_POINT_CAP} points of Flaws "
-                f"taken — a new Flaw pays for at most {room} more."))
-        else:
-            notes.addWidget(self._warn(
-                f"⚠ {eff.flaw_points_raw} points of Flaws taken — at the "
-                f"{meritsmod.FLAW_POINT_CAP}-point cap (p.17). A further Flaw still "
-                f"applies, but pays no XP."))
+        text, warn = viewmod.flaw_room_note(eff.flaw_points_raw)
+        notes.addWidget(self._warn(text) if warn else self._muted(text))
 
     def _fill_fetters_passions(self, table, notes, b) -> None:
         char = self._char()
@@ -705,7 +690,7 @@ class AdvantagesPage(QWidget):
         # hearthstones.
         bg_type = self._bg_type(bg, catalog)
         if artifactsmod.grows_hearthstones(bg_type):
-            demesne = QCheckBox("Demesne rather than Manse — grows no Hearthstones")
+            demesne = QCheckBox(viewmod.DEMESNE_TOGGLE_LABEL)
             demesne.setChecked(bg.is_demesne)
             demesne.toggled.connect(
                 lambda on, bg=bg: (setattr(bg, "is_demesne", bool(on)), self.reload()))
@@ -1026,11 +1011,8 @@ class AdvantagesPage(QWidget):
         # LIMITED number. A user who took 13 points and reads "+10" cannot identify the
         # limit without this line.
         if eff.flaw_points_raw > eff.bonus_point_grant:
-            notes.addWidget(self._warn(
-                f"⚠ {eff.flaw_points_raw} points of Flaws taken, "
-                f"{eff.bonus_point_grant} granted — the excess "
-                f"{eff.flaw_points_raw - eff.bonus_point_grant} is lost to the "
-                f"{meritsmod.FLAW_POINT_CAP}-point cap (p.17). The Flaws still apply."))
+            notes.addWidget(self._warn(viewmod.flaw_excess_note(
+                eff.flaw_points_raw, eff.bonus_point_grant)))
         # Name the Merits that this build treats as narrative. Without this line, the user
         # cannot find the reason that nothing changed.
         if eff.narrative_only:
@@ -1414,8 +1396,7 @@ class AdvantagesPage(QWidget):
         dialog = QDialog(self)
         dialog.setWindowTitle("Custom Merit / Flaw")
         lay = QVBoxLayout(dialog)
-        lay.addWidget(self._muted("Display-only — recorded on the sheet, no mechanical "
-                                  "effect."))
+        lay.addWidget(self._muted(viewmod.CUSTOM_MERIT_NOTE))
         name = QLineEdit()
         name.setPlaceholderText("name (e.g. a bloodline trait)")
         lay.addWidget(name)
@@ -1498,10 +1479,7 @@ class AdvantagesPage(QWidget):
             # says so. It must not show the Merit side.
             effective = (state.get("taken_as", "") if definition.kind == "either"
                          else definition.kind)
-            banner.setText(
-                "Flaw — GAINING this pays the character" if effective == "flaw"
-                else "Merit — gaining this costs XP" if effective == "merit"
-                else "Merit OR Flaw — choose a side before gaining it")
+            banner.setText(viewmod.merit_side_label(effective))
             banner.setStyleSheet("font-weight:600; color:%s;" % (
                 "#4ade80" if effective == "flaw"
                 else "#d19a3a" if effective == "merit" else "#f87171"))
@@ -1654,7 +1632,7 @@ class AdvantagesPage(QWidget):
         ruleset, char = self._ruleset, self._char()
         spent = derivemod.fetter_dots_spent(char)
         cap = derivemod.fetter_cap(char, ruleset)
-        text = f"{spent} of {cap} dots (cap = Willpower + Essence, p.127)"
+        text = viewmod.fetter_budget_text(spent, cap)
         if not self._locked():
             text += f" · {b.fetter_dots} at chargen, ≤{b.fetter_cap_pre_bp} pre-bonus"
         label = QLabel(text)

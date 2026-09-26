@@ -60,13 +60,17 @@ the ceiling in normal play.
 1. Commit. Ship the COMMIT, not the working tree:
 
    ```bash
-   E=$(mktemp -d) && git archive HEAD | tar -x -C "$E" && git rev-parse --short HEAD > "$E/DEPLOYED_COMMIT"
+   E=$(mktemp -d) && git archive HEAD | tar -x -C "$E" && git log -1 --format='%h %cs' > "$E/exalted_builder/BUILD_COMMIT"
    # then rsync "$E/" to the server's code folder, with --delete --exclude-from=.dockerignore
    rm -rf "$E"
    ```
 
    The host, the account, the folder and the permissions step are in the dev machine's
-   notes, not here. `DEPLOYED_COMMIT` in the code folder says which commit the server builds.
+   notes, not here. `exalted_builder/BUILD_COMMIT` says which commit the server builds, and
+   its date. It goes into the image with the package, and the site menu shows it as its
+   last line (`exalted_builder/build_info.py`). ⚠ Until 2026-09-26 this file was
+   `DEPLOYED_COMMIT` at the top of the code folder. The `--delete` of the next rsync
+   removes the old one.
 2. Rebuild: `docker compose up -d --build exalted`, by the human or by the route the human
    set up for Claude (2026-09-24; not described here).
 3. Check from outside: `/`, `/wiki` and `/login` answer 200; `/home` sends a visitor to the

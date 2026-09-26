@@ -18,7 +18,7 @@ shows no "owned" and no "available".
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional, Sequence
+from typing import Callable, Optional, Sequence
 
 from pydantic import ValidationError
 
@@ -1270,3 +1270,28 @@ def homebrew_page(ruleset: RuleSet, kind: str, rows: Sequence[dict],
     if row_id not in merged or not merged[row_id].custom:
         return None
     return page(ruleset.model_copy(update={pool: merged}), row_id)
+
+
+# --------------------------------------------------------------------------- #
+# The entry list, for the sitemap
+# --------------------------------------------------------------------------- #
+
+# The list page of each section that has entry pages. The ST Screen has none.
+_LIST_BUILDERS: tuple[Callable[..., ListPage], ...] = (
+    charm_list, style_list, spell_list, thaumaturgy_list, power_list, merit_list,
+    background_list, trait_list, caste_list, equipment_list, artifact_list)
+
+
+def entry_hrefs(ruleset: RuleSet) -> list[str]:
+    """Return the address of each entry page, one time each, in section order.
+
+    Read each page of each unfiltered list. Keep each row that has an address.
+    ⚠ Give the BOOK ruleset. The result is public.
+    """
+    hrefs: dict[str, None] = {}
+    for build in _LIST_BUILDERS:
+        pages = build(ruleset).pages
+        for number in range(1, pages + 1):
+            hrefs.update((row.href, None) for row in build(ruleset, page=number).rows
+                         if row.href)
+    return list(hrefs)

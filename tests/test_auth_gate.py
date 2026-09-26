@@ -67,11 +67,12 @@ async def _log_in(user: User, username: str, password: str = state.PASSWORD,
 
 # The routes that a visitor with no login can open, BY NAME. Each is public on
 # purpose, by a ruling of the human: the login pages (section 5.1d), and the front
-# page, About and the wiki (docs/plans/vtt.md 9.4 and 9.5, 2026-09-12).
+# page, About and the wiki (docs/plans/vtt.md 9.4 and 9.5, 2026-09-12), and the two
+# files for crawlers (asked for by the human, 2026-09-26).
 # ⚠ A route that opens without a name here fails the first case. Do not add a name
 # to make it pass without a ruling.
 PUBLIC_ROUTES = frozenset({
-    "/", "/about", "/login", "/signup", "/logout",
+    "/", "/about", "/login", "/signup", "/logout", "/robots.txt", "/sitemap.xml",
     "/wiki", "/wiki/charms", "/wiki/charms/{entry_id}",
     "/wiki/martial-arts", "/wiki/martial-arts/{entry_id}",
     "/wiki/spells", "/wiki/spells/{entry_id}",
