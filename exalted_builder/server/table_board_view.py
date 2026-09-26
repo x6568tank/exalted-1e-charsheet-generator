@@ -55,8 +55,8 @@ MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 
 # The tools of the toolbar: key, icon, tooltip.
 TOOLS = (
-    ("select", "near_me", "Select, move and resize. Shift-click adds to the selection; "
-     "Shift-drag on the board draws a selection box. Esc clears it."),
+    ("select", "near_me", "Select, move and resize. Drag on the empty board to draw a "
+     "selection box; Shift adds to the selection. Right-drag pans. Esc clears."),
     ("pen", "draw", "Pen"),
     ("line", "horizontal_rule", "Line"),
     ("arrow", "north_east", "Arrow"),

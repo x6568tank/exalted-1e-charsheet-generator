@@ -129,7 +129,7 @@ inlined into the page. The tarball's sha512 was checked against the npm registry
   sender's context, so `ui.run_javascript` there would reach the wrong page.
 * Tools: select/move/resize, pen, line, arrow, rectangle, ellipse, text, token, eraser;
   eight colours, three widths, Fill; Delete (also the Delete key), front, back, Fit.
-  Pan by dragging the empty board, zoom with the wheel. A token or text asks for its
+  Pan by dragging the empty board, zoom with the wheel (superseded the same day: right-drag pans, see "Click-through additions"). A token or text asks for its
   words in a dialog; double-click edits them. The label box starts empty (0020).
 * The ST's ⋮ menu: Set the background… / Remove the background / Clear the board…
   (Clear keeps the background).
@@ -192,6 +192,14 @@ same day:
   object. The store gains `put_many` (one version, refused whole if one object is bad
   or an id repeats), `delete_many` and `restack_many`; each is ONE broadcast message.
   No multiselect on touch (no Shift).
+* **The mouse, re-ruled the same day** (human: *"right click move, left click select
+  & select box"*): **right-drag pans** with every tool (and the middle button); the
+  right-click menu is suppressed on the board. With Select, **a left-drag on the empty
+  board draws the selection box** (no Shift): a plain box replaces the selection, a
+  Shift box adds. Left-drag on an object still moves it or its group. A viewer who
+  cannot draw pans with the left button too, and so does a finger on the empty board.
+  The stage is no longer Konva-draggable; the pan is the canvas's own, which also
+  retired the stop-the-stage-drag workaround above.
   * 🐞 Two defects found by driving it: the stage began its own pan drag on the
     Shift-press, so the box got no pointer moves (the stage drag is now stopped while a
     box is drawn); and the flag that swallows the click after a box outlived a box that

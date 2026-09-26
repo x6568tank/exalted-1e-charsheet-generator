@@ -275,7 +275,6 @@
     B.tool = tool;
     var dragging = B.edit && tool === 'select';
     Object.keys(B.nodes).forEach(function (id) { B.nodes[id].draggable(dragging); });
-    B.stage.draggable(tool === 'select' || !B.edit);
     var cursor = { select: 'default', eraser: 'not-allowed', text: 'text' }[tool] || 'crosshair';
     B.stage.container().style.cursor = B.edit ? cursor : 'grab';
     reselect();
@@ -306,15 +305,26 @@
     }
   }
 
+  // The right button pans, with each tool. A viewer who cannot draw, and a
+  // finger on the empty board, pan with the left button too.
+  function startPan() {
+    var p = B.stage.getPointerPosition();
+    B.pan = { x: p.x, y: p.y, sx: B.stage.x(), sy: B.stage.y() };
+    B.stage.container().style.cursor = 'grabbing';
+  }
+
   function down(e) {
     // WARNING: a box that moved gives no click. Thus the flag that eats the click
     // after a box must end at the next press, or it eats a real click.
     B.justBanded = false;
-    if (!B.edit) { return; }
+    var button = e.evt && e.evt.button;
+    var touch = e.evt && e.evt.type && e.evt.type.indexOf('touch') === 0;
+    if (button === 2 || button === 1) { startPan(); return; }
+    if (!B.edit) { if (e.target === B.stage || !objectOf(e.target)) { startPan(); } return; }
     var t = B.tool;
     if (t === 'select') {
-      if (e.evt && e.evt.shiftKey && e.target === B.stage) {
-        B.stage.draggable(false);
+      if (e.target === B.stage && touch) { startPan(); return; }
+      if (e.target === B.stage) {
         var p0 = pointer();
         B.band = new Konva.Rect({
           x: p0.x, y: p0.y, width: 0, height: 0, listening: false,
@@ -322,6 +332,7 @@
           fill: '#1d4ed822'
         });
         B.band.setAttr('origin', p0);
+        B.band.setAttr('add', !!(e.evt && e.evt.shiftKey));
         B.main.add(B.band);
       }
       return;
@@ -366,6 +377,12 @@
   }
 
   function move(e) {
+    if (B.pan) {
+      var q0 = B.stage.getPointerPosition();
+      if (!q0) { return; }
+      B.stage.position({ x: B.pan.sx + q0.x - B.pan.x, y: B.pan.sy + q0.y - B.pan.y });
+      return;
+    }
     if (B.erasing) { erase(e.target); return; }
     if (B.band) {
       var o0 = B.band.getAttr('origin'), q = pointer();
@@ -398,17 +415,25 @@
   }
 
   function up() {
+    if (B.pan) {
+      // The last pointer move can come with the release. Apply it.
+      move({});
+      B.pan = null;
+      setTool(B.tool);
+      return;
+    }
     if (B.erasing) { B.erasing = false; return; }
     if (B.band) {
       var box = B.band.getClientRect();
+      var add = B.band.getAttr('add');
       B.band.destroy();
       B.band = null;
-      B.stage.draggable(B.tool === 'select' || !B.edit);
       var hit = B.order.filter(function (id) {
         var n = B.nodes[id];
         return n && Konva.Util.haveIntersection(box, n.getClientRect());
       });
       if (box.width > 2 || box.height > 2) {
+        if (!add) { B.sel = []; }
         hit.forEach(function (id) { if (B.sel.indexOf(id) < 0) { B.sel.push(id); } });
         B.justBanded = true;
       }
@@ -449,13 +474,10 @@
     s.on('mousedown touchstart', down);
     s.on('mousemove touchmove', move);
     s.on('mouseup touchend mouseleave', up);
-    // WARNING: the stage starts its own drag (a pan) on the same press. Stop it
-    // while a selection box is drawn, or the box gets no pointer moves.
-    s.on('dragstart', function (e) {
-      if (B.band && e.target === s) { s.stopDrag(); }
-    });
+    s.on('contextmenu', function (e) { e.evt.preventDefault(); });
     s.on('click tap', function (e) {
       if (!B.edit || B.tool !== 'select') { return; }
+      if (e.evt && e.evt.button) { return; }
       if (B.justBanded) { B.justBanded = false; return; }
       var n = objectOf(e.target);
       var shift = e.evt && e.evt.shiftKey;
