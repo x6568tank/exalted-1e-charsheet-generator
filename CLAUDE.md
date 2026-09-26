@@ -337,6 +337,7 @@ the primary trap.
 | P4, the board: the rulings, the build log | `plans/p4-board.md` |
 | P3, campaigns: the design, the build order, the open questions | `plans/p3-tables.md` |
 | Deploying to the home server: the container, the tunnel, the backups | `deploy/homeserver.md` |
+| Accounts: email, password change, logins, delete, rename | `plans/account-management.md` |
 | Variant-menu Charms | `plans/variant-menu-charms.md` |
 | Why the Mist numina are deferred: there is no effect list to author | `status/mist-numina.md` |
 | The full multi-splat plan | `~/.claude/plans/should-we-plan-out-encapsulated-crab.md` |

@@ -495,9 +495,13 @@ These are already recorded elsewhere and will bite this work specifically.
   `kill` on the wrapper PID leaves the listener answering 200 off the old build. Get the
   PID from `ss -ltnp | grep 8080`. **Cost two sessions.** A hosted, long-running process
   makes this worse, not better.
-* ⚠ **The app reports no version anywhere.** Already unanswerable on the desktop; on a
-  server with players connecting, *"is everyone on the same build?"* becomes a support
-  question with no answer. Worth closing before hosting, not after.
+* ~~⚠ **The app reports no version anywhere.**~~ — ✅ **closed for the hosted site
+  2026-09-26:** the site menu's last line is "Build <hash> · <date>"
+  (`exalted_builder/build_info.py`). The deploy writes `exalted_builder/BUILD_COMMIT`
+  (`docs/deploy/homeserver.md`); a checkout falls back to `git`. `pyproject.toml`'s
+  `1.0.0` is never shown — nothing bumps it. ⚠ **The desktop still reports nothing**:
+  it has no menu, and the PyInstaller build has no `BUILD_COMMIT` (the release workflow
+  would have to write one).
 
 ---
 
@@ -834,9 +838,14 @@ page is the first read site.
 contact line (`EXALTED_ADMIN_CONTACT`) and the unofficial-fan-site notice, which names no
 owner, stay real. The human writes the text.
 
-**Not done, deliberately.** No `robots.txt` / `sitemap.xml` — a sitemap needs the public
-base URL, which behind the reverse proxy is not `request.base_url`; crawlers follow the
-links meanwhile. ~~The wiki does not show the trait text, the ST-screen tables, artifacts,
+~~**Not done, deliberately.** No `robots.txt` / `sitemap.xml`.~~ ✅ **2026-09-26**
+(`server/crawl.py`, asked for by the human): `/robots.txt` closes the account pages
+(`/home`, `/character/`, `/table/`, login/signup/logout, the socket) and names the
+sitemap; `/sitemap.xml` lists `/`, `/about`, `/wiki`, each section and every entry
+(3,182 on 2026-09-26) from the wiki's BOOK ruleset — never homebrew. The base URL comes
+from the request's `Host` and `X-Forwarded-Proto` (the tunnel sets it; checked live: all
+`https://`). ⚠ `/_nicegui/` stays crawlable: the public pages load their icon font there.
+Both paths are in `auth.OPEN_PATHS` and `test_auth_gate.py::PUBLIC_ROUTES`. ~~The wiki does not show the trait text, the ST-screen tables, artifacts,
 thaumaturgy or the Dragon-King Paths yet.~~ ✅ 2026-09-23: seven sections added, 12 in all —
 Thaumaturgy, Paths & Powers (Dragon-King Paths, elemental powers), Traits (Attributes,
 Abilities, Virtues, Natures, Virtue Flaws), Castes (castes/aspects with anima powers,
@@ -858,6 +867,12 @@ drawers draw as text, not a link. The top bar's Log out reads **"<name> · Log o
 (`nav.logout_label`), and so does the ⋮ menu item on the builder and campaign pages,
 which have no top-bar Log out. "Logged in as" is the front page's wording (one word for
 one thing). Tests: `test_site_menu.py`.
+✅ **2026-09-26 (human):** the public top bar now holds ONLY the account controls —
+"<name> · Log out", or Log in / Sign up — and the places live in ☰ alone. The name still
+shows in both, as ruled above. The menu's account group gained **Account settings**
+(`/account`). See `docs/plans/account-management.md`. Not touched: the **Home** button of
+the builder, base and campaign pages (§9.9), which duplicates ☰ → Your characters —
+left for the human to decide.
 
 ### 9.8 SHIPPED 2026-09-12 — `/home`, the character pages, the base and the copy (piece 4)
 

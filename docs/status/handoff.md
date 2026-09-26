@@ -1,33 +1,58 @@
-# Session handoff — 2026-09-25 (P4 board + Pools tab + token images: done, clicked, deployed)
+# Session handoff — 2026-09-26 (account management, build line, crawler files: done, clicked, deployed)
 
 # 👉 YOU ARE HERE
 
-**P4 (the board) is DONE and BROWSER-VERIFIED by the human, 2026-09-25**, and so are the
-two additions asked for after it: the table's **Pools** tab and **token images**
-(*"Everything looks good."*).
+**Account management is DONE and BROWSER-VERIFIED by the human, 2026-09-26**, in two
+rounds, and **deployed**. Plus three smaller items from the old NEXT list.
 
-* The board: `docs/plans/p4-board.md` (§5 rulings, §8 build log, the click-through
-  additions: colour → Pen, multiselect, right-drag pans / left-drag boxes, token images).
-* The Pools tab: `docs/plans/p3-tables.md` §14 "The Pools tab". A player sees the pools
-  of the copy they open as; the ST picks from their NPCs and every player's copy.
-  Decisions 0016 and 0019 are unchanged: no row rolls itself.
-* Campaign folders are 50 MB; accounts stay 10 MB. The Log's Enter sends its text with
-  the key event.
-* 🐞 Carry: an icon name missing from NiceGUI's font draws as invisible overflowing
-  text that steals hover (`ink_eraser`). No test catches it; sweep in a browser.
+* **Accounts** — `docs/plans/account-management.md` (rulings, design, build log, both
+  click-throughs). `/account` ("Account settings" in ☰): email, password change, log out
+  other devices, delete, **rename**. Optional email at signup. `users list` shows the
+  email, `users reset` names the address to send to, `users delete` is new. ⚠ The email
+  **reopens** the 2026-09-11 "no email column" ruling; the reset stays manual.
+* **The top bar** of the public pages holds only the account controls; the places are
+  in ☰ (human ruling). `vtt.md` §9.7, the 2026-09-26 note.
+* **Build line** — the menu's last line is "Build <hash> · <date>"; the deploy writes
+  `exalted_builder/BUILD_COMMIT`. `vtt.md` §5 (the version trap, closed for hosted).
+* **`/robots.txt` and `/sitemap.xml`** — `vtt.md` §9.7. Checked live: 3,197 `https://`
+  addresses.
+* **The Advantages tabs' ten duplicated strings** now live in `ui/view.py`, guarded by a
+  seam test. `qt-port.md` "Shared display text".
+* 🐞 **Found on the way:** (1) a deleted newest account would have handed its id to the
+  next signup — the delete keeps a tombstone row; (2) an open page's auto-save would have
+  recreated a deleted account's folder — the quota guard now refuses it; (3) wiring state
+  in a module global is invisible to the gate from an earlier main-file test — it lives on
+  `app.state` now; (4) the "duplicated strings" are **~95** across all shell pairs, not
+  ten — only Advantages is fixed (human: *"fix later"*).
 
-**Full suite: 4294 passed + 1 skipped — OBSERVED** at this close-out (20 min), after all
-of the above. P3's close-out was 4192 + 1 skipped.
+**Full suite: 4374 passed + 1 skipped — OBSERVED** at this close-out (21 min), after all
+of the above. The last close-out was 4294 + 1 skipped. The skip is the same one
+(`test_merit_postlock.py:257`).
 
-**Working tree:** clean after the close-out commit; pushed to `origin/main`.
+**Working tree:** clean after the close-out commit; the three feature commits `7b51612`,
+`4e0e0f9`, `569c202` and the close-out are pushed to `origin/main`.
 
-**Deployed (2026-09-25):** `6c8658d` is LIVE on `https://exalted.x6568tank.com`, rebuilt by `claude` with `exalted-rebuild`. Checked from outside: `/`, `/wiki`, `/login` 200; `/home` and the new `/table/…/board-token/…` route send a visitor to login; the log says NiceGUI ready.
+**Deployed (2026-09-26):** `569c202` is LIVE on `https://exalted.x6568tank.com`, rebuilt
+by `claude` with `sudo -n exalted-rebuild`. Checked from outside: `/`, `/wiki`, `/login`,
+`/signup`, `/robots.txt`, `/sitemap.xml` 200; `/home` and `/account` send a visitor to
+login; the menu reads "Build 569c202 · 2026-09-26"; the log says NiceGUI ready. The new
+tables were made at start; existing logins survive (no stored epoch = epoch 0).
 
-🖱 **Owed:** nothing.
+🖱 **Owed:** nothing from this session (see the 🖱 section for two carried items).
 
-❓ **Open for the human:** nothing.
+❓ **Open for the human:** no rules questions; the design choices made without asking
+are listed at the end.
 
-**Next:** open. P0–P4 of `vtt.md` are done.
+**Next:** open — see 👉 NEXT.
+
+---
+
+## The session before — P4, the Pools tab, token images (2026-09-25)
+
+P4 (the board) DONE and BROWSER-VERIFIED, with the Pools tab and token images; `6c8658d`
+deployed. Full suite then 4294 passed + 1 skipped, observed. Detail: `p4-board.md`,
+`p3-tables.md` §14 "The Pools tab". 🐞 Carried: an icon name missing from NiceGUI's font
+draws as invisible overflowing text that steals hover (`ink_eraser`); no test catches it.
 
 ---
 
@@ -483,7 +508,7 @@ The server copy is `5dfa31e`; the human rebuilds to pick up the Lorem Ipsum Abou
   whose book defaults to "Core"). The wiki is the first read site.
 * **Design choices made without asking, all reversible:** `/home` IS the builder until
   piece 4 builds the landing page; `/logout` lands on `/`; paging at 100; no
-  `robots.txt`/sitemap yet (needs the public base URL); the whole look — restyled
+  `robots.txt`/sitemap yet (✅ both added 2026-09-26, `server/crawl.py`); the whole look — restyled
   twice the same day and now **matching the NiceGUI builder** (header bar, tab strip,
   tinted cards, Roboto/Material icons from NiceGUI's own fonts, per-splat palette); §9.7
   has both rounds of the human's feedback. ⚠ A new `Palette.fam` needs a row in
@@ -538,9 +563,9 @@ understood.
 
 ### ⚠ Known limits still open — §5.1d has each with its cost
 
-A reset does not end existing logins; signup is not rate-limited; no account delete;
-homebrew is outside the quota; the session id still does not rotate at login (only the
-physical-access case remains); **a LAN player on plain `http://192.168…` cannot log in**
+~~A reset does not end existing logins~~ (✅ 2026-09-26); signup is not rate-limited;
+~~no account delete~~ (✅ 2026-09-26); ~~homebrew is outside the quota~~ (✅ 2026-09-12);
+the session id still does not rotate at login (only the physical-access case remains); **a LAN player on plain `http://192.168…` cannot log in**
 — the Secure cookie needs HTTPS or `localhost`.
 
 ## 🎲 Answered this session — the Table replaces `/gm`
@@ -553,43 +578,30 @@ of a table.
 
 ## 👉 NEXT — in rough order of what would bite
 
-- **Make the signup and login pages look good** (human, 2026-09-22). `/login` and
-  `/signup` (`server/auth.py`) are still the plain forms from §5 piece 3. Follow
-  `match-the-builder-look`: copy the builder's design, spike, screenshot, iterate.
+Nothing is in flight. P0–P4 of `vtt.md` are done; account management is done. Pick from:
+
+- **The ~95 shared display strings between the Qt and NiceGUI shells** (human: *"fix
+  later"*, 2026-09-26). The Advantages pair is done and guarded; every other pair is not.
+  `docs/plans/qt-port.md` "Shared display text". ⚠ Widen
+  `test_the_advantages_tabs_share_no_display_text` to all pairs in the SAME change that
+  empties them — a guard that is red on arrival gets ignored.
+- **The Home button** on the builder, base and campaign pages duplicates ☰ → Your
+  characters (human: *"figure out later"*). It is a §9.9 builder top-bar ruling, so it is
+  the human's to reopen. `vtt.md` §9.7, the 2026-09-26 note.
 - **The About text** is Lorem Ipsum until the human writes it (`server/public.py`).
-- ✅ **DEPLOYED 2026-09-12 to `https://exalted.x6568tank.com`** (commit `7cd594f`,
-  checked from outside). ✅ **A real signup in the human's browser worked**, and a
-  name change survived leaving — so the websocket crosses the Cloudflare Tunnel and the
-  hosted save writes through. `claude` now logs in to the server by key
-  (`~/.ssh/id_ed25519_gilserver_claude` on the dev machine).
-- **Deploy to `gilserver`** — `docs/deploy/homeserver.md` has every step. `Dockerfile` +
-  `.dockerignore` are new and the image was built and probed locally (front page, wiki,
-  `/home` → login, `__Host-` cookie, database owned by uid 1000). HTTPS is the existing
-  Cloudflare Tunnel; the container is published on `127.0.0.1:8090` only. The `claude`
-  account on the server has no `docker`/`sudo` on purpose, so the build, the Compose
-  entry and the tunnel rule are the human's to run.
-- **Wiki sections not yet shown**, all in `data/`, same pattern: trait text, the
-  ST-screen tables, artifacts, thaumaturgy, the Dragon-King Paths. Plus `robots.txt` and a
-  sitemap once the public base URL is settled, and a Wiki link in the logged-in builder.
-- **§5 piece 4 — the DB.** ✅ §5.3's per-account homebrew is measured, ruled and
-  built (this session, top of file). What is left is the DB layout itself.
-  ⚠ **The layout grew on 2026-09-12** — several characters, base characters, tables,
-  pending memberships: `vtt.md` §9.3. Both base-character questions are ruled (§9.2):
-  a base change reaches **later copies only**, and a copy **can** exist with no campaign.
 - **Backgrounds `source` — 51 of 63 DONE. 12 left, and they need a human with a page.**
   `status/backgrounds.md` lists all 12 with their scores. Two are Lunar and have no
   page-marked text on this machine at all. ⚠ **Do not lower the matcher threshold to
   clear them.**
-- ✅ **Roll initiative for the whole table — DONE 2026-09-25** (P3 step 9, the gate).
-  Stays a one-off: initiative's +1d10 is a printed fixed count. Do not generalise it.
+- **The desktop reports no version.** The hosted menu does ("Build <hash> · <date>");
+  the desktop has no menu and its PyInstaller build no `BUILD_COMMIT`. `vtt.md` §5.
+- **Auth limits still open, all known and costed** (`hosting-state-model.md` §5.1d):
+  signup is not rate-limited and accounts are not capped — ⚠ the human asked and ruled
+  **"not now"** (2026-09-26): watch `users list` and the disk instead; the session id does
+  not rotate at login; **a tab already open when its login ends keeps working until it
+  loads a page** (every page load checks the login epoch; the open socket does not).
 - **A content-fidelity SCRIPT** (`tools/`) — diff authored descriptions against pasted
   source and REPORT differences. ⚠ **An option, not a debt.** It must never go into the suite.
-- ⚠ **The duplicated Merit/Flaw strings — and it is TEN, not one.** Intersecting the
-  string literals of `qt/advantages.py` and `ui/advantages.py` with `ast` gives **10 shared
-  literals of 40+ characters**, byte-identical, with nothing stopping them drifting.
-  ⚠ Older handoffs called this "the duplicated sentence", singular — a one-sentence framing
-  invites a one-line fix that leaves nine behind. `ui/view.py` owns every other shared
-  string and should own these.
 
 ## ⚠ Traps still live
 
@@ -599,78 +611,63 @@ server (every restart invalidates every session cookie, so every browser gets a 
 session directory and loses sight of its auto-saved character). ⚠ **Do not call
 `storage_secret()` from anything hosted.** §5.1a.
 
-**Never patch by dotted string in this repo.** After any `nicegui_main_file` test,
-`sys.modules["exalted_builder"]` is a hollow stub, and a dotted monkeypatch target fails
-by test-file ORDER. `test_engine_seam.py::test_no_test_patches_by_dotted_string` enforces
-it. Import the module and patch the object.
+**Wiring state goes on `app.state`, not in a module global** (found 2026-09-26). A
+NiceGUI main-file test re-imports the package; the gate installed by an EARLIER case
+belongs to the old module and reads a global that nothing set. Symptom: a hosted test
+passes alone and fails second in its file. `auth._db_path()` is the example.
 
-**`should_not_see` races async click handlers.** It returns on the first attempt at which
-the text is absent. After a click, settle with a `should_see` on something the branch
-produces first. See `feedback_should_not_see_races_async_handlers`.
+**`auth.current_username()` reads the DATABASE** (2026-09-26). The login also stores the
+name, but a rename on another device changes only the database. Do not "optimise" it back
+to the stored name — `test_another_device_shows_the_new_name` guards it.
 
-**The prototype path is OUTSIDE the session root, on purpose.** A prototype inside the
-root makes every `is_relative_to(root)` assertion pass with no isolation at all. §5.1a.
-
-**The stale server wears a healthy port.** `reload=False`; a `kill` on the PID from
-`pgrep … | tail -1` kills the WRAPPER, not the listener, and `curl` still answers **200**
-off the old build. **Get the PID from `ss -ltnp | grep <port>`.**
-
-**Any `ui.run` that registers these routes must pass a `storage_secret`.** `session_key()`
-raises without one, on purpose. `server/main.py` passes the **required** accessor.
+**A deleted account is a tombstone row, never a removed row.** `users.id` has no
+AUTOINCREMENT; removing the newest row hands its id (log lines, notes files) to the next
+signup. `db.tombstone_user`, `docs/plans/account-management.md`.
 
 **The width budget** — `_BOXES_PER_ROW`, the tracker box sizes and `_RAIL_WIDTH` are ONE
 budget, and no test can see it. Measure `page._scroll.widget().minimumSizeHint().width()`
 against `page._scroll.viewport().width()`.
 
-**The app still reports no version anywhere.** There is a runnable server, so *"is
-everyone on the same build?"* is a live support question. Pair it with the launcher trap:
-`branding.install_desktop_entry()` writes `Exec=` from `sys.executable`. ⚠ Check the DATES
-before blaming the build; the stale-binary theory has been wrong twice.
+**The launcher trap:** `branding.install_desktop_entry()` writes `Exec=` from
+`sys.executable`. ⚠ Check the DATES before blaming the build; the stale-binary theory has
+been wrong twice.
 
 ## 🖱 Not browser-verified — what a human should click
 
-**The public pages (new 2026-09-12).** Start the hosted server and, logged OUT:
-`/` shows Wiki / Log in or make an account / About; `/wiki` shows five tabs with counts; a
-Charm page links its prerequisite; the dropdowns filter on change; search finds
-"ox body"; a Lunar Charm page (or the Exalt-type filter set to Lunar) re-themes to the
-builder's Lunar palette; at phone width the header buttons shrink to icons and tables
-become stacked rows. Then log in: it lands on `/home`; `/` now says **Your characters**;
-**Log out** lands on `/`.
+**Nothing from this session.** Both rounds (account management; the top bar and the
+rename) were clicked by the human on 2026-09-26, the short list of what the tests cannot
+see — `account-management.md` has both lists.
 
-**Piece 4 (new 2026-09-12)** — logged in, at `http://localhost:8080`:
-1. `/home` shows CHARACTERS (0) and CAMPAIGN COPIES (0). **New character** opens
-   `/character/<id>` in the builder; the top bar has **Home**, and no Party, New or Load.
-2. Name it, wait 5 s (auto-save) or press Save, press **Home**: it is listed as **Draft**.
-3. Open it, **Finish & Lock**: the page becomes the read-only **Base** page (sheet, no
-   tabs). **Make a campaign copy** opens the copy in the builder (locked, XP mode).
-4. `/home` lists the base as **Base** and the copy as **Copy of <name>**.
-5. **Unlock to edit** on the base returns it to the builder.
-6. **Import a .character.json** on `/home` (use a Download a copy file) makes a new
-   character; homebrew it carries appears on that character's Custom tab.
-7. **Delete** the base: the confirm names it; the copy stays, "Its base is deleted".
-8. A second account cannot open the first account's `/character/<id>` URL: "There is
-   no such character."
-9. `/gm` answers 404 on the server.
+Carried, never formally clicked:
 
-✅ **Auth — PASSED 2026-09-12**, all eleven steps (§5.1d). ⚠ For the next hosted
-click-through: browse to `http://localhost:8080`, not `127.0.0.1` (Secure cookie), and
-hand `users reset` over for a real terminal (`getpass`).
+1. **Save on the DESKTOP still opens the filename prompt and downloads.**
+   Run `python -m exalted_builder.ui.builder`. Confirm the hosted-only buttons — Download
+   a copy, Log out, and the party's Download a copy — are absent there.
+2. **The public pages' 2026-09-12 list** (§9.7) was never recorded as a click-through,
+   though the pages have been in daily use on the live site since. If it is wanted: a
+   Charm page links its prerequisite; the wiki dropdowns filter on change; search finds
+   "ox body"; a Lunar Charm page takes the Lunar palette; at phone width tables become
+   stacked rows.
 
-1. **Save on the DESKTOP still opens the filename prompt and downloads** (carried).
-   Run `python -m exalted_builder.ui.builder`. Confirm the hosted-only buttons —
-   **now three: Download a copy, Log out, and the party's Download a copy** — are
-   absent there.
-
-⚠ The Qt shell is untouched by this session.
+⚠ For any hosted click-through: browse to `http://localhost:8080`, not `127.0.0.1`
+(Secure cookie), and hand `users reset` over for a real terminal (`getpass`). The Qt
+shell is untouched by this session apart from reading the shared Advantages text.
 
 ## ❓ Open for the human
 
 - **No open RULES questions.** This session touched no game values.
 - **Design choices made without asking, all reversible:**
-  - **Rate-limit numbers:** 5 free, 30 s doubling to 15 min, forget after 1 h.
-  - **`DEFAULT_HOST` stays loopback** now that `--public` is gone.
-  - **No filename prompt on "Download a copy"** (carried).
-  - **A separate strict secret accessor** (carried).
+  - **The email check is loose on purpose:** one `@`, a dot after it, no spaces, at most
+    254 characters. It catches a typo, not every bad address — the reset is manual.
+  - **Two accounts may share one email** (a player with two accounts).
+  - **A rename does not end logins**; a password change, reset, logout-elsewhere and
+    delete do.
+  - ✅ **The sitemap lists every wiki entry**, inviting search engines to index the
+    transcribed rulebook text — asked after the fact; the human: *"Decision is fine."*
+    (2026-09-26).
+  - **Rate-limit numbers:** 5 free, 30 s doubling to 15 min, forget after 1 h (carried).
+  - **`DEFAULT_HOST` stays loopback**; **no filename prompt on "Download a copy"**; **a
+    separate strict secret accessor** (all carried).
 
 ## Still deferred, still NOT gaps
 

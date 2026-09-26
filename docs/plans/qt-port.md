@@ -2082,3 +2082,21 @@ correct — that dialog's own detail pane shows the whole text).
 `test_a_merits_rules_text_is_printed_WHOLE_in_the_detail_pane` probes the LONGEST
 description in the rule set, so it cannot rot into probing a short one, and was
 negative-controlled by putting the clamp back.
+
+## Shared display text — the Advantages pair (2026-09-26)
+
+The handoff had carried "the duplicated Merit/Flaw strings — TEN, not one" since the
+advantages extraction. Done: the ten 40+-character literals that `qt/advantages.py` and
+`ui/advantages.py` both carried now live in `ui/view.py` (`DEMESNE_TOGGLE_LABEL`,
+`CUSTOM_MERIT_NOTE`, `MERIT_EXPERIENCE_PRICING_NOTE`, `xp_debt_note`, `merit_method_note`,
+`flaw_room_note`, `flaw_excess_note`, `merit_side_label`, `fetter_budget_text`). The
+eleventh match was a docstring and stays.
+`test_engine_seam.py::test_the_advantages_tabs_share_no_display_text` fails on any
+shared literal of 40+ characters in that pair (docstrings excluded); it finds all ten
+against the old code.
+
+⚠ **The same scan over EVERY qt/ui pair finds ~95 shared literals** — editor, charms/picker,
+play, custom, adversaries, gear, party/gm, combos, main_window/builder. "Ten" understated
+it the same way "one" had. The human: **fix later** (2026-09-26). When it is taken up,
+widen the seam test to all pairs in the same change, not before — a guard that is red on
+arrival teaches the reader to ignore it.
