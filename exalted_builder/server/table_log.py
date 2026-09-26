@@ -71,11 +71,9 @@ class LogRoll:
 class InitiativeLine:
     """One combatant of an initiative roll, in the turn order.
 
-    `name` is for each member. `st_name` is for the Storyteller only, and is empty
-    when it is the same as `name`. `group` is "party", "ally" or "enemy".
-
-    ⚠ An enemy NPC has the `name` "Enemy" (the step-8 Log rule). Its real name is in
-    `st_name`. The page draws `st_name` for the Storyteller only.
+    `name` is for each member, an enemy NPC too. `group` is "party", "ally" or
+    "enemy". `bonus` and `first` are the adjustments of the Storyteller for this
+    roll (`engine.initiative.TurnRoll`).
     """
 
     name: str
@@ -83,11 +81,12 @@ class InitiativeLine:
     rating: int
     d10: int
     tied: bool = False
-    st_name: str = ""
+    bonus: int = 0
+    first: bool = False
 
     @property
     def total(self) -> int:
-        return self.rating + self.d10
+        return self.rating + self.bonus + self.d10
 
 
 @dataclass(frozen=True)
@@ -118,7 +117,8 @@ def _entry_from(data: dict) -> LogEntry:
         initiative=None if lines is None else tuple(
             InitiativeLine(name=str(ln["name"]), group=str(ln["group"]),
                            rating=int(ln["rating"]), d10=int(ln["d10"]),
-                           tied=bool(ln.get("tied")), st_name=str(ln.get("st_name") or ""))
+                           tied=bool(ln.get("tied")), bonus=int(ln.get("bonus") or 0),
+                           first=bool(ln.get("first")))
             for ln in lines))
 
 

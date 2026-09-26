@@ -254,5 +254,47 @@ def test_only_the_equal_dexterity_plus_wits_stay_tied_inside_a_tie():
     assert [p.tied for p in placed] == [False, True, True]
 
 
+# --- the Storyteller's adjustments (human, 2026-09-25) ---------------------
+#
+# Charms that change initiative are not modelled. The Storyteller types a bonus
+# for one roll, and ticks "first" for a Charm that acts before everyone. Two or
+# more "first" entries go in the normal order between them.
+
+def test_the_bonus_is_part_of_the_total():
+    roll = initiative.TurnRoll(key="a", rating=6, d10=4, bonus=3)
+    assert roll.total == 13
+    assert initiative.TurnRoll(key="a", rating=6, d10=4, bonus=-2).total == 8
+
+
+def test_the_bonus_changes_the_order():
+    placed = initiative.turn_order([
+        _roll("a", 5, 5), initiative.TurnRoll(key="b", rating=5, d10=3, bonus=4)])
+    assert [p.roll.key for p in placed] == ["b", "a"]
+
+
+def test_a_first_entry_goes_before_a_higher_total():
+    placed = initiative.turn_order([
+        _roll("a", 9, 9), initiative.TurnRoll(key="b", rating=2, d10=1, first=True)])
+    assert [p.roll.key for p in placed] == ["b", "a"]
+    assert not any(p.tied for p in placed)
+
+
+def test_first_entries_go_in_the_normal_order_between_them():
+    first = [initiative.TurnRoll(key="a", rating=3, d10=2, first=True, dex_wits=4),
+             initiative.TurnRoll(key="b", rating=6, d10=4, first=True, dex_wits=4),
+             initiative.TurnRoll(key="c", rating=4, d10=1, first=True, dex_wits=7),
+             initiative.TurnRoll(key="d", rating=4, d10=1, first=True, dex_wits=4)]
+    placed = initiative.turn_order([_roll("z", 9, 9)] + first)
+    assert [p.roll.key for p in placed] == ["b", "c", "a", "d", "z"]
+    assert [p.tied for p in placed] == [False, False, True, True, False]
+
+
+def test_a_first_entry_does_not_tie_with_an_equal_total_that_is_not_first():
+    placed = initiative.turn_order([
+        _roll("a", 5, 5), initiative.TurnRoll(key="b", rating=5, d10=5, first=True)])
+    assert [p.roll.key for p in placed] == ["b", "a"]
+    assert not any(p.tied for p in placed)
+
+
 def test_dexterity_plus_wits_of_a_character():
     assert initiative.dex_wits(_char(dex=4, wits=2)) == 6

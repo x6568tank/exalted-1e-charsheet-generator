@@ -156,15 +156,22 @@ def dex_wits(character: Character) -> int:
 @dataclass(frozen=True)
 class TurnRoll:
     """One entry of one turn: the rating, the face of its d10, and Dexterity + Wits.
-    `dex_wits` is None for an entry that does not have both Attributes."""
+    `dex_wits` is None for an entry that does not have both Attributes.
+
+    `bonus` and `first` are the Storyteller's, for this roll only. `bonus` is added
+    to the total. `first` puts the entry before each entry that is not first. A
+    Charm is the usual reason; the app does not know which Charm.
+    """
     key: str
     rating: int
     d10: int
     dex_wits: Optional[int] = None
+    bonus: int = 0
+    first: bool = False
 
     @property
     def total(self) -> int:
-        return self.rating + self.d10
+        return self.rating + self.bonus + self.d10
 
 
 @dataclass(frozen=True)
@@ -178,17 +185,21 @@ class Placed:
 def turn_order(rolls: list[TurnRoll]) -> list[Placed]:
     """In: the rolls of one turn. Out: the rolls, the highest total first.
 
+    Each `first` entry goes before each entry that is not `first`. The rules below
+    apply inside each of the two groups. A `first` entry never ties with an entry
+    that is not `first`.
+
     Entries with the same total go in the order of the higher Dexterity + Wits,
     if each of them has it. Entries that stay equal are `tied`. A tie with an
     entry that has no Dexterity + Wits stays whole: each entry of it is `tied`.
     Tied entries keep the order of `rolls`.
     """
-    groups: dict[int, list[TurnRoll]] = {}
+    groups: dict[tuple[bool, int], list[TurnRoll]] = {}
     for r in rolls:
-        groups.setdefault(r.total, []).append(r)
+        groups.setdefault((r.first, r.total), []).append(r)
     placed: list[Placed] = []
-    for total in sorted(groups, reverse=True):
-        group = groups[total]
+    for place in sorted(groups, reverse=True):
+        group = groups[place]
         if len(group) == 1:
             placed.append(Placed(group[0]))
         elif any(r.dex_wits is None for r in group):

@@ -11,8 +11,13 @@ P3 (section 9). Rulings, human, 2026-09-24:
     initiative. An entry with no Base initiative cannot roll.
   * Each combatant rolls 1d10, added to the rating. The order is
     `engine.initiative.turn_order`: ties break on Dexterity + Wits, else "tied".
-  * The result is one entry in the Log. A roster entry is named there. A
-    full-character enemy NPC is "Enemy" (the step-8 Log rule).
+  * The result is one entry in the Log. Each combatant is named there, an enemy
+    NPC too (human, 2026-09-25).
+
+Rulings, human, 2026-09-25: Charms that change initiative are not modelled
+(decision 0008). The Storyteller types a bonus for one roll, and ticks "first" for
+a Charm that acts before everyone. Two or more "first" entries go in the normal
+order between them (`engine.initiative.turn_order`).
 
 ⚠ The server rolls the d10 with `engine.dice.roll`. The browser sends the keys of
 the ticked combatants only. A key that is not a combatant now does not roll.
@@ -42,14 +47,17 @@ from ..ui import view as viewmod
 from .characters import CharacterRow, CharacterStore
 from .rulesets import Rulesets
 from .session import SessionRegistry
-from .table_log import InitiativeLine, LogEntry, TableLog
+from .table_log import InitiativeLine, LogEntry, TableLog, TableLogError
 from .table_roster import TableRoster
 from .tables import STORYTELLER, TableStore, TableStoreError
 
 log = logging.getLogger(__name__)
 
 PARTY = "party"
-ENEMY_NAME = "Enemy"
+
+# The largest bonus that the dialog accepts, plus or minus. An input check, not a
+# rule of the game.
+MAX_BONUS = 99
 
 # The order of the groups in the checklist.
 _GROUPS = (PARTY, ALLY, ENEMY)
@@ -59,7 +67,7 @@ _GROUPS = (PARTY, ALLY, ENEMY)
 class Combatant:
     """One entry that can roll. `key` is "char:<copy id>" or "adv:<roster id>".
 
-    `name` is the real name, for the Storyteller. `rating` is None for a roster
+    `name` is the name of the character or the entry. `rating` is None for a roster
     entry with no Base initiative. `weapon` is the weapon in hand, "" for unarmed
     and for a roster entry. `dex_wits` is None when the entry does not have both.
     """
@@ -67,7 +75,6 @@ class Combatant:
     key: str
     name: str
     group: str
-    npc: bool
     rating: int | None
     weapon: str = ""
     dex_wits: int | None = None
@@ -96,9 +103,8 @@ class TableInitiative:
         sides = self.tables.npc_sides(table_id)
         storyteller = self.tables.table(table_id).storyteller_id
         for row in self.tables.characters(table_id):
-            npc = row.owner_id == storyteller
-            group = sides.get(row.id, ENEMY) if npc else PARTY
-            combatant = self._character(table_id, row, group, npc)
+            group = sides.get(row.id, ENEMY) if row.owner_id == storyteller else PARTY
+            combatant = self._character(table_id, row, group)
             if combatant is not None:
                 found.append(combatant)
         for entry in self.roster.party(st_id, table_id).adversaries:
@@ -106,43 +112,54 @@ class TableInitiative:
         return sorted(found, key=lambda c: (_GROUPS.index(c.group), c.key.startswith("adv:")))
 
     def roll(self, st_id: int, table_id: str, keys: list[str], *,
+             bonus: dict[str, int] | None = None, first: set[str] | None = None,
              rng: random.Random | None = None) -> LogEntry:
         """Roll 1d10 for each combatant in `keys`, in the order of `keys`. Post the
         turn order to the Log. Return the entry.
 
-        Refuse all but the Storyteller. Skip a key that is not a combatant now and a
+        `bonus` maps a key to a number that is added to its total. `first` is the
+        keys that go before the others. A key in them that does not roll does
+        nothing.
+
+        Refuse all but the Storyteller, and a bonus that is not a whole number from
+        -`MAX_BONUS` to `MAX_BONUS`. Skip a key that is not a combatant now and a
         combatant with no rating. Refuse when nothing is left. `rng` is for the tests.
         """
+        bonus = dict(bonus or {})
+        first = set(first or ())
+        for value in bonus.values():
+            # ⚠ `bool` is an `int`. A tick sent as a bonus is refused.
+            if (not isinstance(value, int) or isinstance(value, bool)
+                    or abs(value) > MAX_BONUS):
+                raise TableLogError(
+                    f"A bonus is a whole number from -{MAX_BONUS} to {MAX_BONUS}.")
         by_key = {c.key: c for c in self.combatants(st_id, table_id)}
         rolling = [by_key[k] for k in dict.fromkeys(keys)
                    if k in by_key and by_key[k].rating is not None]
         rolls = [initmod.TurnRoll(key=c.key, rating=c.rating,
-                                  d10=dice.roll(1, rng=rng).faces[0], dex_wits=c.dex_wits)
+                                  d10=dice.roll(1, rng=rng).faces[0], dex_wits=c.dex_wits,
+                                  bonus=bonus.get(c.key, 0), first=c.key in first)
                  for c in rolling]
-        hidden = [c for c in rolling if c.npc and c.group == ENEMY]
-        public = {c.key: (ENEMY_NAME if len(hidden) == 1 else f"{ENEMY_NAME} {i}")
-                  for i, c in enumerate(hidden, start=1)}
         lines = []
         for placed in initmod.turn_order(rolls):
             c = by_key[placed.roll.key]
-            name = public.get(c.key, c.name)
             lines.append(InitiativeLine(
-                name=name, group=c.group, rating=placed.roll.rating,
-                d10=placed.roll.d10, tied=placed.tied,
-                st_name=c.name if name != c.name else ""))
+                name=c.name, group=c.group, rating=placed.roll.rating,
+                d10=placed.roll.d10, tied=placed.tied, bonus=placed.roll.bonus,
+                first=placed.roll.first))
         return self.log.post_initiative(st_id, table_id, lines)
 
     # ---- helpers ------------------------------------------------------------ #
 
-    def _character(self, table_id: str, row: CharacterRow, group: str,
-                   npc: bool) -> Combatant | None:
+    def _character(self, table_id: str, row: CharacterRow,
+                   group: str) -> Combatant | None:
         character, ruleset = self._read(table_id, row)
         if character is None:
             return None
         index = viewmod.wielded_index(character)
         rating = viewmod.build_initiative(ruleset, character, weapon_index=index)
         return Combatant(key=f"char:{row.id}", name=character.name or "(unnamed)",
-                         group=group, npc=npc, rating=rating.total, weapon=rating.weapon,
+                         group=group, rating=rating.total, weapon=rating.weapon,
                          dex_wits=initmod.dex_wits(character))
 
     def _read(self, table_id: str, row: CharacterRow) -> tuple[Character | None, RuleSet]:
@@ -167,5 +184,5 @@ def _adversary(entry: Adversary) -> Combatant:
     printed Attributes, if it prints both."""
     dex, wits = entry.attributes.get("dexterity"), entry.attributes.get("wits")
     return Combatant(key=f"adv:{entry.id}", name=entry.name or "(unnamed)",
-                     group=entry.side, npc=False, rating=entry.base_initiative,
+                     group=entry.side, rating=entry.base_initiative,
                      dex_wits=None if dex is None or wits is None else dex + wits)

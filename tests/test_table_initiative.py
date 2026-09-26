@@ -7,8 +7,8 @@ The gate of P3 (`docs/plans/p3-tables.md` sections 9 and 15.4). Rulings, human,
     (`PlayState.in_hand`). The rating reads it. The default is unarmed.
   * The Storyteller rolls from a checklist of each player copy, each NPC and each
     roster entry, all ticked.
-  * The result goes to the Log. A roster entry is named there. A full-character
-    enemy NPC is "Enemy" (the step-8 Log rule).
+  * The result goes to the Log. Each combatant is named there, an enemy NPC too
+    (human, 2026-09-25).
   * Ties break on Dexterity + Wits, else "tied". A roster entry with no Base
     initiative cannot roll.
 
@@ -255,8 +255,9 @@ def test_an_unticked_combatant_does_not_roll(init, table):
     assert [ln.name for ln in entry.initiative] == ["Ashes"]
 
 
-def test_an_enemy_npc_is_not_named_in_the_log_but_a_roster_enemy_is(
-        init, tables, store, table, roster):
+def test_each_combatant_is_named_in_the_log(init, tables, store, table, roster):
+    """Human, 2026-09-25: an enemy NPC is named to the players in the turn order.
+    This replaces the step-8 "Enemy" name for initiative only."""
     _npc(tables, store, table, "Bandit Lord", ENEMY)
     _npc(tables, store, table, "Assassin", ENEMY)
     _npc(tables, store, table, "Old Friend", ALLY)
@@ -264,25 +265,16 @@ def test_an_enemy_npc_is_not_named_in_the_log_but_a_roster_enemy_is(
     keys = [c.key for c in init.combatants(ST, table.id)
             if c.group != "party"]
     entry = init.roll(ST, table.id, keys, rng=_Faces(1, 1, 1, 1))
-
-    public = {ln.name for ln in entry.initiative}
-    assert public == {"Enemy 1", "Enemy 2", "Old Friend", "Bandit"}
-    assert {ln.st_name for ln in entry.initiative if ln.st_name} == {
-        "Bandit Lord", "Assassin"}
+    assert {ln.name for ln in entry.initiative} == {
+        "Bandit Lord", "Assassin", "Old Friend", "Bandit"}
 
 
-def test_one_enemy_npc_is_enemy_with_no_number(init, tables, store, table):
-    row = _npc(tables, store, table, "Bandit Lord", ENEMY)
-    entry = init.roll(ST, table.id, [f"char:{row.id}"], rng=_Faces(1))
-    assert [ln.name for ln in entry.initiative] == ["Enemy"]
-
-
-def test_an_npc_with_no_side_is_an_enemy_in_the_log(init, tables, store, table):
-    """Step 8: an NPC with no side entry is an enemy."""
+def test_an_npc_with_no_side_is_named_in_the_log(init, tables, store, table):
+    """Step 8: an NPC with no side entry is an enemy. It is named."""
     tables.bring(ST, table.id, store.create(ST, _locked("Stranger", 3, 3)).id)
     row = _copy(tables, store, table, "Stranger")
     entry = init.roll(ST, table.id, [f"char:{row.id}"], rng=_Faces(1))
-    assert [ln.name for ln in entry.initiative] == ["Enemy"]
+    assert [(ln.name, ln.group) for ln in entry.initiative] == [("Stranger", ENEMY)]
 
 
 def test_a_tie_breaks_on_dexterity_plus_wits(init, tables, store, table, roster):
@@ -345,4 +337,64 @@ def test_a_key_of_a_character_outside_the_table_does_not_roll(
 def test_the_initiative_entry_reads_back_from_the_file(init, table, the_log):
     keys = [c.key for c in init.combatants(ST, table.id)]
     entry = init.roll(ST, table.id, keys, rng=_Faces(2, 2))
+    assert TableLog(the_log.tables).entries(table.id)[-1] == entry
+
+
+# --------------------------------------------------------------------------- #
+# The Storyteller's adjustments (human, 2026-09-25)
+#
+# Charms that change initiative are not modelled (decision 0008). The Storyteller
+# types a bonus for one roll in the dialog, and ticks "first" for a Charm that
+# acts before everyone. Two or more "first" entries go in the normal order.
+# --------------------------------------------------------------------------- #
+
+
+def _keys(init, table, *names):
+    by_name = {c.name: c.key for c in init.combatants(ST, table.id)}
+    return [by_name[n] for n in names]
+
+
+def test_a_bonus_is_added_to_the_total_and_kept_in_the_line(init, table):
+    ashes, gear = _keys(init, table, "Ashes", "Gearheart")
+    entry = init.roll(ST, table.id, [ashes, gear], bonus={gear: 5}, rng=_Faces(3, 3))
+    assert [(ln.name, ln.rating, ln.bonus, ln.d10, ln.total)
+            for ln in entry.initiative] == [("Gearheart", 4, 5, 3, 12),
+                                            ("Ashes", 7, 0, 3, 10)]
+
+
+def test_a_first_entry_goes_first_and_is_marked(init, table):
+    ashes, gear = _keys(init, table, "Ashes", "Gearheart")
+    entry = init.roll(ST, table.id, [ashes, gear], first={gear}, rng=_Faces(10, 1))
+    assert [(ln.name, ln.first) for ln in entry.initiative] == [
+        ("Gearheart", True), ("Ashes", False)]
+
+
+def test_two_first_entries_go_in_the_normal_order(init, table, roster):
+    _entry(roster, table, "Bandit", ENEMY, 6)
+    ashes, gear, bandit = _keys(init, table, "Ashes", "Gearheart", "Bandit")
+    entry = init.roll(ST, table.id, [ashes, gear, bandit], first={gear, bandit},
+                      rng=_Faces(10, 1, 1))
+    assert [ln.name for ln in entry.initiative] == ["Bandit", "Gearheart", "Ashes"]
+
+
+def test_a_bonus_or_a_first_of_a_key_that_does_not_roll_does_nothing(init, table):
+    ashes, gear = _keys(init, table, "Ashes", "Gearheart")
+    entry = init.roll(ST, table.id, [ashes], bonus={gear: 9, "adv:nothing": 3},
+                      first={gear, "adv:nothing"}, rng=_Faces(1))
+    assert [(ln.name, ln.bonus, ln.first) for ln in entry.initiative] == [
+        ("Ashes", 0, False)]
+
+
+@pytest.mark.parametrize("bad", [100, -100, 1.5, "3", True])
+def test_a_bonus_that_is_not_a_small_whole_number_is_refused(init, table, the_log, bad):
+    (ashes,) = _keys(init, table, "Ashes")
+    with pytest.raises(TableLogError):
+        init.roll(ST, table.id, [ashes], bonus={ashes: bad})
+    assert the_log.entries(table.id) == []
+
+
+def test_a_bonus_and_a_first_read_back_from_the_file(init, table, the_log):
+    ashes, gear = _keys(init, table, "Ashes", "Gearheart")
+    entry = init.roll(ST, table.id, [ashes, gear], bonus={ashes: -2}, first={gear},
+                      rng=_Faces(2, 2))
     assert TableLog(the_log.tables).entries(table.id)[-1] == entry

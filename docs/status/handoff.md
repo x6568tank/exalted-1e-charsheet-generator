@@ -1,37 +1,45 @@
-# Session handoff — 2026-09-24 (P3 step 9 built: initiative for the whole table)
+# Session handoff — 2026-09-25 (P3 step 9 clicked: initiative, the P3 gate, is met)
 
 # 👉 YOU ARE HERE
 
-**P3 step 9 (initiative, the P3 gate) is BUILT, committed and pushed. NOT browser-verified,
-and the FULL SUITE WAS NOT COMPLETED** — the human stopped it at ~18 minutes to leave
-work. The step-9 tests pass (`test_initiative.py`, `test_table_initiative.py` 18,
-`test_table_view.py` step-9 block 4 + the 90 other tests in that file were selected-out,
-not run). **First thing next session: run the full suite** (`.venv/bin/python -m pytest -q`,
-output to a file). A `PlayState` field and a `LogEntry` field were added, so a
-field-coverage test elsewhere may need `in_hand` listed. Not deployed.
+**P3 step 9 (initiative for the whole table) is DONE and BROWSER-VERIFIED, 2026-09-25.
+P3's gate is met.** The click-through added two rulings and one feature, all built,
+tested and clicked the same day. The record is `docs/plans/p3-tables.md` §14 "Step 9",
+its click-through paragraph.
 
-* **Rulings, 2026-09-24** (four questions, all answered): the player sets the **weapon
-  in hand** on YOU PLAY (`PlayState.in_hand`, saved); the ST rolls from a **checklist,
-  all ticked**, unticks remembered for the page; **roster enemies are named** in the
-  Log, a full-character enemy NPC is **"Enemy"** (the ST sees the real name); ties
-  break on **Dex + Wits**, else "tied"; a roster entry with no Base initiative cannot roll.
-* New: `server/table_initiative.py`, `engine/initiative.turn_order`,
-  `table_log.InitiativeLine`. Detail and the mutation record: `docs/plans/p3-tables.md`
-  §14 "Step 9".
-* ⚠ A player sees an ally's / enemy's **total** (the order needs it) but not its
-  `rating + d10`. Flag at the click-through: a subtraction reveals the rating.
+* **Enemy NPCs are named in the initiative turn order** (was "Enemy 1"). Initiative
+  only: Grant XP's Log line keeps the step-8 rule. `InitiativeLine.st_name` and
+  `Combatant.npc` are gone.
+* **The totals of allies and enemies showing is ruled fine**; the ratings are what
+  must stay hidden, and they do.
+* **Charm adjustments by hand:** the ST's roll dialog has a **bonus** box and a
+  **First** tick on each row, for that roll only. First entries go before the rest,
+  in the normal order between them. Charms are still not modelled (0008; the
+  2026-09-08 exclusion from the rating stands).
 
-**Working tree:** clean after this commit, pushed to `origin/main`. The deployed
-server is still `555688e` (step 8).
+**Full suite: 4192 passed + 1 skipped — OBSERVED** at this close-out, after all of the above.
+Before the changes, the same machine: 4177 passed + 1 skipped, observed.
 
-🖱 **Owed:** the full suite, then a click-through of step 9: YOU PLAY In hand → Init
-changes; ST tab → Roll initiative → dialog ticks, a roster entry with no Base
-initiative disabled; the Log on a player's page shows "Enemy" for an enemy NPC and
-no breakdown for enemies/allies; the next Roll keeps the unticks.
+**Working tree:** clean after this session's commit, pushed to `origin/main`. Check `git status`.
 
-❓ **Open for the human:** nothing new beyond the total-reveals-rating flag above.
+**Deployed:** still `555688e` (step 8). Step 9 is not deployed.
 
-**Next:** the suite, the click-through, deploy. Then P4 (the board).
+🖱 **Owed:** nothing from P3. The click-through server ran from `/tmp/exalted-click9b/`
+(accounts `storyteller`, `alice`, `bob`, password `clickthrough`), seeded by a scratch
+script that is not committed.
+
+❓ **Open for the human:** nothing.
+
+**Next:** deploy step 9 (the human confirms; `docs/deploy/homeserver.md`). Then P4 (the
+board, `docs/plans/vtt.md`; decision 0020 governs it).
+
+---
+
+## The session before — P3 step 9 built (2026-09-24)
+
+Step 9 built, committed and pushed as `dd997e5`; the full suite was stopped at ~18
+minutes and first completed on 2026-09-25 (4177 passed + 1 skipped). Detail:
+`p3-tables.md` §14 "Step 9".
 
 ---
 
@@ -564,8 +572,7 @@ of a table.
   `status/backgrounds.md` lists all 12 with their scores. Two are Lunar and have no
   page-marked text on this machine at all. ⚠ **Do not lower the matcher threshold to
   clear them.**
-- **Roll initiative for the whole table — BLOCKED** on the party holding real characters.
-  That is phase **P3** of `docs/plans/vtt.md`, so it is scheduled rather than stuck.
+- ✅ **Roll initiative for the whole table — DONE 2026-09-25** (P3 step 9, the gate).
   Stays a one-off: initiative's +1d10 is a printed fixed count. Do not generalise it.
 - **A content-fidelity SCRIPT** (`tools/`) — diff authored descriptions against pasted
   source and REPORT differences. ⚠ **An option, not a debt.** It must never go into the suite.

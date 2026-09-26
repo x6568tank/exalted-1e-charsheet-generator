@@ -1811,9 +1811,9 @@ async def test_an_unticked_character_does_not_roll_and_stays_unticked(create_use
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
-async def test_an_enemy_npc_is_enemy_to_a_player_and_named_to_the_storyteller(
+async def test_an_enemy_npc_is_named_to_a_player_with_no_breakdown(
         create_user) -> None:
-    """The step-8 Log rule. A roster enemy is named (human, 2026-09-24).
+    """Each combatant is named in the turn order (human, 2026-09-25).
     ⚠ The walk covers each element of the page of the player, hidden or not."""
     st, st_id, table, players = await _campaign(create_user, "Ashes of Dawn")
     (player, _, _), = players
@@ -1828,9 +1828,7 @@ async def test_an_enemy_npc_is_enemy_to_a_player_and_named_to_the_storyteller(
 
     assert sorted(_log_rows(st, entry)) == ["Ashes of Dawn", "Heretic", "The Bandit Lord"]
     await player.should_see(marker=f"log-initiative-{entry}", retries=_POLL_RETRIES)
-    assert sorted(_log_rows(player, entry)) == ["Ashes of Dawn", "Enemy", "Heretic"]
-    text = _page_text(player)
-    assert "The Bandit Lord" not in text
+    assert sorted(_log_rows(player, entry)) == ["Ashes of Dawn", "Heretic", "The Bandit Lord"]
     # The rating and the d10 of an enemy stay with the Storyteller. The party's show.
     import re
     arithmetic = re.compile(r"^-?\d+ \+ \d+$")
@@ -1840,3 +1838,48 @@ async def test_an_enemy_npc_is_enemy_to_a_player_and_named_to_the_storyteller(
             (row,) = _marked_all(user, f"log-init-{entry}-{i}")
             texts = [c.text for c in row.descendants() if hasattr(c, "text")]
             assert any(arithmetic.match(t or "") for t in texts) == (name in shown), name
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_storyteller_types_a_bonus_and_ticks_first_for_one_roll(
+        create_user) -> None:
+    """Human, 2026-09-25: a Charm bonus and a "me first" Charm are the Storyteller's,
+    in the dialog, for this roll only. A player sees "first", not the bonus of an
+    enemy."""
+    st, _, table, players = await _campaign(create_user, "Ashes of Dawn", "Gearheart")
+    (player, _, _), (_, _, gear) = players
+    await st.open(chrome.table_url(table.id))
+    await st.should_see(marker="table-enemy")
+    await _add_entry(st, "enemy", "adv.heretic")
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="tab-log")
+
+    st.find(marker="st-roll-initiative").click()
+    await st.should_see(marker="init-roll")
+    # The one roster entry.
+    (heretic,) = {m.removeprefix("init-bonus-") for e in st.client.elements.values()
+                  for m in e._markers if m.startswith("init-bonus-adv-")}
+    _one(st, f"init-first-char-{gear.id}").set_value(True)
+    _one(st, f"init-bonus-{heretic}").set_value(4)
+    st.find(marker="init-roll").click()
+    await _eventually(lambda: any(m.startswith("log-initiative-")
+                                  for e in st.client.elements.values() for m in e._markers))
+    (entry,) = [int(m.removeprefix("log-initiative-")) for e in st.client.elements.values()
+                for m in e._markers if m.startswith("log-initiative-")]
+
+    assert _log_rows(st, entry)[0] == "Gearheart"
+    (line,) = [ln for ln in _log().entries(table.id)[-1].initiative if ln.name == "Heretic"]
+    assert line.bonus == 4
+    await player.should_see(marker=f"log-initiative-{entry}", retries=_POLL_RETRIES)
+    assert _log_rows(player, entry)[0] == "Gearheart"
+    assert _marked_all(player, f"log-init-first-{entry}-0")
+    # The bonus of an enemy is its arithmetic: for the Storyteller only.
+    assert f"{line.rating} +4 + {line.d10}" in _page_text(st)
+    assert "+4 +" not in _page_text(player)
+
+    # For this roll only.
+    st.find(marker="st-roll-initiative").click()
+    await st.should_see(marker="init-roll")
+    assert _one(st, f"init-first-char-{gear.id}").value is False
+    assert not _one(st, f"init-bonus-{heretic}").value

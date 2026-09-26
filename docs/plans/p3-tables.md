@@ -1,6 +1,6 @@
 # P3 — Campaigns (the `Table`): design
 
-**Status: build steps 1–2 DONE 2026-09-12; steps 3, 4 and 5 DONE and BROWSER-VERIFIED 2026-09-22; step 6 (house rules) and 6b (add a character from the campaign) DONE and BROWSER-VERIFIED 2026-09-22 (phone width not tested; the request-card house-rules warning browser-verified 2026-09-23); step 7 (the campaign homebrew) DONE and BROWSER-VERIFIED 2026-09-24; step 8 (the roster, the NPC sides, the notes) DONE and BROWSER-VERIFIED 2026-09-24 (§14 is the build log). The layout was approved 2026-09-22 (§15). Step 9 (initiative, §15.4, the gate) BUILT 2026-09-24, tests green, **not browser-verified**.**
+**Status: build steps 1–2 DONE 2026-09-12; steps 3, 4 and 5 DONE and BROWSER-VERIFIED 2026-09-22; step 6 (house rules) and 6b (add a character from the campaign) DONE and BROWSER-VERIFIED 2026-09-22 (phone width not tested; the request-card house-rules warning browser-verified 2026-09-23); step 7 (the campaign homebrew) DONE and BROWSER-VERIFIED 2026-09-24; step 8 (the roster, the NPC sides, the notes) DONE and BROWSER-VERIFIED 2026-09-24 (§14 is the build log). The layout was approved 2026-09-22 (§15). Step 9 (initiative, §15.4, the gate) DONE and BROWSER-VERIFIED 2026-09-25, with the Charm adjustments added at its click-through. **P3's gate is met.**
 Every product question the human was asked is ruled (`vtt.md` §9.1, §9.2, §9.3a, §9.10), and
 so are the six the design turned up (§13).
 
@@ -1151,9 +1151,10 @@ unthemed).
   all ticked. The ST's unticks are remembered for the page (the next turn's
   dialog opens with them unticked). This is the "choose who rolls" that the
   human asked of the desktop batch roll.
-* **Roster enemies are NAMED in the Log; a full-character enemy NPC is "Enemy"**
-  ("Enemy 1", "Enemy 2" when several roll), per the step-8 Log rule. The ST's
-  page shows the real name with "(Enemy 1 to players)".
+* ~~**Roster enemies are NAMED in the Log; a full-character enemy NPC is "Enemy"**
+  ("Enemy 1", "Enemy 2" when several roll), per the step-8 Log rule.~~
+  **Superseded 2026-09-25** at the click-through: every combatant is named in the
+  turn order, an enemy NPC too. See the click-through paragraph below.
 * **Ties:** higher Dexterity + Wits (p.227) when every tied entry has it; what
   is left is marked **tied** ("roll off"). A roster entry with no Base
   initiative is shown disabled, "no Base initiative", and cannot roll.
@@ -1178,8 +1179,9 @@ What shipped:
 * **What a player sees of a line:** the total and the name. The `rating + d10`
   breakdown is shown for the party only; an ally's or an enemy's is for the ST
   (R4, R7). ⚠ The total of an ally or an enemy still shows, since the turn order
-  cannot be given without it, so a player can work out an enemy's rating with
-  a subtraction.
+  cannot be given without it. **Ruled acceptable 2026-09-25** (the human: *"Only
+  thing that really matters is the ratings"*): the rating and the d10 stay hidden,
+  and a total alone does not give the rating.
 
 Tests: `test_initiative.py` +7 (the order and the tie-break), `test_table_initiative.py`
 (18, new: the weapon field, the combatants, the live-context read, the ST check,
@@ -1190,7 +1192,36 @@ survivor (`combatants` without its own ST check) is equivalent, because
 `roster.party` refuses a non-ST first. The check stays, since that equivalence is
 an accident.
 
-**Not browser-verified.**
+**Click-through, 2026-09-25 (server from `/tmp/exalted-click9b/`, seeded by a
+scratch script; no seed script is committed).** Full suite before it: 4177 passed +
+1 skipped, observed. All five UI checks passed (In hand and Init on YOU PLAY and on
+an expanded NPC row, the themed dialog with the disabled "no Base initiative" row,
+the rail switching to the Log, the roll reaching a player at the poll). Two rulings
+and one addition came out of it:
+
+* **Enemy NPCs are named in the turn order** (the human: *"Allow Enemy names to
+  show to players"*). **Initiative only**: Grant XP's Log line keeps the step-8
+  rule (an award to enemy NPCs only posts no line). `InitiativeLine.st_name`, the
+  ST's "(Enemy 1 to players)" label and `Combatant.npc` are removed; the last had
+  no read site left.
+* **The ratings are what must stay hidden**; the totals showing is fine (above).
+* **Charm adjustments, by hand** (the human: *"some Charms do give bonuses to
+  initiative… allow some manual editing on the ST's side"* and *"some Charms allow
+  a player to go 'me first'"*). Ruled from three questions: a **manual bonus**,
+  not modelled Charms (decision 0008 and the 2026-09-08 exclusion stand; the
+  rating itself is unchanged); typed by the **ST in the roll dialog**, for **this
+  roll only**; a **First** tick puts the entry before every entry that is not
+  first, and two or more first entries go in the normal order (total, then Dex +
+  Wits). Shipped: `TurnRoll.bonus`/`first` and a `(first, total)` grouping in
+  `engine.initiative.turn_order` (a first entry never ties with one that is not);
+  `TableInitiative.roll(bonus=, first=)`, a bonus refused outside ±`MAX_BONUS`
+  (99, an input check, not a rule) or when not a whole number; `InitiativeLine.bonus`
+  / `first`, the total includes the bonus; the dialog row has a bonus box and a
+  First tick; the Log shows a **first** tag to every member, and the bonus inside
+  the `rating +bonus + d10` breakdown (party only for a player, as before).
+  Tests: `test_initiative.py` +5, `test_table_initiative.py` +6 functions (one
+  parametrized ×5; its three naming tests became two), `test_table_view.py` +1. Browser-verified the same day (the dialog
+  fit, the breakdown and tag, the enemy name on a player's page).
 
 ---
 

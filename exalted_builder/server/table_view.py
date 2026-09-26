@@ -73,7 +73,7 @@ from .rulesets import Rulesets
 from .session import SessionRegistry
 from .table_custom import custom_url, register_table_custom
 from .table_homebrew import TableHomebrew, TableHomebrewError
-from .table_initiative import PARTY, TableInitiative
+from .table_initiative import MAX_BONUS, PARTY, TableInitiative
 from .table_log import MAX_TEXT, InitiativeLine, LogEntry, TableLog, TableLogError
 from .table_notes import MAX_NOTES, TableNotes, TableNotesError
 from .table_roster import TableRoster
@@ -1051,7 +1051,11 @@ class _TableView:
     def _open_initiative(self) -> None:
         """A dialog: a checkbox for each combatant, ticked unless the Storyteller
         unticked it at the last roll. A roster entry with no Base initiative has no
-        checkbox that can tick."""
+        checkbox that can tick.
+
+        Each row that can roll has a bonus box and a "First" tick, for this roll
+        only (human, 2026-09-25). They are the Charms, which the app does not know.
+        """
         if not self._still_storyteller():
             return
         try:
@@ -1061,12 +1065,16 @@ class _TableView:
             return
         pal = self.pal
         ticks: dict[str, ui.checkbox] = {}
+        bonuses: dict[str, ui.number] = {}
+        firsts: dict[str, ui.checkbox] = {}
         # ⚠ A closed dialog stays in its element. One dialog at a time.
         self.dialog_host.clear()
         with self.dialog_host, ui.dialog() as dialog, ui.card().classes(
-                f"w-[26rem] max-w-full p-4 gap-1 {pal.card_solid}").mark("init-dialog"):
+                f"w-[30rem] max-w-full p-4 gap-1 {pal.card_solid}").mark("init-dialog"):
             ui.label("Roll initiative").classes("text-base font-bold")
-            ui.label("Untick each character that is not in this fight.").classes("text-xs")
+            ui.label("Untick each character that is not in this fight. Type a Charm's "
+                     "bonus, or tick First for a Charm that acts before everyone. "
+                     "These are for this roll only.").classes("text-xs")
             if not combatants:
                 ui.label("No characters and no roster entries yet.").classes(
                     "text-sm opacity-70")
@@ -1081,23 +1089,45 @@ class _TableView:
                             "dense disable").classes("text-sm opacity-60").mark(marker)
                         continue
                     label = f"{c.name} · {c.rating}" + (f" ({c.weapon})" if c.weapon else "")
-                    ticks[c.key] = ui.checkbox(
-                        label, value=c.key not in self._init_skip).props(
-                        f"dense color={pal.button}").classes("text-sm").mark(marker)
+                    tail = c.key.replace(":", "-")
+                    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+                        ticks[c.key] = ui.checkbox(
+                            label, value=c.key not in self._init_skip).props(
+                            f"dense color={pal.button}").classes(
+                            "text-sm grow min-w-0").mark(marker)
+                        bonuses[c.key] = ui.number(
+                            placeholder="±0", min=-MAX_BONUS, max=MAX_BONUS, step=1,
+                            precision=0).props("dense borderless").classes(
+                            "w-12 shrink-0 text-sm").tooltip(
+                            "A Charm's bonus to this roll").mark(f"init-bonus-{tail}")
+                        firsts[c.key] = ui.checkbox("First").props(
+                            f"dense color={pal.button}").classes(
+                            "text-xs shrink-0").tooltip(
+                            "A Charm that acts before everyone. Two or more go in "
+                            "the normal order.").mark(f"init-first-{tail}")
             with ui.row().classes("w-full justify-end gap-1 pt-2"):
                 ui.button("Cancel", on_click=dialog.close).props("flat no-caps")
                 ui.button("Roll", icon="casino",
-                          on_click=lambda: self._roll_initiative(dialog, ticks)).props(
+                          on_click=lambda: self._roll_initiative(
+                              dialog, ticks, bonuses, firsts)).props(
                     f"dense no-caps color={pal.button}").mark("init-roll")
         dialog.open()
 
-    def _roll_initiative(self, dialog, ticks: dict[str, ui.checkbox]) -> None:
+    def _roll_initiative(self, dialog, ticks: dict[str, ui.checkbox],
+                         bonuses: dict[str, ui.number],
+                         firsts: dict[str, ui.checkbox]) -> None:
         if not self._still_storyteller():
             return
         keys = [key for key, box in ticks.items() if box.value]
         self._init_skip = {key for key, box in ticks.items() if not box.value}
+        # ⚠ `ui.number` gives a float, or None for an empty box. A fraction is
+        # refused by the roll, not rounded here.
+        bonus = {key: int(box.value) if float(box.value).is_integer() else box.value
+                 for key, box in bonuses.items() if box.value}
+        first = {key for key, box in firsts.items() if box.value}
         try:
-            self.initiative.roll(self.user_id, self.table.id, keys)
+            self.initiative.roll(self.user_id, self.table.id, keys, bonus=bonus,
+                                 first=first)
         except (TableStoreError, TableLogError, QuotaExceeded) as exc:
             ui.notify(str(exc), type="warning")
             return
@@ -1669,29 +1699,31 @@ def _initiative_lines(entry_id: int, lines: tuple[InitiativeLine, ...], pal, *,
     """The turn order of an initiative roll: the total and the name of each
     combatant, the highest first.
 
-    ⚠ The page of a player never gets `st_name`, and gets the rating and the d10 of
-    the party only: the stats of an ally or an enemy are for the Storyteller (R4, R7).
+    ⚠ The page of a player gets the rating, the bonus and the d10 of the party only:
+    the stats of an ally or an enemy are for the Storyteller (R4, R7). "first" is
+    for each member, because the order shows it.
     """
     with ui.row().classes("items-center gap-1 no-wrap"):
         ui.icon("bolt", size="1rem").style(f"color:{pal.accent}")
         ui.label("Initiative").classes("text-sm font-bold").mark(
             f"log-initiative-{entry_id}")
     for i, ln in enumerate(lines):
-        shown = ln.st_name if viewer_is_st and ln.st_name else ln.name
         with ui.row().classes("w-full items-baseline gap-2 no-wrap min-w-0").mark(
                 f"log-init-{entry_id}-{i}"):
             ui.label(str(ln.total)).classes(
                 "text-sm font-bold font-mono w-7 text-right shrink-0")
-            ui.label(shown).classes("text-sm truncate min-w-0").mark(
+            ui.label(ln.name).classes("text-sm truncate min-w-0").mark(
                 f"log-init-name-{entry_id}-{i}")
-            if viewer_is_st and ln.st_name:
-                ui.label(f"({ln.name} to players)").classes("text-xs opacity-50 shrink-0")
             ui.space()
+            if ln.first:
+                ui.label("first").classes("text-xs font-bold shrink-0").style(
+                    f"color:{pal.accent}").mark(f"log-init-first-{entry_id}-{i}")
             if ln.tied:
                 ui.label("tied").classes("text-xs font-bold shrink-0").style(
                     f"color:{pal.accent}").mark(f"log-init-tied-{entry_id}-{i}")
             if viewer_is_st or ln.group == PARTY:
-                ui.label(f"{ln.rating} + {ln.d10}").classes(
+                bonus = f" {ln.bonus:+d}" if ln.bonus else ""
+                ui.label(f"{ln.rating}{bonus} + {ln.d10}").classes(
                     "text-xs font-mono opacity-50 shrink-0")
     if any(ln.tied for ln in lines):
         ui.label("A tie that Dexterity + Wits does not break: roll off (p.227).").classes(
