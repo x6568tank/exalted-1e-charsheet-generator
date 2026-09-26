@@ -368,3 +368,40 @@ async def test_a_colour_picks_the_pen_from_select_and_the_eraser(create_user) ->
     player.find(marker="board-tool-rect").click()
     player.find(marker="board-colour-15803d").click()
     assert _active(player, "board-tool-rect")
+
+
+def test_a_group_move_is_one_message_to_each_page(pages) -> None:
+    st, player, watcher = pages
+    for name in "ab":
+        player.session.handle({"op": "put", "obj": token(name)})
+
+    player.session.handle({"op": "put_many", "objs": [token("a", x=5), token("b", x=6)]})
+
+    for page in pages:
+        last = page.messages[-1]
+        assert (last["op"], last["version"]) == ("put_many", 3)
+        assert [(o["id"], o["x"]) for o in last["objs"]] == [("a", 5.0), ("b", 6.0)]
+
+
+def test_a_group_delete_and_restack_are_one_message_each(pages) -> None:
+    st, player, watcher = pages
+    for name in "abc":
+        player.session.handle({"op": "put", "obj": token(name)})
+
+    player.session.handle({"op": "back", "ids": ["c", "b"]})
+    player.session.handle({"op": "delete", "ids": ["a", "c"]})
+
+    for page in pages:
+        assert page.messages[-2] == {"type": "op", "version": 4, "op": "order",
+                                     "ids": ["b", "c", "a"]}
+        assert page.messages[-1] == {"type": "op", "version": 5, "op": "delete_many",
+                                     "ids": ["a", "c"]}
+
+
+@pytest.mark.parametrize("junk", [{"op": "put_many"}, {"op": "put_many", "objs": "x"},
+                                  {"op": "delete", "ids": "ab"},
+                                  {"op": "front", "ids": [1, 2]}])
+def test_a_malformed_group_intent_writes_nothing(pages, junk) -> None:
+    _, player, _ = pages
+    player.session.handle(junk)
+    assert player.session.board.version(player.session.table_id) == 0

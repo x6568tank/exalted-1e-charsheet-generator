@@ -409,3 +409,72 @@ def test_the_file_holds_only_the_permitted_fields(board: TableBoard, table) -> N
     stored = json.loads(board.path(table.id).read_text())
     assert set(stored) == {"version", "objects", "background"}
     assert set(stored["objects"][0]) == table_board.object_fields()["token"]
+
+
+# --------------------------------------------------------------------------- #
+# Several objects at once (multiselect, the human 2026-09-25)
+# --------------------------------------------------------------------------- #
+
+
+def test_several_objects_move_in_one_version(board: TableBoard, table) -> None:
+    for name in "abc":
+        board.put(PLAYER, table.id, token(name))
+
+    state = board.put_many(PLAYER, table.id, [token("a", x=1), token("c", x=3)])
+
+    assert state.version == 4
+    assert [(o["id"], o["x"]) for o in state.objects] == [
+        ("a", 1.0), ("b", 100.0), ("c", 3.0)]
+
+
+def test_a_batch_with_one_bad_object_writes_nothing(board: TableBoard, table) -> None:
+    board.put(PLAYER, table.id, token("a"))
+    with pytest.raises(TableBoardError):
+        board.put_many(PLAYER, table.id, [token("a", x=1), token("b", colour="red")])
+    assert board.state(PLAYER, table.id).objects[0]["x"] == 100.0
+    assert board.version(table.id) == 1
+
+
+def test_a_batch_that_repeats_an_id_is_refused(board: TableBoard, table) -> None:
+    with pytest.raises(TableBoardError):
+        board.put_many(PLAYER, table.id, [token("a"), token("a", x=5)])
+
+
+def test_a_batch_counts_against_the_limit(board: TableBoard, table, monkeypatch) -> None:
+    monkeypatch.setattr(table_board, "MAX_OBJECTS", 2)
+    board.put(PLAYER, table.id, token("a"))
+    with pytest.raises(TableBoardError):
+        board.put_many(PLAYER, table.id, [token("b"), token("c")])
+
+
+def test_several_objects_are_deleted_in_one_version(board: TableBoard, table) -> None:
+    for name in "abc":
+        board.put(PLAYER, table.id, token(name))
+    state = board.delete_many(PLAYER, table.id, ["a", "c", "gone"])
+    assert ([o["id"] for o in state.objects], state.version) == (["b"], 4)
+    assert board.delete_many(PLAYER, table.id, ["gone"]).version == 4
+
+
+def test_several_objects_go_to_the_front_in_their_own_order(board: TableBoard,
+                                                           table) -> None:
+    for name in "abcd":
+        board.put(PLAYER, table.id, token(name))
+    state = board.restack_many(PLAYER, table.id, ["c", "a"], front=True)
+    assert [o["id"] for o in state.objects] == list("bdac")
+    state = board.restack_many(PLAYER, table.id, ["c", "d"], front=False)
+    assert [o["id"] for o in state.objects] == list("dcba")
+    before = state.version
+    assert board.restack_many(PLAYER, table.id, ["d", "c"], front=False).version == before
+
+
+def test_a_spectator_cannot_change_several(board: TableBoard, table) -> None:
+    board.put(PLAYER, table.id, token("a"))
+    for change in (
+            lambda: board.put_many(PLAYER, table.id, [token("a", x=1)], spectating=True),
+            lambda: board.delete_many(PLAYER, table.id, ["a"], spectating=True),
+            lambda: board.restack_many(PLAYER, table.id, ["a"], front=True,
+                                       spectating=True)):
+        with pytest.raises(TableBoardError):
+            change()
+    with pytest.raises(TableBoardError):
+        board.put_many(STRANGER, table.id, [token("a", x=1)])

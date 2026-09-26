@@ -8,7 +8,9 @@
  * Messages from the server (ExBoard.receive):
  *   {type: "snapshot", version, objects, background}  replace all.
  *   {type: "op", version, op: "put", obj}               add or replace one object.
+ *   {type: "op", version, op: "put_many", objs}         add or replace some objects.
  *   {type: "op", version, op: "delete", id}             remove one object.
+ *   {type: "op", version, op: "delete_many", ids}       remove some objects.
  *   {type: "op", version, op: "order", ids}             the order of the layers.
  *   {type: "mode", edit, st}                            what this viewer can do.
  * An op with a version that is not the next version asks for a snapshot.
@@ -24,7 +26,7 @@
     objects: {}, order: [], nodes: {}, version: 0,
     edit: false, st: false,
     tool: 'select', colour: '#1f2937', width: 3, fill: false,
-    selected: null, draft: null, erasing: false, erased: {},
+    sel: [], band: null, groupSent: false, draft: null, erasing: false, erased: {},
     background: null, fitted: false
   };
 
@@ -97,15 +99,31 @@
     n.id(o.id);
     n.name('obj');
     n.draggable(B.edit && B.tool === 'select');
-    n.on('dragend', function () { moved(n); });
+    n.on('dragstart', function () { B.groupSent = false; });
+    n.on('dragend', function () { dragEnded(n); });
     n.on('transformend', function () { resized(n); });
     return n;
   }
 
+  // A drag of a selected group moves each node of it (the Transformer does
+  // that), and each node ends its own drag. Send the group once.
+  function dragEnded(n) {
+    if (B.sel.length > 1 && B.sel.indexOf(n.id()) >= 0) {
+      if (B.groupSent) { return; }
+      B.groupSent = true;
+      var objs = B.sel.map(function (id) { return B.nodes[id] && movedObject(B.nodes[id]); })
+        .filter(function (o) { return o; });
+      if (objs.length) { send('put_many', { objs: objs }); }
+      return;
+    }
+    var c = movedObject(n);
+    if (c) { send('put', { obj: c }); }
+  }
+
   // The new form of the object of node `n` after a drag.
-  function moved(n) {
+  function movedObject(n) {
     var o = B.objects[n.id()];
-    if (!o) { return; }
+    if (!o) { return null; }
     var c = Object.assign({}, o);
     if (o.kind === 'stroke') {
       var dx = n.x(), dy = n.y();
@@ -117,7 +135,7 @@
     } else {
       c.x = round1(n.x()); c.y = round1(n.y());
     }
-    send('put', { obj: c });
+    return c;
   }
 
   // The new form of the object of node `n` after a resize.
@@ -179,20 +197,25 @@
   }
 
   function reselect() {
-    var n = B.selected && B.nodes[B.selected];
-    if (!n || !B.edit || B.tool !== 'select') {
-      B.selected = null;
-      B.tr.nodes([]);
-      return;
-    }
-    var o = B.objects[B.selected];
-    B.tr.resizeEnabled(resizable(o));
-    B.tr.keepRatio(o.kind === 'token' || o.kind === 'text');
-    B.tr.nodes([n]);
+    B.sel = B.sel.filter(function (id) { return B.nodes[id] && B.objects[id]; });
+    if (!B.edit || B.tool !== 'select') { B.sel = []; }
+    var nodes = B.sel.map(function (id) { return B.nodes[id]; });
+    var one = nodes.length === 1 ? B.objects[B.sel[0]] : null;
+    B.tr.resizeEnabled(!!one && resizable(one));
+    B.tr.keepRatio(!!one && (one.kind === 'token' || one.kind === 'text'));
+    B.tr.nodes(nodes);
   }
 
-  function select(id) {
-    B.selected = id;
+  // Select `ids`. With `add`, a chosen id leaves the selection and a new id joins it.
+  function select(ids, add) {
+    if (!add) {
+      B.sel = ids.slice();
+    } else {
+      ids.forEach(function (id) {
+        var at = B.sel.indexOf(id);
+        if (at >= 0) { B.sel.splice(at, 1); } else { B.sel.push(id); }
+      });
+    }
     reselect();
     B.main.batchDraw();
   }
@@ -284,9 +307,25 @@
   }
 
   function down(e) {
+    // WARNING: a box that moved gives no click. Thus the flag that eats the click
+    // after a box must end at the next press, or it eats a real click.
+    B.justBanded = false;
     if (!B.edit) { return; }
     var t = B.tool;
-    if (t === 'select') { return; }
+    if (t === 'select') {
+      if (e.evt && e.evt.shiftKey && e.target === B.stage) {
+        B.stage.draggable(false);
+        var p0 = pointer();
+        B.band = new Konva.Rect({
+          x: p0.x, y: p0.y, width: 0, height: 0, listening: false,
+          stroke: '#1d4ed8', strokeWidth: 1 / B.stage.scaleX(), dash: [4, 4],
+          fill: '#1d4ed822'
+        });
+        B.band.setAttr('origin', p0);
+        B.main.add(B.band);
+      }
+      return;
+    }
     if (t === 'eraser') {
       B.erasing = true;
       B.erased = {};
@@ -328,6 +367,13 @@
 
   function move(e) {
     if (B.erasing) { erase(e.target); return; }
+    if (B.band) {
+      var o0 = B.band.getAttr('origin'), q = pointer();
+      B.band.position({ x: Math.min(o0.x, q.x), y: Math.min(o0.y, q.y) });
+      B.band.size({ width: Math.abs(q.x - o0.x), height: Math.abs(q.y - o0.y) });
+      B.main.batchDraw();
+      return;
+    }
     if (!B.draft) { return; }
     var o = B.draft.getAttr('pending');
     var p = pointer();
@@ -353,6 +399,23 @@
 
   function up() {
     if (B.erasing) { B.erasing = false; return; }
+    if (B.band) {
+      var box = B.band.getClientRect();
+      B.band.destroy();
+      B.band = null;
+      B.stage.draggable(B.tool === 'select' || !B.edit);
+      var hit = B.order.filter(function (id) {
+        var n = B.nodes[id];
+        return n && Konva.Util.haveIntersection(box, n.getClientRect());
+      });
+      if (box.width > 2 || box.height > 2) {
+        hit.forEach(function (id) { if (B.sel.indexOf(id) < 0) { B.sel.push(id); } });
+        B.justBanded = true;
+      }
+      reselect();
+      B.main.batchDraw();
+      return;
+    }
     if (!B.draft) { return; }
     var o = B.draft.getAttr('pending');
     var draft = B.draft;
@@ -386,10 +449,17 @@
     s.on('mousedown touchstart', down);
     s.on('mousemove touchmove', move);
     s.on('mouseup touchend mouseleave', up);
+    // WARNING: the stage starts its own drag (a pan) on the same press. Stop it
+    // while a selection box is drawn, or the box gets no pointer moves.
+    s.on('dragstart', function (e) {
+      if (B.band && e.target === s) { s.stopDrag(); }
+    });
     s.on('click tap', function (e) {
       if (!B.edit || B.tool !== 'select') { return; }
+      if (B.justBanded) { B.justBanded = false; return; }
       var n = objectOf(e.target);
-      select(n ? n.id() : null);
+      var shift = e.evt && e.evt.shiftKey;
+      if (n) { select([n.id()], shift); } else if (!shift) { select([], false); }
     });
     s.on('dblclick dbltap', function (e) {
       if (!B.edit || B.tool !== 'select') { return; }
@@ -409,12 +479,14 @@
   }
 
   function onKey(e) {
-    if (!B.stage || !B.edit || !B.selected) { return; }
+    if (!B.stage || !B.edit || !B.sel.length) { return; }
     var tag = (e.target && e.target.tagName) || '';
     if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) { return; }
     if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
-      send('delete', { id: B.selected });
+      send('delete', { ids: B.sel.slice() });
+    } else if (e.key === 'Escape') {
+      select([], false);
     }
   }
 
@@ -444,14 +516,19 @@
       return;
     }
     B.version = m.version;
-    if (m.op === 'put') {
-      if (!(m.obj.id in B.objects)) { B.order.push(m.obj.id); }
-      B.objects[m.obj.id] = m.obj;
-      place(m.obj);
-    } else if (m.op === 'delete') {
-      delete B.objects[m.id];
-      B.order = B.order.filter(function (id) { return id !== m.id; });
-      if (B.nodes[m.id]) { B.nodes[m.id].destroy(); delete B.nodes[m.id]; }
+    if (m.op === 'put' || m.op === 'put_many') {
+      (m.op === 'put' ? [m.obj] : m.objs).forEach(function (o) {
+        if (!(o.id in B.objects)) { B.order.push(o.id); }
+        B.objects[o.id] = o;
+        place(o);
+      });
+    } else if (m.op === 'delete' || m.op === 'delete_many') {
+      var gone = m.op === 'delete' ? [m.id] : m.ids;
+      gone.forEach(function (id) {
+        delete B.objects[id];
+        if (B.nodes[id]) { B.nodes[id].destroy(); delete B.nodes[id]; }
+      });
+      B.order = B.order.filter(function (id) { return gone.indexOf(id) < 0; });
     } else if (m.op === 'order') {
       B.order = m.ids.slice();
     }
@@ -500,10 +577,10 @@
   function command(name) {
     if (!B.stage) { return; }
     if (name === 'fit') { fit(); return; }
-    if (!B.edit || !B.selected) { return; }
-    if (name === 'delete') { send('delete', { id: B.selected }); }
-    if (name === 'front') { send('front', { id: B.selected }); }
-    if (name === 'back') { send('back', { id: B.selected }); }
+    if (!B.edit || !B.sel.length) { return; }
+    if (name === 'delete') { send('delete', { ids: B.sel.slice() }); }
+    if (name === 'front') { send('front', { ids: B.sel.slice() }); }
+    if (name === 'back') { send('back', { ids: B.sel.slice() }); }
   }
 
   function style(colour, width, fill) {
@@ -517,6 +594,8 @@
   window.ExBoard = {
     mount: mount, receive: receive, setTool: setTool, command: command, style: style,
     // For the tests of a person at the browser: the current state, read-only.
-    debug: function () { return { version: B.version, order: B.order.slice(), edit: B.edit }; }
+    debug: function () {
+      return { version: B.version, order: B.order.slice(), edit: B.edit, sel: B.sel.slice() };
+    }
   };
 })();

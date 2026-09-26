@@ -179,6 +179,25 @@ pinch zoom on a phone (there is none: see below), a reconnect.
 * No touch pinch-zoom; one-finger drag pans. At phone width the board sits below the
   rails (the existing P3 layout).
 
+### Click-through additions, 2026-09-25
+
+Asked for by the human during the click-through, built and driven in a browser the
+same day:
+* **A colour switches Select or Eraser to Pen**; a drawing tool that is active stays.
+* **Multiselect.** Shift-click adds or removes an object; **Shift-drag on the empty
+  board draws a selection box** (a plain drag still pans); Esc clears. A drag of any
+  selected object moves the group (Konva's Transformer moves the rest; the canvas sends
+  the group once as `put_many`). Delete, the Delete key, front and back act on the
+  group; front/back keep the group's own order. Resize handles only for a single
+  object. The store gains `put_many` (one version, refused whole if one object is bad
+  or an id repeats), `delete_many` and `restack_many`; each is ONE broadcast message.
+  No multiselect on touch (no Shift).
+  * 🐞 Two defects found by driving it: the stage began its own pan drag on the
+    Shift-press, so the box got no pointer moves (the stage drag is now stopped while a
+    box is drawn); and the flag that swallows the click after a box outlived a box that
+    moved — Konva sends no click then — and ate the next real click (now reset on every
+    press). Neither is visible to the Python suite.
+
 ### Step 5 — the click-through (owed)
 
 Seed: `tools/seed_table_clickthrough.py --seed`, then run it; two browsers (alice, the

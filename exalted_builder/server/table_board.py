@@ -268,6 +268,61 @@ class TableBoard:
             objects.append(item)
         return self._write(table_id, state, objects)
 
+    def put_many(self, user_id: int, table_id: str, items: object, *,
+                 spectating: bool = False) -> BoardState:
+        """Add or replace each object of `items` in one version. Return the board.
+
+        Each new object goes on top, in the order of `items`. Refuse the whole list
+        if one object is not valid, if an id repeats, or if the new objects do not
+        fit on the board. Refuse a viewer who is not a member, and a spectator.
+        """
+        self._require_player(user_id, table_id, spectating)
+        if not isinstance(items, list) or not items or len(items) > MAX_OBJECTS:
+            raise TableBoardError("That drawing is not valid.")
+        parsed = [parse_object(data) for data in items]
+        ids = [item["id"] for item in parsed]
+        if len(set(ids)) != len(ids):
+            raise TableBoardError("That drawing is not valid.")
+        state = self._read(table_id)
+        objects = list(state.objects)
+        where = {o["id"]: n for n, o in enumerate(objects)}
+        new = [item for item in parsed if item["id"] not in where]
+        if len(objects) + len(new) > MAX_OBJECTS:
+            raise TableBoardError(
+                f"The board is full: {MAX_OBJECTS:,} objects. Delete some first.")
+        for item in parsed:
+            if item["id"] in where:
+                objects[where[item["id"]]] = item
+        return self._write(table_id, state, objects + new)
+
+    def delete_many(self, user_id: int, table_id: str, object_ids: list[str], *,
+                    spectating: bool = False) -> BoardState:
+        """Remove each object of `object_ids` in one version. Return the board. An
+        absent id changes nothing. Refuse a viewer who is not a member, and a
+        spectator."""
+        self._require_player(user_id, table_id, spectating)
+        gone = set(object_ids)
+        state = self._read(table_id)
+        objects = [o for o in state.objects if o["id"] not in gone]
+        if len(objects) == len(state.objects):
+            return state
+        return self._write(table_id, state, objects)
+
+    def restack_many(self, user_id: int, table_id: str, object_ids: list[str], *,
+                     front: bool, spectating: bool = False) -> BoardState:
+        """Move each object of `object_ids` to the top layers (`front`) or to the
+        bottom layers, in one version. The moved objects keep their order between
+        them. Return the board. A move that changes no layer writes nothing."""
+        self._require_player(user_id, table_id, spectating)
+        chosen = set(object_ids)
+        state = self._read(table_id)
+        moved = [o for o in state.objects if o["id"] in chosen]
+        rest = [o for o in state.objects if o["id"] not in chosen]
+        objects = rest + moved if front else moved + rest
+        if tuple(objects) == state.objects:
+            return state
+        return self._write(table_id, state, objects)
+
     def delete(self, user_id: int, table_id: str, object_id: str, *,
                spectating: bool = False) -> BoardState:
         """Remove the object `object_id`. Return the board. An absent id changes
@@ -293,16 +348,8 @@ class TableBoard:
 
     def _restack(self, user_id: int, table_id: str, object_id: str, spectating: bool,
                  *, front: bool) -> BoardState:
-        self._require_player(user_id, table_id, spectating)
-        state = self._read(table_id)
-        moved = [o for o in state.objects if o["id"] == object_id]
-        if not moved:
-            return state
-        rest = [o for o in state.objects if o["id"] != object_id]
-        objects = rest + moved if front else moved + rest
-        if tuple(objects) == state.objects:
-            return state
-        return self._write(table_id, state, objects)
+        return self.restack_many(user_id, table_id, [object_id], front=front,
+                                 spectating=spectating)
 
     # ---- the Storyteller ---------------------------------------------------- #
 

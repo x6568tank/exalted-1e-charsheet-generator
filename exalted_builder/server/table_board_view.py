@@ -55,7 +55,8 @@ MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 
 # The tools of the toolbar: key, icon, tooltip.
 TOOLS = (
-    ("select", "near_me", "Select, move and resize"),
+    ("select", "near_me", "Select, move and resize. Shift-click adds to the selection; "
+     "Shift-drag on the board draws a selection box. Esc clears it."),
     ("pen", "draw", "Pen"),
     ("line", "horizontal_rule", "Line"),
     ("arrow", "north_east", "Arrow"),
@@ -176,12 +177,18 @@ class BoardSession:
             return None
         op = args.get("op")
         try:
+            ids = _ids(args.get("ids"))
             if op == "put":
                 self.put(args.get("obj"))
+            elif op == "put_many":
+                self.put_many(args.get("objs"))
+            elif op == "delete" and ids is not None:
+                self.delete_many(ids)
             elif op == "delete":
                 self.delete(str(args.get("id") or ""))
             elif op in ("front", "back"):
-                self.restack(str(args.get("id") or ""), front=op == "front")
+                self.restack(ids if ids is not None else [str(args.get("id") or "")],
+                             front=op == "front")
             elif op == "sync":
                 self.deliver(self.snapshot_message())
             elif op == "ask":
@@ -204,6 +211,20 @@ class BoardSession:
         (item,) = [o for o in state.objects if o["id"] == object_id]
         self._commit(state, {"op": "put", "obj": item})
 
+    def put_many(self, items: object) -> None:
+        state = self.board.put_many(self.user_id, self.table_id, items,
+                                    spectating=self.spectating())
+        ids = {item["id"] for item in items}  # `put_many` refuses a list that is not.
+        self._commit(state, {"op": "put_many",
+                             "objs": [o for o in state.objects if o["id"] in ids]})
+
+    def delete_many(self, object_ids: list[str]) -> None:
+        before = self.board.version(self.table_id)
+        state = self.board.delete_many(self.user_id, self.table_id, object_ids,
+                                       spectating=self.spectating())
+        if state.version != before:
+            self._commit(state, {"op": "delete_many", "ids": object_ids})
+
     def delete(self, object_id: str) -> None:
         before = self.board.version(self.table_id)
         state = self.board.delete(self.user_id, self.table_id, object_id,
@@ -211,11 +232,10 @@ class BoardSession:
         if state.version != before:
             self._commit(state, {"op": "delete", "id": object_id})
 
-    def restack(self, object_id: str, *, front: bool) -> None:
-        change = self.board.to_front if front else self.board.to_back
+    def restack(self, object_ids: list[str], *, front: bool) -> None:
         before = self.board.version(self.table_id)
-        state = change(self.user_id, self.table_id, object_id,
-                       spectating=self.spectating())
+        state = self.board.restack_many(self.user_id, self.table_id, object_ids,
+                                        front=front, spectating=self.spectating())
         if state.version != before:
             self._commit(state, {"op": "order", "ids": [o["id"] for o in state.objects]})
 
@@ -236,6 +256,13 @@ class BoardSession:
     def _publish(self, state: BoardState) -> None:
         """Give the whole board at `state` to each open page of the table."""
         self.hub.broadcast(self.table_id, snapshot_message(self.table_id, state))
+
+
+def _ids(value: object) -> list[str] | None:
+    """Return `value` as a list of object ids, or None if it is not one."""
+    if isinstance(value, list) and value and all(isinstance(v, str) for v in value):
+        return value
+    return None
 
 
 def snapshot_message(table_id: str, state: BoardState) -> dict:
