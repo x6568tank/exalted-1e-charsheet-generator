@@ -132,14 +132,23 @@ def atomic_write(path: str | os.PathLike, payload: str) -> Path:
     Run the write guard first, if one is installed. Its error propagates, and the
     file is not changed.
     """
+    return atomic_write_bytes(path, payload.encode("utf-8"))
+
+
+def atomic_write_bytes(path: str | os.PathLike, payload: bytes) -> Path:
+    """Write the bytes `payload` to `path`, as `atomic_write` does. Return the path.
+
+    Run the write guard first, if one is installed. Its error propagates, and the
+    file is not changed.
+    """
     path = Path(path)
     if _write_guard is not None:
-        _write_guard(path, len(payload.encode("utf-8")))
+        _write_guard(path, len(payload))
     path.parent.mkdir(parents=True, exist_ok=True)
 
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=path.name, suffix=".tmp")
     try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
+        with os.fdopen(fd, "wb") as f:
             f.write(payload)
         os.replace(tmp, path)
     except BaseException:

@@ -33,6 +33,9 @@ server = [
     "nicegui>=2",
     "reportlab>=4",
     "bcrypt>=4",
+    # server/table_board.py opens each background upload and encodes it again.
+    # reportlab also pulls it in, but the board must not depend on that.
+    "pillow>=10",
 ]
 # Tools needed to build a standalone executable (see pack/). TWO products build from
 # this tree and `desktop` is just the toolchain shared by both: pair it with `ui` for
