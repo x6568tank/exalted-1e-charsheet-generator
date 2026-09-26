@@ -13,6 +13,10 @@ not the pywebview middle path either — the human wants **native widgets**, not
 browser. The webapp stays a shipping product; the shared `view.py` presenter is what
 makes "one engine, two thin shells" tractable.
 
+⚠ **2026-09-26: the packaged webapp is retired (decision 0021).** Releases ship the Qt app
+only. The NiceGUI shell still ships — as the hosted site, which is built from `ui/` — so
+the two-shell rules in this file still apply.
+
 **1.0 shipped 2026-08-17; this was never a 1.0 blocker and is still not scheduled.** A
 different widget toolkit is not a feature; it is the foundation a 2.0 native app is built
 on, offered alongside the existing webapp.

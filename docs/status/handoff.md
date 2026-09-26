@@ -1,63 +1,50 @@
-# Session handoff — 2026-09-26 (account management, build line, crawler files: done, clicked, deployed)
+# Session handoff — 2026-09-26 (the packaged webapp retired; README rewritten; v1.4.0 released)
 
 # 👉 YOU ARE HERE
 
-**NEWEST (2026-09-26, last): the packaged webapp is retired (decision 0021) and the README
-is rewritten for the hosted site.** Releases ship `ExaltedBuilderQt` only (2 assets, not 4);
-`pack/exalted-builder.spec`, `pack/run_app.py`, `linux.sh`, `windows.bat` are deleted and
-`[desktop]` no longer installs nicegui. `python -m exalted_builder.ui.builder` stays as the
-dev entry point (no login, no `__Host-` cookie). README: the site link, "Playing online",
-"Self-hosting". Targeted tests only (branding, packaging, engine_seam). ⚠ Not yet
-dry-run in CI: run `release.yml` by `workflow_dispatch` before the next tag.
+**The packaged webapp is retired (decision 0021) and v1.4.0 is released, Qt only.**
 
-**NEWEST (2026-09-26, after the close-out below): the account page grid and the site
-colours — ✅ clicked by the human, committed, deployed.** Detail:
-`plans/account-management.md` "third round". The colours live in a cookie AND on the
-account (`user_themes`, human: "both"). Targeted tests only (418 passed); the full count
-below is from before this work.
+* **Releases ship `ExaltedBuilderQt` only** — 2 assets (Linux, Windows), not 4.
+  Deleted: `pack/exalted-builder.spec`, `pack/run_app.py`, `linux.sh`, `windows.bat`.
+  `[desktop]` no longer installs nicegui. `pack/BUILD.md` describes the one product.
+  The record, with the rejected alternatives and the cost: `decisions/0021`.
+* **The browser product is the hosted site.** `ui/` stays because `server/` is built
+  from it; `python -m exalted_builder.ui.builder` stays as the **dev** entry point (no
+  login, no `__Host-` cookie — the cheap click-through surface).
+* **README** rewritten toward a general reader (the human's aim: *"generalize the
+  documentation away from my build and my setup"*): the site link up top, "Playing
+  online", "Self-hosting", Qt as the download, corrected counts, `qt/` and `server/` in
+  the tree. The human also cut "Before it is public" from `deploy/homeserver.md`.
+* **v1.4.0** — tag on `31b7c34`, pushed. `workflow_dispatch` dry run green first
+  (run 36256727072), then the tag run (36257023968) attached both assets. The human ran
+  both binaries. Release notes are on GitHub only (not in the repo).
+* 🐞 **Found on the way:** every Actions step warns that Node 20 is deprecated and is
+  forced onto Node 24 (`checkout@v4`, `setup-python@v5`, `upload-artifact@v4`,
+  `action-gh-release@v2`). Harmless today; see NEXT.
 
-**Account management is DONE and BROWSER-VERIFIED by the human, 2026-09-26**, in two
-rounds, and **deployed**. Plus three smaller items from the old NEXT list.
+**Tests:** targeted only — `test_branding.py`, `test_packaging.py`, `test_engine_seam.py`
+green (59). The change is packaging, config and comments. **Last full suite: 4374 passed
++ 1 skipped, OBSERVED 2026-09-26** before this work; not re-run.
 
-* **Accounts** — `docs/plans/account-management.md` (rulings, design, build log, both
-  click-throughs). `/account` ("Account settings" in ☰): email, password change, log out
-  other devices, delete, **rename**. Optional email at signup. `users list` shows the
-  email, `users reset` names the address to send to, `users delete` is new. ⚠ The email
-  **reopens** the 2026-09-11 "no email column" ruling; the reset stays manual.
-* **The top bar** of the public pages holds only the account controls; the places are
-  in ☰ (human ruling). `vtt.md` §9.7, the 2026-09-26 note.
-* **Build line** — the menu's last line is "Build <hash> · <date>"; the deploy writes
-  `exalted_builder/BUILD_COMMIT`. `vtt.md` §5 (the version trap, closed for hosted).
-* **`/robots.txt` and `/sitemap.xml`** — `vtt.md` §9.7. Checked live: 3,197 `https://`
-  addresses.
-* **The Advantages tabs' ten duplicated strings** now live in `ui/view.py`, guarded by a
-  seam test. `qt-port.md` "Shared display text".
-* 🐞 **Found on the way:** (1) a deleted newest account would have handed its id to the
-  next signup — the delete keeps a tombstone row; (2) an open page's auto-save would have
-  recreated a deleted account's folder — the quota guard now refuses it; (3) wiring state
-  in a module global is invisible to the gate from an earlier main-file test — it lives on
-  `app.state` now; (4) the "duplicated strings" are **~95** across all shell pairs, not
-  ten — only Advantages is fixed (human: *"fix later"*).
+**Working tree:** clean. The close-out commit (this file, `qt-port.md`,
+`engine-and-ui.md`) follows `31b7c34` and is pushed to `origin/main`.
 
-**Full suite: 4374 passed + 1 skipped — OBSERVED** at this close-out (21 min), after all
-of the above. The last close-out was 4294 + 1 skipped. The skip is the same one
-(`test_merit_postlock.py:257`).
+**Deployed:** `da9b6b5` is live — read from the site's build line, 2026-09-26. `31b7c34`
+changes nothing the server runs (packaging, docs, comments); no rebuild needed.
 
-**Working tree:** clean after the close-out commit; the three feature commits `7b51612`,
-`4e0e0f9`, `569c202` and the close-out are pushed to `origin/main`.
+🖱 **Owed:** nothing from this session.
 
-**Deployed (2026-09-26):** `569c202` is LIVE on `https://exalted.x6568tank.com`, rebuilt
-by `claude` with `sudo -n exalted-rebuild`. Checked from outside: `/`, `/wiki`, `/login`,
-`/signup`, `/robots.txt`, `/sitemap.xml` 200; `/home` and `/account` send a visitor to
-login; the menu reads "Build 569c202 · 2026-09-26"; the log says NiceGUI ready. The new
-tables were made at start; existing logins survive (no stored epoch = epoch 0).
+❓ **Open for the human:** no rules questions.
 
-🖱 **Owed:** nothing from this session (see the 🖱 section for two carried items).
+---
 
-❓ **Open for the human:** no rules questions; the design choices made without asking
-are listed at the end.
+## The session before — account management, build line, crawler files (2026-09-26)
 
-**Next:** open — see 👉 NEXT.
+Account management DONE and BROWSER-VERIFIED in two rounds, deployed; the account page
+grid and site colours clicked and deployed after. Full suite 4374 passed + 1 skipped,
+observed. Detail: `plans/account-management.md`; the top bar, build line, robots/sitemap
+in `vtt.md` §5 and §9.7. 🐞 Carried: the "duplicated strings" between shells are ~95, not
+ten — only Advantages is fixed (see NEXT); a deleted account is a tombstone row (Traps).
 
 ---
 
@@ -608,7 +595,12 @@ Nothing is in flight. P0–P4 of `vtt.md` are done; account management is done. 
   page-marked text on this machine at all. ⚠ **Do not lower the matcher threshold to
   clear them.**
 - **The desktop reports no version.** The hosted menu does ("Build <hash> · <date>");
-  the desktop has no menu and its PyInstaller build no `BUILD_COMMIT`. `vtt.md` §5.
+  the Qt app has no menu and its PyInstaller build no `BUILD_COMMIT`. `vtt.md` §5.
+  `pyproject.toml` still says `version = "1.0.0"` while the tag is v1.4.0; nothing reads it.
+- **GitHub Actions on Node 20** (found 2026-09-26): bump `checkout`, `setup-python`,
+  `upload-artifact` and `action-gh-release` to their Node 24 majors before GitHub stops
+  forcing them. ⚠ Dry-run with `workflow_dispatch` before the next tag — a broken row
+  cannot then half-populate a public release.
 - **Auth limits still open, all known and costed** (`hosting-state-model.md` §5.1d):
   signup is not rate-limited and accounts are not capped — ⚠ the human asked and ruled
   **"not now"** (2026-09-26): watch `users list` and the disk instead; the session id does
@@ -654,8 +646,8 @@ see — `account-management.md` has both lists.
 
 Carried, never formally clicked:
 
-1. **Save on the DESKTOP still opens the filename prompt and downloads.**
-   Run `python -m exalted_builder.ui.builder`. Confirm the hosted-only buttons — Download
+1. **Save on the local dev builder still opens the filename prompt and downloads.**
+   Run `python -m exalted_builder.ui.builder` (no longer a shipped product, decision 0021). Confirm the hosted-only buttons — Download
    a copy, Log out, and the party's Download a copy — are absent there.
 2. **The public pages' 2026-09-12 list** (§9.7) was never recorded as a click-through,
    though the pages have been in daily use on the live site since. If it is wanted: a

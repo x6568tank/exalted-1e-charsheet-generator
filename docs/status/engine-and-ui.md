@@ -274,6 +274,8 @@ the Alchemical Arrays builder, which replaces Combos for a Charm-Slot splat), `u
   (`pack/run_app.py`): Save downloads the JSON, Load is an upload. `--native`
   (needs pywebview + Qt/GTK) uses OS Save/Open dialogs instead — dev-only, not
   shipped (Qt bundling made native packaging ~280MB and non-portable).
+  ⚠ 2026-09-26: `pack/run_app.py` and the browser build are retired (decision 0021);
+  `ui/builder.py:main` is now a dev entry point and the browser product is the hosted site.
 - **GM mode (`/gm`)** — a Storyteller's party page: compact per-character cards,
   each a live play-state tracker with GM/session notes, saved as one
   `.party.json` (`models/party.py`: `Party` + `PartyMember` holding an
