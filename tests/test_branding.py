@@ -34,8 +34,8 @@ def test_frozen_builds_look_in_the_pyinstaller_extraction_dir(
     assert branding.assets_dir() == tmp_path / "assets"
 
 
-@pytest.mark.parametrize("spec", ["exalted-builder.spec", "exalted-builder-qt.spec"])
-def test_both_specs_bundle_the_icon_and_brand_the_executable(spec: str) -> None:
+@pytest.mark.parametrize("spec", ["exalted-builder-qt.spec"])
+def test_the_spec_bundles_the_icon_and_brands_the_executable(spec: str) -> None:
     """⚠ Wiring the icon in code is only half of it — an unbundled asset resolves to
     a path that does not exist inside the build, so the packaged app silently loses
     the icon while every source-tree test still passes."""

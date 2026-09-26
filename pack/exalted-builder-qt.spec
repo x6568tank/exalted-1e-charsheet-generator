@@ -4,9 +4,8 @@
 # Produces a single-file executable in dist/ for the OS you build on.
 # Cross-compiling is NOT supported: build the Windows .exe on Windows, etc.
 #
-# The sibling `exalted-builder.spec` packages the NiceGUI WEBAPP and deliberately
-# EXCLUDES PySide6. This one is its mirror image: Qt in, nicegui out. Two products
-# from one tree; keep the shared guards (readline, run_*.py) in step.
+# This is the one packaged product (decision 0021). It excludes nicegui: the browser
+# product is the hosted server, which is not packaged with PyInstaller.
 
 from pathlib import Path
 

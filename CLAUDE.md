@@ -182,9 +182,10 @@ is `docs/decisions/README.md`.
 | 0015 | Exalt tiers are ranked: Terrestrial, Celestial, Solar. A splat reaches its own tier and all lower tiers. It never reaches a higher tier. |
 | 0016 | Base dice pools are in scope. Resolution is not. Narrows 0008. |
 | 0017 | Artifacts have acquisition channels: the Artifact Background before play, cash during play, and the Legendary Artifact Merit for plot devices. |
-| 0018 | The Qt port is committed: a PySide6 application with the NiceGUI web application. |
+| 0018 | The Qt port is committed: a PySide6 application with the NiceGUI web application. Narrowed by 0021. |
 | 0019 | A dice roller that is not connected to the pools. It rolls a dice count only. It never knows which roll it makes. Narrows 0009. |
 | 0020 | The board shows a picture of the table. It is not a model of the table. A token does not know its character. Protects 0008. |
+| 0021 | The release ships the Qt app only. The browser product is the hosted site. Narrows 0018. |
 
 Read 0019 before you cite 0009. Read 0016 before you cite 0008 against a pool calculation.
 
@@ -213,7 +214,7 @@ Read 0019 before you cite 0009. Read 0016 before you cite 0008 against a pool ca
 - The virtual environment is `.venv/`. Run the tests with `.venv/bin/python -m pytest`.
 - Git remote `origin` is `github.com/x6568tank/exalted-1e-charsheet-generator`. It tracks
   `main`.
-- A `v*` tag builds four assets: two operating systems x two products. A build that is not
+- A `v*` tag builds two assets: two operating systems x the Qt product. A build that is not
   in the matrix does not exist to the tag. See `pack/BUILD.md`.
 - The test count changes by machine, and by dozens of tests. An optional dependency that is
   absent changes it more than the difference between two machines. Do not make the numbers

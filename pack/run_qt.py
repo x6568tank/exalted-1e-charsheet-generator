@@ -5,10 +5,8 @@ Double-clicking the built executable runs this: it loads the ruleset, opens the
 native builder window, and hands over to the Qt event loop. An optional path
 argument opens that character, exactly as `python -m exalted_builder.qt` does.
 
-The sibling `run_app.py` packages the NiceGUI webapp, which starts a local server
-and opens a browser. This one has no server and no browser: it is the desktop app
-of decision 0018. The two guards below are the same in both, and for the same
-reasons — see the comments; both were paid for once already.
+This is the desktop app of decision 0018. It has no server and no browser. Keep
+the two guards below; the comments give the reasons.
 """
 
 import os

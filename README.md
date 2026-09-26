@@ -2,17 +2,24 @@
 *It's like Chummer, but for Exalted 1E. Character generator, validator, tracker, whatever.*
 
 It does chargen, it does XP advancement afterwards, it prints a sheet, and
-it gives the ST a page to watch the whole party from.
+it gives the ST a page to watch the whole party from. Put it on a server and it also
+runs a campaign: accounts, a shared table, a log with rolls in it, initiative, and a
+whiteboard to draw on.
+
+**Try it here:** [exalted.x6568tank.com](https://exalted.x6568tank.com).
+I have it hosted on a computer I own! You get the character builder, storage for your
+fellers, and campaigns. Or grab one of the downloadable builds and keep it yourself.
+Characters are completely cross-compatible, after all.
 
 I made this because I was annoyed. Anathema is long dead and every tool still standing
 targets 2E, 2.5E, 3E or Essence. I don't play any of those, so I started working on this for 1E alone.
 If you want 2.5E, fork it. The docs are good enough to let you.
 
 There are 1,921 Charms and Arcanoi, 306 spells, 330 rated artifacts, 21 Martial Arts styles
-plus the ten Dragon-Kings Paths, the cost and budget tables, 112 weapons, 28 pieces of
-armour and 56 rows of mundane gear. The engine
-is pure functions and does no I/O; the UI holds no game logic. That's mostly so *I* can add content
-without touching code, but it means you can too. See [Homebrew](#homebrew).
+plus the ten Dragon-Kings Paths, 170 Merits and Flaws, the cost and budget tables, 117 weapons,
+28 pieces of armour and 93 rows of mundane gear. The engine is pure functions and does no I/O;
+the UI holds no game logic. That's mostly so *I* can add content without touching code,
+but it means you can too. See [Homebrew](#homebrew).
 
 > Fan project, unaffiliated with White Wolf / Onyx Path. Exalted is their intellectual
 > property. This is a tool for people who own the books.
@@ -22,7 +29,7 @@ rather fortunately, a better designer.
 
 ## Screenshots
 
-### NiceGUI
+### The website (NiceGUI)
 
 ![The builder](assets/screenshot-builder.png)
 ![The Charm tree picker](assets/screenshot-charms.png)
@@ -31,7 +38,7 @@ rather fortunately, a better designer.
 ![A finished character sheet](assets/screenshot-sheet.png)
 ![Storyteller party view](assets/screenshot-gm.png)
 
-### PySide 6/Qt
+### The desktop app (PySide6/Qt)
 
 ![Native builder](assets/builder-native.png)
 ![Native Charm trees](assets/charms-native.png)
@@ -39,35 +46,47 @@ rather fortunately, a better designer.
 ![Gear (but native)](assets/gear-native.png)
 ![Native sheet](assets/sheet-native.png)
 ![Storyteller view (native)](assets/gm-native.png)
+
 ## Install and run
 
-**The easy way:** grab the executable for your platform from
-[Releases](../../releases) and double-click it. It starts a local server and opens your
-browser. Nothing to install, and it never touches the network.
+**The easiest way:** don't. Use [the hosted site](https://exalted.x6568tank.com).
+
+**The easy way:** grab `ExaltedBuilderQt` for your platform from
+[Releases](../../releases) and double-click it. It's a native window, not a browser.
+Nothing to install, and it never touches the network. Same rules and same save files
+as the website, so a character moves between the two freely.
+
+Older releases also shipped a browser build (`ExaltedBuilder`). That's retired;
+if you prefer the browser look, that's what the website is for.
 
 **From source** (needs Python 3.11+ installed system-wide):
 
 ```bash
 git clone https://github.com/x6568tank/exalted-1e-charsheet-generator
 cd exalted-1e-charsheet-generator
-./linux.sh          # or windows.bat on Windows
+./linux-qt.sh      # or windows-qt.bat on Windows
 ```
 
-Either script makes `.venv`, installs the app and builds `dist/ExaltedBuilder`.
+The script makes `.venv`, installs the app and builds `dist/ExaltedBuilderQt`.
 Platform caveats and the no-cross-compiling rule are in [`pack/BUILD.md`](pack/BUILD.md).
 
 **Run it without packaging:**
 
 ```bash
 python3 -m venv .venv
-.venv/bin/python -m pip install -e ".[ui]"
-.venv/bin/python -m exalted_builder.ui.builder      # then open http://localhost:8080
+.venv/bin/python -m pip install -e ".[qt]"
+.venv/bin/python -m exalted_builder.qt [path/to/foo.character.json]
 ```
 
-**Tests:** `.venv/bin/python -m pytest` — about 2,456 of them, seven to ten minutes
-depending on the machine. Expect them all to pass, with one warning about deferred
-Merit descriptions: that check compares the shipped text against the rulebook chapters,
-which are gitignored and don't come with a clone, so it skips what it can't see.
+For working on the web side, `pip install -e ".[ui]"` and
+`python -m exalted_builder.ui.builder` run the NiceGUI builder locally at
+http://localhost:8080, no account needed. It's a dev tool now, not something that ships.
+
+**Tests:** `.venv/bin/python -m pytest` — somewhere over 4,000 of them, and a good
+twenty minutes. Expect them all to pass. If you don't have optional modules
+installed, the tests for them skip themselves. Some checks compare the shipped text against
+the rulebook chapters, which are gitignored and don't come with a clone,
+so they skip what they can't see. [`docs/testing.md`](docs/testing.md) explains why the count moves.
 
 ## Making your first character
 
@@ -102,7 +121,7 @@ reaching in from a different Ability's tree, and anything you qualify for and ca
 afford right now is marked. Click to buy, click again to sell back. Your caste and
 favoured Charms are already priced as such.
 
-**Combos** is its own tab, empty until you have Charms to put in one. Alchemicals get **Arrays** 
+**Combos** is its own tab, empty until you have Charms to put in one. Alchemicals get **Arrays**
 in the same spot instead. Ghosts get neither, and the tab isn't there at all — the dead may never learn Combos.
 
 ### Watching the column on the right
@@ -167,16 +186,47 @@ type yourself. It does not know what you're rolling for, and that's deliberate.
 ## Running a game
 
 **Party** in the header is the ST page: everyone in the group as a card, play state and
-notes side by side, plus a roster of adversaries — 52 generic extras, beasts and NPCs
+notes side by side, plus a roster of adversaries — 58 generic extras, beasts and NPCs
 to instance and drop in. Cards touch play state and notes and nothing else. "Builder"
 on a card opens that character properly.
 
 **ST Options** holds the per-character toggles: the optional chargen caps, house rules,
 permissions like letting a mortal buy an Artifact.
 
+## Playing online
+
+On the hosted site (or your own, see [Self-hosting](#self-hosting)) the same builder
+sits behind an account. Your characters live on the server and save themselves; your
+homebrew library is yours alone.
+
+**Campaigns** replace the Party page. The Storyteller makes one and hands out a
+six-character join code; players ask to join with a character and the ST approves them.
+Joining makes a **campaign copy** of the character. That copy is the one that earns XP,
+the ST grants it, and your original stays untouched. Leave and you keep the copy.
+Spectators join the same way and just watch.
+
+The **table** is the campaign's main page, and everyone at it sees it:
+
+* Every character's play state, health track included.
+* A **log** for messages and rolls.
+* **Initiative** for the whole table, NPCs too.
+* A **Pools** tab with each character's base dice pools.
+* Private notes per member. The ST can't read yours.
+
+The ST also gets the adversary roster, NPC sides, the table-wide house rules, and a
+campaign homebrew layer that players can propose additions to.
+
+In the middle is **the board**: a shared whiteboard with a pen, an eraser, tokens with
+pictures on them, and an uploaded background map. It is a picture of the table, not a
+model of it. A token doesn't know which character it is, and it never will.
+
+There's also a **wiki** of rules reference, readable without an account.
+
 ## Saving
 
-**Save** writes plain, readable JSON you can hand-edit if you know what you're doing.
+**Save** in the desktop app writes plain, readable JSON you can hand-edit if you know
+what you're doing. The website saves as you go, and **Download a copy** gets you the same
+file; importing one on `/home` brings it back.
 A party is one file with the characters inside it. A character save also carries any
 homebrew it depends on, so handing someone your character hands them your Charms too.
 
@@ -214,7 +264,7 @@ for mundane goods, **Elder Exalts** (Essence bought with XP past 5 raises the tr
 ceilings, no age chart, with a downtime XP calculator), and the **GM adversary
 roster**.
 
-**All ten splats are in.** The only thing not supported is the **Fae**. You may be wondering why. Fuck em, 
+**All ten splats are in.** The only thing not supported is the **Fae**. You may be wondering why. Fuck em,
 that's why.
 
 ## Homebrew
@@ -253,6 +303,24 @@ Three things worth knowing:
   something out of a book.
 * **It travels with the character,** as above.
 
+## Self-hosting
+
+The server is one process with the `server` extra:
+
+```bash
+.venv/bin/python -m pip install -e ".[server]"
+export EXALTED_SESSION_ROOT=/some/folder/sessions     # characters, homebrew, campaigns
+export EXALTED_DB_PATH=/some/folder/exalted.db        # accounts
+export EXALTED_STORAGE_SECRET=something-long           # keep it; a new one logs everyone out
+.venv/bin/python -m exalted_builder.server.main --host 0.0.0.0 --port 8080
+```
+
+Run **one** worker; the live characters are held in memory. The login cookie is
+`Secure`, so it needs HTTPS in front of it — a plain-HTTP address can't log anyone in.
+There's a [`Dockerfile`](Dockerfile), and [`docs/deploy/homeserver.md`](docs/deploy/homeserver.md)
+has the Compose entry and the update steps. Accounts are managed from the command line:
+`python -m exalted_builder.server.users list | reset <name> | delete <name>`.
+
 ## Design goals
 
 * **The rulebook is data.** Charms, spells, costs, budgets and equipment are JSON.
@@ -265,9 +333,11 @@ Three things worth knowing:
 * **Faithful to the page, not to what feels right.** Values come off the 1E books.
   Where the books are ambiguous or errata'd, the ambiguity gets recorded instead of
   quietly resolved.
-* **There is a dumb dice roller.** It has a label, and you input how many dice. I will
-  not do charm effects for you, fuck off. This is not, and will not be, a CRPG. It is a
-  character builder and tracker and *nothing else*.
+* **There is a dumb dice roller, and a dumb board.** It has a label, and you input how many dice. I will
+  not do charm effects for you, fuck off. The board is a whiteboard with tokens; it
+  doesn't know who anyone is, and it doesn't measure range. This is not, and will not be,
+  a CRPG or a VTT that plays the game for you. It is a character builder and tracker and
+  a table to sit at, and *nothing else*.
 
 ## Project structure
 
@@ -283,13 +353,17 @@ exalted_builder/
     custom_content.py   The homebrew library: paths, authoring, import/export
     persistence.py  Character and party save files
     ui/             NiceGUI frontend: builder, Charm picker, sheet, party page. No rules
+    qt/             The native PySide6 frontend. Same engine, same saves
+    server/         The hosted site: accounts, the login gate, per-account characters
+                    and homebrew, campaigns, the table, the board, the wiki
 docs/status/        What is built, splat by splat
+docs/plans/         Designs and build logs for the bigger pieces (hosting, campaigns, board)
 pack/               PyInstaller packaging and build instructions
 tools/              Data authoring spec and a validator for hand-written Charm files
-tests/             ~2,456 tests, engine-first
+tests/              4,000-odd tests, engine-first
 ```
 
-Dependencies run one way only: `ui → engine → models`.
+Dependencies run one way only: `ui`/`qt`/`server → engine → models`.
 
 ## Documentation
 
@@ -309,7 +383,11 @@ Dependencies run one way only: `ui → engine → models`.
   actually costs, based on the ten that are done rather than on wishful thinking
 * [`tools/CHARM_AUTHORING_SPEC.md`](tools/CHARM_AUTHORING_SPEC.md) — how to transcribe
   Charms off a page into `data/`, mechanically
-* [`pack/BUILD.md`](pack/BUILD.md) — packaging the desktop executable
+* [`pack/BUILD.md`](pack/BUILD.md) — packaging the desktop executables, web and native
+* [`docs/plans/vtt.md`](docs/plans/vtt.md) — the hosted table and the board: what they
+  are, what they will never be, and why the board was cheap
+* [`docs/deploy/homeserver.md`](docs/deploy/homeserver.md) — running the server in a
+  container
 
 ## Contributing
 

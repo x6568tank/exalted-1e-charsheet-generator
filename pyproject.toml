@@ -37,19 +37,15 @@ server = [
     # reportlab also pulls it in, but the board must not depend on that.
     "pillow>=10",
 ]
-# Tools needed to build a standalone executable (see pack/). TWO products build from
-# this tree and `desktop` is just the toolchain shared by both: pair it with `ui` for
-# the browser build (`pack/exalted-builder.spec`) or with `qt` for the native PySide6
-# one (`pack/exalted-builder-qt.spec`). ⚠ The old note here said the packaged app
-# always opens in a browser and needs no Qt — true until decision 0018 shipped a
-# native app; nicegui stays listed because the webapp build is still a product.
+# Tools needed to build the standalone executable (see pack/). Pair it with `qt`:
+# `pack/exalted-builder-qt.spec` is the one packaged product (decision 0021). The spec
+# excludes nicegui, thus this extra does not install it.
 desktop = [
-    "nicegui>=2",
     "reportlab>=4",
     "pyinstaller>=6",
 ]
 # The PySide6 native app (decision 0018) and its offscreen test story. Optional:
-# the NiceGUI webapp and the dev/test toolchain run without it.
+# the NiceGUI frontend and the dev/test toolchain run without it.
 qt = [
     "PySide6>=6.7",
     "pytest-qt>=4",

@@ -1,7 +1,7 @@
 """server/main.py — the hosted entry point.
 
 Section 5.1 of `docs/plans/hosting-state-model.md`. The desktop entry points
-(`ui/builder.py:main` and `pack/run_app.py`) call `builder.register_pages`. This
+(`ui/builder.py:main`) calls `builder.register_pages`. This
 module calls `server/home.py` instead: `/home` lists the characters of the
 account, and each character has its own page, context, file and auto-save.
 

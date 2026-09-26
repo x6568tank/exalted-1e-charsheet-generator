@@ -2,6 +2,14 @@
 
 # 👉 YOU ARE HERE
 
+**NEWEST (2026-09-26, last): the packaged webapp is retired (decision 0021) and the README
+is rewritten for the hosted site.** Releases ship `ExaltedBuilderQt` only (2 assets, not 4);
+`pack/exalted-builder.spec`, `pack/run_app.py`, `linux.sh`, `windows.bat` are deleted and
+`[desktop]` no longer installs nicegui. `python -m exalted_builder.ui.builder` stays as the
+dev entry point (no login, no `__Host-` cookie). README: the site link, "Playing online",
+"Self-hosting". Targeted tests only (branding, packaging, engine_seam). ⚠ Not yet
+dry-run in CI: run `release.yml` by `workflow_dispatch` before the next tag.
+
 **NEWEST (2026-09-26, after the close-out below): the account page grid and the site
 colours — ✅ clicked by the human, committed, deployed.** Detail:
 `plans/account-management.md` "third round". The colours live in a cookie AND on the

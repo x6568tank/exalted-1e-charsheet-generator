@@ -31,6 +31,7 @@ status log says so rather than guessing.
 | [0015](0015-exalt-tier-hierarchy.md) | The Exalt tiers are a ranked hierarchy, not a flat label | Accepted |
 | [0016](0016-base-dice-pools-are-in-scope.md) | Base dice pools are in scope; resolution is not (amends 0008's boundary) | Accepted (two clauses amended by [0019](0019-a-dumb-dice-roller.md)) |
 | [0017](0017-two-acquisition-channels-for-artifacts.md) | Artifacts have two acquisition channels — the Background is pre-game, cash is in-play; only the first is budgeted | Accepted |
-| [0018](0018-qt-port-committed.md) | The Qt port is committed — a PySide6 native app alongside the NiceGUI webapp | Accepted |
+| [0018](0018-qt-port-committed.md) | The Qt port is committed — a PySide6 native app alongside the NiceGUI webapp | Accepted (the packaged webapp retired by [0021](0021-retire-the-packaged-webapp.md)) |
 | [0019](0019-a-dumb-dice-roller.md) | A dumb dice roller, unwired from the pools — rolls a COUNT, never a named roll (reverses 0009 narrowly; amends 0016) | Accepted |
 | [0020](0020-the-board-is-dumb.md) | The board is dumb: a picture of the table, never a model of it — no token knows its character (protects 0008) | Accepted |
+| [0021](0021-retire-the-packaged-webapp.md) | Retire the packaged webapp: releases ship Qt only; the browser product is the hosted site (narrows 0018) | Accepted |

@@ -791,8 +791,7 @@ def register_pages(ruleset: RuleSet, ctx: dict,
     session key comes from the session cookie, which needs one. See
     `session_key` and server/config.py.
 
-    Both entry points (this module's main() and pack/run_app.py) call this, so the
-    route set is declared exactly once.
+    This module's main() calls this. The route set is declared exactly once.
     """
     # Imported here, not at module scope: ui/gm.py imports this module for the
     # shared context and the file-dialog helpers, so a top-level import would be

@@ -64,7 +64,7 @@ def normalize_save_filename(text: str, character: Character) -> str:
 def default_save_dir() -> Path:
     """Where new saves should land by default: next to the executable in a
     packaged (PyInstaller) build, otherwise the current working directory. So a
-    double-clicked ExaltedBuilder writes its .character.json beside itself, in
+    double-clicked ExaltedBuilderQt writes its .character.json beside itself, in
     whatever folder it was launched from."""
     if getattr(sys, "frozen", False):          # PyInstaller bundle
         return Path(sys.executable).resolve().parent

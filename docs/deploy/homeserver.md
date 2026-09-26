@@ -91,12 +91,3 @@ most the edit in flight, and logs in again only if the secret changed.
 * **Monitoring:** ⚠ NONE (checked 2026-09-24). An Uptime Kuma HTTP monitor on
   `https://exalted.x6568tank.com/` would cover the proxy and the app together; it was
   planned but never created. Adding one is the human's step in the Kuma UI.
-
-## Before it is public
-
-* The About prose is **Lorem Ipsum by the human's choice** (*"feel free to change it to
-  Lorem Ipsum for now"*, 2026-09-12) (`exalted_builder/server/public.py`).
-* ✅ A real browser signup worked through the tunnel (the human, 2026-09-12).
-* The known limits of the login gate are in `docs/plans/hosting-state-model.md` §5.1d
-  (a reset does not end existing logins; signup is not rate-limited; no account delete;
-  homebrew is outside the quota).

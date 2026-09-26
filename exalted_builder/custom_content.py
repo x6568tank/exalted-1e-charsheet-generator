@@ -16,7 +16,7 @@ Location, in order of precedence:
      `custom/` in the current working directory.
 
 (2) deliberately mirrors persistence.default_save_dir(), which already puts saves
-beside a double-clicked ExaltedBuilder: the user's characters and the homebrew they
+beside a double-clicked ExaltedBuilderQt: the user's characters and the homebrew they
 depend on then sit in one place and can be copied together.
 """
 
