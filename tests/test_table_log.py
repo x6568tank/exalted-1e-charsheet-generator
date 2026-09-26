@@ -221,7 +221,7 @@ def test_a_botch_reads_back_as_a_botch(the_log: TableLog, table) -> None:
 
 
 def test_the_quota_of_the_table_folder_applies(the_log: TableLog, tables, table) -> None:
-    persistence.set_write_guard(FolderQuota(tables.root, limit=10))
+    persistence.set_write_guard(FolderQuota(tables.root, table_limit=10))
     try:
         with pytest.raises(QuotaExceeded):
             the_log.post(PLAYER, table.id, "a message longer than ten bytes")

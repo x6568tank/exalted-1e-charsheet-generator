@@ -923,7 +923,10 @@ class _TableView:
             self.log_text = ui.input(
                 placeholder="Say something, or caption a roll…").props(
                 f"dense outlined maxlength={MAX_TEXT}").classes("w-full").mark("log-text")
-            self.log_text.on("keydown.enter", self._send)
+            # ⚠ The key event carries the text. Enter can reach the server before
+            # the last value update of the box, and `.value` is then short or empty.
+            self.log_text.on("keydown.enter", lambda e: self._send(e.args),
+                             js_handler="(e) => emit(e.target.value)")
             with ui.row().classes("w-full items-center no-wrap gap-1"):
                 # ⚠ Decision 0019: the player types the count. Nothing fills it from
                 # a pool, and the Log never names a roll.
@@ -934,7 +937,7 @@ class _TableView:
                     f"dense no-caps color={pal.button}").mark("log-roll").tooltip(
                     "Roll the dice. The text in the box, if any, is the caption.")
                 ui.space()
-                ui.button(icon="send", on_click=self._send).props(
+                ui.button(icon="send", on_click=lambda: self._send()).props(
                     f"flat dense round color={pal.button}").mark("log-send").tooltip(
                     "Send (Enter)")
         self._draw_log()
@@ -985,8 +988,9 @@ class _TableView:
         self.log_text.set_value("")
         self._draw_log()
 
-    def _send(self) -> None:
-        text = self.log_text.value or ""
+    def _send(self, typed: object = None) -> None:
+        """Post the text of the box. `typed` is the text that the Enter key sent."""
+        text = (typed if isinstance(typed, str) and typed else self.log_text.value) or ""
         if not text.strip():
             return
         self._log_write(lambda: self.log.post(self.user_id, self.table.id, text))

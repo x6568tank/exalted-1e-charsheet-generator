@@ -366,7 +366,7 @@ def test_an_image_with_too_many_pixels_is_refused_before_it_is_decoded(
 
 def test_the_quota_of_the_table_folder_applies_to_objects(board: TableBoard, tables,
                                                           table) -> None:
-    persistence.set_write_guard(FolderQuota(tables.root, limit=10))
+    persistence.set_write_guard(FolderQuota(tables.root, table_limit=10))
     try:
         with pytest.raises(QuotaExceeded):
             board.put(PLAYER, table.id, token())
@@ -377,7 +377,7 @@ def test_the_quota_of_the_table_folder_applies_to_objects(board: TableBoard, tab
 
 def test_the_quota_of_the_table_folder_applies_to_the_background(
         board: TableBoard, tables, table) -> None:
-    persistence.set_write_guard(FolderQuota(tables.root, limit=100))
+    persistence.set_write_guard(FolderQuota(tables.root, table_limit=100))
     try:
         with pytest.raises(QuotaExceeded):
             board.set_background(ST, table.id, png_bytes((200, 200)))

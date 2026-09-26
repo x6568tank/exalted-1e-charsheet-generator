@@ -681,6 +681,21 @@ async def test_enter_in_the_text_box_sends(create_user) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
+async def test_enter_sends_the_text_that_the_key_event_carries(create_user) -> None:
+    """🐞 2026-09-25: Enter can reach the server before the last value update of the
+    box. The key event carries `e.target.value`, and the page posts that."""
+    _, _, table, players = await _campaign(create_user, "Ashes of Dawn")
+    (player, _, _), = players
+    await player.open(chrome.table_url(table.id))
+
+    # The box is still empty on the server; the browser sent the text with Enter.
+    player.find(marker="log-text").trigger("keydown.enter", "Typed fast")
+
+    await player.should_see(marker="log-body-1", content="Typed fast")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
 async def test_a_roll_takes_the_text_as_its_caption(create_user) -> None:
     _, _, table, players = await _campaign(create_user, "Ashes of Dawn")
     (player, player_id, _), = players

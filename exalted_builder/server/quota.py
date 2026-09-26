@@ -1,7 +1,8 @@
 """
 server/quota.py — the disk limit of each account folder on the hosted server.
 
-The human set the limit on 2026-09-11: 10 MB for each person. A character file is
+The human set the limit on 2026-09-11: 10 MB for each person, and on 2026-09-25
+50 MB for each campaign folder. A character file is
 some kilobytes.
 
 `FolderQuota` is a write guard for `persistence.atomic_write`. Each write of the
@@ -22,8 +23,12 @@ from pathlib import Path
 
 QUOTA_BYTES = 10 * 1024 * 1024
 
+# The limit of each campaign folder. The human set it on 2026-09-25: 50 MB, for
+# the maps of the board (docs/plans/p4-board.md).
+TABLE_QUOTA_BYTES = 50 * 1024 * 1024
+
 # The name of a table folder starts with this. `TableStore.table_dir` makes it.
-# A table folder has the same limit as an account folder.
+# A table folder has the limit `table_limit`.
 TABLE_FOLDER_PREFIX = "table-"
 
 
@@ -41,13 +46,15 @@ def folder_size(folder: Path) -> int:
 
 @dataclass(frozen=True)
 class FolderQuota:
-    """Refuse a write that makes a folder of `root` larger than `limit` bytes.
+    """Refuse a write that makes a folder of `root` larger than its limit.
 
-    The folder is the first path component below `root`: one account folder.
+    The folder is the first path component below `root`: one account folder, with
+    the limit `limit`, or one campaign folder, with the limit `table_limit`.
     """
 
     root: Path
     limit: int = QUOTA_BYTES
+    table_limit: int = TABLE_QUOTA_BYTES
 
     def __call__(self, path: Path, size: int) -> None:
         """Raise `QuotaExceeded` if a write of `size` bytes to `path` is over the limit.
@@ -65,10 +72,11 @@ class FolderQuota:
             return
         replaced = target.stat().st_size if target.is_file() else 0
         used = folder_size(root / parts[0]) - replaced
-        if used + size > self.limit:
-            owner = ("This campaign" if parts[0].startswith(TABLE_FOLDER_PREFIX)
-                     else "This account")
+        campaign = parts[0].startswith(TABLE_FOLDER_PREFIX)
+        limit = self.table_limit if campaign else self.limit
+        if used + size > limit:
+            owner = "This campaign" if campaign else "This account"
             raise QuotaExceeded(
                 f"{owner} has no space left: {used / 2**20:.1f} MB of "
-                f"{self.limit / 2**20:.1f} MB used. Ask the server admin to remove "
+                f"{limit / 2**20:.1f} MB used. Ask the server admin to remove "
                 "old files.")

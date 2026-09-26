@@ -30,20 +30,20 @@ token drag, dialog labels, the eraser, the Delete key, Clear, Spectate and a map
 upload, with each change checked on the other screen. That is not the human's
 click-through. p4-board.md §8 lists what was not driven.
 
-🐞 **Turned up:** Enter in a text box can reach the server before the box's last value
-(fixed in the board dialog). ⚠ **The Log's text box has the same pattern** and was
-not changed; the next session should look at it.
+🐞 **Turned up:** Enter in a text box can reach the server before the box's last value.
+Fixed in the board dialog **and** the Log's text box (the key event carries the text).
 
-**Working tree:** clean after two local commits, `d3726ca` (step 1) and the steps 2–4 commit after it. **NOT pushed** to `origin/main`. Check `git status`.
+**Campaign quota is now 50 MB** (human, 2026-09-25); an account keeps 10 MB.
+
+**Working tree:** clean after three local commits: `d3726ca` (step 1), `c62cd56` (steps 2–4), and the quota + Log commit after them. **NOT pushed** to `origin/main`. Check `git status`.
 
 **Deployed:** NOT deployed. The live site is still `f6d8c56`.
 
-🖱 **Owed:** P4 step 5, the click-through. The checklist is in `p4-board.md` §8 "Step 5".
+🖱 **Owed:** P4 step 5, the click-through. A server with fresh seed data was started on :8080 (`/tmp/exalted-click`) for it. The checklist is in `p4-board.md` §8 "Step 5".
 0020 is on the list: nothing on the board may read the party.
 
-❓ **Open for the human:** token images (0020 allows them; not built, each needs an
-upload). The toolbar wraps to two rows at 1400 px; does it want compacting? And fix
-the Log's Enter race, yes or no?
+❓ **Open for the human:** token images: the 50 MB raise reads as a yes, to be confirmed
+after the first look. Does the toolbar, which wraps to two rows at 1400 px, want compacting?
 
 **Next:** the click-through, then deploy.
 

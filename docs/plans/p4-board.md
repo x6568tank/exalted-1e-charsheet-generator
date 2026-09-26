@@ -69,7 +69,7 @@ All four were asked on 2026-09-25 and the human took the recommendation on each.
 | # | Question | Ruling |
 |---|---|---|
 | Q1 | Who can change the board? | **Players and the ST**: each draws, places tokens, and moves or deletes **any** object, as at a real table. **Only the ST** clears the board and sets the background. **Spectators watch.** "Spectator" is how the campaign is opened (`p3-tables.md` §1), so the check is the page's mode, re-checked in the handler. |
-| Q2 | Background images | **The ST uploads.** The server opens the file as an image, re-encodes it, and refuses a result over **~2 MB**. It is stored in the table folder, under the table's **10 MB** quota. |
+| Q2 | Background images | **The ST uploads.** The server opens the file as an image, re-encodes it, and refuses a result over **~2 MB**. It is stored in the table folder, under the table's quota — **raised to 50 MB on 2026-09-25** (human: *"Increase table size to 50 MB"*); an account folder keeps 10 MB (`quota.TABLE_QUOTA_BYTES`). |
 | Q3 | Scenes | **One board per campaign.** A scene change is Clear or a new background. Scenes can be added later without a reshape. |
 | Q4 | A Storyteller-only layer | **Not in v1.** Everyone sees every object. The hidden-object trap in §7 is dormant until this is reopened. |
 
@@ -159,13 +159,15 @@ pinch zoom on a phone (there is none: see below), a reconnect.
 * 🐞 **Enter in the label dialog could beat the box's last value update**, and the
   token was saved with an empty label. Seen only when Selenium typed and pressed Enter
   at once; a pause made it pass. The key event now carries `e.target.value` itself.
-  ⚠ The Log's text box uses the old pattern (`keydown.enter` then reads `.value`) and
-  may have the same race. It passed the same fast-typing check once. Not changed.
+  The Log's text box had the same pattern and now sends the text with Enter too
+  (human: *"Proooobably?"*, 2026-09-25); a test triggers Enter with the box empty on
+  the server and checks the post, and it fails with the old code.
 * 🐞 A restack that moved nothing bumped the version and broadcast. Fixed in the store.
 * `atomic_write` now writes bytes. On Windows a desktop save now has `\n` line
   endings, not `\r\n`. JSON does not care.
-* Token images are **not** built: 0020 allows them, but each needs an upload. Tokens are
-  colour + label. Say so if you want them.
+* Token images are **not** built yet: 0020 allows them, but each needs an upload. The
+  human raised the campaign quota to 50 MB with them in mind (2026-09-25); **read as a
+  yes, to be confirmed after the first look** at the board.
 * No touch pinch-zoom; one-finger drag pans. At phone width the board sits below the
   rails (the existing P3 layout).
 

@@ -1,4 +1,5 @@
-"""The 10 MB limit of each account folder: `server/quota.py`.
+"""The 10 MB limit of each account folder, and the 50 MB limit of each campaign
+folder: `server/quota.py`.
 
 The human set the limit on 2026-09-11.
 
@@ -61,13 +62,24 @@ def test_a_write_past_the_limit_is_refused(root: Path) -> None:
 
 
 def test_a_campaign_folder_is_named_as_a_campaign(root: Path) -> None:
-    """A table folder has the quota of an account folder. The message must not say
-    "This account" to a Storyteller whose own account has space."""
+    """The message must not say "This account" to a Storyteller whose own account
+    has space."""
     _fill(root / "table-0123456789ab" / "log.json", LIMIT - 400)
 
     with pytest.raises(QuotaExceeded, match="This campaign has no space left") as error:
-        FolderQuota(root, limit=LIMIT)(root / "table-0123456789ab" / "awards.json", 401)
+        FolderQuota(root, limit=LIMIT, table_limit=LIMIT)(
+            root / "table-0123456789ab" / "awards.json", 401)
     assert "account" not in str(error.value)
+
+
+def test_a_campaign_folder_has_its_own_limit(root: Path) -> None:
+    """The human, 2026-09-25: 50 MB for a campaign, for the maps of the board. An
+    account keeps 10 MB."""
+    quota = FolderQuota(root, limit=LIMIT, table_limit=3 * LIMIT)
+    _fill(root / "table-0123456789ab" / "board" / "background.img", 2 * LIMIT)
+    quota(root / "table-0123456789ab" / "board.json", LIMIT - 1)
+    with pytest.raises(QuotaExceeded):
+        quota(root / "user-1" / "hero.json", LIMIT + 1)
 
 
 def test_a_replaced_file_frees_its_size(root: Path) -> None:
@@ -96,8 +108,9 @@ def test_a_path_outside_the_root_is_not_checked(root: Path, tmp_path: Path) -> N
     FolderQuota(root, limit=LIMIT)(tmp_path / "custom" / "charms.json", 10 * LIMIT)
 
 
-def test_the_default_limit_is_ten_megabytes(root: Path) -> None:
+def test_the_default_limits_are_ten_and_fifty_megabytes(root: Path) -> None:
     assert FolderQuota(root).limit == 10 * 1024 * 1024
+    assert FolderQuota(root).table_limit == 50 * 1024 * 1024
 
 
 def test_folder_size_of_a_missing_folder_is_zero(root: Path) -> None:

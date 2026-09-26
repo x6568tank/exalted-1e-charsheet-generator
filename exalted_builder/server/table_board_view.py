@@ -457,8 +457,9 @@ class BoardPanel:
                            else "Type the text").props(
                 f"autofocus maxlength={limit}").classes("w-full").mark("board-ask-text")
 
-            def done(typed: str | None = None) -> None:
-                text = ((box.value if typed is None else typed) or "").strip()
+            def done(typed: object = None) -> None:
+                text = ((typed if isinstance(typed, str) and typed else box.value)
+                        or "").strip()
                 if existing is not None:
                     data = dict(existing) | {field: text}
                 elif kind == "token":
@@ -477,7 +478,7 @@ class BoardPanel:
 
             # ⚠ The key event carries the text. Enter can reach the server before
             # the last value update of the box, and `box.value` is then empty.
-            box.on("keydown.enter", lambda e: done(str(e.args or "")),
+            box.on("keydown.enter", lambda e: done(e.args),
                    js_handler="(e) => emit(e.target.value)")
             with ui.row().classes("w-full justify-end gap-2"):
                 ui.button("Cancel", on_click=dialog.close).props("flat")
