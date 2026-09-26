@@ -24,6 +24,7 @@ FRONT_PATH = "/"
 HOME_PATH = "/home"
 WIKI_PATH = "/wiki"
 ABOUT_PATH = "/about"
+ACCOUNT_PATH = "/account"
 
 # The icon of each wiki section. The wiki tab strip and the menu use it. "Merits &
 # Flaws" takes the icon of the builder's Advantages tab, and "Charms" the icon of
@@ -89,6 +90,8 @@ def groups(username: Optional[str], *, live: bool = False) -> list[list[Link]]:
     result = [places, reference]
     if username:
         result.append([Link("", "account_circle", f"Logged in as {username}", "account"),
+                       Link(ACCOUNT_PATH, "manage_accounts", "Account settings",
+                            "account-settings"),
                        Link("/logout", "logout", "Log out", "logout")])
     build = build_info.label()
     if build:

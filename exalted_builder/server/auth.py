@@ -65,6 +65,21 @@ _OPEN_PREFIXES = ("/_nicegui/", "/_nicegui_ws/")
 # The keys in `app.storage.user`.
 USER_ID = "user_id"
 USERNAME = "username"
+LOGIN_EPOCH = "login_epoch"
+
+# Why an account needs an email. The signup form and `/account` show it.
+NO_EMAIL_NOTE = ("Without an email, you cannot prove the account is yours if you "
+                 "forget the password.")
+
+# The attribute of `app.state` that holds the account database. `register_auth_pages`
+# sets it. The desktop has no accounts and does not set it: then no login epoch is
+# checked. ⚠ Not a module global: a NiceGUI main-file test imports this module again,
+# and the gate of an earlier import then reads a global that nothing set.
+_DB_PATH_STATE = "exalted_account_db"
+
+
+def _db_path() -> Path | None:
+    return getattr(app.state, _DB_PATH_STATE, None)
 
 
 def is_open_path(path: str) -> bool:
@@ -74,9 +89,21 @@ def is_open_path(path: str) -> bool:
 
 
 def current_user_id() -> int | None:
-    """Return the id of the account of the current request, or None."""
+    """Return the id of the account of the current request, or None.
+
+    Return None also if the login recorded an older login epoch than the database
+    holds, and remove that login. A password change, a reset, "Log out other
+    devices" and a delete raise the epoch.
+    """
     value = app.storage.user.get(USER_ID)
-    return value if isinstance(value, int) else None
+    if not isinstance(value, int):
+        return None
+    path = _db_path()
+    if path is not None and \
+            app.storage.user.get(LOGIN_EPOCH, 0) != db.login_epoch(path, value):
+        log_out()
+        return None
+    return value
 
 
 def current_username() -> str | None:
@@ -85,15 +112,19 @@ def current_username() -> str | None:
 
 
 def log_in(user_id: int, username: str) -> None:
-    """Record the login of account `user_id` for the current browser."""
+    """Record the login of account `user_id` for the current browser, at the
+    current login epoch of the account."""
     app.storage.user[USER_ID] = user_id
     app.storage.user[USERNAME] = username
+    path = _db_path()
+    app.storage.user[LOGIN_EPOCH] = 0 if path is None else db.login_epoch(path, user_id)
 
 
 def log_out() -> None:
     """Remove the login of the current browser."""
     app.storage.user.pop(USER_ID, None)
     app.storage.user.pop(USERNAME, None)
+    app.storage.user.pop(LOGIN_EPOCH, None)
 
 
 def safe_target(target: str | None) -> str:
@@ -141,27 +172,30 @@ def wait_text(seconds: float) -> str:
     return f"Too many failed attempts. Try again in {math.ceil(seconds / 60)} minutes."
 
 
-def _frame(current: str) -> ui.element:
-    """Draw the header bar and the footer of the public pages. Return the card
-    for the form. `current` marks the button of the page in the header bar."""
+def form_frame(current: str, username: str | None = None, *, cards: int = 1
+               ) -> ui.element | list[ui.element]:
+    """Draw the header bar and the footer of the public pages, and `cards` form
+    cards between them. Return the card, or the list of the cards if `cards` is
+    more than 1. `current` marks the button of the page in the header bar.
+    `username` gives the menu of that login."""
     ui.colors(primary=theme.palette(None).accent)
     # The public pages have no padding around the header bar. NiceGUI pads its content.
     ui.add_head_html(f"<style>{site.style_sheet()}"
                      ".nicegui-content{padding:0;gap:0;align-items:stretch}</style>")
     ui.add_body_html(site.MENU_SCRIPT)
-    ui.html(site.header_bar(current, None), sanitize=False)
+    ui.html(site.header_bar(current, username), sanitize=False)
     with ui.element("main").classes("page w-full"):
-        card = ui.element("section").classes("card auth")
+        made = [ui.element("section").classes("card auth") for _ in range(cards)]
     ui.html(site.FOOTER, sanitize=False)
-    return card
+    return made[0] if cards == 1 else made
 
 
-def _heading(title: str, lead: str) -> None:
+def form_heading(title: str, lead: str) -> None:
     ui.html(f'<h1>{site.esc(title)}</h1><p class="lead muted">{site.esc(lead)}</p>',
             sanitize=False)
 
 
-def _aside(lines: list[str]) -> ui.element:
+def form_aside(lines: list[str]) -> ui.element:
     """Draw the note area at the bottom of the card. Each item of `lines` is HTML
     that the caller escaped. Return the area, for more lines."""
     with ui.element("div").classes("aside") as area:
@@ -175,6 +209,7 @@ def register_auth_pages(db_path: Path, throttle: LoginThrottle | None = None) ->
 
     `throttle` limits the login attempts. Omit it to make a new one.
     """
+    setattr(app.state, _DB_PATH_STATE, db_path)
     throttle = LoginThrottle() if throttle is None else throttle
 
     @ui.page("/login", title="Log in — Exalted 1e")
@@ -183,8 +218,8 @@ def register_auth_pages(db_path: Path, throttle: LoginThrottle | None = None) ->
         if current_user_id() is not None:
             return RedirectResponse(target, status_code=303)
 
-        with _frame("login"):
-            _heading("Log in", "Build characters and keep them on the server.")
+        with form_frame("login"):
+            form_heading("Log in", "Build characters and keep them on the server.")
             username = ui.input("Username").props("autofocus").classes(
                 "w-full").mark("login-username")
             password = ui.input("Password", password=True,
@@ -214,7 +249,7 @@ def register_auth_pages(db_path: Path, throttle: LoginThrottle | None = None) ->
             ui.button("Log in", icon="login", on_click=submit).props("unelevated").classes(
                 "w-full q-mt-md").mark("login-submit")
             signup = site.esc(f"/signup?redirect_to={quote(target, safe='/')}")
-            with _aside([f'No account? <a href="{signup}">Make an account</a>.']):
+            with form_aside([f'No account? <a href="{signup}">Make an account</a>.']):
                 contact = config.admin_contact()
                 if contact:
                     ui.label(f"Forgot your password? Email {contact}.").classes(
@@ -227,11 +262,14 @@ def register_auth_pages(db_path: Path, throttle: LoginThrottle | None = None) ->
         if current_user_id() is not None:
             return RedirectResponse(target, status_code=303)
 
-        with _frame("signup"):
-            _heading("Make an account", "An account keeps your characters on the server.")
+        with form_frame("signup"):
+            form_heading("Make an account", "An account keeps your characters on the server.")
             username = ui.input("Username").props("autofocus").classes(
                 "w-full").mark("signup-username")
             username.props["hint"] = f"{db.USERNAME_RULE} Case-sensitive."
+            email = ui.input("Email (optional)").classes(
+                "w-full q-mt-sm").mark("signup-email")
+            email.props["hint"] = NO_EMAIL_NOTE
             password = ui.input("Password", password=True,
                                 password_toggle_button=True).classes(
                 "w-full q-mt-sm").mark("signup-password")
@@ -246,7 +284,8 @@ def register_auth_pages(db_path: Path, throttle: LoginThrottle | None = None) ->
                     return
                 try:
                     user_id = await run.io_bound(
-                        db.create_user, db_path, username.value or "", password.value or "")
+                        db.create_user, db_path, username.value or "", password.value or "",
+                        email=email.value or "")
                 except db.AccountError as exc:
                     error.text = str(exc)
                     return
@@ -257,7 +296,7 @@ def register_auth_pages(db_path: Path, throttle: LoginThrottle | None = None) ->
             ui.button("Make account", icon="person_add", on_click=submit).props(
                 "unelevated").classes("w-full q-mt-md").mark("signup-submit")
             login = site.esc(login_url(target))
-            _aside([f'Have an account? <a href="{login}">Log in</a>.'])
+            form_aside([f'Have an account? <a href="{login}">Log in</a>.'])
         return None
 
     @ui.page("/logout")

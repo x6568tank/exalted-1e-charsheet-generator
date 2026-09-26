@@ -210,6 +210,9 @@ def test_main_installs_the_gate_and_the_quota_before_the_server_runs(root: Path,
         "switch off the default homebrew library, then run.")
     assert guards[0].root == root, "The quota guards a folder that is not the root."
     assert guards[0].limit == 10 * 1024 * 1024
+    assert guards[0].db_path == database, (
+        "The quota has no account database. An open page of a deleted account "
+        "then writes its files again.")
     assert run_kwargs.get("session_middleware_kwargs") is main.SESSION_COOKIE, (
         "main does not pass the session cookie settings to ui.run. The cookie is "
         "then not Secure and a sibling subdomain can set it.")

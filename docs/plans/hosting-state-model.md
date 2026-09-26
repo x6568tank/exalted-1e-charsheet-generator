@@ -1073,14 +1073,18 @@ run the only file sources are an upload and the session's own folder.
   pruned. A deploy that discards that directory logs everyone out; no character is lost.
   **Understood by the human 2026-09-11; minor.** Deploy guidance: start the server
   from, or mount, a directory on the data volume.
-* **A password reset does not end the logins that exist.** A browser that is logged in
-  stays logged in. Matters only for a stolen password, not a forgotten one.
+* ~~**A password reset does not end the logins that exist.**~~ — ✅ **closed 2026-09-26**
+  by the login epoch (`docs/plans/account-management.md`): a reset, a password change,
+  "Log out other devices" and a delete each end every other login.
 * **The rate limit is per username only** (the ruling). Someone can keep a friend's name
   in cooldown by guessing — at most 15 minutes at a time. It is in memory, so a restart
   clears it.
 * **Signup is not rate-limited and the account count is not capped.** The quota bounds
   each account's disk, not the number of accounts.
-* **No account delete, and no password change by the player.**
+* ~~**No account delete, and no password change by the player.**~~ — ✅ **closed
+  2026-09-26**: `/account` has both, plus an optional email for manual resets
+  (`docs/plans/account-management.md`). The email reopens the "no email column" half
+  of the second-round ruling above; the reset itself stays manual.
 * ~~**The homebrew library is outside the quota**~~ — ✅ **closed 2026-09-12** by §5.3:
   the library is now `<account folder>/custom`, and every library write goes through
   `atomic_write`. `test_folder_quota.py::test_a_homebrew_row_past_the_limit_is_refused`.

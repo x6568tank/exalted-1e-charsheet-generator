@@ -21,6 +21,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from . import db
+
 QUOTA_BYTES = 10 * 1024 * 1024
 
 # The limit of each campaign folder. The human set it on 2026-09-25: 50 MB, for
@@ -30,6 +32,10 @@ TABLE_QUOTA_BYTES = 50 * 1024 * 1024
 # The name of a table folder starts with this. `TableStore.table_dir` makes it.
 # A table folder has the limit `table_limit`.
 TABLE_FOLDER_PREFIX = "table-"
+
+# The name of an account folder: this, then the account id.
+# `CharacterStore.account_dir` makes it.
+ACCOUNT_FOLDER_PREFIX = "user-"
 
 
 class QuotaExceeded(Exception):
@@ -55,6 +61,10 @@ class FolderQuota:
     root: Path
     limit: int = QUOTA_BYTES
     table_limit: int = TABLE_QUOTA_BYTES
+    # The account database. With it, a write into the folder of a deleted account is
+    # refused. ⚠ The operator deletes from another process, and an open page of the
+    # account can still save. See docs/plans/account-management.md.
+    db_path: Path | None = None
 
     def __call__(self, path: Path, size: int) -> None:
         """Raise `QuotaExceeded` if a write of `size` bytes to `path` is over the limit.
@@ -70,6 +80,8 @@ class FolderQuota:
             return
         if len(parts) < 2:
             return
+        if self.db_path is not None and parts[0].startswith(ACCOUNT_FOLDER_PREFIX):
+            self._refuse_deleted(parts[0])
         replaced = target.stat().st_size if target.is_file() else 0
         used = folder_size(root / parts[0]) - replaced
         campaign = parts[0].startswith(TABLE_FOLDER_PREFIX)
@@ -80,3 +92,9 @@ class FolderQuota:
                 f"{owner} has no space left: {used / 2**20:.1f} MB of "
                 f"{limit / 2**20:.1f} MB used. Ask the server admin to remove "
                 "old files.")
+
+    def _refuse_deleted(self, folder: str) -> None:
+        """Raise `QuotaExceeded` if `folder` is the folder of a deleted account."""
+        suffix = folder[len(ACCOUNT_FOLDER_PREFIX):]
+        if suffix.isdigit() and db.username_for(self.db_path, int(suffix)) is None:
+            raise QuotaExceeded("This account is deleted. Nothing is saved.")

@@ -72,12 +72,12 @@ def test_an_account_gets_its_campaigns_below_your_characters(campaigns) -> None:
     assert [link.label for link in places] == [
         "Front page", "Your characters", "Nexus Nights", "<b>Loud</b>"]
     assert [link.sub for link in places] == [False, False, True, True]
-    assert [link.key for link in account] == ["account", "logout"]
+    assert [link.key for link in account] == ["account", "account-settings", "logout"]
 
 
 def test_the_account_group_names_the_login_and_is_not_a_link(campaigns) -> None:
     (_places, _reference, account) = nav.groups("gil")
-    (who, _logout) = account
+    (who, _settings, _logout) = account
     assert who.label == "Logged in as gil"
     assert who.href == "", "The account line is a link."
 

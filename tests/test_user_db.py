@@ -183,6 +183,6 @@ def test_the_accounts_are_listed_by_id(store: Path) -> None:
     first = db.create_user(store, "Radiant", PASSWORD)
     second = db.create_user(store, "Harmonious", PASSWORD)
 
-    listed = [(user_id, name) for user_id, name, _ in db.list_users(store)]
+    listed = [(user_id, name) for user_id, name, _, _ in db.list_users(store)]
 
     assert listed == [(first, "Radiant"), (second, "Harmonious")]

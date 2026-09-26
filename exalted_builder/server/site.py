@@ -194,6 +194,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   border-top: 1px solid color-mix(in srgb, var(--edge) 15%, transparent); }
 .auth .aside p { margin: 0; }
 .auth .aside p + p { margin-top: 6px; }
+.auth + .auth { margin-top: 16px; }
+.auth.danger h1 { color: #b91c1c; }
+.auth ul.campaigns { margin: 0 0 4px; padding-left: 20px; font-size: 14px; list-style: disc; }
 
 /* The wiki */
 .filters { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 20px; }

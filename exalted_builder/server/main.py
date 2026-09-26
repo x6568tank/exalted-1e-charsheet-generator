@@ -28,8 +28,8 @@ from pathlib import Path
 from nicegui import ui
 
 from .. import custom_content, persistence, rules_db
-from ..server import (auth, characters, chrome, config, crawl, db, home, nav, public,
-                      quota, table_log, table_view, tables, wiki)
+from ..server import (account_page, auth, characters, chrome, config, crawl, db, home,
+                      nav, public, quota, table_log, table_view, tables, wiki)
 from ..server.rulesets import Rulesets
 from ..server.session import SessionRegistry
 
@@ -110,6 +110,7 @@ def build_server(session_root: Path | None = None,
     catalog = rules_db.load_adversary_catalog(_DATA_DIR)
     sessions = home.register_character_pages(
         store, rulesets, auth.current_user_id, catalog, table_store)
+    account_page.register_account_page(database, store, table_store, sessions)
     # The table view writes YOU PLAY through the character registry.
     table_view.register_table_page(table_store, store, rulesets, sessions,
                                    auth.current_user_id, table_log.TableLog(table_store),
@@ -139,7 +140,7 @@ def main() -> None:
 
     # The 10 MB limit of each account folder. Each hosted write goes through
     # `persistence.atomic_write`, thus this one guard covers each write site.
-    persistence.set_write_guard(quota.FolderQuota(root))
+    persistence.set_write_guard(quota.FolderQuota(root, db_path=database))
 
     # Each account has its own homebrew library, and there is no library of the
     # process. A call that gives no folder then raises. Section 5.3.

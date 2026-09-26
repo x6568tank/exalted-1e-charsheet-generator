@@ -34,7 +34,7 @@ state.REGISTRY = main.build_server(session_root=state.ROOT, db_path=state.DB)
 auth.install_gate()
 # ⚠ The guard stays installed after the case. It checks paths under `state.ROOT`
 # only, thus no other test sees it.
-persistence.set_write_guard(quota.FolderQuota(state.ROOT))
+persistence.set_write_guard(quota.FolderQuota(state.ROOT, db_path=state.DB))
 
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run(storage_secret="auth-test-secret")

@@ -29,6 +29,15 @@ BCRYPT_ROUNDS = 12
 USERNAME_PATTERN = re.compile(r"[A-Za-z0-9_.-]{3,32}")
 USERNAME_RULE = "3 to 32 characters: letters, digits, '.', '_' or '-'."
 
+# The limits of an email. The check refuses a typing error, not each bad address:
+# the operator sends mail to it by hand. See docs/plans/account-management.md.
+EMAIL_PATTERN = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
+MAX_EMAIL_LENGTH = 254
+
+# The username of a deleted account: `DELETED_PREFIX` + the id. ⚠ It can never match
+# `USERNAME_PATTERN`, thus the real name is free and the row can never log in.
+DELETED_PREFIX = "deleted:"
+
 MIN_PASSWORD_LENGTH = 8
 MAX_PASSWORD_BYTES = 72
 
@@ -89,6 +98,19 @@ CREATE INDEX IF NOT EXISTS characters_table ON characters(table_id);
 -- A draft that its owner makes for a campaign (p3-tables.md section 14, step 6b).
 -- The draft is an ordinary character with no table_id. Its lock sends a join
 -- request, and deletes this row. The page cannot edit this row.
+-- The email of an account, if the player gives one. docs/plans/account-management.md.
+-- ⚠ New tables, not new columns: `CREATE TABLE IF NOT EXISTS` reaches the live
+-- database at the next start, and a new column needs a migration.
+CREATE TABLE IF NOT EXISTS user_emails (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    email TEXT NOT NULL
+);
+-- The login epoch of an account. A login records it; a raise ends each older login.
+-- No row is epoch 0.
+CREATE TABLE IF NOT EXISTS login_epochs (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    epoch INTEGER NOT NULL
+);
 CREATE TABLE IF NOT EXISTS campaign_drafts (
     character_id TEXT PRIMARY KEY REFERENCES characters(id) ON DELETE CASCADE,
     table_id TEXT NOT NULL REFERENCES tables(id) ON DELETE CASCADE
@@ -158,6 +180,17 @@ def check_password(password: str) -> None:
             f"A password has at most {MAX_PASSWORD_BYTES} bytes.")
 
 
+def check_email(email: str) -> str:
+    """Return `email` without its surrounding whitespace. Return "" for no email.
+
+    Raise `AccountError` if the email is malformed.
+    """
+    email = email.strip()
+    if email and (len(email) > MAX_EMAIL_LENGTH or not EMAIL_PATTERN.fullmatch(email)):
+        raise AccountError("That email address is not valid.")
+    return email
+
+
 def _hash(password: str) -> str:
     """Return the bcrypt hash of `password`, at `BCRYPT_ROUNDS`."""
     bcrypt = _bcrypt()
@@ -165,21 +198,28 @@ def _hash(password: str) -> str:
                          bcrypt.gensalt(rounds=BCRYPT_ROUNDS)).decode("ascii")
 
 
-def create_user(path: Path, username: str, password: str) -> int:
-    """Make an account and return its id.
+def create_user(path: Path, username: str, password: str, *, email: str = "") -> int:
+    """Make an account and return its id. Record `email` if it is not empty.
 
     Remove the surrounding whitespace of `username`, not of `password`. Raise
-    `AccountError` if the pair fails `check_new_account`, or if the name exists.
+    `AccountError` if the pair fails `check_new_account`, if `email` fails
+    `check_email`, or if the name exists.
     """
     username = normalise_username(username)
     check_new_account(username, password)
+    email = check_email(email)
     digest = _hash(password)
     try:
         with closing(connect(path)) as connection, connection:
             cursor = connection.execute(
                 "INSERT INTO users (username, password_hash) VALUES (?, ?)",
                 (username, digest))
-            return int(cursor.lastrowid)
+            user_id = int(cursor.lastrowid)
+            if email:
+                connection.execute(
+                    "INSERT INTO user_emails (user_id, email) VALUES (?, ?)",
+                    (user_id, email))
+            return user_id
     except sqlite3.IntegrityError as exc:
         raise AccountError("That username is taken.") from exc
 
@@ -208,10 +248,14 @@ def authenticate(path: Path, username: str, password: str) -> int | None:
     username = normalise_username(username)
     encoded = password.encode("utf-8")
     bcrypt = _bcrypt()
-    with closing(connect(path)) as connection:
-        row = connection.execute(
-            "SELECT id, password_hash FROM users WHERE username = ?",
-            (username,)).fetchone()
+    row = None
+    # ⚠ A name outside the pattern is unknown. The placeholder of a deleted account
+    # is outside it, and its blanked hash makes bcrypt raise.
+    if USERNAME_PATTERN.fullmatch(username):
+        with closing(connect(path)) as connection:
+            row = connection.execute(
+                "SELECT id, password_hash FROM users WHERE username = ?",
+                (username,)).fetchone()
     if row is None or len(encoded) > MAX_PASSWORD_BYTES:
         bcrypt.checkpw(b"not a password", _hash_for_timing())
         return None
@@ -226,7 +270,9 @@ def username_for(path: Path, user_id: int) -> str | None:
     with closing(connect(path)) as connection:
         row = connection.execute(
             "SELECT username FROM users WHERE id = ?", (user_id,)).fetchone()
-    return None if row is None else str(row[0])
+    if row is None or str(row[0]).startswith(DELETED_PREFIX):
+        return None
+    return str(row[0])
 
 
 def set_password(path: Path, username: str, password: str) -> None:
@@ -239,15 +285,122 @@ def set_password(path: Path, username: str, password: str) -> None:
     check_password(password)
     digest = _hash(password)
     with closing(connect(path)) as connection, connection:
-        cursor = connection.execute(
-            "UPDATE users SET password_hash = ? WHERE username = ?", (digest, username))
-    if cursor.rowcount != 1:
-        raise AccountError(f"There is no account named {username!r}.")
+        found = connection.execute(
+            "SELECT id FROM users WHERE username = ?", (username,)).fetchone()
+        if found is None or not USERNAME_PATTERN.fullmatch(username):
+            raise AccountError(f"There is no account named {username!r}.")
+        connection.execute(
+            "UPDATE users SET password_hash = ? WHERE id = ?", (digest, found[0]))
+        _raise_epoch(connection, int(found[0]))
 
 
-def list_users(path: Path) -> list[tuple[int, str, str]]:
-    """Return the id, the username and the creation time of each account, by id."""
+def list_users(path: Path) -> list[tuple[int, str, str, str | None]]:
+    """Return the id, the username, the creation time and the email of each account,
+    by id. Do not include a deleted account."""
     with closing(connect(path)) as connection:
         rows = connection.execute(
-            "SELECT id, username, created_at FROM users ORDER BY id").fetchall()
-    return [(int(user_id), str(name), str(created)) for user_id, name, created in rows]
+            "SELECT users.id, username, created_at, email FROM users "
+            "LEFT JOIN user_emails ON user_emails.user_id = users.id "
+            "WHERE substr(username, 1, ?) != ? ORDER BY users.id",
+            (len(DELETED_PREFIX), DELETED_PREFIX)).fetchall()
+    return [(int(user_id), str(name), str(created), email)
+            for user_id, name, created, email in rows]
+
+
+def user_id_for(path: Path, username: str) -> int | None:
+    """Return the id of the account `username`, or None if it does not exist."""
+    username = normalise_username(username)
+    if not USERNAME_PATTERN.fullmatch(username):
+        return None
+    with closing(connect(path)) as connection:
+        row = connection.execute(
+            "SELECT id FROM users WHERE username = ?", (username,)).fetchone()
+    return None if row is None else int(row[0])
+
+
+def email_for(path: Path, user_id: int) -> str | None:
+    """Return the email of account `user_id`, or None if it has none."""
+    with closing(connect(path)) as connection:
+        row = connection.execute(
+            "SELECT email FROM user_emails WHERE user_id = ?", (user_id,)).fetchone()
+    return None if row is None else str(row[0])
+
+
+def set_email(path: Path, user_id: int, email: str) -> None:
+    """Record `email` for account `user_id`. An empty `email` removes it.
+
+    Raise `AccountError` if `email` fails `check_email`.
+    """
+    email = check_email(email)
+    with closing(connect(path)) as connection, connection:
+        if email:
+            connection.execute(
+                "INSERT INTO user_emails (user_id, email) VALUES (?, ?) "
+                "ON CONFLICT(user_id) DO UPDATE SET email = excluded.email",
+                (user_id, email))
+        else:
+            connection.execute("DELETE FROM user_emails WHERE user_id = ?", (user_id,))
+
+
+def password_matches(path: Path, user_id: int, password: str) -> bool:
+    """Return True if `password` is the password of account `user_id`."""
+    username = username_for(path, user_id)
+    return username is not None and authenticate(path, username, password) == user_id
+
+
+def change_password(path: Path, user_id: int, current: str, new: str) -> None:
+    """Replace the password of account `user_id`, and raise its login epoch.
+
+    Raise `AccountError` if `current` is not its password, or if `new` fails
+    `check_password`.
+    """
+    check_password(new)
+    if not password_matches(path, user_id, current):
+        raise AccountError("The current password is wrong.")
+    digest = _hash(new)
+    with closing(connect(path)) as connection, connection:
+        connection.execute(
+            "UPDATE users SET password_hash = ? WHERE id = ?", (digest, user_id))
+        _raise_epoch(connection, user_id)
+
+
+def login_epoch(path: Path, user_id: int) -> int:
+    """Return the login epoch of account `user_id`. No row is epoch 0."""
+    with closing(connect(path)) as connection:
+        row = connection.execute(
+            "SELECT epoch FROM login_epochs WHERE user_id = ?", (user_id,)).fetchone()
+    return 0 if row is None else int(row[0])
+
+
+def raise_login_epoch(path: Path, user_id: int) -> int:
+    """Raise the login epoch of account `user_id` by 1. Return the new epoch.
+
+    Each login that recorded an older epoch ends. See `auth.current_user_id`.
+    """
+    with closing(connect(path)) as connection, connection:
+        return _raise_epoch(connection, user_id)
+
+
+def _raise_epoch(connection: sqlite3.Connection, user_id: int) -> int:
+    connection.execute(
+        "INSERT INTO login_epochs (user_id, epoch) VALUES (?, 1) "
+        "ON CONFLICT(user_id) DO UPDATE SET epoch = epoch + 1", (user_id,))
+    (epoch,) = connection.execute(
+        "SELECT epoch FROM login_epochs WHERE user_id = ?", (user_id,)).fetchone()
+    return int(epoch)
+
+
+def tombstone_user(path: Path, user_id: int) -> None:
+    """Make account `user_id` a deleted account. Keep its row.
+
+    Replace the username with the placeholder, blank the hash, remove the email and
+    raise the login epoch. ⚠ Keep the row: `users.id` has no AUTOINCREMENT, thus a
+    removed newest row gives its id to the next signup. The caller removes the
+    characters, the campaigns and the folder first. See `server/accounts.py`.
+    """
+    with closing(connect(path)) as connection, connection:
+        connection.execute(
+            "UPDATE users SET username = ?, password_hash = '' WHERE id = ?",
+            (f"{DELETED_PREFIX}{user_id}", user_id))
+        connection.execute("DELETE FROM user_emails WHERE user_id = ?", (user_id,))
+        _raise_epoch(connection, user_id)
