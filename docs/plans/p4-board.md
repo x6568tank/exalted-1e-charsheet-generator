@@ -183,7 +183,7 @@ pinch zoom on a phone (there is none: see below), a reconnect.
   `GET /table/<id>/board-token/<id>` serves it to members. Clear and delete prune the
   files no token uses, **only when older than 10 minutes**, because the dialog uploads
   before it puts the token. Driven in two browsers: the picture shows clipped to the
-  circle on both screens. Not clicked by the human yet.
+  circle on both screens. **Browser-verified by the human, 2026-09-25** (*"Everything looks good."*).
 * No touch pinch-zoom; one-finger drag pans. At phone width the board sits below the
   rails (the existing P3 layout).
 

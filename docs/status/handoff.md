@@ -1,38 +1,33 @@
-# Session handoff — 2026-09-25 (P4, the board: DONE and browser-verified)
+# Session handoff — 2026-09-25 (P4 board + Pools tab + token images: done, clicked, deployed)
 
 # 👉 YOU ARE HERE
 
-**P4 (the board) is DONE and BROWSER-VERIFIED by the human, 2026-09-25** (*"Looks
-perfect! No more issues on my end, I think."*). The record is `docs/plans/p4-board.md`:
-§5 the rulings, §8 the build log, the click-through additions and the defects found.
+**P4 (the board) is DONE and BROWSER-VERIFIED by the human, 2026-09-25**, and so are the
+two additions asked for after it: the table's **Pools** tab and **token images**
+(*"Everything looks good."*).
 
-* Store `server/table_board.py`; canvas `server/board.js` over vendored Konva 10.7.0;
-  hub and toolbar `server/table_board_view.py`. Changes are **pushed** to every open
-  page of a table. `GET /table/<id>/board-background` serves the map to members.
-* Added at the click-through: colour → Pen; multiselect (Shift-click, box, group move /
-  delete / restack as one version); **right-drag pans, left-drag on the empty board is
-  the selection box**.
-* 0020 is held by a grep test over the three board files and a pinned field list.
-* **Campaign folders are 50 MB** (accounts stay 10 MB). The Log's text box now sends its
-  text with Enter.
-* 🐞 Worth knowing next time: an icon name missing from NiceGUI's bundled font draws
-  as invisible overflowing text that steals hover (`ink_eraser`). No test catches it.
+* The board: `docs/plans/p4-board.md` (§5 rulings, §8 build log, the click-through
+  additions: colour → Pen, multiselect, right-drag pans / left-drag boxes, token images).
+* The Pools tab: `docs/plans/p3-tables.md` §14 "The Pools tab". A player sees the pools
+  of the copy they open as; the ST picks from their NPCs and every player's copy.
+  Decisions 0016 and 0019 are unchanged: no row rolls itself.
+* Campaign folders are 50 MB; accounts stay 10 MB. The Log's Enter sends its text with
+  the key event.
+* 🐞 Carry: an icon name missing from NiceGUI's font draws as invisible overflowing
+  text that steals hover (`ink_eraser`). No test catches it; sweep in a browser.
 
-**Tests — TARGETED, OBSERVED:** the board files 84 passed after the last change; the
-save path, quota, auth gate and table stores 500 passed; the table view 116 passed.
-⚠ **The full suite has not been run since P3** (4192 + 1 skipped). `atomic_write`
-changed under every save. Run it before the next deploy.
+**Full suite: 4294 passed + 1 skipped — OBSERVED** at this close-out (20 min), after all
+of the above. P3's close-out was 4192 + 1 skipped.
 
-**Working tree:** clean. Local commits `d3726ca` through the close-out commit after
-`046dee2`. **NOT pushed, NOT deployed**; the live site is still `f6d8c56`.
+**Working tree:** clean after the close-out commit; pushed to `origin/main`.
 
-🖱 **Owed:** nothing from P4.
+**Deployed:** see the deploy line below, written after the rebuild.
 
-❓ **Open for the human:** token images: the 50 MB raise reads as a yes, and they are
-not built. The toolbar wraps to two rows at 1400 px.
+🖱 **Owed:** nothing.
 
-**Next:** the full suite, then push and deploy (the human's go), then token images if
-confirmed.
+❓ **Open for the human:** nothing.
+
+**Next:** open. P0–P4 of `vtt.md` are done.
 
 ---
 

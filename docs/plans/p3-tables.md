@@ -1245,7 +1245,7 @@ full-sheet NPCs and every player's copy** (roster entries have no sheet, so none
   tripped the step-8 leak test that walked a player's page for the bare word; that test
   now looks for the Bandit's trait line, "Larceny 1".
 
-Not clicked by the human yet.
+**Browser-verified by the human, 2026-09-25** (*"Everything looks good."*).
 
 ## 15. The table view — the approved layout (2026-09-22)
 
