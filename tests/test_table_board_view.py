@@ -341,3 +341,30 @@ async def test_the_background_is_served_to_a_member_and_to_no_one_else(
 
     response = await stranger.http_client.get(address)
     assert response.status_code == 404
+
+
+def _active(user, marker: str) -> bool:
+    (element,) = user.find(marker=marker).elements
+    return "bg-black/10" in element.classes
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_colour_picks_the_pen_from_select_and_the_eraser(create_user) -> None:
+    """The human, 2026-09-25: switching a colour switches to the pen. A drawing tool
+    that is active stays: a red rectangle is a reason to pick red."""
+    _, _, table, [(player, _, _)] = await _campaign(create_user, "Ashes of Dawn")
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="board-tool-select")
+    assert _active(player, "board-tool-select")
+
+    player.find(marker="board-colour-b91c1c").click()
+    assert _active(player, "board-tool-pen")
+
+    player.find(marker="board-tool-eraser").click()
+    player.find(marker="board-colour-1d4ed8").click()
+    assert _active(player, "board-tool-pen")
+
+    player.find(marker="board-tool-rect").click()
+    player.find(marker="board-colour-15803d").click()
+    assert _active(player, "board-tool-rect")

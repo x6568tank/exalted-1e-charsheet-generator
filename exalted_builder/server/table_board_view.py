@@ -411,8 +411,13 @@ class BoardPanel:
 
     def set_style(self, *, colour: str | None = None, width: int | None = None,
                   fill: bool | None = None) -> None:
+        """Set the style of the next object. A new colour changes the tool Select
+        or Eraser to Pen. It keeps a tool that draws."""
         if colour is not None:
             self.colour = colour
+            if self.tool in ("select", "eraser"):
+                self.tool = "pen"
+                ui.run_javascript("ExBoard.setTool('pen')")
         if width is not None:
             self.width = int(width)
         if fill is not None:
