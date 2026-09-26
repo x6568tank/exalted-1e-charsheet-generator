@@ -111,6 +111,12 @@ CREATE TABLE IF NOT EXISTS login_epochs (
     user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     epoch INTEGER NOT NULL
 );
+-- The site colours of an account: the Exalt type of a `ui/theme` palette.
+-- `server/site.py` checks the value. No row gives the colours of the browser cookie.
+CREATE TABLE IF NOT EXISTS user_themes (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    splat TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS campaign_drafts (
     character_id TEXT PRIMARY KEY REFERENCES characters(id) ON DELETE CASCADE,
     table_id TEXT NOT NULL REFERENCES tables(id) ON DELETE CASCADE
@@ -342,6 +348,27 @@ def set_email(path: Path, user_id: int, email: str) -> None:
             connection.execute("DELETE FROM user_emails WHERE user_id = ?", (user_id,))
 
 
+def theme_for(path: Path, user_id: int) -> str | None:
+    """Return the site colours of account `user_id`, or None if it has none."""
+    with closing(connect(path)) as connection:
+        row = connection.execute(
+            "SELECT splat FROM user_themes WHERE user_id = ?", (user_id,)).fetchone()
+    return None if row is None else str(row[0])
+
+
+def set_theme(path: Path, user_id: int, splat: str) -> None:
+    """Record `splat` as the site colours of account `user_id`. An empty `splat`
+    removes them. ⚠ The caller checks that `splat` is a palette."""
+    with closing(connect(path)) as connection, connection:
+        if splat:
+            connection.execute(
+                "INSERT INTO user_themes (user_id, splat) VALUES (?, ?) "
+                "ON CONFLICT(user_id) DO UPDATE SET splat = excluded.splat",
+                (user_id, splat))
+        else:
+            connection.execute("DELETE FROM user_themes WHERE user_id = ?", (user_id,))
+
+
 def password_matches(path: Path, user_id: int, password: str) -> bool:
     """Return True if `password` is the password of account `user_id`."""
     username = username_for(path, user_id)
@@ -414,7 +441,7 @@ def tombstone_user(path: Path, user_id: int) -> None:
     """Make account `user_id` a deleted account. Keep its row.
 
     Replace the username with the placeholder, blank the hash, remove the email and
-    raise the login epoch. ⚠ Keep the row: `users.id` has no AUTOINCREMENT, thus a
+    raise the login epoch. Remove the site colours. ⚠ Keep the row: `users.id` has no AUTOINCREMENT, thus a
     removed newest row gives its id to the next signup. The caller removes the
     characters, the campaigns and the folder first. See `server/accounts.py`.
     """
@@ -423,4 +450,5 @@ def tombstone_user(path: Path, user_id: int) -> None:
             "UPDATE users SET username = ?, password_hash = '' WHERE id = ?",
             (f"{DELETED_PREFIX}{user_id}", user_id))
         connection.execute("DELETE FROM user_emails WHERE user_id = ?", (user_id,))
+        connection.execute("DELETE FROM user_themes WHERE user_id = ?", (user_id,))
         _raise_epoch(connection, user_id)

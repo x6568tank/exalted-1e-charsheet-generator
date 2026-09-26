@@ -23,12 +23,13 @@ from html import escape
 from typing import Optional
 from urllib.parse import urlencode
 
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from nicegui import __version__ as nicegui_version
 from nicegui import app
+from nicegui.storage import request_contextvar
 
 from ..ui import theme
-from . import nav
+from . import db, nav
 
 SITE_NAME = "Exalted 1e"
 
@@ -74,15 +75,152 @@ _FAMILY = {
 }
 
 
+# --------------------------------------------------------------------------- #
+# The site colours of the visitor
+# --------------------------------------------------------------------------- #
+
+THEME_PATH = "/theme"
+# The cookie holds the Exalt type of the palette that the visitor selected. A visitor
+# with no login has the cookie only. An account also keeps the value in the database,
+# thus each device of the login shows it.
+THEME_COOKIE = "site_theme"
+_THEME_SECONDS = 400 * 24 * 3600
+
+
+def _account():
+    """Return (database path, account id) of the current request, or None."""
+    from . import auth                               # auth imports this module
+    user_id = auth.current_user_id()
+    path = auth.db_path()
+    return None if user_id is None or path is None else (path, user_id)
+
+
+def visitor_theme() -> str:
+    """Return the Exalt type of the site colours of the current request, or "".
+
+    The colours of the account come first, then the cookie. A request with no
+    login has the cookie only. No request, for example a timer, gives "".
+    ⚠ A value that is not a palette gives "". The cookie comes from the browser.
+    """
+    request = request_contextvar.get()
+    if request is None:
+        return ""
+    account = _account()
+    value = (db.theme_for(*account) if account is not None else None) \
+        or request.cookies.get(THEME_COOKIE, "")
+    return value if value in theme.splat_keys() else ""
+
+
+def site_palette() -> theme.Palette:
+    """Return the palette of a page that shows no one splat: the site colours of
+    the visitor, or the default palette."""
+    return theme.palette(visitor_theme() or None)
+
+
+def _here() -> str:
+    """Return the path and the query of the current request, or "/"."""
+    request = request_contextvar.get()
+    if request is None:
+        return "/"
+    query = request.url.query
+    return request.url.path + (f"?{query}" if query else "")
+
+
+def _local(path: str) -> str:
+    """Return `path` if it is a path of this server. Return "/" in all other cases.
+
+    ⚠ An absolute URL sends the browser to any site. "//host" is an absolute URL too.
+    """
+    if not path or not path.startswith("/") or path.startswith("//") or "\\" in path:
+        return "/"
+    return path
+
+
+def theme_href(splat: str, back: str = "") -> str:
+    """Return the address that selects the site colours of `splat` and then opens
+    `back`. An empty `back` gives the current page."""
+    return href(THEME_PATH, splat=splat, back=_local(back or _here()))
+
+
+def theme_swatches(back: str = "") -> str:
+    """Return a row of colour swatches. Each swatch is a link that selects the site
+    colours of one splat. The swatch of the current colours has a ring."""
+    current = visitor_theme() or "Solar"
+    links = []
+    for splat in theme.splat_keys():
+        pal = theme.palette(splat)
+        on = ' class="on" aria-current="true"' if splat == current else ""
+        links.append(f'<a href="{esc(theme_href(splat, back))}"{on} '
+                     f'title="{esc(pal.splat_label)}" aria-label="{esc(pal.splat_label)} colours" '
+                     f'style="--c:{pal.accent};--b:{pal.bg}"></a>')
+    return f'<div class="swatches">{"".join(links)}</div>'
+
+
+def theme_choices(back: str = "") -> str:
+    """Return one labelled link for each splat palette. Each link selects the site
+    colours of that splat. The link of the current colours is marked."""
+    current = visitor_theme() or "Solar"
+    links = []
+    for splat in theme.splat_keys():
+        pal = theme.palette(splat)
+        on = ' class="on" aria-current="true"' if splat == current else ""
+        links.append(f'<a href="{esc(theme_href(splat, back))}"{on} '
+                     f'data-splat="{esc(splat)}" style="--c:{pal.accent};--b:{pal.bg}">'
+                     f'<span class="dot"></span>{esc(pal.splat_label)}</a>')
+    return f'<div class="theme-grid">{"".join(links)}</div>'
+
+
+def _select_theme(splat: str = "", back: str = "/") -> RedirectResponse:
+    response = RedirectResponse(_local(back), status_code=303)
+    if splat not in theme.splat_keys():
+        splat = ""
+    account = _account()
+    if account is not None:
+        db.set_theme(*account, splat)
+    if splat:
+        response.set_cookie(THEME_COOKIE, splat, max_age=_THEME_SECONDS, path="/",
+                            samesite="lax", httponly=True)
+    else:
+        response.delete_cookie(THEME_COOKIE, path="/")
+    return response
+
+
+def register_theme_route() -> None:
+    """Register `THEME_PATH`. Replace an earlier route of the path.
+
+    `?splat=` sets the cookie, and the colours of the account if there is a login.
+    An unknown value removes both. `?back=` gives the page that opens after it.
+    """
+    app.remove_route(THEME_PATH)
+    app.add_api_route(THEME_PATH, _select_theme, methods=["GET"], name="theme",
+                      include_in_schema=False)
+
+
 def _palette_css(exalt_type: str) -> str:
-    """Return the CSS variables of the builder palette of `exalt_type`."""
-    pal = theme.palette(exalt_type or None)
+    """Return the CSS variables of the builder palette of `exalt_type`. An empty
+    `exalt_type` gives the site colours of the visitor."""
+    pal = theme.palette(exalt_type or visitor_theme() or None)
     tint, edge = _FAMILY.get(pal.fam, _FAMILY["amber"])
     return (f":root{{--accent:{pal.accent};--accent-dark:{pal.accent_dark};--ink:{pal.ink};"
             f"--bg:{pal.bg};--node:{pal.node_bg};--tint:{tint};--edge:{edge};}}")
 
 
-_CSS = """
+# The swatches of the site colours. The NiceGUI menu adds this CSS too, thus it names
+# no variable of `_palette_css`.
+SWATCH_CSS = """
+.colours { padding: 6px 16px 4px; }
+.colours .cap { font-size: 12px; margin: 0 0 6px; opacity: .7; }
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.swatches a {
+  display: block; width: 24px; height: 24px; border-radius: 50%; background: var(--c);
+  border: 3px solid var(--b); box-shadow: 0 0 0 1px rgba(0,0,0,.25);
+  transition: transform .1s;
+}
+.swatches a:hover { transform: scale(1.15); text-decoration: none; }
+.swatches a.on { box-shadow: 0 0 0 2px currentColor; }
+"""
+
+_CSS = SWATCH_CSS + """
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
@@ -137,6 +275,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .drawer a .ext { margin-left: auto; font-size: 16px; color: inherit; opacity: .5; }
 .drawer .who { display: flex; align-items: center; gap: 16px; min-height: 40px; padding: 8px 16px; color: var(--ink); opacity: .75; font-size: 13.5px; }
 .drawer .who .mi { color: var(--accent); font-size: 22px; }
+/* ⚠ The rules of `.drawer a` match the swatches too. These undo them. */
+.drawer .swatches a { min-height: 0; padding: 0; }
+.drawer .swatches a.on { background: var(--c); }
 .drawer hr { border: 0; border-top: 1px solid color-mix(in srgb, var(--edge) 18%, transparent); margin: 6px 0; }
 .btn {
   display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 4px;
@@ -196,6 +337,27 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .auth .aside p + p { margin-top: 6px; }
 .auth + .auth { margin-top: 16px; }
 .auth.danger h1 { color: #b91c1c; }
+/* The account page: a grid of the form cards */
+.account-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;
+  max-width: 1100px; margin: 32px auto 0; align-items: stretch;
+}
+.account-grid .auth { max-width: none; margin: 0; display: flex; flex-direction: column; }
+.account-grid .auth + .auth { margin-top: 0; }
+.account-grid .auth > .q-btn { margin-top: auto !important; }
+.account-grid .auth > :nth-last-child(2) { margin-bottom: 16px; }
+.account-grid .auth.danger { border-top: 3px solid #b91c1c; }
+.theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 6px; margin-top: 8px; }
+.theme-grid a {
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--edge) 18%, transparent); font-size: 13.5px;
+}
+.theme-grid a:hover { background: rgba(0,0,0,.04); text-decoration: none; }
+.theme-grid a.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); font-weight: 500; }
+.theme-grid .dot {
+  flex: none; width: 16px; height: 16px; border-radius: 50%; background: var(--c);
+  border: 2px solid var(--b); box-shadow: 0 0 0 1px rgba(0,0,0,.25);
+}
 .auth ul.campaigns { margin: 0 0 4px; padding-left: 20px; font-size: 14px; list-style: disc; }
 
 /* The wiki */
@@ -282,10 +444,23 @@ def style_sheet(splat: str = "") -> str:
     return _palette_css(splat) + _CSS
 
 
+def _colours_html() -> str:
+    return (f'<hr><div class="colours" data-testid="nav-colours">'
+            f'<p class="cap muted">Site colours</p>{theme_swatches()}</div>')
+
+
 def drawer_html(username: Optional[str], current: str = "", *, live: bool = False) -> str:
-    """Return the links of the site menu. `current` marks the entry of that key."""
+    """Return the links of the site menu. `current` marks the entry of that key.
+
+    The swatches of the site colours come before the build line. `live` removes
+    them: a swatch opens the page again, and a live page holds work in progress.
+    """
     parts = []
-    for number, group in enumerate(nav.groups(username, live=live)):
+    groups = nav.groups(username, live=live)
+    colours = nav.colours_position(groups) if not live else -1
+    for number, group in enumerate(groups):
+        if number == colours:
+            parts.append(_colours_html())
         if number:
             parts.append("<hr>")
         for link in group:
@@ -304,6 +479,8 @@ def drawer_html(username: Optional[str], current: str = "", *, live: bool = Fals
             tail = icon("open_in_new", "ext") if link.new_tab else ""
             parts.append(f'<a href="{esc(link.href)}"{attrs}>{icon(link.icon)}'
                          f"<span>{esc(link.label)}</span>{tail}</a>")
+    if colours == len(groups):
+        parts.append(_colours_html())
     return "".join(parts)
 
 

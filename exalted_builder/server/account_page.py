@@ -49,8 +49,8 @@ def register_account_page(db_path: Path, characters: CharacterStore, tables: Tab
         if user_id is None:
             return None
         username = auth.current_username() or ""
-        email_card, name_card, password_card, logins_card, delete_card = auth.form_frame(
-            "account", username, cards=5)
+        (email_card, name_card, password_card, logins_card, colours_card,
+         delete_card) = auth.form_frame("account", username, cards=6, grid=True)
 
         with email_card:
             auth.form_heading("Account", f"Logged in as {username}.")
@@ -145,6 +145,13 @@ def register_account_page(db_path: Path, characters: CharacterStore, tables: Tab
             ui.button("Log out other devices", icon="devices",
                       on_click=log_out_others).props("unelevated outline").classes(
                 "w-full q-mt-sm").mark("account-logout-others")
+
+        with colours_card.mark("account-colours"):
+            ui.html("<h1>Site colours</h1>", sanitize=False)
+            ui.html('<p class="lead muted">The colours of each page that shows no one '
+                    'character. A character keeps the colours of its splat. Each '
+                    'device of this account shows the choice.</p>' + site.theme_choices(nav.ACCOUNT_PATH),
+                    sanitize=False)
 
         delete_card.classes(add="danger")
         with delete_card:

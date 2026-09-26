@@ -131,3 +131,45 @@ top right of the header bar & the left hamburger bar. A way to change username?"
 Clicked by the human: the top bar logged out / in / phone width; a rename with a wrong
 password, a bad name and a good one; a second window picking up the new name; the old
 name free for a new signup. All "works".
+
+## 2026-09-26, third round — the account grid and the site colours (✅ clicked the same day)
+
+The human accepted choices 2–4 below and asked for 1 to be "both".
+
+Asked: *"The account settings page in the live site is currently a straight list of cards
+with a bunch of empty space on both sides. … could we add a way to 'theme' the site with
+different splat's colors?"*
+
+* **The grid.** `auth.form_frame(..., grid=True)` puts the cards in `.account-grid`:
+  `auto-fit, minmax(300px, 1fr)`, max 1,100 px. Three columns wide, two at ~1,000 px, one
+  on a phone. The cards in a row stretch to one height and the buttons sit at the bottom.
+  Login and signup keep the single narrow card. Screenshotted by me at 1400/1000/500.
+* **Site colours — design choices made without asking** (say if any is wrong):
+  1. **Stored in both — ruled by the human, 2026-09-26 ("Could it be both?").** A cookie
+     (`site_theme`, ~13 months) for every visitor, and for a login also the new table
+     `user_themes` (a table, not a column: no migration). The account value wins over
+     the cookie, thus each device of the login shows it; `/theme` writes both. A pick
+     made logged OUT stays in the cookie and does not reach the account at the login.
+     `tombstone_user` removes the row. ⚠ `site.visitor_theme` imports `auth` inside the
+     function: `auth` imports `site`.
+  2. **Scope: every page that shows no one splat** — front page, About, the unfiltered
+     wiki, login/signup, /account, Your characters, the campaign pages. A **character
+     page keeps its splat's colours**, and so does a wiki page of one splat (a DB Charm
+     stays red). Mechanism: `site.site_palette()` replaces `theme.palette(None)` in
+     `server/`; `site._palette_css("")` reads the cookie.
+  3. **Pickers:** a swatch row in ☰ (both menus, before the build line) and a labelled
+     "Site colours" card on /account. **No swatches on a live page** (the character page):
+     a swatch reloads the page.
+  4. **`/theme` is a new PUBLIC route** (`?splat=&back=`), named in
+     `test_auth_gate.py::PUBLIC_ROUTES` on the strength of this request. `back` must be a
+     local path; an unknown splat clears the cookie; a forged cookie gives the default.
+* ⚠ `table_view` reads the palette once, at the build: a timer has no request, thus no
+  cookie. `_requests` now takes `self.pal`.
+* Qt is untouched: the site colours are a hosted-site feature.
+
+Tests: `tests/test_site_theme.py` (17). Targeted run: 418 passed across the server, site,
+account, campaign and theme files. Full suite not run.
+
+Clicked by the human on the local server: the swatches logged out, a one-splat wiki page,
+the login carrying the choice, the /account grid and card, a second window with no cookie,
+narrow widths, a character page. "everything looks good".

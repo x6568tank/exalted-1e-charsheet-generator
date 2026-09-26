@@ -25,8 +25,7 @@ from nicegui import ui
 
 from .. import custom_content
 from ..ui import custom as custom_mod
-from ..ui import theme
-from . import chrome
+from . import chrome, site
 from .characters import CharacterStore
 from .rulesets import Rulesets
 from .table_homebrew import TableHomebrew, TableHomebrewError
@@ -68,7 +67,7 @@ def _rows(folder, kind: str) -> list[dict]:
 
 def _build(tables: TableStore, store: CharacterStore, rulesets: Rulesets,
            homebrew: TableHomebrew, user_id: int, table, is_st: bool) -> None:
-    pal = theme.palette(None)
+    pal = site.site_palette()
     folder = tables.homebrew_dir(table.id)
     ui.query("body").style(f"background:{pal.bg};color:{pal.ink}")
     drawer = chrome.nav_drawer(pal)

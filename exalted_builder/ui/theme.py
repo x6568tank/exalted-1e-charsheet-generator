@@ -186,6 +186,11 @@ _BY_SPLAT: dict[str, Palette] = {
 }
 
 
+def splat_keys() -> list[str]:
+    """Return the Exalt type of each palette, in the order of the palette table."""
+    return list(_BY_SPLAT)
+
+
 def palette(exalt_type: str | None) -> Palette:
     """The palette for `exalt_type`; falls back to the Solar gold for unknown or
     not-yet-themed splats."""

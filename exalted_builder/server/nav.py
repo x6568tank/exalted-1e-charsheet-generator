@@ -25,6 +25,8 @@ HOME_PATH = "/home"
 WIKI_PATH = "/wiki"
 ABOUT_PATH = "/about"
 ACCOUNT_PATH = "/account"
+# The key of the build line, the last group of the menu.
+BUILD_KEY = "build"
 
 # The icon of each wiki section. The wiki tab strip and the menu use it. "Merits &
 # Flaws" takes the icon of the builder's Advantages tab, and "Charms" the icon of
@@ -95,8 +97,17 @@ def groups(username: Optional[str], *, live: bool = False) -> list[list[Link]]:
                        Link("/logout", "logout", "Log out", "logout")])
     build = build_info.label()
     if build:
-        result.append([Link("", "tag", build, "build")])
+        result.append([Link("", "tag", build, BUILD_KEY)])
     return result
+
+
+def colours_position(groups: list[list[Link]]) -> int:
+    """Return the index of the group before which the menu shows the site colours:
+    the build line, or the end of the menu if there is no build line."""
+    for number, group in enumerate(groups):
+        if group and group[0].key == BUILD_KEY:
+            return number
+    return len(groups)
 
 
 def logout_label(username: Optional[str]) -> str:

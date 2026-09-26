@@ -29,7 +29,7 @@ from nicegui import ui
 
 from .. import custom_content, persistence, rules_db
 from ..server import (account_page, auth, characters, chrome, config, crawl, db, home,
-                      nav, public, quota, table_log, table_view, tables, wiki)
+                      nav, public, quota, site, table_log, table_view, tables, wiki)
 from ..server.rulesets import Rulesets
 from ..server.session import SessionRegistry
 
@@ -97,6 +97,7 @@ def build_server(session_root: Path | None = None,
     book = rules_db.load_ruleset(_DATA_DIR)
     auth.register_auth_pages(database)
     public.register_public_pages()
+    site.register_theme_route()
     wiki_book = rules_db.load_ruleset(_DATA_DIR)
     wiki.register_wiki(wiki_book)
     crawl.register_crawl_files(wiki_book)

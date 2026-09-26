@@ -72,7 +72,7 @@ from ..ui import adversaries as adversaries_mod
 from ..ui import play as play_mod
 from ..ui import saving, theme
 from ..ui import view as viewmod
-from . import auth, chrome, db, nav
+from . import auth, chrome, db, nav, site
 from .characters import CharacterRow, CharacterStore
 from .quota import QuotaExceeded
 from .rulesets import Rulesets
@@ -227,7 +227,8 @@ class _TableView:
         self.user_id = user_id
         self.table = table
         self.is_st = table.storyteller_id == user_id
-        self.pal = theme.palette(None)
+        # ⚠ Read at the build. A timer has no request, thus no site colours.
+        self.pal = site.site_palette()
         self.gone = False
         self._structure = None
         self._digests: dict[str, object] = {}
@@ -1148,8 +1149,8 @@ class _TableView:
                         "flat dense no-caps size=sm").mark("st-new-code")
                 ui.label("Give this code to your players. You approve each request "
                          "below.").classes("text-xs opacity-70")
-            _requests(self.tables, self.store, self.rulesets, self.user_id, self.table,
-                      self._approve, self._reject)
+            _requests(self.pal, self.tables, self.store, self.rulesets, self.user_id,
+                      self.table, self._approve, self._reject)
             self._proposals()
             self._grant_form(copies)
             self._awards()
@@ -1979,11 +1980,10 @@ def _ally_row(view: viewmod.AllyView, pal) -> None:
                     f"ally-health-{view.key}-{i}")
 
 
-def _requests(tables: TableStore, store: CharacterStore, rulesets: Rulesets, user_id: int,
-              table: TableRow, approve: Callable[[int], None],
+def _requests(pal, tables: TableStore, store: CharacterStore, rulesets: Rulesets,
+              user_id: int, table: TableRow, approve: Callable[[int], None],
               reject: Callable[[int], None]) -> None:
     """Draw the requests of `table` for its Storyteller, with what each base carries."""
-    pal = theme.palette(None)
     requests = tables.pending(user_id, table.id)
     with ui.column().classes("w-full gap-2").mark("table-requests"):
         _heading(pal, f"REQUESTS ({len(requests)})")

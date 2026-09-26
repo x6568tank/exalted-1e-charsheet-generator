@@ -56,7 +56,13 @@ def nav_drawer(pal, *, live: bool = False, current: str = "") -> ui.left_drawer:
             ui.icon("menu", size="24px")
             ui.label(site.SITE_NAME)
     with drawer, ui.list().classes("w-full py-2"):
-        for number, group in enumerate(nav.groups(auth.current_username(), live=live)):
+        groups = nav.groups(auth.current_username(), live=live)
+        colours = nav.colours_position(groups) if not live else -1
+        for number, group in enumerate(groups + [[]]):
+            if number == colours:
+                _colours()
+            if number == len(groups):
+                break
             if number:
                 ui.separator().classes("my-1")
             for link in group:
@@ -84,8 +90,16 @@ def nav_drawer(pal, *, live: bool = False, current: str = "") -> ui.left_drawer:
                         with ui.item_section().props("side"):
                             ui.icon("open_in_new", size="16px").classes("opacity-50")
     ui.add_css(f".nav-on{{color:{pal.accent};"
-               f"background:color-mix(in srgb,{pal.accent} 14%,transparent)}}")
+               f"background:color-mix(in srgb,{pal.accent} 14%,transparent)}}"
+               + site.SWATCH_CSS)
     return drawer
+
+
+def _colours() -> None:
+    """Draw the swatches of the site colours in the menu, below a line."""
+    ui.separator().classes("my-1")
+    ui.html('<p class="cap">Site colours</p>' + site.theme_swatches(),
+            sanitize=False).classes("colours w-full").mark("nav-colours")
 
 
 def menu_button(drawer: ui.left_drawer, title: str | None = None) -> None:
@@ -114,7 +128,7 @@ def header(pal, title: str, *, current: str = "") -> ui.row:
 def table_not_found() -> None:
     """The answer for a campaign of which the account is not a member, and for one
     that is absent."""
-    with header(theme.palette(None), "Exalted 1e"):
+    with header(site.site_palette(), "Exalted 1e"):
         home_button()
     ui.label("There is no such campaign.").classes("text-base p-4").mark("table-not-found")
 

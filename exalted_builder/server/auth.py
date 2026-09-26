@@ -37,7 +37,6 @@ from fastapi.responses import RedirectResponse
 from nicegui import app, run, ui
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from ..ui import theme
 from . import config, db, site
 from .throttle import LoginThrottle
 
@@ -46,7 +45,7 @@ from .throttle import LoginThrottle
 # page, by the site map of docs/plans/vtt.md section 9.4.
 # The two files for crawlers are open too (`server/crawl.py`).
 OPEN_PATHS = frozenset({"/", "/about", "/login", "/signup", "/logout", "/favicon.ico",
-                        "/robots.txt", "/sitemap.xml"})
+                        "/robots.txt", "/sitemap.xml", "/theme"})
 
 # The public wiki: "/wiki" and each path under it. Section 9.5 of vtt.md.
 # ⚠ Public ON PURPOSE (human ruling, 2026-09-12). `tests/test_auth_gate.py` names
@@ -78,7 +77,8 @@ NO_EMAIL_NOTE = ("Without an email, you cannot prove the account is yours if you
 _DB_PATH_STATE = "exalted_account_db"
 
 
-def _db_path() -> Path | None:
+def db_path() -> Path | None:
+    """Return the database of the login pages, or None before `register_auth_pages`."""
     return getattr(app.state, _DB_PATH_STATE, None)
 
 
@@ -98,7 +98,7 @@ def current_user_id() -> int | None:
     value = app.storage.user.get(USER_ID)
     if not isinstance(value, int):
         return None
-    path = _db_path()
+    path = db_path()
     if path is not None and \
             app.storage.user.get(LOGIN_EPOCH, 0) != db.login_epoch(path, value):
         log_out()
@@ -115,7 +115,7 @@ def current_username() -> str | None:
     user_id = current_user_id()
     if user_id is None:
         return None
-    path = _db_path()
+    path = db_path()
     return app.storage.user.get(USERNAME) if path is None else db.username_for(path, user_id)
 
 
@@ -124,7 +124,7 @@ def log_in(user_id: int, username: str) -> None:
     current login epoch of the account."""
     app.storage.user[USER_ID] = user_id
     app.storage.user[USERNAME] = username
-    path = _db_path()
+    path = db_path()
     app.storage.user[LOGIN_EPOCH] = 0 if path is None else db.login_epoch(path, user_id)
 
 
@@ -180,20 +180,22 @@ def wait_text(seconds: float) -> str:
     return f"Too many failed attempts. Try again in {math.ceil(seconds / 60)} minutes."
 
 
-def form_frame(current: str, username: str | None = None, *, cards: int = 1
-               ) -> ui.element | list[ui.element]:
+def form_frame(current: str, username: str | None = None, *, cards: int = 1,
+               grid: bool = False) -> ui.element | list[ui.element]:
     """Draw the header bar and the footer of the public pages, and `cards` form
     cards between them. Return the card, or the list of the cards if `cards` is
     more than 1. `current` marks the button of the page in the header bar.
-    `username` gives the menu of that login."""
-    ui.colors(primary=theme.palette(None).accent)
+    `username` gives the menu of that login. `grid` puts the cards in columns that
+    fill the width; without it, the cards are one narrow column."""
+    ui.colors(primary=site.site_palette().accent)
     # The public pages have no padding around the header bar. NiceGUI pads its content.
     ui.add_head_html(f"<style>{site.style_sheet()}"
                      ".nicegui-content{padding:0;gap:0;align-items:stretch}</style>")
     ui.add_body_html(site.MENU_SCRIPT)
     ui.html(site.header_bar(current, username), sanitize=False)
     with ui.element("main").classes("page w-full"):
-        made = [ui.element("section").classes("card auth") for _ in range(cards)]
+        with ui.element("div").classes("account-grid" if grid else "w-full"):
+            made = [ui.element("section").classes("card auth") for _ in range(cards)]
     ui.html(site.FOOTER, sanitize=False)
     return made[0] if cards == 1 else made
 

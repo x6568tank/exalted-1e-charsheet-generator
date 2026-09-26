@@ -43,7 +43,7 @@ from ..ui import builder, theme
 from ..ui.assets import cytoscape_head_html
 from ..ui import custom as custom_mod
 from ..ui import view as viewmod
-from . import chrome
+from . import chrome, site
 from .campaigns import HomeCampaigns
 from .characters import CharacterRow, CharacterStore, CharacterStoreError
 from .quota import QuotaExceeded
@@ -183,7 +183,7 @@ def register_character_pages(store: CharacterStore, rulesets: Rulesets,
 
 def _not_found() -> None:
     """The answer for a character of another account and for one that is absent."""
-    pal = theme.palette(None)
+    pal = site.site_palette()
     with chrome.header(pal, "Exalted 1e"):
         chrome.home_button()
     ui.label("There is no such character.").classes("text-base p-4").mark("not-found")
@@ -191,7 +191,7 @@ def _not_found() -> None:
 
 def _build_home(store: CharacterStore, tables: TableStore, rulesets: Rulesets,
                 sessions: SessionRegistry, user_id: int) -> None:
-    pal = theme.palette(None)
+    pal = site.site_palette()
     # The Homebrew tab draws a Charm tree.
     ui.add_head_html(cytoscape_head_html())
     with chrome.header(pal, "Exalted 1e — Your characters", current="home"):

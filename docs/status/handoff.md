@@ -2,6 +2,12 @@
 
 # 👉 YOU ARE HERE
 
+**NEWEST (2026-09-26, after the close-out below): the account page grid and the site
+colours — ✅ clicked by the human, committed, deployed.** Detail:
+`plans/account-management.md` "third round". The colours live in a cookie AND on the
+account (`user_themes`, human: "both"). Targeted tests only (418 passed); the full count
+below is from before this work.
+
 **Account management is DONE and BROWSER-VERIFIED by the human, 2026-09-26**, in two
 rounds, and **deployed**. Plus three smaller items from the old NEXT list.
 

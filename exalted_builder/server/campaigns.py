@@ -27,8 +27,7 @@ from collections.abc import Callable
 
 from nicegui import ui
 
-from ..ui import theme
-from . import chrome, db
+from . import chrome, db, site
 from .characters import CharacterStore
 from .tables import TableRow, TableStore, TableStoreError
 
@@ -64,7 +63,7 @@ class HomeCampaigns:
         self.store = store
         self.user_id = user_id
         self.refresh = refresh
-        self.pal = theme.palette(None)
+        self.pal = site.site_palette()
 
     def table_names(self) -> dict[str, str]:
         """Return the name of each campaign that the account runs or is a member of."""

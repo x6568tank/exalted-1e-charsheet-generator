@@ -202,7 +202,7 @@ def test_the_new_tables_reach_an_existing_database(tmp_path: Path) -> None:
     with sqlite3.connect(path) as connection:
         names = {row[0] for row in connection.execute(
             "SELECT name FROM sqlite_master WHERE type = 'table'")}
-    assert {"user_emails", "login_epochs"} <= names
+    assert {"user_emails", "login_epochs", "user_themes"} <= names
 
 
 # ---- rename ---------------------------------------------------------------------- #

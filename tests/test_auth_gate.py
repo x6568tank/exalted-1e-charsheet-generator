@@ -68,11 +68,12 @@ async def _log_in(user: User, username: str, password: str = state.PASSWORD,
 # The routes that a visitor with no login can open, BY NAME. Each is public on
 # purpose, by a ruling of the human: the login pages (section 5.1d), and the front
 # page, About and the wiki (docs/plans/vtt.md 9.4 and 9.5, 2026-09-12), and the two
-# files for crawlers (asked for by the human, 2026-09-26).
+# files for crawlers (asked for by the human, 2026-09-26), and the site colours
+# (asked for by the human, 2026-09-26: a visitor with no login selects them too).
 # ⚠ A route that opens without a name here fails the first case. Do not add a name
 # to make it pass without a ruling.
 PUBLIC_ROUTES = frozenset({
-    "/", "/about", "/login", "/signup", "/logout", "/robots.txt", "/sitemap.xml",
+    "/", "/about", "/login", "/signup", "/logout", "/robots.txt", "/sitemap.xml", "/theme",
     "/wiki", "/wiki/charms", "/wiki/charms/{entry_id}",
     "/wiki/martial-arts", "/wiki/martial-arts/{entry_id}",
     "/wiki/spells", "/wiki/spells/{entry_id}",
@@ -136,10 +137,13 @@ async def test_each_route_named_public_opens_with_no_login(user: User) -> None:
     paths = _app_routes()
     assert PUBLIC_ROUTES <= paths, f"Named public, but absent: {sorted(PUBLIC_ROUTES - paths)}."
 
-    for path in sorted(PUBLIC_ROUTES - {"/logout"}):
+    for path in sorted(PUBLIC_ROUTES - {"/logout", "/theme"}):
         response = await user.http_client.get(_concrete(path), follow_redirects=False)
         assert response.status_code in (200, 404), (
             f"{path} answered {response.status_code} to a visitor with no login.")
+    # `/theme` always redirects: to the page of `back`, not to the login page.
+    response = await user.http_client.get("/theme?back=/about", follow_redirects=False)
+    assert response.headers["location"] == "/about"
 
 
 @pytest.mark.parametrize("path", ["/wikipedia", "/wiki-admin", "/homepage", "/about/x",
