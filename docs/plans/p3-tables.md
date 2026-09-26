@@ -1225,6 +1225,28 @@ and one addition came out of it:
 
 ---
 
+### The Pools tab (asked and ruled 2026-09-25, during the P4 click-through)
+
+The human: *"a player cannot see their dice rolls. is there some way to add that, maybe
+as a 3rd column with log/notes?"*, then *"something similar for the ST, but with a
+dropdown to change which character"*. **Ruled: the ST's dropdown lists the ST's
+full-sheet NPCs and every player's copy** (roster entries have no sheet, so none).
+
+* A **Pools** tab between Notes and ST. It lays out `ui/play.dice_pool_sidebar` and
+  `custom_pool_panel` (decision 0016) over one character and computes nothing.
+* A player sees the copy that they open as, through its live context; a viewer with no
+  copy to open as gets a line saying so. The ST picks; a player's copy is read with
+  `peek` or from its file, never a context (§8). Nothing is written, so R3 holds.
+* ⚠ 0019: no row fills the Log's dice count. The tab's "Attack with" select is the
+  pool list's own and is **separate** from YOU PLAY's "In hand", which feeds initiative.
+* The poll repaints the tab when the target's digest moves: a wound marked on the table
+  shows in the penalties within a poll, on the ST's screen too.
+* `tests/test_table_pools.py`. 🐞 The pool builder's Ability select lists "Larceny", which
+  tripped the step-8 leak test that walked a player's page for the bare word; that test
+  now looks for the Bandit's trait line, "Larceny 1".
+
+Not clicked by the human yet.
+
 ## 15. The table view — the approved layout (2026-09-22)
 
 **The model is `spikes/campaign_page/` shape A, committed as `7f54cf1`.** Its README

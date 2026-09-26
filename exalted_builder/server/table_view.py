@@ -25,6 +25,9 @@ section 15.2 (shape A of `spikes/campaign_page/`):
     Storyteller sees the full card of each entry and each NPC, with the Enemy / Ally
     switch. A player sees each ally as a name and a health track, and no enemy.
     The Notes tab holds the private notes of the viewer (Q8, Q9).
+  * The Pools tab (human, 2026-09-25): the base dice pools of one character, laid
+    out by `ui/play.py`. A player sees the copy that they open as. The Storyteller
+    picks from the NPCs and each copy of a player. Nothing is written.
   * Initiative is step 9 (sections 9 and 15.4): the ST tab rolls it for the ticked
     combatants (`server/table_initiative.py`), and the turn order goes to the Log.
     YOU PLAY sets the weapon in hand that the rating reads.
@@ -222,6 +225,12 @@ class _TableView:
         self._expanded: set[str] = set()
         # The combatants that the Storyteller unticked at the last initiative roll.
         self._init_skip: set[str] = set()
+        # The Pools tab: the choice of the Storyteller, the row that the tab shows,
+        # the selections of the pool list, and what the poll compares.
+        self._pool_pick: str | None = None
+        self._pool_for: str | None = None
+        self._pool_state: dict = {}
+        self._pool_key = None
 
     # ---- reads -------------------------------------------------------------- #
 
@@ -365,6 +374,7 @@ class _TableView:
         self._draw_rail(copies)
         self._draw_sides(copies)
         self._draw_members(copies)
+        self._draw_pools()
         if self.is_st:
             self._draw_st()
 
@@ -408,6 +418,8 @@ class _TableView:
             self._draw_rail(copies)
         if self.sides_key(copies) != self._sides_key:
             self._draw_sides(copies)
+        if self.pool_key(copies) != self._pool_key:
+            self._draw_pools()
 
     # ---- the top bar -------------------------------------------------------- #
 
@@ -458,6 +470,7 @@ class _TableView:
         copies = self.copies()
         self._draw_rail(copies)
         self._draw_sides(copies)
+        self._draw_pools()
 
     # ---- the left rail ------------------------------------------------------ #
 
@@ -865,6 +878,7 @@ class _TableView:
                 "w-full") as tabs:
             ui.tab("log", label="Log").mark("tab-log")
             ui.tab("notes", label="Notes").mark("tab-notes")
+            ui.tab("pools", label="Pools").mark("tab-pools")
             if self.is_st:
                 ui.tab("st", label="ST").mark("tab-st")
         self.tabs = tabs
@@ -876,10 +890,87 @@ class _TableView:
                 self._notes_panel()
                 self.members_panel = ui.column().classes("w-full gap-1")
                 self._draw_members(self.copies())
+            with ui.tab_panel("pools").classes("p-0 gap-2"):
+                self.pools_panel = ui.column().classes("w-full gap-2").mark("pools-panel")
+                self._draw_pools()
             if self.is_st:
                 with ui.tab_panel("st").classes("p-0 gap-2"):
                     self.st_panel = ui.column().classes("w-full gap-2")
                     self._draw_st()
+
+    # ---- the pools ---------------------------------------------------------- #
+
+    def pool_rows(self, copies: list[CharacterRow]) -> list[CharacterRow]:
+        """Return the characters that the Pools tab can show. The Storyteller gets
+        each NPC and each copy of a player. A player gets the copy that they open
+        as, or nothing. ⚠ Never a copy of a different account for a player."""
+        if self.is_st:
+            return self.npcs(copies) + self.party_rows(copies)
+        chosen = self.chosen(copies)
+        return [chosen] if chosen is not None else []
+
+    def pool_target(self, copies: list[CharacterRow]) -> CharacterRow | None:
+        """Return the character of the Pools tab: the pick of the Storyteller, else
+        the copy that the viewer opens as, else the first row."""
+        rows = self.pool_rows(copies)
+        by_id = {row.id: row for row in rows}
+        if self._pool_pick in by_id:
+            return by_id[self._pool_pick]
+        chosen = self.chosen(copies)
+        if chosen is not None and chosen.id in by_id:
+            return chosen
+        return rows[0] if rows else None
+
+    def pool_key(self, copies: list[CharacterRow]):
+        """What decides the Pools tab: the rows, the target and its digest."""
+        target = self.pool_target(copies)
+        return (tuple(row.id for row in self.pool_rows(copies)),
+                None if target is None else (target.id, self.digest(target)))
+
+    def _draw_pools(self) -> None:
+        """Draw the base pools of one character (decision 0016). The layout is
+        `ui/play.py`; this method computes nothing and writes nothing."""
+        copies = self.copies()
+        self._pool_key = self.pool_key(copies)
+        target = self.pool_target(copies)
+        self.pools_panel.clear()
+        with self.pools_panel:
+            if target is None:
+                ui.label("Open the campaign as one of your characters to see its "
+                         "dice pools.").classes("text-sm opacity-70 p-2").mark(
+                    "pools-empty")
+                return
+            # ⚠ Only the owner gets a context (section 8). A copy of a player is
+            # read with `peek` or from its file.
+            shown = (self.read_own(target) if target.owner_id == self.user_id
+                     else self.read(target))
+            if self.is_st:
+                names = {row.id: self._copy_name(row) for row in self.pool_rows(copies)}
+                ui.select(names, value=target.id, label="Character",
+                          on_change=lambda e: self._pick_pools(e.value)).props(
+                    "dense outlined options-dense").classes("w-full").mark("pools-pick")
+            character = shown.character
+            if character is None:
+                ui.label("This character does not read.").classes("text-sm")
+                return
+            ui.label(character.name or "(unnamed)").classes(
+                "text-base font-bold").mark("pools-name")
+            if target.id != self._pool_for:
+                self._pool_for = target.id
+                self._pool_state = play_mod.new_pool_state(shown.ruleset)
+            if not self._pool_state:
+                ui.label("No dice-pool catalogue is loaded.").classes("text-sm")
+                return
+            cpal = theme.palette(character.exalt_type)
+            # ⚠ Decision 0019: nothing here fills the dice count of the Log.
+            play_mod.dice_pool_sidebar(shown.ruleset, character, cpal,
+                                       self._pool_state, self._draw_pools)
+            play_mod.custom_pool_panel(shown.ruleset, character, cpal,
+                                       self._pool_state, self._draw_pools)
+
+    def _pick_pools(self, character_id: str | None) -> None:
+        self._pool_pick = character_id
+        self._draw_pools()
 
     # ---- the notes ---------------------------------------------------------- #
 

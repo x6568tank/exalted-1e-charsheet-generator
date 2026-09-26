@@ -1446,8 +1446,10 @@ async def test_a_player_sees_an_ally_as_a_name_and_health_and_no_enemy(create_us
     text = _page_text(player)
     assert "Bandit" in text
     assert "Heretic" not in text
-    # The stats of the ally stay with the Storyteller.
-    for stat in ("Init 6", "Short Sword", "buff jacket", "Soak", "Larceny"):
+    # The stats of the ally stay with the Storyteller. ⚠ "Larceny 1" is the trait
+    # line of the Bandit. A bare "Larceny" is also an option of the Ability select of
+    # the player's own Pools tab (2026-09-25), which is not a leak.
+    for stat in ("Init 6", "Short Sword", "buff jacket", "Soak", "Larceny 1"):
         assert stat not in text, stat
     assert not _marked_all(player, f"adv-card-{ally}")
     assert not _marked_all(player, f"adv-card-{enemy}")
