@@ -77,7 +77,7 @@ from .characters import CharacterRow, CharacterStore
 from .quota import QuotaExceeded
 from .rulesets import Rulesets
 from .session import SessionRegistry
-from .table_board import TableBoard
+from .table_board import TableBoard, image_mime
 from .table_board_view import BoardHub, BoardPanel
 from .table_custom import custom_url, register_table_custom
 from .table_homebrew import TableHomebrew, TableHomebrewError
@@ -149,6 +149,18 @@ def register_table_page(tables: TableStore, store: CharacterStore, rulesets: Rul
             raise HTTPException(status_code=404)
         return FileResponse(path, media_type=state.background.mime,
                             headers={"Cache-Control": "private, max-age=86400"})
+
+    @app.get(TABLE_PATH + "/{table_id}/board-token/{image_id}")
+    def board_token(table_id: str, image_id: str) -> FileResponse:
+        """Serve a token image to a member. The id is a hash of the bytes, thus the
+        file never changes. ⚠ `token_image_file` checks the membership and the id."""
+        user_id = current_user_id()
+        path = (None if user_id is None
+                else board.token_image_file(user_id, table_id, image_id))
+        if path is None:
+            raise HTTPException(status_code=404)
+        return FileResponse(path, media_type=image_mime(path),
+                            headers={"Cache-Control": "private, max-age=31536000"})
 
     @ui.page(TABLE_PATH + "/{table_id}")
     def table_page(table_id: str) -> None:

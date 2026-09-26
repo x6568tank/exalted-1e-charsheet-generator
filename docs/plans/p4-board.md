@@ -173,9 +173,17 @@ pinch zoom on a phone (there is none: see below), a reconnect.
 * 🐞 A restack that moved nothing bumped the version and broadcast. Fixed in the store.
 * `atomic_write` now writes bytes. On Windows a desktop save now has `\n` line
   endings, not `\r\n`. JSON does not care.
-* Token images are **not** built yet: 0020 allows them, but each needs an upload. The
-  human raised the campaign quota to 50 MB with them in mind (2026-09-25); **read as a
-  yes, to be confirmed after the first look** at the board.
+* **Token images: BUILT 2026-09-25** (human: *"3 is correct"*, with the 50 MB raise
+  for them). A token has an optional `image`, the pinned field list changed with it
+  on purpose. Any member who can edit uploads in the token dialog (Choose / Change /
+  Remove image, with a round preview). The server crops to a centred square, scales
+  to 256 px, re-encodes (PNG if it has alpha, else JPEG), caps at 256 KB, and names the
+  file by the hash of its bytes, so one picture is one file
+  (`board/tokens/<id>.img`). A token that names an image not on disk is refused.
+  `GET /table/<id>/board-token/<id>` serves it to members. Clear and delete prune the
+  files no token uses, **only when older than 10 minutes**, because the dialog uploads
+  before it puts the token. Driven in two browsers: the picture shows clipped to the
+  circle on both screens. Not clicked by the human yet.
 * No touch pinch-zoom; one-finger drag pans. At phone width the board sits below the
   rails (the existing P3 layout).
 

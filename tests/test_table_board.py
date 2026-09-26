@@ -73,9 +73,10 @@ def stroke(object_id: str = "s1", **overrides) -> dict:
     return data
 
 
-def png_bytes(size: tuple[int, int] = (64, 48), mode: str = "RGB") -> bytes:
+def png_bytes(size: tuple[int, int] = (64, 48), mode: str = "RGB",
+              colour: str = "red") -> bytes:
     buffer = io.BytesIO()
-    Image.new(mode, size, "red").save(buffer, "PNG")
+    Image.new(mode, size, colour).save(buffer, "PNG")
     return buffer.getvalue()
 
 
@@ -151,7 +152,7 @@ def test_the_fields_of_a_board_object_are_the_permitted_fields() -> None:
         "stroke": {"kind", "id", "points", "colour", "width"},
         "shape": {"kind", "id", "shape", "x", "y", "w", "h", "colour", "fill", "width"},
         "text": {"kind", "id", "x", "y", "text", "size", "colour"},
-        "token": {"kind", "id", "x", "y", "r", "colour", "label"},
+        "token": {"kind", "id", "x", "y", "r", "colour", "label", "image"},
     }
 
 
@@ -478,3 +479,82 @@ def test_a_spectator_cannot_change_several(board: TableBoard, table) -> None:
             change()
     with pytest.raises(TableBoardError):
         board.put_many(STRANGER, table.id, [token("a", x=1)])
+
+
+# --------------------------------------------------------------------------- #
+# Token images (the human, 2026-09-25)
+# --------------------------------------------------------------------------- #
+
+
+def test_a_token_image_is_cropped_square_scaled_and_named_by_its_content(
+        board: TableBoard, table) -> None:
+    image_id = board.add_token_image(PLAYER, table.id, png_bytes((600, 300)))
+
+    path = board.token_image_file(WATCHER, table.id, image_id)
+    assert path is not None and path.parent.name == "tokens"
+    with Image.open(path) as image:
+        assert image.size == (table_board.TOKEN_SIDE, table_board.TOKEN_SIDE)
+    assert board.add_token_image(ST, table.id, png_bytes((600, 300))) == image_id
+
+
+def test_a_token_can_carry_an_uploaded_image(board: TableBoard, table) -> None:
+    image_id = board.add_token_image(PLAYER, table.id, png_bytes())
+    state = board.put(PLAYER, table.id, token(image=image_id))
+    assert state.objects[0]["image"] == image_id
+    assert board.put(PLAYER, table.id, token()).objects[0]["image"] is None
+
+
+def test_a_token_image_that_is_not_on_disk_is_refused(board: TableBoard, table) -> None:
+    with pytest.raises(TableBoardError):
+        board.put(PLAYER, table.id, token(image="0123456789abcdef"))
+    with pytest.raises(TableBoardError):
+        board.put(PLAYER, table.id, token(image="../../etc/passwd"))
+
+
+def test_a_token_image_upload_is_checked(board: TableBoard, table) -> None:
+    with pytest.raises(TableBoardError):
+        board.add_token_image(PLAYER, table.id, b"not an image")
+    with pytest.raises(TableBoardError):
+        board.add_token_image(PLAYER, table.id, png_bytes(), spectating=True)
+    with pytest.raises(TableBoardError):
+        board.add_token_image(STRANGER, table.id, png_bytes())
+    image_id = board.add_token_image(PLAYER, table.id, png_bytes())
+    assert board.token_image_file(STRANGER, table.id, image_id) is None
+    assert board.token_image_file(PLAYER, table.id, "../board.json") is None
+
+
+def test_clear_and_delete_prune_token_images_that_no_token_uses(
+        board: TableBoard, table, monkeypatch) -> None:
+    monkeypatch.setattr(table_board, "PRUNE_AFTER_SECONDS", 0)
+    kept = board.add_token_image(PLAYER, table.id, png_bytes(colour="red"))
+    gone = board.add_token_image(PLAYER, table.id, png_bytes(colour="blue"))
+    assert kept != gone
+    board.put(PLAYER, table.id, token("a", image=kept))
+    board.put(PLAYER, table.id, token("b", image=gone))
+
+    board.delete(PLAYER, table.id, "b")
+
+    assert board.token_image_file(PLAYER, table.id, kept) is not None
+    assert board.token_image_file(PLAYER, table.id, gone) is None
+    board.clear(ST, table.id)
+    assert board.token_image_file(PLAYER, table.id, kept) is None
+
+
+def test_a_new_token_image_is_not_pruned_before_its_token_lands(
+        board: TableBoard, table) -> None:
+    """The dialog uploads first and puts the token after. A delete in between must
+    not take the image."""
+    board.put(PLAYER, table.id, token("a"))
+    fresh = board.add_token_image(PLAYER, table.id, png_bytes())
+    board.delete(ST, table.id, "a")
+    assert board.token_image_file(PLAYER, table.id, fresh) is not None
+
+
+def test_the_quota_of_the_table_folder_applies_to_token_images(
+        board: TableBoard, tables, table) -> None:
+    persistence.set_write_guard(FolderQuota(tables.root, table_limit=100))
+    try:
+        with pytest.raises(QuotaExceeded):
+            board.add_token_image(PLAYER, table.id, png_bytes((200, 200)))
+    finally:
+        persistence.set_write_guard(None)

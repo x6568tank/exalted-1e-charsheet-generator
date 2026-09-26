@@ -6,7 +6,7 @@
  * A change shows on each screen when the echo of the server arrives.
  *
  * Messages from the server (ExBoard.receive):
- *   {type: "snapshot", version, objects, background}  replace all.
+ *   {type: "snapshot", version, objects, background, token_base}  replace all.
  *   {type: "op", version, op: "put", obj}               add or replace one object.
  *   {type: "op", version, op: "put_many", objs}         add or replace some objects.
  *   {type: "op", version, op: "delete", id}             remove one object.
@@ -27,7 +27,7 @@
     edit: false, st: false,
     tool: 'select', colour: '#1f2937', width: 3, fill: false,
     sel: [], band: null, groupSent: false, draft: null, erasing: false, erased: {},
-    background: null, fitted: false
+    background: null, fitted: false, tokenBase: '', images: {}
   };
 
   var MAX_POINTS = 2000;
@@ -85,6 +85,16 @@
       n.add(new Konva.Circle({
         radius: o.r, fill: o.colour, stroke: '#00000080', strokeWidth: 2
       }));
+      if (o.image && B.tokenBase) {
+        var face = new Konva.Group({
+          clipFunc: function (ctx) { ctx.arc(0, 0, o.r, 0, Math.PI * 2, false); }
+        });
+        var pic = new Konva.Image({ x: -o.r, y: -o.r, width: o.r * 2, height: o.r * 2 });
+        face.add(pic);
+        n.add(face);
+        n.add(new Konva.Circle({ radius: o.r, stroke: o.colour, strokeWidth: 3 }));
+        tokenImage(o.image, function (img) { pic.image(img); B.main.batchDraw(); });
+      }
       if (o.label) {
         n.add(new Konva.Text({
           text: o.label, fontSize: Math.max(12, o.r * 0.55), fontStyle: 'bold',
@@ -118,6 +128,21 @@
     }
     var c = movedObject(n);
     if (c) { send('put', { obj: c }); }
+  }
+
+  // Load the image `id` one time, and give it to `done` when it is ready.
+  function tokenImage(id, done) {
+    var entry = B.images[id];
+    if (!entry) {
+      entry = B.images[id] = { img: new window.Image(), ready: false, waiting: [] };
+      entry.img.onload = function () {
+        entry.ready = true;
+        entry.waiting.forEach(function (f) { f(entry.img); });
+        entry.waiting = [];
+      };
+      entry.img.src = B.tokenBase + id;
+    }
+    if (entry.ready) { done(entry.img); } else { entry.waiting.push(done); }
   }
 
   // The new form of the object of node `n` after a drag.
@@ -523,6 +548,7 @@
       return;
     }
     if (m.type === 'snapshot') {
+      B.tokenBase = m.token_base || '';
       B.version = m.version;
       B.objects = {};
       B.order = [];

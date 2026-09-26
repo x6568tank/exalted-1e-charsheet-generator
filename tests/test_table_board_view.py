@@ -102,7 +102,8 @@ def test_a_put_reaches_each_open_page_with_its_version(pages) -> None:
 
     for page in pages:
         assert page.messages == [{"type": "op", "version": 1, "op": "put",
-                                  "obj": token() | {"x": 10.0, "y": 10.0, "r": 20.0}}]
+                                  "obj": token() | {"x": 10.0, "y": 10.0, "r": 20.0,
+                                                    "image": None}}]
 
 
 def test_a_delete_and_a_restack_reach_each_open_page(pages) -> None:
@@ -128,15 +129,34 @@ def test_a_change_that_changes_nothing_goes_nowhere(pages) -> None:
     assert [len(p.messages) for p in pages] == [1, 1, 1]
 
 
-def test_the_storyteller_clears_and_each_page_gets_the_board(pages) -> None:
+def test_the_storyteller_clears_and_each_page_gets_the_board(pages, table) -> None:
     st, player, watcher = pages
     player.session.handle({"op": "put", "obj": token()})
 
     st.session.clear()
 
     for page in pages:
-        assert page.messages[-1] == {"type": "snapshot", "version": 2, "objects": [],
-                                     "background": None}
+        assert page.messages[-1] == {
+            "type": "snapshot", "version": 2, "objects": [], "background": None,
+            "token_base": f"/table/{table.id}/board-token/"}
+
+
+def test_a_token_image_goes_on_a_token_and_reaches_each_page(pages) -> None:
+    _, player, watcher = pages
+    image_id = player.session.add_token_image(png_bytes())
+    assert [len(p.messages) for p in pages] == [0, 0, 0]  # An upload alone shows nothing.
+
+    player.session.handle({"op": "put", "obj": token(image=image_id)})
+
+    for page in pages:
+        assert page.messages[-1]["obj"]["image"] == image_id
+
+
+def test_a_spectator_cannot_upload_a_token_image(pages) -> None:
+    from exalted_builder.server.table_board import TableBoardError
+
+    with pytest.raises(TableBoardError):
+        pages[2].session.add_token_image(png_bytes())
 
 
 def test_a_background_reaches_each_page_with_its_address(pages, table) -> None:
@@ -405,3 +425,23 @@ def test_a_malformed_group_intent_writes_nothing(pages, junk) -> None:
     _, player, _ = pages
     player.session.handle(junk)
     assert player.session.board.version(player.session.table_id) == 0
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_token_image_is_served_to_a_member_and_to_no_one_else(
+        create_user) -> None:
+    _, _, table, [(player, player_id, _)] = await _campaign(create_user, "Ashes of Dawn")
+    stranger = create_user()
+    await _sign_up(stranger, "Stranger")
+    image_id = TableBoard(_tables()).add_token_image(player_id, table.id, png_bytes())
+    address = f"/table/{table.id}/board-token/{image_id}"
+
+    response = await player.http_client.get(address)
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+    assert Image.open(io.BytesIO(response.content)).size == (256, 256)
+
+    assert (await stranger.http_client.get(address)).status_code == 404
+    assert (await player.http_client.get(
+        f"/table/{table.id}/board-token/0123456789abcdef")).status_code == 404

@@ -10,6 +10,9 @@ section 5 (2026-09-25):
     who spectates watches. The page tells `put` that it spectates.
   * Only the Storyteller clears the board and sets the background (Q1, Q2).
   * No hidden layer (Q4). Each member sees each object.
+  * A token can show an image that a member uploaded (the human, 2026-09-25). The
+    file is `<table folder>/board/tokens/<id>.img`, and its id is a hash of its
+    encoded bytes. Clear and delete remove each file that no token uses.
 
 ⚠ Decision 0020: the board holds a PICTURE of the table, never a MODEL of it. No
 object has a field that names a character, a copy or an NPC. A token label is
@@ -29,10 +32,12 @@ are never written.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+import hashlib
 import io
 import json
 import logging
 from pathlib import Path
+import time
 from typing import Annotated, Literal, Union
 
 from PIL import Image, ImageOps, UnidentifiedImageError
@@ -61,6 +66,14 @@ MAX_SIDE = 4096
 MAX_INPUT_PIXELS = 40_000_000
 _INPUT_FORMATS = ("PNG", "JPEG", "WEBP", "GIF")
 
+# The image of a token: a square of `TOKEN_SIDE` pixels. The cap applies to the
+# encoded file. A file that no token uses is removed after `PRUNE_AFTER_SECONDS`:
+# the dialog uploads the image before it puts the token.
+TOKENS_DIRNAME = "tokens"
+TOKEN_SIDE = 256
+MAX_TOKEN_BYTES = 256 * 1024
+PRUNE_AFTER_SECONDS = 600
+
 
 class TableBoardError(ValueError):
     """A change that the board refuses. The message is safe to show to the user."""
@@ -69,6 +82,7 @@ class TableBoardError(ValueError):
 # ---- the objects ------------------------------------------------------------ #
 
 ObjectId = Annotated[str, Field(pattern=r"^[A-Za-z0-9_-]{1,40}$")]
+ImageId = Annotated[str, Field(pattern=r"^[0-9a-f]{16}$")]
 Colour = Annotated[str, Field(pattern=r"^#[0-9a-fA-F]{6}$")]
 Coord = Annotated[float, Field(ge=-COORD_LIMIT, le=COORD_LIMIT, allow_inf_nan=False)]
 Width = Annotated[float, Field(ge=1, le=50, allow_inf_nan=False)]
@@ -126,7 +140,8 @@ class Text(_Object):
 
 class Token(_Object):
     """A disc of `colour` at `x`, `y`, with the radius `r`. `label` is the text that
-    a person typed, and it can be empty."""
+    a person typed, and it can be empty. `image` is the id of an image that a member
+    uploaded (`TableBoard.add_token_image`), or None."""
 
     kind: Literal["token"]
     id: ObjectId
@@ -135,6 +150,7 @@ class Token(_Object):
     r: Annotated[float, Field(ge=5, le=500, allow_inf_nan=False)]
     colour: Colour
     label: Annotated[str, Field(max_length=MAX_LABEL)]
+    image: ImageId | None = None
 
 
 _MODELS = (Stroke, Shape, Text, Token)
@@ -198,6 +214,12 @@ class TableBoard:
     def _background_path(self, table_id: str) -> Path:
         return self.tables.table_dir(table_id) / BOARD_DIRNAME / BACKGROUND_FILE
 
+    def _tokens_dir(self, table_id: str) -> Path:
+        return self.tables.table_dir(table_id) / BOARD_DIRNAME / TOKENS_DIRNAME
+
+    def _token_path(self, table_id: str, image_id: str) -> Path:
+        return self._tokens_dir(table_id) / f"{image_id}.img"
+
     # ---- reads -------------------------------------------------------------- #
 
     def state(self, user_id: int, table_id: str) -> BoardState:
@@ -220,6 +242,20 @@ class TableBoard:
         if self._read(table_id).background is None:
             return None
         path = self._background_path(table_id)
+        return path if path.is_file() else None
+
+    def token_image_file(self, user_id: int, table_id: str, image_id: str) -> Path | None:
+        """Return the file of the token image `image_id` for the member `user_id`.
+
+        Give None to a viewer who is not a member, for a malformed id, and for an
+        absent file.
+        """
+        if self.tables.access(user_id, table_id) is None:
+            return None
+        if not isinstance(image_id, str) or len(image_id) != 16 or any(
+                c not in "0123456789abcdef" for c in image_id):
+            return None
+        path = self._token_path(table_id, image_id)
         return path if path.is_file() else None
 
     def _read(self, table_id: str) -> BoardState:
@@ -255,6 +291,7 @@ class TableBoard:
         """
         self._require_player(user_id, table_id, spectating)
         item = parse_object(data)
+        self._check_images(table_id, [item])
         state = self._read(table_id)
         objects = list(state.objects)
         for index, existing in enumerate(objects):
@@ -280,6 +317,7 @@ class TableBoard:
         if not isinstance(items, list) or not items or len(items) > MAX_OBJECTS:
             raise TableBoardError("That drawing is not valid.")
         parsed = [parse_object(data) for data in items]
+        self._check_images(table_id, parsed)
         ids = [item["id"] for item in parsed]
         if len(set(ids)) != len(ids):
             raise TableBoardError("That drawing is not valid.")
@@ -306,7 +344,7 @@ class TableBoard:
         objects = [o for o in state.objects if o["id"] not in gone]
         if len(objects) == len(state.objects):
             return state
-        return self._write(table_id, state, objects)
+        return self._prune(table_id, self._write(table_id, state, objects))
 
     def restack_many(self, user_id: int, table_id: str, object_ids: list[str], *,
                      front: bool, spectating: bool = False) -> BoardState:
@@ -332,7 +370,7 @@ class TableBoard:
         objects = [o for o in state.objects if o["id"] != object_id]
         if len(objects) == len(state.objects):
             return state
-        return self._write(table_id, state, objects)
+        return self._prune(table_id, self._write(table_id, state, objects))
 
     def to_front(self, user_id: int, table_id: str, object_id: str, *,
                  spectating: bool = False) -> BoardState:
@@ -357,7 +395,7 @@ class TableBoard:
         """Remove each object. Keep the background. Return the board. Refuse a
         viewer who is not the Storyteller."""
         self._require_storyteller(user_id, table_id)
-        return self._write(table_id, self._read(table_id), [])
+        return self._prune(table_id, self._write(table_id, self._read(table_id), []))
 
     def set_background(self, user_id: int, table_id: str, raw: bytes) -> BoardState:
         """Open `raw` as an image, encode it again, and make it the background.
@@ -386,6 +424,50 @@ class TableBoard:
         state = self._read(table_id)
         state = self._write(table_id, state, list(state.objects), None)
         self._background_path(table_id).unlink(missing_ok=True)
+        return state
+
+    def add_token_image(self, user_id: int, table_id: str, raw: bytes, *,
+                        spectating: bool = False) -> str:
+        """Open `raw` as an image, crop it to a centred square, scale it to
+        `TOKEN_SIDE` pixels, and encode it again. Return its id.
+
+        The id is a hash of the encoded bytes, thus the same image gives the same
+        id and one file. Refuse a viewer who is not a member, a spectator, bytes that
+        are not an image, and a result of more than `MAX_TOKEN_BYTES`.
+
+        ⚠ The quota of the table folder applies (`atomic_write_bytes`). Its error
+        propagates.
+        """
+        self._require_player(user_id, table_id, spectating)
+        payload, _alpha = _encode_image(raw, square=TOKEN_SIDE, cap=MAX_TOKEN_BYTES)
+        image_id = hashlib.sha256(payload).hexdigest()[:16]
+        path = self._token_path(table_id, image_id)
+        if not path.is_file():
+            atomic_write_bytes(path, payload)
+        return image_id
+
+    def _check_images(self, table_id: str, items: list[dict]) -> None:
+        for item in items:
+            image_id = item.get("image")
+            if image_id and not self._token_path(table_id, image_id).is_file():
+                raise TableBoardError("That token image is not on the board. "
+                                      "Choose the image again.")
+
+    def _prune(self, table_id: str, state: BoardState) -> BoardState:
+        """Remove each token image that no object of `state` uses and that is older
+        than `PRUNE_AFTER_SECONDS`. Return `state`."""
+        used = {o.get("image") for o in state.objects if o.get("kind") == "token"}
+        folder = self._tokens_dir(table_id)
+        if not folder.is_dir():
+            return state
+        now = time.time()
+        for path in folder.glob("*.img"):
+            try:
+                old = now - path.stat().st_mtime >= PRUNE_AFTER_SECONDS
+                if path.stem not in used and old:
+                    path.unlink()
+            except OSError:
+                log.warning("A token image did not prune: %s", path, exc_info=True)
         return state
 
     # ---- checks and writes -------------------------------------------------- #
@@ -429,8 +511,28 @@ class TableBoard:
 
 
 def _encode_background(raw: bytes) -> tuple[bytes, Background]:
-    """Return the encoded image of `raw` and its size. Raise `TableBoardError` for
-    bytes that are not an image, too many pixels, or a result that is too large."""
+    """Return the encoded image of `raw` and its size, for the background."""
+    payload, alpha, size = _encode_image(raw, cap=MAX_BACKGROUND_BYTES, sized=True)
+    return payload, Background(width=size[0], height=size[1],
+                               mime="image/png" if alpha else "image/jpeg")
+
+
+def image_mime(path: Path) -> str:
+    """Return the media type of an image that this module encoded."""
+    with path.open("rb") as handle:
+        return "image/png" if handle.read(8) == b"\x89PNG\r\n\x1a\n" else "image/jpeg"
+
+
+def _encode_image(raw: bytes, *, cap: int, square: int | None = None,
+                  sized: bool = False):
+    """Encode `raw` again. Return (bytes, alpha), and the size if `sized`.
+
+    With `square`, crop a centred square and scale it to `square` pixels. Else scale
+    the image down to `MAX_SIDE` pixels on its longer side. Keep an image with
+    transparency as PNG, and encode each other image as JPEG. Raise
+    `TableBoardError` for bytes that are not an image, too many pixels, or a result
+    over `cap` bytes.
+    """
     try:
         with Image.open(io.BytesIO(raw), formats=_INPUT_FORMATS) as image:
             if image.width * image.height > MAX_INPUT_PIXELS:
@@ -440,7 +542,10 @@ def _encode_background(raw: bytes) -> tuple[bytes, Background]:
             alpha = image.mode in ("RGBA", "LA", "PA") or (
                 image.mode == "P" and "transparency" in image.info)
             image = image.convert("RGBA" if alpha else "RGB")
-            image.thumbnail((MAX_SIDE, MAX_SIDE))
+            if square is not None:
+                image = ImageOps.fit(image, (square, square))
+            else:
+                image.thumbnail((MAX_SIDE, MAX_SIDE))
             out = io.BytesIO()
             if alpha:
                 image.save(out, "PNG", optimize=True)
@@ -454,10 +559,8 @@ def _encode_background(raw: bytes) -> tuple[bytes, Background]:
         raise TableBoardError("That file is not an image that the board can show.") \
             from exc
     payload = out.getvalue()
-    if len(payload) > MAX_BACKGROUND_BYTES:
+    if len(payload) > cap:
         raise TableBoardError(
             f"That image is {len(payload) / 2**20:.1f} MB after it is encoded. "
-            f"The limit is {MAX_BACKGROUND_BYTES / 2**20:.0f} MB.")
-    return payload, Background(width=size[0], height=size[1],
-                               mime="image/png" if alpha else "image/jpeg")
-
+            f"The limit is {cap / 2**20:.2g} MB.")
+    return (payload, alpha, size) if sized else (payload, alpha)

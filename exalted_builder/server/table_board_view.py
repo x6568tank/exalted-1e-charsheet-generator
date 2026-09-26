@@ -87,6 +87,11 @@ def background_url(table_id: str, stamp: int) -> str:
     return f"/table/{table_id}/board-background?v={stamp}"
 
 
+def token_image_base(table_id: str) -> str:
+    """Return the address of the token images of `table_id`, before the image id."""
+    return f"/table/{table_id}/board-token/"
+
+
 def new_object_id() -> str:
     """Return a new object id."""
     return "p" + secrets.token_hex(6)
@@ -239,6 +244,12 @@ class BoardSession:
         if state.version != before:
             self._commit(state, {"op": "order", "ids": [o["id"] for o in state.objects]})
 
+    def add_token_image(self, raw: bytes) -> str:
+        """Store an uploaded token image. Return its id. Nothing is broadcast: the
+        image shows when a token that uses it is put."""
+        return self.board.add_token_image(self.user_id, self.table_id, raw,
+                                          spectating=self.spectating())
+
     def clear(self) -> None:
         self._publish(self.board.clear(self.user_id, self.table_id))
 
@@ -272,6 +283,7 @@ def snapshot_message(table_id: str, state: BoardState) -> dict:
         "type": "snapshot",
         "version": state.version,
         "objects": list(state.objects),
+        "token_base": token_image_base(table_id),
         "background": None if background is None else {
             "url": background_url(table_id, background.stamp),
             "width": background.width, "height": background.height},
@@ -481,13 +493,16 @@ class BoardPanel:
                 return
         field = "label" if kind == "token" else "text"
         limit = MAX_LABEL if kind == "token" else MAX_TEXT
+        image = {"id": existing.get("image") if existing else None}
         with self.dialog_host, ui.dialog() as dialog, ui.card().classes("min-w-[20rem]"):
-            ui.label("Token label" if kind == "token" else "Text").classes(
+            ui.label("Token" if kind == "token" else "Text").classes(
                 "text-base font-bold")
             box = ui.input(value=existing[field] if existing else "",
                            placeholder="Type a label" if kind == "token"
                            else "Type the text").props(
                 f"autofocus maxlength={limit}").classes("w-full").mark("board-ask-text")
+            if kind == "token":
+                self._token_image_picker(image)
 
             def done(typed: object = None) -> None:
                 text = ((typed if isinstance(typed, str) and typed else box.value)
@@ -498,6 +513,8 @@ class BoardPanel:
                     data = {"kind": "token", "id": new_object_id(),
                             "x": args.get("x"), "y": args.get("y"), "r": TOKEN_RADIUS,
                             "colour": self.colour, "label": text}
+                if kind == "token":
+                    data["image"] = image["id"]
                 else:
                     data = {"kind": "text", "id": new_object_id(),
                             "x": args.get("x"), "y": args.get("y"), "size": TEXT_SIZE,
@@ -517,6 +534,41 @@ class BoardPanel:
                 ui.button("OK", on_click=lambda: done()).props(f"color={self.pal.button}").mark(
                     "board-ask-ok")
         dialog.open()
+
+    def _token_image_picker(self, image: dict) -> None:
+        """Draw the image row of the token dialog. `image["id"]` is the choice."""
+        base = token_image_base(self.session.table_id)
+
+        async def uploaded(e) -> None:
+            raw = await e.file.read()
+            try:
+                image["id"] = self.session.add_token_image(raw)
+            except (TableBoardError, QuotaExceeded) as exc:
+                ui.notify(str(exc), type="warning")
+                return
+            draw()
+
+        upload = ui.upload(auto_upload=True, on_upload=uploaded,
+                           max_file_size=MAX_UPLOAD_BYTES).props(
+            "accept=image/png,image/jpeg,image/webp,image/gif").classes("hidden").mark(
+            "board-token-upload")
+        row = ui.row().classes("w-full items-center gap-2")
+
+        def draw() -> None:
+            row.clear()
+            with row:
+                if image["id"]:
+                    ui.image(base + image["id"]).classes(
+                        "w-12 h-12 rounded-full").mark("board-token-preview")
+                ui.button("Choose image…" if not image["id"] else "Change image…",
+                          icon="image", on_click=lambda: upload.run_method("pickFiles")
+                          ).props("flat dense no-caps").mark("board-token-image")
+                if image["id"]:
+                    ui.button("Remove image", icon="hide_image",
+                              on_click=lambda: (image.update(id=None), draw())).props(
+                        "flat dense no-caps color=grey-8").mark("board-token-no-image")
+
+        draw()
 
     def _confirm(self, title: str, body: str, action: str, run: Callable[[], None],
                  marker: str) -> None:
