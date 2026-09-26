@@ -1018,8 +1018,12 @@ class _TableView:
         """The Log (R5): the entries, a text box, a dice count, Roll and Send."""
         pal = self.pal
         # ⚠ A scroll area needs a height that is fixed. The rail has no fixed height.
+        # ⚠ The content box of a scroll area is as wide as its widest line. Fix
+        # its width, else a long line scrolls sideways and does not wrap.
         self.log_area = ui.scroll_area().classes(
-            "w-full h-[55vh] md:h-[calc(100vh-15rem)]").mark("log-area")
+            "w-full h-[55vh] md:h-[calc(100vh-15rem)]").props(
+            'content-style="width:100%" content-active-style="width:100%"').mark(
+            "log-area")
         with self.log_area:
             self.log_list = ui.column().classes("w-full gap-1").mark("log-list")
         with ui.column().classes("w-full gap-1 pt-1").style(
