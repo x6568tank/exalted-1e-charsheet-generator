@@ -1193,7 +1193,7 @@ survivor (`combatants` without its own ST check) is equivalent, because
 an accident.
 
 **Click-through, 2026-09-25 (server from `/tmp/exalted-click9b/`, seeded by a
-scratch script; no seed script is committed).** Full suite before it: 4177 passed +
+scratch script, since committed as `tools/seed_table_clickthrough.py`).** Full suite before it: 4177 passed +
 1 skipped, observed. All five UI checks passed (In hand and Init on YOU PLAY and on
 an expanded NPC row, the themed dialog with the disabled "no Base initiative" row,
 the rail switching to the Log, the roll reaching a player at the poll). Two rulings

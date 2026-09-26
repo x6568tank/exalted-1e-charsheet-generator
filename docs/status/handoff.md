@@ -24,9 +24,10 @@ Before the changes, the same machine: 4177 passed + 1 skipped, observed.
 
 **Deployed (2026-09-25):** `f6d8c56` is LIVE on `https://exalted.x6568tank.com`, rebuilt by `claude` with `exalted-rebuild`. Checked from outside: `/`, `/wiki`, `/login` 200, `/home` → login; the log says NiceGUI ready.
 
-🖱 **Owed:** nothing from P3. The click-through server ran from `/tmp/exalted-click9b/`
-(accounts `storyteller`, `alice`, `bob`, password `clickthrough`), seeded by a scratch
-script that is not committed.
+🖱 **Owed:** nothing from P3. For the next hosted click-through,
+`tools/seed_table_clickthrough.py --seed` makes three accounts (`storyteller`, `alice`,
+`bob`, password `clickthrough`), a campaign with two player copies, an enemy and an ally
+NPC and a three-entry roster; run it again without `--seed` to serve it on :8080.
 
 ❓ **Open for the human:** nothing.
 
