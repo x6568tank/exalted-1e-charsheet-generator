@@ -21,7 +21,7 @@ of the above. P3's close-out was 4192 + 1 skipped.
 
 **Working tree:** clean after the close-out commit; pushed to `origin/main`.
 
-**Deployed:** see the deploy line below, written after the rebuild.
+**Deployed (2026-09-25):** `6c8658d` is LIVE on `https://exalted.x6568tank.com`, rebuilt by `claude` with `exalted-rebuild`. Checked from outside: `/`, `/wiki`, `/login` 200; `/home` and the new `/table/…/board-token/…` route send a visitor to login; the log says NiceGUI ready.
 
 🖱 **Owed:** nothing.
 
