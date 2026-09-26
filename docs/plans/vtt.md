@@ -394,6 +394,9 @@ it.
 
 Only now, and only if still wanted. Nothing above depends on it.
 
+**Opened 2026-09-25. The design, the rulings and the build log are
+`docs/plans/p4-board.md`.**
+
 ---
 
 ## 3. The board, costed

@@ -67,7 +67,7 @@ include = ["exalted_builder*"]
 # (rules_db.py:790), so the loader reported nothing. tests/test_packaging.py now fails
 # when a data file is not covered; do not narrow this back to named directories.
 [tool.setuptools.package-data]
-exalted_builder = ["data/**/*.json", "ui/vendor/*.js"]
+exalted_builder = ["data/**/*.json", "ui/vendor/*.js", "server/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

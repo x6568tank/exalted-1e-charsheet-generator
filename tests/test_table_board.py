@@ -87,6 +87,8 @@ def png_bytes(size: tuple[int, int] = (64, 48), mode: str = "RGB") -> bytes:
 # name that is not on disk, thus a rename cannot empty the list.
 BOARD_MODULES = [
     "exalted_builder/server/table_board.py",
+    "exalted_builder/server/table_board_view.py",
+    "exalted_builder/server/board.js",
 ]
 
 # A name of the model of the table. None of them can be in a board module.
@@ -97,16 +99,19 @@ FORBIDDEN = re.compile(
 
 
 def _code_lines(path: Path) -> list[tuple[int, str]]:
-    """Return the lines of `path` that are code. Skip comments and the docstring of
-    the module, which cite decision 0020 and thus name what it forbids."""
+    """Return the lines of `path` that are code. Skip comments and the header of
+    the file, which cite decision 0020 and thus name what it forbids."""
     text = path.read_text(encoding="utf-8")
-    if text.startswith('"""'):
-        end = text.index('"""', 3) + 3
+    header, comment = ('"""', '"""'), "#"
+    if path.suffix == ".js":
+        header, comment = ("/*", "*/"), "//"
+    if text.startswith(header[0]):
+        end = text.index(header[1], len(header[0])) + len(header[1])
         skipped = text[:end].count("\n")
         text = "\n" * skipped + text[end:]
     lines = []
     for number, line in enumerate(text.splitlines(), 1):
-        code = line.split("#", 1)[0]
+        code = line.split(comment, 1)[0]
         if code.strip():
             lines.append((number, code))
     return lines
@@ -124,13 +129,19 @@ def test_no_board_module_names_the_model_of_the_table(module: str) -> None:
 
 
 def test_the_guard_finds_a_link_to_a_character(tmp_path: Path) -> None:
-    """Mutation check of the grep: a planted link is found."""
+    """Mutation check of the grep: a planted link is found, in each language."""
     planted = tmp_path / "planted.py"
     planted.write_text('"""Docstring: character."""\n'
                        "from ..engine import derive\n"
                        'FIELDS = {"character_id": str}  # a comment\n')
     hits = [line for _, line in _code_lines(planted) if FORBIDDEN.search(line)]
     assert len(hits) == 2
+    planted = tmp_path / "planted.js"
+    planted.write_text("/* header: character */\n"
+                       "var o = {label: sheet.character.name};  // a comment\n"
+                       "// motes\n")
+    hits = [line for _, line in _code_lines(planted) if FORBIDDEN.search(line)]
+    assert len(hits) == 1
 
 
 def test_the_fields_of_a_board_object_are_the_permitted_fields() -> None:
@@ -202,6 +213,14 @@ def test_an_object_moves_to_the_front_and_the_back(board: TableBoard, table) -> 
         board.put(PLAYER, table.id, token(name))
     assert [o["id"] for o in board.to_front(PLAYER, table.id, "a").objects] == list("bca")
     assert [o["id"] for o in board.to_back(PLAYER, table.id, "c").objects] == list("cba")
+
+
+def test_a_restack_that_moves_nothing_writes_nothing(board: TableBoard, table) -> None:
+    board.put(PLAYER, table.id, token("a"))
+    board.put(PLAYER, table.id, token("b"))
+    assert board.to_front(PLAYER, table.id, "b").version == 2
+    assert board.to_back(PLAYER, table.id, "a").version == 2
+    assert board.to_front(PLAYER, table.id, "gone").version == 2
 
 
 def test_a_spectator_watches(board: TableBoard, table) -> None:

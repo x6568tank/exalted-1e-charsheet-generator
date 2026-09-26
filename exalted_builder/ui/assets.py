@@ -3,7 +3,7 @@ ui/assets.py — bundled front-end assets.
 
 Vendors third-party JS locally so the app works offline and in a packaged build
 (no CDN dependency). The Cytoscape source is read from ui/vendor/ and inlined
-into the page head.
+into the page head. The Konva source is for the board of the hosted server.
 """
 
 from __future__ import annotations
@@ -19,3 +19,9 @@ def cytoscape_head_html() -> str:
     """A <script> tag with the vendored Cytoscape source inlined."""
     js = (_VENDOR / "cytoscape.min.js").read_text(encoding="utf-8")
     return f"<script>{js}</script>"
+
+
+@lru_cache(maxsize=1)
+def konva_source() -> str:
+    """Return the vendored Konva source (MIT, v10.7.0) for the board of a campaign."""
+    return (_VENDOR / "konva.min.js").read_text(encoding="utf-8")

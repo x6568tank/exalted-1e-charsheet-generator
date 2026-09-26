@@ -28,7 +28,7 @@ are never written.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import io
 import json
 import logging
@@ -162,11 +162,13 @@ def parse_object(data: object) -> dict:
 
 @dataclass(frozen=True)
 class Background:
-    """The background image. Its pixels are the units of the board."""
+    """The background image. Its pixels are the units of the board. `stamp` is the
+    version of the board that set it. The address of the image contains it."""
 
     width: int
     height: int
     mime: str
+    stamp: int = 0
 
 
 @dataclass(frozen=True)
@@ -236,7 +238,7 @@ class TableBoard:
                 objects=tuple(parse_object(item) for item in data["objects"]),
                 background=None if background is None else Background(
                     width=int(background["width"]), height=int(background["height"]),
-                    mime=str(background["mime"])))
+                    mime=str(background["mime"]), stamp=int(background.get("stamp", 0))))
         except (ValueError, KeyError, TypeError, AttributeError) as exc:
             log.warning("The board %s does not read: %s", path, exc)
             return _EMPTY
@@ -279,12 +281,14 @@ class TableBoard:
 
     def to_front(self, user_id: int, table_id: str, object_id: str, *,
                  spectating: bool = False) -> BoardState:
-        """Move the object `object_id` to the top layer. Return the board."""
+        """Move the object `object_id` to the top layer. Return the board. An
+        absent id, or an object on the top layer, changes nothing."""
         return self._restack(user_id, table_id, object_id, spectating, front=True)
 
     def to_back(self, user_id: int, table_id: str, object_id: str, *,
                 spectating: bool = False) -> BoardState:
-        """Move the object `object_id` to the bottom layer. Return the board."""
+        """Move the object `object_id` to the bottom layer. Return the board. An
+        absent id, or an object on the bottom layer, changes nothing."""
         return self._restack(user_id, table_id, object_id, spectating, front=False)
 
     def _restack(self, user_id: int, table_id: str, object_id: str, spectating: bool,
@@ -295,7 +299,10 @@ class TableBoard:
         if not moved:
             return state
         rest = [o for o in state.objects if o["id"] != object_id]
-        return self._write(table_id, state, rest + moved if front else moved + rest)
+        objects = rest + moved if front else moved + rest
+        if tuple(objects) == state.objects:
+            return state
+        return self._write(table_id, state, objects)
 
     # ---- the Storyteller ---------------------------------------------------- #
 
@@ -322,7 +329,8 @@ class TableBoard:
         payload, background = _encode_background(raw)
         state = self._read(table_id)
         atomic_write_bytes(self._background_path(table_id), payload)
-        return self._write(table_id, state, list(state.objects), background)
+        return self._write(table_id, state, list(state.objects),
+                           replace(background, stamp=state.version + 1))
 
     def remove_background(self, user_id: int, table_id: str) -> BoardState:
         """Remove the background. Return the board. Refuse a viewer who is not the
@@ -368,7 +376,7 @@ class TableBoard:
             "objects": list(new.objects),
             "background": None if background is None else {
                 "width": background.width, "height": background.height,
-                "mime": background.mime},
+                "mime": background.mime, "stamp": background.stamp},
         }, ensure_ascii=False))
         return new
 

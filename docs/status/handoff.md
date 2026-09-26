@@ -1,37 +1,57 @@
-# Session handoff — 2026-09-25 (P3 step 9 clicked: initiative, the P3 gate, is met)
+# Session handoff — 2026-09-25 (P4, the board: ruled and built, click-through owed)
 
 # 👉 YOU ARE HERE
 
-**P3 step 9 (initiative for the whole table) is DONE and BROWSER-VERIFIED, 2026-09-25.
-P3's gate is met.** The click-through added two rulings and one feature, all built,
-tested and clicked the same day. The record is `docs/plans/p3-tables.md` §14 "Step 9",
-its click-through paragraph.
+**P4 (the board) is RULED, BUILT and TESTED, 2026-09-25. It is NOT browser-verified by
+the human.** The design, the four rulings and the build log are `docs/plans/p4-board.md`
+(§5 rulings, §8 build log). Decision 0020 governs it unchanged.
 
-* **Enemy NPCs are named in the initiative turn order** (was "Enemy 1"). Initiative
-  only: Grant XP's Log line keeps the step-8 rule. `InitiativeLine.st_name` and
-  `Combatant.npc` are gone.
-* **The totals of allies and enemies showing is ruled fine**; the ratings are what
-  must stay hidden, and they do.
-* **Charm adjustments by hand:** the ST's roll dialog has a **bonus** box and a
-  **First** tick on each row, for that roll only. First entries go before the rest,
-  in the normal order between them. Charms are still not modelled (0008; the
-  2026-09-08 exclusion from the rating stands).
+* **Rulings (all four took the recommendation):** players and the ST change any object,
+  only the ST clears and sets the background, spectators watch; the ST uploads a map
+  (re-encoded, ≤2 MB, under the table's 10 MB quota); one board per campaign; no hidden
+  layer in v1.
+* **Built:** `server/table_board.py` (the store, `board.json`), `server/table_board_view.py`
+  (the hub, the session, the toolbar) and `server/board.js` over vendored Konva 10.7.0.
+  Changes are **pushed** to every open page of the table, not polled.
+  `GET /table/<id>/board-background` serves the map to members only.
+* **0020's guard is a grep test** over all three board files, plus a pinned field list
+  per object kind with `extra="forbid"`.
+* `persistence.atomic_write` now goes through the new `atomic_write_bytes`: every save
+  path. On Windows, saves are now `\n`, not `\r\n`.
 
-**Full suite: 4192 passed + 1 skipped — OBSERVED** at this close-out, after all of the above.
-Before the changes, the same machine: 4177 passed + 1 skipped, observed.
+**Tests — TARGETED, not the full suite (the human's call this session):** 500 passed
+(the save path, the quota, auto-save, hosted save, party, custom content, engine seam,
+the auth gate, the table stores and the board) and 116 passed (`test_table_board_view`
++ `test_table_view`, after the last edits). All OBSERVED. The full suite was started and
+stopped at ~8 %; it has not been run since P3's 4192 + 1 skipped.
 
-**Working tree:** clean after this session's commit, pushed to `origin/main`. Check `git status`.
+**I drove it myself** in two headless Firefoxes (Selenium, a scratch server): drawing,
+token drag, dialog labels, the eraser, the Delete key, Clear, Spectate and a map
+upload, with each change checked on the other screen. That is not the human's
+click-through. p4-board.md §8 lists what was not driven.
 
-**Deployed (2026-09-25):** `f6d8c56` is LIVE on `https://exalted.x6568tank.com`, rebuilt by `claude` with `exalted-rebuild`. Checked from outside: `/`, `/wiki`, `/login` 200, `/home` → login; the log says NiceGUI ready.
+🐞 **Turned up:** Enter in a text box can reach the server before the box's last value
+(fixed in the board dialog). ⚠ **The Log's text box has the same pattern** and was
+not changed; the next session should look at it.
 
-🖱 **Owed:** nothing from P3. For the next hosted click-through,
-`tools/seed_table_clickthrough.py --seed` makes three accounts (`storyteller`, `alice`,
-`bob`, password `clickthrough`), a campaign with two player copies, an enemy and an ally
-NPC and a three-entry roster; run it again without `--seed` to serve it on :8080.
+**Working tree:** clean after two local commits, `d3726ca` (step 1) and the steps 2–4 commit after it. **NOT pushed** to `origin/main`. Check `git status`.
 
-❓ **Open for the human:** nothing.
+**Deployed:** NOT deployed. The live site is still `f6d8c56`.
 
-**Next:** P4 (the board, `docs/plans/vtt.md`; decision 0020 governs it).
+🖱 **Owed:** P4 step 5, the click-through. The checklist is in `p4-board.md` §8 "Step 5".
+0020 is on the list: nothing on the board may read the party.
+
+❓ **Open for the human:** token images (0020 allows them; not built, each needs an
+upload). The toolbar wraps to two rows at 1400 px; does it want compacting? And fix
+the Log's Enter race, yes or no?
+
+**Next:** the click-through, then deploy.
+
+---
+
+## The session before — P3 step 9 clicked (2026-09-25)
+
+Step 9 browser-verified; P3's gate met. Full suite 4192 passed + 1 skipped, observed. `f6d8c56` deployed. Detail: `p3-tables.md` §14 "Step 9".
 
 ---
 

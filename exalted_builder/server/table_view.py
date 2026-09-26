@@ -8,7 +8,8 @@ section 15.2 (shape A of `spikes/campaign_page/`):
     viewer with a copy in the campaign, and the request badge of the Storyteller.
   * The left rail: PARTY. YOU PLAY is the copy that the viewer opens as, with live
     controls (R2). THE OTHERS are read-only for each viewer, the Storyteller too (R3).
-  * The centre: the frame of the board (P4) and nothing else (Q7).
+  * The centre: the board (P4, `docs/plans/p4-board.md`). `server/table_board_view.py`
+    draws it, and it pushes each change to each open page of the table.
   * The right rail: the tabs Log, Notes and ST. The ST tab is for the Storyteller.
     The Log is step 4 (section 15.3): messages and rolls, in `server/table_log.py`.
   * The ST tools are step 5: Grant XP and Unlock (`server/table_st.py`), remove
@@ -55,6 +56,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 import time
 
+from fastapi import HTTPException
+from fastapi.responses import FileResponse
 from nicegui import app, ui
 
 from ..engine import derive, dice, play as engineplay, validate
@@ -71,6 +74,8 @@ from .characters import CharacterRow, CharacterStore
 from .quota import QuotaExceeded
 from .rulesets import Rulesets
 from .session import SessionRegistry
+from .table_board import TableBoard
+from .table_board_view import BoardHub, BoardPanel
 from .table_custom import custom_url, register_table_custom
 from .table_homebrew import TableHomebrew, TableHomebrewError
 from .table_initiative import MAX_BONUS, PARTY, TableInitiative
@@ -125,7 +130,22 @@ def register_table_page(tables: TableStore, store: CharacterStore, rulesets: Rul
     roster = TableRoster(tables)
     notes = TableNotes(tables)
     initiative = TableInitiative(tables, store, rulesets, sessions, roster, log)
+    # ⚠ ONE hub for the process: it holds the open board of each page.
+    board = TableBoard(tables)
+    hub = BoardHub()
     register_table_custom(tables, store, rulesets, homebrew, current_user_id)
+
+    @app.get(TABLE_PATH + "/{table_id}/board-background")
+    def board_background(table_id: str) -> FileResponse:
+        """Serve the background image of the board to a member. ⚠ The login gate
+        covers this route; `background_file` checks the membership."""
+        user_id = current_user_id()
+        path = None if user_id is None else board.background_file(user_id, table_id)
+        state = None if path is None else board.state(user_id, table_id)
+        if path is None or state is None or state.background is None:
+            raise HTTPException(status_code=404)
+        return FileResponse(path, media_type=state.background.mime,
+                            headers={"Cache-Control": "private, max-age=86400"})
 
     @ui.page(TABLE_PATH + "/{table_id}")
     def table_page(table_id: str) -> None:
@@ -138,7 +158,7 @@ def register_table_page(tables: TableStore, store: CharacterStore, rulesets: Rul
             return
         _TableView(tables, store, rulesets, sessions, log, storyteller, homebrew,
                    user_id, table, roster=roster, notes=notes, initiative=initiative,
-                   catalog=catalog or {}).build()
+                   catalog=catalog or {}, board=board, hub=hub).build()
 
 
 # --------------------------------------------------------------------------- #
@@ -171,8 +191,12 @@ class _TableView:
                  sessions: SessionRegistry, log: TableLog,
                  storyteller: TableStoryteller, homebrew: TableHomebrew, user_id: int,
                  table: TableRow, *, roster: TableRoster, notes: TableNotes,
-                 initiative: TableInitiative, catalog: dict[str, Adversary]) -> None:
+                 initiative: TableInitiative, catalog: dict[str, Adversary],
+                 board: TableBoard, hub: BoardHub) -> None:
         self.tables = tables
+        self.board = board
+        self.hub = hub
+        self.board_panel: BoardPanel | None = None
         self.initiative = initiative
         self.roster = roster
         self.notes = notes
@@ -203,6 +227,11 @@ class _TableView:
 
     def copies(self) -> list[CharacterRow]:
         return self.tables.characters(self.table.id)
+
+    def spectating(self) -> bool:
+        """True if the viewer watches: a member who is not the Storyteller, with no
+        copy to open as. The board asks it at each change (p4-board.md Q1)."""
+        return not self.is_st and self.chosen(self.copies()) is None
 
     def mine(self, copies: list[CharacterRow]) -> list[CharacterRow]:
         return [row for row in copies if row.owner_id == self.user_id]
@@ -344,6 +373,8 @@ class _TableView:
         if self.gone:
             return
         self.gone = True
+        if self.board_panel is not None:
+            self.board_panel.close()
         self.top_right.clear()
         self.main.clear()
         with self.main:
@@ -364,6 +395,8 @@ class _TableView:
             return
         if self.log.version(self.table.id) != self._log_version:
             self._draw_log()
+        if self.board_panel is not None:
+            self.board_panel.sync_mode()
         copies = self.copies()
         if self.structure(copies) != self._structure:
             self.refresh_all()
@@ -420,6 +453,8 @@ class _TableView:
 
     def _open_as(self, value: str) -> None:
         app.storage.user[_open_as_key(self.table.id)] = value
+        if self.board_panel is not None:
+            self.board_panel.sync_mode()
         copies = self.copies()
         self._draw_rail(copies)
         self._draw_sides(copies)
@@ -817,18 +852,11 @@ class _TableView:
     # ---- the centre --------------------------------------------------------- #
 
     def _board(self) -> None:
-        """The frame of the board (P4). Q7: nothing else is in the centre before P4."""
-        with ui.column().classes("w-full flex-1 gap-0 rounded overflow-hidden").style(
-                f"border:1px solid {_BORDER};background:#fffdf7").mark("table-board"):
-            with ui.row().classes("w-full items-center px-2 py-1").style(
-                    f"border-bottom:1px solid {_BORDER};background:#faf3e2"):
-                ui.label("BOARD").classes("text-xs font-bold tracking-widest opacity-50")
-            with ui.element("div").classes(
-                    "relative w-full flex-1 flex items-center justify-center").style(
-                    "background-image:linear-gradient(#0000000d 1px,transparent 1px),"
-                    "linear-gradient(90deg,#0000000d 1px,transparent 1px);"
-                    "background-size:40px 40px"):
-                ui.label("The board comes next.").classes("text-sm italic opacity-50")
+        """The board (P4). `server/table_board_view.py` draws it."""
+        self.board_panel = BoardPanel(self.board, self.hub, self.table.id, self.user_id,
+                                      is_st=self.is_st, spectating=self.spectating,
+                                      pal=self.pal)
+        self.board_panel.build()
 
     # ---- the right rail ----------------------------------------------------- #
 
