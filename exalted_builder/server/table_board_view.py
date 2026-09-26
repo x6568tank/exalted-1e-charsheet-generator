@@ -63,7 +63,7 @@ TOOLS = (
     ("ellipse", "circle", "Ellipse"),
     ("text", "title", "Text"),
     ("token", "radio_button_checked", "Token"),
-    ("eraser", "ink_eraser", "Eraser"),
+    ("eraser", "cleaning_services", "Eraser"),
 )
 
 COLOURS = ("#1f2937", "#b91c1c", "#c2410c", "#a16207", "#15803d", "#1d4ed8",

@@ -162,6 +162,14 @@ pinch zoom on a phone (there is none: see below), a reconnect.
   The Log's text box had the same pattern and now sends the text with Enter too
   (human: *"Proooobably?"*, 2026-09-25); a test triggers Enter with the box empty on
   the server and checks the post, and it fails with the old code.
+* 🐞 **Found by the human in the first seconds of the click-through:** hovering the
+  first three colour swatches lit up the Eraser. `ink_eraser` is not in NiceGUI 3.13's
+  bundled Material Icons font, so the `<i>` printed the name as invisible text that
+  overflowed 80 px to the right and took the pointer. Now `cleaning_services`. A
+  browser sweep of every `i.material-icons` on the table page for
+  `scrollWidth > clientWidth` finds none now. ⚠ No test guards this: checking the font
+  needs fontTools + brotli. **Any icon name newer than the bundled font fails the same
+  silent way.**
 * 🐞 A restack that moved nothing bumped the version and broadcast. Fixed in the store.
 * `atomic_write` now writes bytes. On Windows a desktop save now has `\n` line
   endings, not `\r\n`. JSON does not care.
