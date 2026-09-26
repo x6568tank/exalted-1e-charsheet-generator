@@ -22,7 +22,7 @@ Before the changes, the same machine: 4177 passed + 1 skipped, observed.
 
 **Working tree:** clean after this session's commit, pushed to `origin/main`. Check `git status`.
 
-**Deployed:** still `555688e` (step 8). Step 9 is not deployed.
+**Deployed (2026-09-25):** `f6d8c56` is LIVE on `https://exalted.x6568tank.com`, rebuilt by `claude` with `exalted-rebuild`. Checked from outside: `/`, `/wiki`, `/login` 200, `/home` → login; the log says NiceGUI ready.
 
 🖱 **Owed:** nothing from P3. The click-through server ran from `/tmp/exalted-click9b/`
 (accounts `storyteller`, `alice`, `bob`, password `clickthrough`), seeded by a scratch
@@ -30,8 +30,7 @@ script that is not committed.
 
 ❓ **Open for the human:** nothing.
 
-**Next:** deploy step 9 (the human confirms; `docs/deploy/homeserver.md`). Then P4 (the
-board, `docs/plans/vtt.md`; decision 0020 governs it).
+**Next:** P4 (the board, `docs/plans/vtt.md`; decision 0020 governs it).
 
 ---
 
