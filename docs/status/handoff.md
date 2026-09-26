@@ -1,51 +1,44 @@
-# Session handoff — 2026-09-25 (P4, the board: ruled and built, click-through owed)
+# Session handoff — 2026-09-25 (P4, the board: DONE and browser-verified)
 
 # 👉 YOU ARE HERE
 
-**P4 (the board) is RULED, BUILT and TESTED, 2026-09-25. It is NOT browser-verified by
-the human.** The design, the four rulings and the build log are `docs/plans/p4-board.md`
-(§5 rulings, §8 build log). Decision 0020 governs it unchanged.
+**P4 (the board) is DONE and BROWSER-VERIFIED by the human, 2026-09-25** (*"Looks
+perfect! No more issues on my end, I think."*). The record is `docs/plans/p4-board.md`:
+§5 the rulings, §8 the build log, the click-through additions and the defects found.
 
-* **Rulings (all four took the recommendation):** players and the ST change any object,
-  only the ST clears and sets the background, spectators watch; the ST uploads a map
-  (re-encoded, ≤2 MB, under the table's 10 MB quota); one board per campaign; no hidden
-  layer in v1.
-* **Built:** `server/table_board.py` (the store, `board.json`), `server/table_board_view.py`
-  (the hub, the session, the toolbar) and `server/board.js` over vendored Konva 10.7.0.
-  Changes are **pushed** to every open page of the table, not polled.
-  `GET /table/<id>/board-background` serves the map to members only.
-* **0020's guard is a grep test** over all three board files, plus a pinned field list
-  per object kind with `extra="forbid"`.
-* `persistence.atomic_write` now goes through the new `atomic_write_bytes`: every save
-  path. On Windows, saves are now `\n`, not `\r\n`.
+* Store `server/table_board.py`; canvas `server/board.js` over vendored Konva 10.7.0;
+  hub and toolbar `server/table_board_view.py`. Changes are **pushed** to every open
+  page of a table. `GET /table/<id>/board-background` serves the map to members.
+* Added at the click-through: colour → Pen; multiselect (Shift-click, box, group move /
+  delete / restack as one version); **right-drag pans, left-drag on the empty board is
+  the selection box**.
+* 0020 is held by a grep test over the three board files and a pinned field list.
+* **Campaign folders are 50 MB** (accounts stay 10 MB). The Log's text box now sends its
+  text with Enter.
+* 🐞 Worth knowing next time: an icon name missing from NiceGUI's bundled font draws
+  as invisible overflowing text that steals hover (`ink_eraser`). No test catches it.
 
-**Tests — TARGETED, not the full suite (the human's call this session):** 500 passed
-(the save path, the quota, auto-save, hosted save, party, custom content, engine seam,
-the auth gate, the table stores and the board) and 116 passed (`test_table_board_view`
-+ `test_table_view`, after the last edits). All OBSERVED. The full suite was started and
-stopped at ~8 %; it has not been run since P3's 4192 + 1 skipped.
+**Tests — TARGETED, OBSERVED:** the board files 84 passed after the last change; the
+save path, quota, auth gate and table stores 500 passed; the table view 116 passed.
+⚠ **The full suite has not been run since P3** (4192 + 1 skipped). `atomic_write`
+changed under every save. Run it before the next deploy.
 
-**I drove it myself** in two headless Firefoxes (Selenium, a scratch server): drawing,
-token drag, dialog labels, the eraser, the Delete key, Clear, Spectate and a map
-upload, with each change checked on the other screen. That is not the human's
-click-through. p4-board.md §8 lists what was not driven.
+**Working tree:** clean. Local commits `d3726ca` through the close-out commit after
+`046dee2`. **NOT pushed, NOT deployed**; the live site is still `f6d8c56`.
 
-🐞 **Turned up:** Enter in a text box can reach the server before the box's last value.
-Fixed in the board dialog **and** the Log's text box (the key event carries the text).
+🖱 **Owed:** nothing from P4.
 
-**Campaign quota is now 50 MB** (human, 2026-09-25); an account keeps 10 MB.
+❓ **Open for the human:** token images: the 50 MB raise reads as a yes, and they are
+not built. The toolbar wraps to two rows at 1400 px.
 
-**Working tree:** clean after three local commits: `d3726ca` (step 1), `c62cd56` (steps 2–4), and the quota + Log commit after them. **NOT pushed** to `origin/main`. Check `git status`.
+**Next:** the full suite, then push and deploy (the human's go), then token images if
+confirmed.
 
-**Deployed:** NOT deployed. The live site is still `f6d8c56`.
+---
 
-🖱 **Owed:** P4 step 5, the click-through. A server with fresh seed data was started on :8080 (`/tmp/exalted-click`) for it. The checklist is in `p4-board.md` §8 "Step 5".
-0020 is on the list: nothing on the board may read the party.
+## The session before — P4 built (2026-09-25)
 
-❓ **Open for the human:** token images: the 50 MB raise reads as a yes, to be confirmed
-after the first look. Does the toolbar, which wraps to two rows at 1400 px, want compacting?
-
-**Next:** the click-through, then deploy.
+Steps 1–4 built and driven in a browser by me; the human's click-through followed the same day (above).
 
 ---
 

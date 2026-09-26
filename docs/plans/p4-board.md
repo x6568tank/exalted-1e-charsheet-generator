@@ -1,6 +1,6 @@
 # P4 — The board: design
 
-**Status: design ruled 2026-09-25 (§5). Steps 1–4 BUILT 2026-09-25 (§8); step 5, the human's click-through, is owed.** The human opened P4 on 2026-09-25
+**Status: DONE and BROWSER-VERIFIED 2026-09-25.** Design ruled (§5), steps 1–4 built, and the human's click-through (step 5) passed with four additions made during it (§8). The human opened P4 on 2026-09-25
 (*"Phase four is up!"*).
 
 **Read first:** decision `0020` (the board is dumb — it is the authority on scope),
@@ -206,7 +206,11 @@ same day:
     moved — Konva sends no click then — and ate the next real click (now reset on every
     press). Neither is visible to the Python suite.
 
-### Step 5 — the click-through (owed)
+### Step 5 — the click-through: PASSED 2026-09-25
+
+The human: *"Looks perfect! No more issues on my end, I think."* During it: the
+eraser-icon hover bug, colour→Pen, multiselect, and the right-drag pan (all above).
+The checklist it ran against:
 
 Seed: `tools/seed_table_clickthrough.py --seed`, then run it; two browsers (alice, the
 storyteller). Check: draw with each tool; drag and resize a token and see it move on
