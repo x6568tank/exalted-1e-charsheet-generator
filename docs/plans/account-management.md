@@ -110,3 +110,24 @@ delete an account that runs a campaign (the other player keeps a solo copy). The
 build-line icon, the look of `/account` (1400 and phone width), a password change and
 "Log out other devices" ending a second real browser's login, the delete landing on the
 front page, and `users reset` in a real terminal. All six: "Works."
+
+## 2026-09-26, second round — the top bar and the rename (✅ clicked the same day)
+
+Asked after the first click-through: *"we currently have menu surfaces duplicated in the
+top right of the header bar & the left hamburger bar. A way to change username?"*
+
+* **Top bar — ruled: only the account controls.** The public pages' top right is
+  "<name> · Log out" (a visitor: Log in, Sign up); Wiki, About and Your characters live in
+  ☰ only. Keeps the 2026-09-24 ruling that the name shows in the top bar.
+  `test_site_menu.py::test_the_top_bar_holds_only_the_account_controls`.
+  Not touched: the **Home** button on the character, base and campaign pages (a builder
+  top-bar ruling of vtt.md 9.9) — it duplicates ☰ → Your characters; not asked yet.
+* **Rename — ruled: on `/account`**, with the current password. `db.rename_user`; the old
+  name is free. ⚠ `auth.current_username` now reads the DATABASE: the login stores the
+  name, and a rename on another device changes only the database (mutation-checked:
+  `test_another_device_shows_the_new_name` goes red with the stored name). A rename does
+  not end logins.
+
+Clicked by the human: the top bar logged out / in / phone width; a rename with a wrong
+password, a bad name and a good one; a second window picking up the new name; the old
+name free for a new signup. All "works".

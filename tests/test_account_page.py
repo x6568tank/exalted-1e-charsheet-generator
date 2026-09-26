@@ -213,3 +213,35 @@ async def test_signup_records_an_email(user: User) -> None:
 async def test_the_page_says_when_there_is_no_email(user: User) -> None:
     await _account(user)
     await user.should_see("cannot prove")
+
+
+# ---- rename -------------------------------------------------------------------------- #
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_page_renames_the_account(user: User) -> None:
+    user_id = await _account(user)
+
+    user.find(marker="account-username").type("Radiant")
+    user.find(marker="account-username-password").type(state.PASSWORD)
+    user.find(marker="account-username-save").click()
+    await user.should_see("You log in as Radiant now.")
+
+    assert db.username_for(state.DB, user_id) == "Radiant"
+    response = await user.http_client.get("/")
+    assert "Logged in as Radiant" in response.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_another_device_shows_the_new_name(user: User) -> None:
+    """⚠ The browser stores the username at the login. A rename on another device
+    changes the database only. The pages must read the name from the database."""
+    user_id = await _account(user)
+
+    db.rename_user(state.DB, user_id, state.PASSWORD, "Radiant")
+
+    response = await user.http_client.get("/")
+    assert "Logged in as Radiant" in response.text
+    assert "Harmonious" not in response.text

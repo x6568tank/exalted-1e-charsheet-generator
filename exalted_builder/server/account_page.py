@@ -9,6 +9,7 @@ to the login page first.
 from __future__ import annotations
 
 from pathlib import Path
+from urllib.parse import quote
 
 from nicegui import run, ui
 
@@ -43,13 +44,13 @@ def register_account_page(db_path: Path, characters: CharacterStore, tables: Tab
     """
 
     @ui.page(nav.ACCOUNT_PATH, title="Account — Exalted 1e")
-    def account_page():
+    def account_page(renamed: str = ""):
         user_id = auth.current_user_id()
         if user_id is None:
             return None
         username = auth.current_username() or ""
-        email_card, password_card, logins_card, delete_card = auth.form_frame(
-            "account", username, cards=4)
+        email_card, name_card, password_card, logins_card, delete_card = auth.form_frame(
+            "account", username, cards=5)
 
         with email_card:
             auth.form_heading("Account", f"Logged in as {username}.")
@@ -77,6 +78,31 @@ def register_account_page(db_path: Path, characters: CharacterStore, tables: Tab
 
             ui.button("Save email", icon="save", on_click=save_email).props(
                 "unelevated").classes("w-full q-mt-md").mark("account-email-save")
+
+        with name_card:
+            ui.html("<h1>Username</h1>", sanitize=False)
+            new_name = ui.input("New username").classes("w-full").mark("account-username")
+            new_name.props["hint"] = (f"{db.USERNAME_RULE} Case-sensitive. Your old "
+                                      "name becomes free for others.")
+            name_password = _password("Current password", "account-username-password")
+            name_message = _message()
+            if renamed and renamed == username:
+                _say(name_message, f"Changed. You log in as {username} now.", error=False)
+
+            async def rename() -> None:
+                try:
+                    name = await run.io_bound(db.rename_user, db_path, user_id,
+                                              name_password.value or "",
+                                              new_name.value or "")
+                except db.AccountError as exc:
+                    _say(name_message, str(exc), error=True)
+                    return
+                auth.log_in(user_id, name)
+                # Draw the page again: the header bar and the menu show the name.
+                ui.navigate.to(f"{nav.ACCOUNT_PATH}?renamed={quote(name)}")
+
+            ui.button("Change username", icon="badge", on_click=rename).props(
+                "unelevated").classes("w-full q-mt-md").mark("account-username-save")
 
         with password_card:
             ui.html("<h1>Password</h1>", sanitize=False)

@@ -107,8 +107,16 @@ def current_user_id() -> int | None:
 
 
 def current_username() -> str | None:
-    """Return the username of the account of the current request, or None."""
-    return app.storage.user.get(USERNAME) if current_user_id() is not None else None
+    """Return the username of the account of the current request, or None.
+
+    ⚠ Read the database, not the name that the login stored. A rename on another
+    device changes the database only.
+    """
+    user_id = current_user_id()
+    if user_id is None:
+        return None
+    path = _db_path()
+    return app.storage.user.get(USERNAME) if path is None else db.username_for(path, user_id)
 
 
 def log_in(user_id: int, username: str) -> None:

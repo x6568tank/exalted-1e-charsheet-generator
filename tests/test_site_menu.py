@@ -116,6 +116,20 @@ def test_the_html_bar_names_the_login_in_the_menu_and_the_log_out_button(campaig
     assert "gil" in nav.logout_label("gil") and "Log out" in nav.logout_label("gil")
 
 
+def _quick_links(html: str) -> list[str]:
+    import re
+
+    quick = html[html.index('<nav class="quick"'):]
+    return re.findall(r'<a href="([^"]*)"', quick)
+
+
+def test_the_top_bar_holds_only_the_account_controls(campaigns) -> None:
+    """The human, 2026-09-26: the menu holds the places; the top bar holds only the
+    login name and Log out (a visitor: Log in and Sign up). Nothing twice."""
+    assert _quick_links(site.header_bar("wiki", "gil")) == ["/logout"]
+    assert _quick_links(site.header_bar("wiki", None)) == ["/login", "/signup"]
+
+
 def test_the_html_bar_escapes_the_username(campaigns) -> None:
     html = site.header_bar("", "<b>gil</b>")
     assert "<b>gil</b>" not in html

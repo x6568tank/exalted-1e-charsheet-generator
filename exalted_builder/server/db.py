@@ -348,6 +348,26 @@ def password_matches(path: Path, user_id: int, password: str) -> bool:
     return username is not None and authenticate(path, username, password) == user_id
 
 
+def rename_user(path: Path, user_id: int, password: str, new_name: str) -> str:
+    """Give account `user_id` the username `new_name`. Return the name as stored.
+
+    The old name becomes free. Raise `AccountError` if `password` is not the password
+    of the account, if the name fails the pattern, or if another account has it.
+    """
+    new_name = normalise_username(new_name)
+    if not USERNAME_PATTERN.fullmatch(new_name):
+        raise AccountError(f"A username has {USERNAME_RULE}")
+    if not password_matches(path, user_id, password):
+        raise AccountError("The current password is wrong.")
+    try:
+        with closing(connect(path)) as connection, connection:
+            connection.execute(
+                "UPDATE users SET username = ? WHERE id = ?", (new_name, user_id))
+    except sqlite3.IntegrityError as exc:
+        raise AccountError("That username is taken.") from exc
+    return new_name
+
+
 def change_password(path: Path, user_id: int, current: str, new: str) -> None:
     """Replace the password of account `user_id`, and raise its login epoch.
 

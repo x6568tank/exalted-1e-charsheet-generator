@@ -269,16 +269,12 @@ def _button(link: str, glyph: str, label: str, on: bool = False) -> str:
 
 
 def _nav(current: str, username: Optional[str]) -> str:
-    """Return the buttons of the header bar. `current` is the section of the page."""
-    parts = [_button("/wiki", "menu_book", "Wiki", current == "wiki"),
-             _button("/about", "info", "About", current == "about")]
+    """Return the buttons of the header bar: the account controls only. The site
+    menu holds the places. `current` is the section of the page."""
     if username:
-        parts.append(_button("/home", "edit", "Your characters"))
-        parts.append(_button("/logout", "account_circle", nav.logout_label(username)))
-    else:
-        parts.append(_button("/login", "login", "Log in", current == "login"))
-        parts.append(_button("/signup", "person_add", "Sign up", current == "signup"))
-    return "".join(parts)
+        return _button("/logout", "account_circle", nav.logout_label(username))
+    return (_button("/login", "login", "Log in", current == "login")
+            + _button("/signup", "person_add", "Sign up", current == "signup"))
 
 
 def style_sheet(splat: str = "") -> str:

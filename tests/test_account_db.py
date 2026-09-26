@@ -203,3 +203,51 @@ def test_the_new_tables_reach_an_existing_database(tmp_path: Path) -> None:
         names = {row[0] for row in connection.execute(
             "SELECT name FROM sqlite_master WHERE type = 'table'")}
     assert {"user_emails", "login_epochs"} <= names
+
+
+# ---- rename ---------------------------------------------------------------------- #
+
+
+def test_a_rename_moves_the_login_to_the_new_name(store: Path) -> None:
+    user_id = db.create_user(store, "Harmonious", PASSWORD)
+
+    assert db.rename_user(store, user_id, PASSWORD, " Radiant ") == "Radiant"
+
+    assert db.username_for(store, user_id) == "Radiant"
+    assert db.authenticate(store, "Radiant", PASSWORD) == user_id
+    assert db.authenticate(store, "Harmonious", PASSWORD) is None
+
+
+def test_a_rename_frees_the_old_name(store: Path) -> None:
+    user_id = db.create_user(store, "Harmonious", PASSWORD)
+    db.rename_user(store, user_id, PASSWORD, "Radiant")
+    assert db.create_user(store, "Harmonious", PASSWORD) != user_id
+
+
+def test_a_taken_name_is_refused(store: Path) -> None:
+    user_id = db.create_user(store, "Harmonious", PASSWORD)
+    db.create_user(store, "Radiant", PASSWORD)
+    with pytest.raises(db.AccountError, match="taken"):
+        db.rename_user(store, user_id, PASSWORD, "Radiant")
+    assert db.username_for(store, user_id) == "Harmonious"
+
+
+def test_a_malformed_name_is_refused(store: Path) -> None:
+    user_id = db.create_user(store, "Harmonious", PASSWORD)
+    with pytest.raises(db.AccountError):
+        db.rename_user(store, user_id, PASSWORD, "deleted:1")
+    assert db.username_for(store, user_id) == "Harmonious"
+
+
+def test_a_rename_needs_the_password(store: Path) -> None:
+    user_id = db.create_user(store, "Harmonious", PASSWORD)
+    with pytest.raises(db.AccountError, match="password"):
+        db.rename_user(store, user_id, "wrong horse", "Radiant")
+    assert db.username_for(store, user_id) == "Harmonious"
+
+
+def test_a_change_of_case_is_a_rename(store: Path) -> None:
+    """Usernames are case-sensitive (the human, 2026-09-11)."""
+    user_id = db.create_user(store, "harmonious", PASSWORD)
+    db.rename_user(store, user_id, PASSWORD, "Harmonious")
+    assert db.username_for(store, user_id) == "Harmonious"
