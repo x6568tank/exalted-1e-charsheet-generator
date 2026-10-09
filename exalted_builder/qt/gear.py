@@ -18,7 +18,7 @@ and its BUDGET is on a different surface, the user can enter the same object two
 pay for it two times (`docs/status/rated-artifacts.md`).
 
 Zero game logic. Every mutation goes through `engine.gear_actions`, every derived list
-and every line of text through `ui/view.py`.
+and every line of text through `ui/view/`.
 """
 
 from __future__ import annotations

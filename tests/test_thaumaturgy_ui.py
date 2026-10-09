@@ -2,7 +2,7 @@
 thaumaturgy page.
 
 The engine is covered by tests/test_thaumaturgy_engine.py; what is tested here is
-the presenter (ui/view.py) and the render, which is where a NiceGUI `ui.select`
+the presenter (ui/view/) and the render, which is where a NiceGUI `ui.select`
 with an out-of-range value blows up at render time rather than in a unit test.
 """
 

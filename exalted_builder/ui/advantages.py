@@ -858,7 +858,7 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
             ui.label("Restricted to: " + ", ".join(definition.exalt_types)
                      ).classes("text-xs italic opacity-70 pl-1")
         # What the entry requires, so a player sees the gate BEFORE the issues panel
-        # tells them they failed it. Built in view.py so the two shells cannot say
+        # tells them they failed it. Built in ui/view/ so the two shells cannot say
         # different things — they already had, by both omitting `prerequisites`.
         wants = viewmod.merit_requirement_line(
             ruleset, definition,

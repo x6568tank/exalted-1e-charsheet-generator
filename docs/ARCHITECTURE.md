@@ -26,7 +26,7 @@ ever decided outside `engine/`.
                        pure functions of (RuleSet, Character)
                                    │
                                    ▼
-                              ui/view.py                        ← presenter: view models, no toolkit
+                              ui/view/                          ← presenter: view models, no toolkit
                                    │
                                    ▼
                         ui/*  (NiceGUI: builder, picker, sheet, …)
@@ -147,9 +147,10 @@ and doing it per-call-site would guarantee one gets missed.
 
 Contains **zero game logic**. Two layers:
 
-* `view.py` — the presenter. Turns `(RuleSet, Character)` into display-ready view
+* `view/` — the presenter. Turns `(RuleSet, Character)` into display-ready view
   models (`SheetView`, `CharmDetail`, `CharmGraph`, …). Imports no UI toolkit, so it is
-  unit-testable on its own; this is where most UI tests actually aim.
+  unit-testable on its own; this is where most UI tests actually aim. Read by `ui/`,
+  `qt/` and `server/` alike. **A package of 21 domain modules** — see below.
 * everything else — NiceGUI renderers, one per screen: `builder.py` (the shell and tab
   bar), `editor.py` (chargen), `picker.py` (the Cytoscape Charm tree), `combos.py`,
   `xp.py`, `play.py`, `storyteller.py` (ST options), `custom.py` (homebrew authoring),
@@ -159,8 +160,38 @@ Contains **zero game logic**. Two layers:
 If a renderer needs to know a rule, the answer is to add a function to the engine or
 the presenter, not an `if` to the render.
 
+#### `ui/view/` — a package, split 2026-10-09
+
+It was one 5,143-line file. It is now 21 modules, largest `sheet.py` (~780 lines), split
+the `engine/validate/` way. The imports form a DAG; a module may import only the ones
+above it:
+
+    _base            the shared row types and formatters (_cost_str, source_label, …)
+    dice_pools       the base dice pools
+    inventory        gear stat lines, the inventory, the Buy shop
+    charm_trees      Charm/spell detail cards, the Charm tree graph
+    spell_picker · xp_log
+    sheet            SheetView and build_sheet_view
+    packages · augments · play_state
+    adversary_rows · roller · batch_roll · custom_forms
+    combo_rows · tabs · origins · thaumaturgy · house_rules · trait_info · advantages_text
+                     (these import no sibling)
+
+* **`view.X` is the ONE public path in**, through `ui/view/__init__.py`, exactly as for
+  `validate.X`. No call site changed. A name that moves gains a re-export line.
+* ⚠ **A monkeypatch on the facade does not reach a domain module.** Patch the module
+  that READS the name (`view.play_state.build_play_view` for the party card).
+* ⚠ **No domain module shares a basename with a `ui/` module** — `ui/play.py` and a
+  `ui/view/play.py` would make `from .. import play` and `from . import play` two
+  different modules. Hence `play_state`, `combo_rows`, `custom_forms`, `adversary_rows`.
+
+`tests/test_view_facade.py` guards it: every `view.X` read anywhere must resolve, every
+public name must be on the facade, no function reads an unbound name, every relative
+import resolves (a function-local `from ..engine import dice` broke in the split and
+nothing else saw it statically), and the basename rule.
+
 `ui/wiki_view.py` is a second presenter, for the public wiki: `(RuleSet, filters)` →
-list and entry view models, **no `Character`**. It formats through `view.py`'s helpers
+list and entry view models, **no `Character`**. It formats through `view`'s helpers
 (`charm_requirements`, `source_label`, `_cost_str`, …) rather than its own copies. Its
 renderer is `server/wiki.py`, which writes plain HTML, not NiceGUI.
 

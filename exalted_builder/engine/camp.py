@@ -11,7 +11,7 @@ render.
 ⚠ **This is a VIEW, not a mutator.** `engine/camp_actions.py` holds the writes; the
 two are split so a shell can re-derive the panel without risking a change to it.
 
-⚠ **It lived in `ui/view.py` until 2026-08-22** and is re-exported from there, so
+⚠ **It lived in `ui/view/` until 2026-08-22** and is re-exported from there, so
 `viewmod.build_camp_view` and `viewmod.CampView` still resolve. It moved because
 `engine/camp_actions.py` needs it and the engine may not import from `ui/`.
 """

@@ -8,7 +8,7 @@ to the slug.
 
 These live in the engine rather than a presenter because both the camp view
 (engine/camp.py) and the two shells' presenters need them, and the engine may not
-import from `ui/`. `ui/view.py` re-exports both, so `viewmod._label` /
+import from `ui/`. `ui/view/` re-exports both, so `viewmod._label` /
 `viewmod._style_label` remain the names every existing caller uses.
 
 ⚠ **There is exactly ONE style-label generator, and a test enforces it.** A second

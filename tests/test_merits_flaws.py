@@ -3568,7 +3568,7 @@ def test_an_unresolvable_prerequisite_id_still_states_something(rs):
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_webapp_states_a_prerequisite_entry_too(user) -> None:
     """The other shell. Both omitted `prerequisites`, so both get a test — the line is
-    built once in view.py now, and this is what stops one of them drifting off it."""
+    built once in ui/view/ now, and this is what stops one of them drifting off it."""
     await user.open('/merits')
     await user.should_see("Requires: Essence Awareness")
 

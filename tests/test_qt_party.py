@@ -136,15 +136,17 @@ def test_a_merged_pool_gets_ONE_mote_input(ruleset, make_window, monkeypatch):
     """⚠ "All of which is considered Peripheral" (p.41). A Personal box would sit at a
     permanent 0/0 and read as broken — `PlayView.single_pool` exists for exactly this,
     and the card must honour it the way the Play tab does."""
-    from exalted_builder.ui import view as viewmod
-    real = viewmod.build_play_view
+    # ⚠ The card reads `build_play_view` inside `view.play_state`, not through the
+    # facade. A patch on `viewmod` alone does not reach it.
+    from exalted_builder.ui.view import play_state
+    real = play_state.build_play_view
 
     def merged(rs, character):
         play = real(rs, character)
         play.single_pool = True
         return play
 
-    monkeypatch.setattr(viewmod, "build_play_view", merged)
+    monkeypatch.setattr(play_state, "build_play_view", merged)
     window, _ctx, _calls = make_window(_party(_solar()))
     window.party_page.reload()
     assert not [w for w in window.party_page.findChildren(QSpinBox)

@@ -17,7 +17,7 @@ tab's readout (it is about what you own), and the Artifact Background row on Adv
 carries a one-line note saying what it buys. Two surfaces stating one rule is
 deliberate — one surface owning it silently is what produced the double-charge above.
 
-Presentation only. Every derived list comes from `ui/view.py` and every rule from
+Presentation only. Every derived list comes from `ui/view/` and every rule from
 `engine/` — see the `ui → engine → models` rule in docs/ARCHITECTURE.md.
 """
 

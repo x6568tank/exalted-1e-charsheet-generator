@@ -3,7 +3,7 @@ ui/wiki_view.py — the presenter of the public wiki.
 
 Input: a `RuleSet` and the filters of one wiki request. Output: display-ready view
 models for the entry tables and the entry pages. Mechanism: each function reads the
-catalogues of the ruleset and formats them with the formatters of `ui/view.py`.
+catalogues of the ruleset and formats them with the formatters of `ui/view/`.
 
 It imports no UI toolkit and makes no HTML. `server/wiki.py` renders the result.
 

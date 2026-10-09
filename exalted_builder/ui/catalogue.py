@@ -34,7 +34,7 @@ from . import view as viewmod
 # character; the dialog is pre-pick and character-independent).
 # --------------------------------------------------------------------------- #
 
-# ⚠ These three moved to `view.py` on 2026-08-21 and are RE-EXPORTED here, because the
+# ⚠ These three moved to `ui/view/` on 2026-08-21 and are RE-EXPORTED here, because the
 # Qt shell needs them and must not import this module — `ui/catalogue.py` imports
 # nicegui, and "nothing outside ui/ imports nicegui" is the invariant the whole port
 # rests on. Callers and tests keep working; the definitions live in one place.

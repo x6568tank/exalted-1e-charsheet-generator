@@ -23,7 +23,7 @@ the other pages.
 and this collection has no actions. The books fix the rules. Thus you cannot add, buy or
 delete a rule. This absence is intended.
 
-This module has no game logic. `ui/view.py` supplies every row, every note and every
+This module has no game logic. `ui/view/` supplies every row, every note and every
 label. The one mutation goes through `engine.house_rule_actions`.
 """
 

@@ -976,7 +976,7 @@ class AdvantagesPage(QWidget):
             lay.addWidget(self._muted("Restricted to: " + ", ".join(definition.exalt_types),
                                       italic=True))
         # The requirements of the entry. Thus the user reads them BEFORE the issues panel
-        # reports a failure. ⚠ `view.py` builds this text. Thus the two shells state the
+        # reports a failure. ⚠ `ui/view/` builds this text. Thus the two shells state the
         # same requirements. Both shells omitted `prerequisites` when each built its own.
         wants = viewmod.merit_requirement_line(
             self._ruleset, definition,

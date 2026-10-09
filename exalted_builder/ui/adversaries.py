@@ -60,7 +60,7 @@ _VIRTUES = ["compassion", "conviction", "temperance", "valor"]
 # `_copy_name` and the `parse_traits`/`trait_line` + `parse_attacks`/`attack_line`
 # codec pairs belong to `engine/adversaries.py` (beside `expand_health`/
 # `format_health`); `summary_line` and `trait_map_line` are presenters and belong to
-# `view.py`.
+# `ui/view/`.
 #
 # ⚠ Re-exported, not re-implemented: these names are the call shape used below and by
 # `tests/test_adversaries_ui.py`.

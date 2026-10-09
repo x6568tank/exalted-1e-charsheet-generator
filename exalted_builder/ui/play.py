@@ -69,7 +69,7 @@ set_motes = engineplay.set_motes
 set_fatigue = engineplay.set_fatigue
 set_count = engineplay.set_count
 _MARK_CYCLE = engineplay.MARK_CYCLE
-# ⚠ Also re-exported: `worst_penalty` moved to `view.py` (it only ever read a PlayView)
+# ⚠ Also re-exported: `worst_penalty` moved to `ui/view/` (it only ever read a PlayView)
 # and `ui/gm.py` reaches it through this module by name.
 worst_penalty = viewmod.worst_penalty
 

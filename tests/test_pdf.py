@@ -292,7 +292,7 @@ def test_awkward_splat_shapes_keep_their_traits(ruleset, exalt_type):
 @pytest.mark.parametrize("path", _EXAMPLES, ids=lambda p: p.stem)
 def test_no_unprintable_glyph_reaches_the_page(ruleset, path):
     """reportlab's base-14 fonts encode as WinAnsi (cp1252). Any glyph outside it
-    prints as a blank or a black box, and ui/view.py bakes several into DISPLAY
+    prints as a blank or a black box, and ui/view/ bakes several into DISPLAY
     STRINGS that look like ordinary text — '★' for a Charm-granted health level,
     '★'/'✚' on a Dragon-King Path, '●'/'✦' in labels. Those arrive through data,
     not through this module's own source, so reading ui/pdf.py cannot catch them.

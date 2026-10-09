@@ -221,7 +221,7 @@ def test_sidereal_college_xp_advancement(rs):
 
 
 # --------------------------------------------------------------------------- #
-# College presentation (pure presenter — see ui/view.py)
+# College presentation (pure presenter — see ui/view/)
 # --------------------------------------------------------------------------- #
 
 def test_college_rows_mark_own_house_and_sort_it_first(rs):

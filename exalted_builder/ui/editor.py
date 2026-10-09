@@ -34,7 +34,7 @@ from . import catalogue as cataloguemod
 from . import theme
 from . import view as viewmod
 from .saving import SaveFn, save_to_path
-# The intra-splat origin / upbringing tables and their lookups moved to view.py
+# The intra-splat origin / upbringing tables and their lookups moved to ui/view/
 # (toolkit-free) for the Qt port; re-exported here so `editor._SPLAT_ORIGINS` and
 # `editor.upbringing_options` callers (tests included) keep working.
 from .view import (_ORIGIN_UPBRINGINGS, _SPLAT_ORIGINS, _heritage_uses_origin,

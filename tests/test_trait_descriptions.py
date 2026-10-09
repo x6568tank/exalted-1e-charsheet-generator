@@ -2,7 +2,7 @@
 
 Covers the data's coverage of the three closed vocabularies, the loader's coverage
 check (which is the only thing standing between a short file and a silently empty
-panel), and the `ui/view.py` presenter both shells render.
+panel), and the `ui/view/` presenter both shells render.
 """
 
 from pathlib import Path

@@ -27,7 +27,7 @@ assembled from Charms that the character owns. The webapp keeps its top-level ta
 `view.visible_tabs` names one, and the shell discards that answer. Do not change the
 presenter to agree with the shell.
 
-This module has no game logic. `ui/view.py` supplies every row, every cost and every issue.
+This module has no game logic. `ui/view/` supplies every row, every cost and every issue.
 """
 
 from __future__ import annotations

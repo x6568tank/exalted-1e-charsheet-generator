@@ -46,7 +46,7 @@ from . import play as play_mod
 from . import storyteller as st_mod
 from . import view as viewmod
 from .assets import cytoscape_head_html
-# The tab set and its stage logic moved to view.py (toolkit-free) for the Qt port;
+# The tab set and its stage logic moved to ui/view/ (toolkit-free) for the Qt port;
 # re-exported here so `builder.visible_tabs` callers (tests included) keep working.
 from .view import _TABS, resolve_tab, visible_tabs
 

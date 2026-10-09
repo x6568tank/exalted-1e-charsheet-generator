@@ -489,7 +489,7 @@ def test_a_renegade_abyssal_uses_the_core_artifact_background(rs):
 
 
 # --------------------------------------------------------------------------- #
-# The rung LABEL, through the UI (the ladder tests above only exercise view.py)
+# The rung LABEL, through the UI (the ladder tests above only exercise ui/view/)
 # --------------------------------------------------------------------------- #
 # `background_rung` being right proves nothing about the row: the label is refreshed by
 # a callback the RATING CONTROL has to invoke, and the play regime's number input does

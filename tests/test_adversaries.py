@@ -821,7 +821,7 @@ def test_append_trait_leaves_an_existing_trait_alone():
 
 
 # --------------------------------------------------------------------------- #
-# The picker's rows (ui/view.py — shared by both shells, no toolkit involved)
+# The picker's rows (ui/view/ — shared by both shells, no toolkit involved)
 # --------------------------------------------------------------------------- #
 
 def _rows(ruleset, kind):

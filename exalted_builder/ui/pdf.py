@@ -313,7 +313,7 @@ def _esc(text: str) -> str:
 
 
 def _flat(text: str) -> str:
-    """Strip the Unicode marks that ui/view.py bakes into display strings, so a
+    """Strip the Unicode marks that ui/view/ bakes into display strings, so a
     base-14 font never has to render one. `PathRow.favored` is literally '★' or
     '✚'; the middle dot is latin-1 and survives."""
     return (str(text).replace("★", "").replace("✚", "").replace("●", "")

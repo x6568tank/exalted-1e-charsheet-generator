@@ -303,7 +303,7 @@ def set_count(adversary: Adversary, field: str, clicked: int, cap: int) -> None:
 # function fills the input, the `parse_*` function reads it back, and
 # `tests/test_adversaries_ui.py` asserts the round trip (`trait_line(parse_traits(s))
 # == s`). Change one side and you must change the other — which is why they live
-# together rather than the formatters going to `view.py` with the other presenters.
+# together rather than the formatters going to `ui/view/` with the other presenters.
 # --------------------------------------------------------------------------- #
 
 def next_id(party: Party) -> str:

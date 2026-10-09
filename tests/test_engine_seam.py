@@ -182,7 +182,7 @@ def _display_literals(path: Path) -> set[str]:
 
 def test_the_advantages_tabs_share_no_display_text() -> None:
     """⚠ A string in both shells drifts: one copy gets the correction, the other does
-    not, and no test sees the difference. `ui/view.py` holds the text for both.
+    not, and no test sees the difference. `ui/view/` holds the text for both.
 
     ⚠ This test covers the Advantages pair only. Other shell pairs still copy text.
     """
@@ -192,5 +192,5 @@ def test_the_advantages_tabs_share_no_display_text() -> None:
     assert not shared, (
         "qt/advantages.py and ui/advantages.py both contain: "
         + "; ".join(repr(text) for text in sorted(shared))
-        + ". Move the text into ui/view.py and read it from both shells."
+        + ". Move the text into ui/view/ and read it from both shells."
     )

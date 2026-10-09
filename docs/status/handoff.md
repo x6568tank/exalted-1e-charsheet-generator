@@ -1,44 +1,58 @@
-# Session handoff — 2026-10-09 (refactor pass opened; item 1, the suite speed, done)
+# Session handoff — 2026-10-09 (refactor pass: item 2, the `ui/view.py` split, done)
 
 # 👉 YOU ARE HERE
 
-**Features are paused for an optimization and refactoring pass** (the human, 2026-10-09:
-*"we're done with features for now"*). The plan, its order and the deferred runtime
-findings: **`docs/plans/refactor-pass.md`. Read it first.**
+**Features are paused for an optimization and refactoring pass.** Plan, order and the
+deferred runtime findings: **`docs/plans/refactor-pass.md`. Read it first.**
 
-* **Item 1, the suite speed: DONE, committed and pushed.** The suite is **~3–5 min with
-  `.venv/bin/python -m pytest -n 4`** (was 21:22 in one process). Two changes: a
-  per-module `gc.freeze()` in `tests/conftest.py` (NiceGUI's user simulation runs a
-  full `gc.collect()` twice per UI test over a heap past a million objects), and
-  pytest-xdist in the `dev` extra. Detail: `docs/testing.md`.
-  * ⚠ **Each machine needs `.venv/bin/pip install -e '.[dev]'` once**, or `-n` is an
-    error.
-  * ⚠ **`-n 4`, never `-n auto`**: all 8 cores made the laptop unusable (the human:
-    *"good lord"*). Ask before repeated full parallel runs.
-  * 🐞 Found on the way: `test_traits_reload_holds_scroll_position` was vacuous (it
-    compared 0 with 0). Fixed and negative-controlled.
-* ⚠ **The measurements were taken on a STALE checkout.** This laptop's `main` was at
-  `dd997e5` (P3 step 9 built). The other machine had pushed 24 commits (P4, accounts,
-  v1.4.0). The suite work was rebased onto them, then re-run green (number below). The
-  runtime profile in `refactor-pass.md` (line counts, the ~350 ms builder page, the Qt
-  window) is from the old tree: **re-measure before you act on it.**
+* **Item 2: `ui/view.py` (5,143 lines) is now the package `ui/view/`.** It has 21 domain
+  modules and a facade, and the largest module is `sheet.py` (~780 lines). It was split
+  the `engine/validate/` way: `view.X` still resolves everywhere, and **no call site
+  changed** except one test's monkeypatch. The module list and the DAG are in
+  `ARCHITECTURE.md`, "`ui/view/` — a package". The record is in `refactor-pass.md`,
+  "Item 2".
+  * The safety net is **`tests/test_view_facade.py`**. It was written first, and it passed
+    on the unsplit file.
+  * 🐞 **What the safety net missed at first:** ten *function-local* `from ..engine import
+    …` lines needed a third dot. The undefined-name check cannot see this kind of error,
+    and 105 tests failed. A relative-import resolution check now catches it, and it is
+    negative-controlled.
+  * ⚠ **A monkeypatch on the facade does not reach a domain module.** Patch the module
+    that reads the name. This will bite in every later split as well.
+* Item 1 (suite speed) was done earlier the same day; see `refactor-pass.md`.
 
-**Next: item 2 — split `ui/view.py`** the way `engine/validate/` was split
-(`docs/plans/validate-refactor.md` is the worked example: a facade package that
-re-exports every name, so no call site changes; the suite green at every commit; a
-written import DAG). Re-count the oversized modules first; the list in
-`refactor-pass.md` predates the 24 commits. Then items 3 (docstrings) and 4 (values
-computed twice across `ui/` and `qt/`), then the four deferred runtime findings.
+**Next:** continue item 2 with the next oversized module. Re-counted today:
+`models/rules.py` 3,162, `qt/charms.py` 3,121, `engine/advancement.py` 2,173,
+`ui/picker.py` 2,155, `server/table_view.py` 2,092. Ask the human which, if any, is worth
+splitting. Several may be cohesive, as `budgets.py` was. Then item 3 (docstrings), then
+item 4 (values computed twice across `ui/` and `qt/`), then the four deferred runtime
+findings. Their paths are now easier to see in `ui/view/`.
 
-**Suite:** 4390 passed + 1 skipped, **OBSERVED 2026-10-09 with `-n 4` in 4:42** on the rebased tree (the 3:00 and 8:06 in `docs/testing.md` were measured on the old tree, 4,177 tests).
+**Suite:** 4397 passed + 1 skipped, **OBSERVED 2026-10-09 with `-n 4` in 4:35** (4390
++ the 7 new safety-net tests). Only comments and docs changed after that run, and the two
+affected test files re-ran green (57).
 
-**Working tree:** clean after this commit, pushed to `origin/main`.
+**Working tree:** **dirty, uncommitted.** The split, the new test, the comment repoints
+(`ui/view.py` → `ui/view/`), `ARCHITECTURE.md`, `refactor-pass.md` and this file are
+uncommitted on top of `d8a8667`. They are not pushed.
 
-**Deployed:** unchanged — this work touches tests, docs and the dev extra only.
+**Deployed:** unchanged. The server runs this code, so it needs a rebuild once the split
+is pushed. No behaviour changed.
 
-🖱 **Owed:** nothing.
+🖱 **Owed:** nothing. This is a pure move. A smoke launch of the Qt app and of the dev
+builder after the push is cheap insurance, but it is not a checklist.
 
-❓ **Open for the human:** nothing.
+❓ **Open for the human:** nothing on rules. Decide whether to commit and push, and
+which module (if any) to split next.
+
+---
+
+## The session before — suite speed (2026-10-09)
+
+The suite went from 21:22 in one process to ~3–5 min at `-n 4`: a per-module `gc.freeze()`
+in `tests/conftest.py` plus pytest-xdist in the `dev` extra. ⚠ Each machine needs
+`.venv/bin/pip install -e '.[dev]'` once. ⚠ Use `-n 4`, never `-n auto`. Detail:
+`docs/testing.md`, `refactor-pass.md` item 1.
 
 ---
 

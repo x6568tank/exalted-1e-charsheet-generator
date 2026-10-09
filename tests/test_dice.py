@@ -190,7 +190,7 @@ def test_no_probability_or_odds_helper_is_exposed():
                 if any(w in n.lower() for w in ("odds", "probab", "chance", "expect"))]
 
 
-# --- the presenter (ui/view.py) ------------------------------------------
+# --- the presenter (ui/view/) ------------------------------------------
 
 def test_state_defaults_both_switches_on():
     state = viewmod.new_roller_state()
