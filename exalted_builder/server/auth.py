@@ -1,7 +1,7 @@
 """
 server/auth.py — the login gate of the hosted server.
 
-Section 5 piece 3 of `docs/plans/hosting-state-model.md`. It supplies:
+The design is `docs/plans/hosting-state-model.md` section 5. It supplies:
 
   * `AuthGate`, a middleware that sends each request without a login to `/login`.
     The public pages are the exceptions: `/`, `/about` and `/wiki`.
@@ -48,7 +48,7 @@ OPEN_PATHS = frozenset({"/", "/about", "/login", "/signup", "/logout", "/favicon
                         "/robots.txt", "/sitemap.xml", "/theme"})
 
 # The public wiki: "/wiki" and each path under it. Section 9.5 of vtt.md.
-# ⚠ Public ON PURPOSE (human ruling, 2026-09-12). `tests/test_auth_gate.py` names
+# ⚠ Public ON PURPOSE (human's ruling). `tests/test_auth_gate.py` names
 # it, thus a new public route fails that test until it is named there too.
 WIKI_PATH = "/wiki"
 

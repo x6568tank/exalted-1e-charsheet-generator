@@ -1,9 +1,8 @@
 """
 server/quota.py — the disk limit of each account folder on the hosted server.
 
-The human set the limit on 2026-09-11: 10 MB for each person, and on 2026-09-25
-50 MB for each campaign folder. A character file is
-some kilobytes.
+The limits are 10 MB for each account folder and 50 MB for each campaign folder
+(human's ruling).
 
 `FolderQuota` is a write guard for `persistence.atomic_write`. Each write of the
 server goes through that function: Save, the auto-save, the save of a tab, Save
@@ -25,8 +24,8 @@ from . import db
 
 QUOTA_BYTES = 10 * 1024 * 1024
 
-# The limit of each campaign folder. The human set it on 2026-09-25: 50 MB, for
-# the maps of the board (docs/plans/p4-board.md).
+# The limit of each campaign folder, for the maps of the board (human's ruling,
+# docs/plans/p4-board.md).
 TABLE_QUOTA_BYTES = 50 * 1024 * 1024
 
 # The name of a table folder starts with this. `TableStore.table_dir` makes it.

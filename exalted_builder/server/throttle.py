@@ -1,8 +1,8 @@
 """
 server/throttle.py — the rate limit on login attempts, by username.
 
-The human ruled on 2026-09-11: limit by username, not by address. Behind the
-tunnel, every request has the address of the tunnel.
+Limit by username, not by address (human's ruling). Behind the tunnel, every
+request has the address of the tunnel.
 
 The rule: `FREE_ATTEMPTS` failures have no wait. Each failure after them sets a
 wait that starts at `FIRST_COOLDOWN` and doubles, to `MAX_COOLDOWN`. A success

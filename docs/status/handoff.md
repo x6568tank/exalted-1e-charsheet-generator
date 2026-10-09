@@ -27,23 +27,16 @@ deferred runtime findings: **`docs/plans/refactor-pass.md`. Read it first.**
 * ⚠ **A new `XpEntry.target` domain now touches three modules:** the purchase,
   `advancement/undo.py`, `advancement/audit.py` (plus `ui/view/xp_log.py`'s label).
 
-**Next: item 3, the docstring pass. The scope is `server/`, not the whole codebase.**
+**Item 3 (docstring pass): `server/` DONE, committed, not pushed.** 24 files, prose only:
+41 dated stamps → 0, "Step N of the build order" / "Piece N" headers → section
+citations, `session.py`'s "the defect this removes" → a ⚠, `build_server`'s page list
+corrected. `prose_guard` ✓ on 23 files; `db.py` verified by stripping SQL `--` comments.
+No code changed, so the suite was not re-run (last green: 4425 + 1 skipped, above).
 
-* The rule: `CLAUDE.md` §6 and `docs/comment-standard.md`. A docstring gives input,
-  output and mechanism only. KEEP page citations, ⚠ trap records (pull a trap OUT of
-  narration as an explicit ⚠, never delete it), and the contract. Dated narration
-  becomes an undated "(human's ruling)". The reasons go in the commit message.
-* ⚠ **`comment-standard.md` says there is no backlog. That was true on 2026-09-10.**
-  The pass covered validate, `ui/`, `models/`, `engine/` and `qt/`. **`server/` (9,614
-  lines, 2026-09-11 onward: P2 hosting, P3 campaigns, P4 the board, accounts) has never
-  had it.** The hosted-era files in `ui/` were also added after the pass (find them with
-  `git log --since=2026-09-10 --diff-filter=A -- exalted_builder/ui`). Today's three
-  split packages need no pass: their bodies moved verbatim from passed files.
-* Measure first, as the `qt/` pass did: docstring and comment lines per file, then the
-  longest docstrings. The `qt/` record in `comment-standard.md` is the worked example. It
-  found that the pass removes narration, not bulk, and density barely moved.
-* Comments only, so the suite cannot catch a deleted ⚠. Diff-review every ⚠ that a
-  change touches. When it is done, add `server/` to `comment-standard.md`'s record.
+⚠ **`ui/`, `models/` and `engine/` are NOT done**, whatever `comment-standard.md` used to
+say: 55 / 34 / 79 dated stamps remain, with inline narration. The 2026-09-03 check read
+only the longest docstrings. Recorded in `comment-standard.md` and `refactor-pass.md`.
+❓ Whether to do them now is the human's call.
 
 Then item 4 (values computed twice across `ui/` and `qt/`), then the four deferred
 runtime findings, now easier to see in the split packages.

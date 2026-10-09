@@ -1,24 +1,23 @@
 """
 server/tables.py — the campaigns (the `Table`) of the hosted server.
 
-Step 1 of the build order in `docs/plans/p3-tables.md`. The design is that file,
-sections 2 and 3. The rulings are `docs/plans/vtt.md` section 9.10 (human,
-2026-09-12):
+The design is `docs/plans/p3-tables.md` sections 2 and 3. The rulings are
+`docs/plans/vtt.md` section 9.10 (human's ruling):
 
   * A join is a code plus the approval of the Storyteller. A request that brings a
     base makes a campaign copy at approval. A request with no base is a watcher.
   * A code has six characters and no expiry. The Storyteller can replace it.
   * A member can bring a base from the table page (`bring`), or start a draft for
     the table (`start_draft`); the lock of the draft sends the request
-    (`send_draft`). p3-tables.md section 14, step 6b.
+    (`send_draft`). p3-tables.md section 14.
   * A leaver keeps each copy as a solo copy. A delete of the table does the same
     for each member.
   * The homebrew of the table is `<table folder>/custom`. The approval of a base
     adds the homebrew that the base carries. A copy that becomes solo puts its
-    homebrew in the library of its owner. p3-tables.md section 14, step 7.
+    homebrew in the library of its owner. p3-tables.md section 14.
   * A character of the Storyteller is an NPC. Each NPC has a side, enemy or ally
-    (`npc_side`). The Storyteller picks the side when the NPC is added (human,
-    2026-09-24). p3-tables.md section 14, step 8.
+    (`npc_side`). The Storyteller picks the side when the NPC is added (human's
+    ruling). p3-tables.md section 14.
   * The table has a folder of its own, `<root>/table-<hex>/`. A table folder never
     holds a character. A copy stays in the folder of its owner.
 
@@ -110,7 +109,7 @@ class JoinRequest:
     user_id: int
     base_id: str | None
     # True for a request of the Storyteller of the table: it is approved at once,
-    # and the row is gone (human, 2026-09-22).
+    # and the row is gone (human's ruling).
     approved: bool = False
 
 
@@ -445,7 +444,7 @@ class TableStore:
         self._pending_side(user_id, table_id, base_id, side)
         return self._insert_request(user_id, table_id, base_id)
 
-    # ---- drafts for a campaign (section 14, step 6b) ------------------------ #
+    # ---- drafts for a campaign (section 14) -------------------------------- #
 
     def start_draft(self, user_id: int, table_id: str,
                     side: str | None = None) -> CharacterRow:
@@ -543,7 +542,7 @@ class TableStore:
         Refuse all but the Storyteller of the table of the request.
 
         Add the homebrew that the base carries to the homebrew of the table. The row
-        of the table wins an id clash (ruled 2026-09-23). ⚠ This is the only write
+        of the table wins an id clash (human's ruling). ⚠ This is the only write
         of a join to the homebrew of the table, and the approval of the Storyteller
         is its consent.
 

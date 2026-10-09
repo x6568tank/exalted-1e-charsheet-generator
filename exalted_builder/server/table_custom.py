@@ -1,7 +1,7 @@
 """
 server/table_custom.py — `/table/<id>/custom`, the homebrew of a campaign.
 
-Step 7 of `docs/plans/p3-tables.md` section 14 (ruled 2026-09-23):
+The design is `docs/plans/p3-tables.md` section 14 (human's ruling):
 
   * The Storyteller gets the authoring page (`ui/custom.build_custom`) on the
     homebrew of the table. A save reloads each kept RuleSet that holds it.
@@ -10,7 +10,7 @@ Step 7 of `docs/plans/p3-tables.md` section 14 (ruled 2026-09-23):
   * Each member, the Storyteller too, sees the rows of their own library that the
     table does not have. A member proposes one; the Storyteller adds one at once.
     The Storyteller approves a proposal in the ST tab of the table view.
-  * A member gets the editor on their OWN library below (human, 2026-09-24). A
+  * A member gets the editor on their OWN library below (human's ruling). A
     saved row then appears in the list of rows to propose.
 
 ⚠ `TableStore.access` is the check, in the page body, before anything of the table

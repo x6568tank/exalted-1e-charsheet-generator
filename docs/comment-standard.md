@@ -25,8 +25,23 @@ docstrings (`models/adversary.py` at 49 lines, `engine/pools.py` at 35) found ci
 shapes, not unpruned prose. Treat `ui/`, `models/` and `engine/` outside validate as
 **done**, not a backlog.
 
-**`qt/` had the pass on 2026-09-10** — all 18 files, ~3,400 prose lines. It was the last
-gap; there is no comment-pass backlog now.
+**`qt/` had the pass on 2026-09-10** — all 18 files, ~3,400 prose lines.
+
+**`server/` had the pass on 2026-10-09** — 24 of 32 files touched, 9,614 lines. It was
+written to STE from the start, so the pass was small: 41 dated stamps → 0, every "Step N
+of the build order" / "Piece N adds" header (plan history) → a plain section citation, and
+three narrations turned into contracts or ⚠ (`session.py`'s "the defect this removes",
+`characters.homebrew_dir`'s past-tense bug). Density 19% → 19%, ⚠ 185 → 186, zero
+citations lost. `db.py`'s SQL `--` comments live in a string literal, so `prose_guard`
+reports CODE CHANGED there; verify it by stripping `--` lines from both revisions.
+
+⚠ **The "done" above for `ui/`, `models/` and `engine/` is WRONG (found 2026-10-09).**
+Dated stamps left per package: `server/` 0, `qt/` 0, `ui/` 55, `models/` 34, `engine/`
+79, plus narration such as "Found 2026-08-28 by the first test…", "which is how it
+presented", "Moved verbatim out of … 2026-08-10". The 2026-09-03 check measured density
+and read the LONGEST DOCSTRINGS; the narration is in short inline comments, which that
+method cannot see. Grep for `20\d\d-\d\d-\d\d` before calling a package done. Those three
+packages are the real backlog.
 
 What the pass actually removed was **not bulk**: docstring density went 13% → 13% and total
 prose 22% → 23% (the package grew 43 lines). It removed the three things the standard names

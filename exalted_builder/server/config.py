@@ -1,9 +1,10 @@
 """
 server/config.py — the deployment settings that come from the environment.
 
-NiceGUI signs the session cookie with `storage_secret`. Without one,
-`app.storage.user` raises, and tier 1 of `docs/plans/hosting-state-model.md`
-section 3.4 cannot work. This module supplies the secret.
+The settings are the cookie secret, the session root, the account database and
+the contact address. NiceGUI signs the session cookie with `storage_secret`.
+Without one, `app.storage.user` raises, and tier 1 of
+`docs/plans/hosting-state-model.md` section 3.4 cannot work.
 
 ⚠ Do not put a default secret in this file, or in any file. A known secret lets a
 client forge a session cookie. The fallback here is random for each process.

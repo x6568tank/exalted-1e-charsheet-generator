@@ -1,8 +1,7 @@
 """
 server/table_notes.py — the notes of each member of a campaign.
 
-Step 8 of the build order in `docs/plans/p3-tables.md` section 15.4. The design is
-section 15.6 (Q8 and Q9, ruled 2026-09-22):
+The design is `docs/plans/p3-tables.md` section 15.6 (Q8 and Q9, human's ruling):
 
   * Each member has one text in each table, the Storyteller too. The file is
     `<table folder>/notes/<user id>.json` (`TableStore.notes_path`).

@@ -1,8 +1,7 @@
 """
 server/table_roster.py — the adversary roster of a campaign.
 
-Step 8 of the build order in `docs/plans/p3-tables.md` section 15.4. The design is
-section 15.3 (rulings R4, R6, R7 and R8, 2026-09-22):
+The design is `docs/plans/p3-tables.md` section 15.3 (rulings R4, R6, R7 and R8):
 
   * One roster for each table, in `<table folder>/adversaries.json`: a list of
     `Adversary`.

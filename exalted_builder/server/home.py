@@ -1,8 +1,8 @@
 """
 server/home.py — the landing page and the character pages of the hosted server.
 
-Section 5 piece 4 of `docs/plans/hosting-state-model.md`; the site map and the
-rulings of `docs/plans/vtt.md` sections 9.2 to 9.4:
+The design is `docs/plans/hosting-state-model.md` section 5. The site map and the
+rulings are `docs/plans/vtt.md` sections 9.2 to 9.4:
 
   * `/home` lists the characters of the account: the drafts and the bases, then
     the campaign copies. It makes a new character and imports one from a file.
@@ -13,9 +13,9 @@ rulings of `docs/plans/vtt.md` sections 9.2 to 9.4:
     Storyteller does these on the table view (p3-tables.md section 6, Q5, Q6).
   * A copy in a campaign takes the TABLE-WIDE house rules of its table each time
     its context is made. Its ST Options tab is read-only (section 5, Q2).
-  * A draft for a campaign (step 6b) does the same, and its Finish & Lock sends
+  * A draft for a campaign does the same, and its Finish & Lock sends
     the join request (`TableStore.send_draft`).
-  * There is no `/gm` on the server until P3 (ruled 2026-09-12, 9.3a).
+  * There is no `/gm` on the server (human's ruling, 9.3a).
 
 ⚠ The ownership check is `CharacterStore.owned`, in the page body, before the
 registry. A character of another account gets the same answer as one that does
@@ -105,7 +105,7 @@ def register_character_pages(store: CharacterStore, rulesets: Rulesets,
         if table_id is not None:
             # ⚠ Site 3 of p3-tables.md section 5: the table's values, whatever the
             # file says. A copy that missed a switch is in step at its next load.
-            # A draft for a campaign (step 6b) is built under them too.
+            # A draft for a campaign is built under them too.
             if apply_table_rules(tables.house_rules(table_id), character):
                 # The auto-save takes its first digest after this, thus it would
                 # not write the change. A full account keeps the old file.
@@ -115,7 +115,7 @@ def register_character_pages(store: CharacterStore, rulesets: Rulesets,
                     pass
         # "custom_dir" is the folder from which a save copies the homebrew.
         # "library_dir" is the library that the Gear tab writes, and a campaign
-        # copy has none: its homebrew comes through the Storyteller (step 7).
+        # copy has none: its homebrew comes through the Storyteller.
         return {"char": character, "path": path, "dir": path.parent,
                 "home_dir": store.account_dir(row.owner_id),
                 "custom_dir": store.homebrew_dir(row),
@@ -146,7 +146,7 @@ def register_character_pages(store: CharacterStore, rulesets: Rulesets,
             _build_base(store, sessions, row, ctx, user_id)
             return
 
-        # A draft for a campaign (step 6b). Read at each open: the tag goes at the lock.
+        # A draft for a campaign. Read at each open: the tag goes at the lock.
         draft_for = None if row.is_copy else tables.draft_table(row.id)
         draft_table = tables.table(draft_for) if draft_for is not None else None
 

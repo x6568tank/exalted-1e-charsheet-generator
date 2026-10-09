@@ -1,8 +1,8 @@
 """
-server/db.py — the SQLite store of the hosted server. It holds the user accounts.
+server/db.py — the SQLite store of the hosted server: the accounts, the rows of
+the characters, and the campaigns.
 
-Section 5 piece 3 of `docs/plans/hosting-state-model.md`. Piece 4 adds the
-`characters` table to this file and to this database.
+The design is `docs/plans/hosting-state-model.md` section 5.
 
 ⚠ Store a bcrypt hash only. Never store, log or return a password.
 
@@ -42,7 +42,7 @@ MIN_PASSWORD_LENGTH = 8
 MAX_PASSWORD_BYTES = 72
 
 # Usernames are case-sensitive: "Gil" and "gil" are two accounts, and a login must
-# give the case of the signup. The human ruled this on 2026-09-11.
+# give the case of the signup (human's ruling).
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
@@ -51,10 +51,10 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- The characters of each account. Section 5 piece 4; docs/plans/vtt.md 9.3a.
+-- The characters of each account. Section 5; docs/plans/vtt.md 9.3a.
 -- The character is a file. This row holds what the file cannot: the owner, the
--- copy flag, the base of a copy, and the table of a copy (P3, NULL until then).
--- A delete of a base keeps its copies and clears their base_id (ruled 2026-09-12).
+-- copy flag, the base of a copy, and the table of a copy (NULL with no table).
+-- A delete of a base keeps its copies and clears their base_id (human's ruling).
 CREATE TABLE IF NOT EXISTS characters (
     id TEXT PRIMARY KEY,
     owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS join_requests (
 );
 CREATE INDEX IF NOT EXISTS characters_table ON characters(table_id);
 
--- A draft that its owner makes for a campaign (p3-tables.md section 14, step 6b).
+-- A draft that its owner makes for a campaign (p3-tables.md section 14).
 -- The draft is an ordinary character with no table_id. Its lock sends a join
 -- request, and deletes this row. The page cannot edit this row.
 -- The email of an account, if the player gives one. docs/plans/account-management.md.
@@ -176,7 +176,7 @@ def check_new_account(username: str, password: str) -> None:
 def check_password(password: str) -> None:
     """Raise `AccountError` if `password` is too short or too long.
 
-    There is no rule on the character types. The human ruled this on 2026-09-11.
+    There is no rule on the character types (human's ruling).
     """
     if len(password) < MIN_PASSWORD_LENGTH:
         raise AccountError(

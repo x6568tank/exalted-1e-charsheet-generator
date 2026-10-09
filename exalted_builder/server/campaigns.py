@@ -1,8 +1,7 @@
 """
 server/campaigns.py — the campaign pages of the hosted server.
 
-Step 2 of the build order in `docs/plans/p3-tables.md`, sections 7 and 11. The
-rulings are `docs/plans/vtt.md` section 9.10:
+The design is `docs/plans/p3-tables.md` sections 7 and 11. The rulings are `docs/plans/vtt.md` section 9.10:
 
   * The Campaigns section of `/home`: the campaigns of the account, New
     campaign, Join a campaign (a code, then a base to bring or "just watch"), and

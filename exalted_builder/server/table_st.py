@@ -1,9 +1,8 @@
 """
 server/table_st.py — the operations of the Storyteller on the copies of a campaign.
 
-Step 5 of the build order in `docs/plans/p3-tables.md` section 15.4. The design is
-section 6 (ruled: the Storyteller grants XP) and Q6 (ruled 2026-09-12: on a campaign
-copy, unlocking is up to the Storyteller):
+The design is `docs/plans/p3-tables.md` section 6 (the Storyteller grants XP) and
+Q6 (on a campaign copy, unlocking is up to the Storyteller):
 
   * Grant XP: an amount and a note, to one copy or to each copy in the table. It
     calls `advancement.add_xp`. A negative amount corrects an over-grant.
@@ -12,8 +11,8 @@ copy, unlocking is up to the Storyteller):
   * Each grant posts one line to the Log of the table.
   * Unlock: `lifecycle.unlock_chargen` on one copy in the table.
 
-Step 6 is section 5 and Q2 (ruled 2026-09-12: the Storyteller sets the
-PER-CHARACTER permissions of a campaign copy):
+The house rules are section 5 and Q2 (the Storyteller sets the PER-CHARACTER
+permissions of a campaign copy):
 
   * A TABLE-WIDE switch: the table's `house_rules.json` first, then each copy in
     the table (`apply_table_rules`), then one line in the Log.
@@ -53,7 +52,7 @@ log = logging.getLogger(__name__)
 
 AWARDS_FILE = "awards.json"
 
-# Design choices, reversible (p3-tables.md section 14, step 5).
+# Design choices, reversible (p3-tables.md section 14).
 MAX_GRANT = 1000
 MAX_NOTE = 200
 
@@ -278,7 +277,7 @@ class TableStoryteller:
         self.tables.write_house_rules(table_id, rules)
 
         failed: list[str] = []
-        # The drafts for the table are built under its rules too (step 6b).
+        # The drafts for the table are built under its rules too.
         for row in self.tables.characters(table_id) + self.tables.drafts(table_id):
             character = self._character(row)
             if character is None:

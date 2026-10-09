@@ -2,7 +2,7 @@
 server/accounts.py — the delete of an account. The `/account` page and the operator
 command `server/users.py delete` both call `delete_account`.
 
-The human ruled on 2026-09-26 (docs/plans/account-management.md):
+The rules (human's ruling, docs/plans/account-management.md):
 
   * Each campaign that the account runs is deleted by `TableStore.delete`. Each
     other player keeps a solo copy (p3-tables.md section 10).

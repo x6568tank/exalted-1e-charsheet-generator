@@ -1,8 +1,8 @@
 """
 server/table_homebrew.py — the proposals of homebrew to a campaign.
 
-Step 7 of `docs/plans/p3-tables.md` section 14 (ruled 2026-09-23). A member picks a
-row of their own library and proposes it. The Storyteller approves it (the row goes
+The design is `docs/plans/p3-tables.md` section 14 (human's ruling). A member picks
+a row of their own library and proposes it. The Storyteller approves it (the row goes
 into the homebrew of the table) or rejects it (the proposal goes).
 
 The proposals of a table are in `<table folder>/homebrew_requests.json`. A proposal

@@ -1,14 +1,10 @@
 """server/main.py — the hosted entry point.
 
-Section 5.1 of `docs/plans/hosting-state-model.md`. The desktop entry points
-(`ui/builder.py:main`) calls `builder.register_pages`. This
-module calls `server/home.py` instead: `/home` lists the characters of the
+Section 5.1 of `docs/plans/hosting-state-model.md`. The dev entry point
+(`ui/builder.py:main`) calls `builder.register_pages`. This module calls `server/home.py` instead: `/home` lists the characters of the
 account, and each character has its own page, context, file and auto-save.
 
-Piece 3 adds the login gate. `build_server` registers the login pages; `main`
-installs the gate. See server/auth.py.
-
-⚠ `main` installs the gate, not `build_server`. The tests call `build_server` in a
+⚠ `main` installs the login gate (server/auth.py), not `build_server`. The tests call `build_server` in a
 process where the app can already run, and a middleware cannot be added then.
 `tests/test_server_main.py` asserts that `main` installs it.
 
@@ -40,8 +36,7 @@ DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8080
 
 
-# The session cookie of the hosted server. The human ruled the HTTPS-only flag on
-# 2026-09-11.
+# The session cookie of the hosted server. It is HTTPS-only (human's ruling).
 #
 # ⚠ The `__Host-` prefix is a rule of the browser. A cookie with it must be Secure,
 # must have the path "/", and must have no domain. Thus a different site under the
@@ -73,14 +68,14 @@ def build_server(session_root: Path | None = None,
 
     Read the session root from `EXALTED_SESSION_ROOT` and the database from
     `EXALTED_DB_PATH` if the caller gives none. Each call raises when its variable
-    is absent; there is no default, because one shared directory is the defect
-    that section 3.7 removes.
+    is absent; there is no default (see `config.session_root`).
 
-    Make the account and character tables. Register the login pages, the public
-    front page, About, the wiki, and the pages of `server/home.py`: `/home` lists
-    the characters of the account and `/character/<id>` opens one. Each character
-    has its own context; each account has its own homebrew library and RuleSet.
-    There is no `/gm` on the server until P3 (docs/plans/vtt.md 9.3a).
+    Make the database tables. Register the login pages, the public front page,
+    About, the site colours, the wiki, the crawler files, the pages of
+    `server/home.py`, `/account`, and the campaign pages of `server/table_view.py`.
+    `/home` lists the characters of the account and `/character/<id>` opens one.
+    Each character has its own context; each account has its own homebrew library
+    and RuleSet. There is no `/gm` on the server (docs/plans/vtt.md 9.3a).
 
     The character pages get a BOOK ruleset. Each account merges its library over
     it. See hosting-state-model.md section 5.3.

@@ -1,8 +1,8 @@
 """
 server/characters.py — the characters of each account on the hosted server.
 
-Section 5 piece 4 of `docs/plans/hosting-state-model.md`. The layout is
-`docs/plans/vtt.md` sections 9.2, 9.3 and 9.3a (human rulings, 2026-09-12):
+The design is `docs/plans/hosting-state-model.md` section 5. The layout is
+`docs/plans/vtt.md` sections 9.2, 9.3 and 9.3a (human's ruling):
 
   * A character is a FILE, `<root>/user-<id>/characters/<character id>.character.json`,
     plus a row in the `characters` table. The row holds the owner, the copy flag,
@@ -13,7 +13,7 @@ Section 5 piece 4 of `docs/plans/hosting-state-model.md`. The layout is
     the base keeps the copy and clears its `base_id`.
   * The homebrew library of the account is `<root>/user-<id>/custom`.
   * A campaign copy takes its homebrew from the campaign, `<table folder>/custom`,
-    not from the library of its owner (p3-tables.md section 14, step 7).
+    not from the library of its owner (p3-tables.md section 14).
 
 ⚠ The ownership check is here, not in a page. `owned` returns None for the
 character of another account and for a malformed id. A page that shows a
@@ -98,8 +98,8 @@ class CharacterStore:
         """Return the folder from which a save of `row` copies its homebrew: the
         homebrew of its campaign for a campaign copy, else the library of the owner.
 
-        ⚠ A copy that read the library of its owner changed at each save to follow
-        an edit at home, with no Storyteller (p3-tables.md section 14, step 7).
+        ⚠ Never give a copy the library of its owner. The copy then changes at each
+        save to follow an edit at home, with no Storyteller (p3-tables.md section 14).
         """
         if row.table_id is not None:
             return table_folder(self.root, row.table_id) / CUSTOM_DIRNAME

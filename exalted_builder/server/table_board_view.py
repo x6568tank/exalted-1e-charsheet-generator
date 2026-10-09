@@ -1,7 +1,7 @@
 """
 server/table_board_view.py — the board in the centre of `/table/<id>`.
 
-Steps 2 and 3 of the build order in `docs/plans/p4-board.md` section 6:
+The design is `docs/plans/p4-board.md` section 6:
 
   * `board_head_html` inlines the vendored Konva and `server/board.js`. No CDN.
   * `BoardSession` is the board of one open page. It takes the intents of the

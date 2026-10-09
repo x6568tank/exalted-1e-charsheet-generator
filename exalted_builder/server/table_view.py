@@ -1,8 +1,7 @@
 """
 server/table_view.py — `/table/<id>`, the table view of a campaign.
 
-Step 3 of the build order in `docs/plans/p3-tables.md` section 15.4. The layout is
-section 15.2 (shape A of `spikes/campaign_page/`):
+The layout is `docs/plans/p3-tables.md` section 15.2:
 
   * The top bar: Home, the campaign, the role of the viewer, "Open as" for a
     viewer with a copy in the campaign, and the request badge of the Storyteller.
@@ -11,24 +10,24 @@ section 15.2 (shape A of `spikes/campaign_page/`):
   * The centre: the board (P4, `docs/plans/p4-board.md`). `server/table_board_view.py`
     draws it, and it pushes each change to each open page of the table.
   * The right rail: the tabs Log, Notes and ST. The ST tab is for the Storyteller.
-    The Log is step 4 (section 15.3): messages and rolls, in `server/table_log.py`.
-  * The ST tools are step 5: Grant XP and Unlock (`server/table_st.py`), remove
+    The Log (section 15.3) holds messages and rolls, in `server/table_log.py`.
+  * The ST tools: Grant XP and Unlock (`server/table_st.py`), remove
     member, new code and delete campaign. A member leaves from the ⋮ menu.
-  * The house rules are step 6 (section 5, Q2): the TABLE-WIDE switches in the ST
+  * The house rules (section 5, Q2): the TABLE-WIDE switches in the ST
     tab, and the PER-CHARACTER permissions of each copy in a dialog.
-  * Add a character is step 6b (section 14): a member brings a locked base, or
+  * Add a character (section 14): a member brings a locked base, or
     creates a draft for the campaign. The ST tab lists the drafts.
-  * The homebrew of the campaign is step 7 (section 14): the Homebrew button opens
+  * The homebrew of the campaign (section 14): the Homebrew button opens
     `server/table_custom.py`. The request card says what an approval adds, and the
     ST tab lists the HOMEBREW REQUESTS.
-  * The roster is step 8 (section 15.3): ALLIES and ENEMIES below PARTY. The
+  * The roster (section 15.3): ALLIES and ENEMIES below PARTY. The
     Storyteller sees the full card of each entry and each NPC, with the Enemy / Ally
     switch. A player sees each ally as a name and a health track, and no enemy.
     The Notes tab holds the private notes of the viewer (Q8, Q9).
-  * The Pools tab (human, 2026-09-25): the base dice pools of one character, laid
+  * The Pools tab (human's ruling): the base dice pools of one character, laid
     out by `ui/play.py`. A player sees the copy that they open as. The Storyteller
     picks from the NPCs and each copy of a player. Nothing is written.
-  * Initiative is step 9 (sections 9 and 15.4): the ST tab rolls it for the ticked
+  * Initiative (sections 9 and 15.4): the ST tab rolls it for the ticked
     combatants (`server/table_initiative.py`), and the turn order goes to the Log.
     YOU PLAY sets the weapon in hand that the rating reads.
 
@@ -259,8 +258,8 @@ class _TableView:
         return [row for row in copies if row.owner_id == self.user_id]
 
     def is_npc(self, row: CharacterRow) -> bool:
-        """True for a character of the Storyteller of the table: an NPC (human,
-        2026-09-22). ⚠ Keyed on the owner, which the page cannot edit."""
+        """True for a character of the Storyteller of the table: an NPC (human's
+        ruling). ⚠ Keyed on the owner, which the page cannot edit."""
         return row.owner_id == self.table.storyteller_id
 
     def party_rows(self, copies: list[CharacterRow]) -> list[CharacterRow]:
@@ -286,7 +285,7 @@ class _TableView:
 
         The choice is in `app.storage.user`. A choice that is not a copy of the
         viewer in the table gives the first copy of the viewer. ⚠ The Storyteller
-        with no choice gets the Storyteller view (human, 2026-09-24): an NPC in YOU
+        with no choice gets the Storyteller view (human's ruling): an NPC in YOU
         PLAY has no switch, and the other NPCs lose their live controls.
         """
         mine = self.mine(copies)
@@ -662,7 +661,7 @@ class _TableView:
 
     def _add_character(self) -> None:
         """A dialog: bring one of the viewer's locked bases, or create a character
-        for the campaign (section 14, step 6b). Each goes to the Storyteller."""
+        for the campaign (section 14). Each goes to the Storyteller."""
         bases = {}
         for row in self.store.list_for(self.user_id):
             if row.is_copy:
@@ -678,7 +677,7 @@ class _TableView:
             ui.label("Add a character").classes("text-base font-bold")
             side = None
             if self.is_st:
-                # The Storyteller picks the side of an NPC here (human, 2026-09-24).
+                # The Storyteller picks the side of an NPC here (human's ruling).
                 ui.label("Your characters are NPCs. Players see an ally as a name "
                          "and a health track, and do not see an enemy.").classes("text-xs")
                 side = ui.toggle({ENEMY: "Enemy", ALLY: "Ally"}, value=ENEMY).props(
@@ -1194,7 +1193,7 @@ class _TableView:
         checkbox that can tick.
 
         Each row that can roll has a bonus box and a "First" tick, for this roll
-        only (human, 2026-09-25). They are the Charms, which the app does not know.
+        only (human's ruling). They are the Charms, which the app does not know.
         """
         if not self._still_storyteller():
             return
@@ -1279,7 +1278,7 @@ class _TableView:
 
     def _proposals(self) -> None:
         """HOMEBREW REQUESTS: the rows that members propose from their libraries
-        (step 7). Approve adds them to the homebrew of the campaign."""
+        (section 14). Approve adds them to the homebrew of the campaign."""
         pal = self.pal
         proposals = self.homebrew.proposals(self.user_id, self.table.id)
         with ui.column().classes("w-full gap-2").mark("table-proposals"):
@@ -1339,7 +1338,7 @@ class _TableView:
 
     def _grant_form(self, copies: list[CharacterRow]) -> None:
         """Grant XP: an amount, a note, and a checkbox for each copy, each ticked at
-        the start (section 6; the checkboxes: human, 2026-09-22).
+        the start (section 6; the checkboxes: human's ruling).
 
         ⚠ The grant names the ticked copies. A copy that joins after the draw is not
         in the list, thus it gets nothing that the Storyteller did not see.
@@ -1360,7 +1359,7 @@ class _TableView:
             ticks = {}
             with ui.column().classes("w-full gap-0"):
                 for row in copies:
-                    # An NPC starts unticked (human, 2026-09-22).
+                    # An NPC starts unticked (human's ruling).
                     npc = self.is_npc(row)
                     ticks[row.id] = ui.checkbox(
                         f"{self._copy_name(row)} · "
@@ -2037,7 +2036,7 @@ def _row_buttons(ruleset: RuleSet, kind: str, rows: list[dict], marker: str) -> 
 
 def _request_homebrew(preview, request_id: int) -> None:
     """Draw what the approval of a request adds to the homebrew of the campaign, and
-    each carried row that differs from the row of the campaign (step 7)."""
+    each carried row that differs from the row of the campaign (section 14)."""
     if preview.adds:
         ui.label("Approving adds to the campaign homebrew: "
                  + ", ".join(preview.adds)).classes("text-xs").mark(
@@ -2051,7 +2050,7 @@ def _request_homebrew(preview, request_id: int) -> None:
 def _request_views(rulesets: Rulesets, table: TableRow, base: CharacterRow,
                    character: Character, request_id: int) -> None:
     """Draw the View character button, and one View button for each homebrew row
-    that the base carries (human, 2026-09-24).
+    that the base carries (human's ruling).
 
     The sheet uses the RuleSet of the base, thus it shows the base as its owner
     sees it. A carried row shows the copy that the base holds.
@@ -2071,7 +2070,7 @@ def _request_views(rulesets: Rulesets, table: TableRow, base: CharacterRow,
 def _request_base(store: CharacterStore, ruleset: RuleSet, base: CharacterRow,
                   table_rules: HouseRules, marker: str) -> Character | None:
     """Draw what a request brings: the base, and the TABLE-WIDE house rules under
-    which it was made, where they differ from the table's (human, 2026-09-22). The
+    which it was made, where they differ from the table's (human's ruling). The
     copy keeps its creation rules unless the Storyteller unlocks it.
 
     Return the character of the base, or None if its file does not read."""

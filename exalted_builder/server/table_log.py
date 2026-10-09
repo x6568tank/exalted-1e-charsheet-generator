@@ -1,14 +1,13 @@
 """
 server/table_log.py — the Log of a campaign: messages and rolls in time order.
 
-Step 4 of the build order in `docs/plans/p3-tables.md` section 15.4. The design is
-section 15.3 (rulings R5, 2026-09-22):
+The design is `docs/plans/p3-tables.md` section 15.3 (ruling R5):
 
   * One Log for each table, in `<table folder>/log.json`.
   * Each member can post, the Storyteller too. A member who spectates is a member.
   * A roll is a dice COUNT. If the text box holds text, the text is the caption of
     the roll. The app never names a roll (decision 0019).
-  * The initiative roll of the table (step 9) is one entry with its turn order.
+  * The initiative roll of the table is one entry with its turn order.
   * The file keeps the newest `MAX_ENTRIES` entries. A text has `MAX_TEXT`
     characters at most.
 

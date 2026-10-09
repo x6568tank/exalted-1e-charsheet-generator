@@ -1,8 +1,7 @@
 """
 server/table_initiative.py — the initiative roll of the whole table (core p.227).
 
-Step 9 of the build order in `docs/plans/p3-tables.md` section 15.4, the gate of
-P3 (section 9). Rulings, human, 2026-09-24:
+The design is `docs/plans/p3-tables.md` section 9. The rules (human's ruling):
 
   * The combatants are each player copy, each NPC and each roster entry. The
     Storyteller unticks the entries that do not fight.
@@ -12,10 +11,9 @@ P3 (section 9). Rulings, human, 2026-09-24:
   * Each combatant rolls 1d10, added to the rating. The order is
     `engine.initiative.turn_order`: ties break on Dexterity + Wits, else "tied".
   * The result is one entry in the Log. Each combatant is named there, an enemy
-    NPC too (human, 2026-09-25).
+    NPC too.
 
-Rulings, human, 2026-09-25: Charms that change initiative are not modelled
-(decision 0008). The Storyteller types a bonus for one roll, and ticks "first" for
+Charms that change initiative are not modelled (decision 0008, human's ruling). The Storyteller types a bonus for one roll, and ticks "first" for
 a Charm that acts before everyone. Two or more "first" entries go in the normal
 order between them (`engine.initiative.turn_order`).
 

@@ -1,10 +1,12 @@
 """
 server/session.py — one application context for each browser session.
 
-**The defect this removes.** `ui/builder.py:register_pages` builds one `ctx` in
-`main()`. Both routes close over it, thus every browser edits one `Character`.
-`docs/plans/hosting-state-model.md` section 3.1 records this. Section 3.4 gives the
-design: a registry that holds the live context, keyed by the session.
+A registry holds the live context of each session, keyed by the session. The
+design is `docs/plans/hosting-state-model.md` section 3.4.
+
+⚠ Never share one context between sessions. `ui/builder.py:register_pages`
+builds one `ctx` in `main()` and its routes close over it, thus each browser
+edits one `Character` (section 3.1). The hosted server must not do this.
 
 The contract:
 
@@ -65,7 +67,7 @@ class SessionRegistry:
     registry. Supply the auto-save here.
 
     `clock` returns seconds. It defaults to `time.monotonic`. A test supplies its
-    own, because a sweep test that sleeps costs seconds and buys nothing.
+    own.
 
     ⚠ Instantiate this once for each process, in the wiring layer. A module-level
     instance shares state between tests.

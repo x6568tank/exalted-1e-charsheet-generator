@@ -4,8 +4,7 @@ server/public.py — the front page and the About page of the hosted server.
 Section 9.4 of `docs/plans/vtt.md`. `/` and `/about` need no login. The builder is
 at `auth.HOME_PATH` on the hosted server, because `/` is this front page.
 
-⚠ The About text is Lorem Ipsum, by the human's choice (2026-09-12), until the human
-writes it. The contact line and the unofficial-fan-site notice are real.
+⚠ The About text is Lorem Ipsum until the human writes it (human's ruling). The contact line and the unofficial-fan-site notice are real.
 """
 
 from __future__ import annotations
@@ -43,8 +42,8 @@ def _about_page():
     contact = config.admin_contact()
     contact_html = (f'<p>Write to <a href="mailto:{esc(contact)}">{esc(contact)}</a>.</p>'
                     if contact else "<p>No contact address is set on this server.</p>")
-    # ⚠ PLACEHOLDER. The human asked for Lorem Ipsum in place of the draft on
-    # 2026-09-12. The human writes the text. The contact line and the notice stay.
+    # ⚠ PLACEHOLDER (human's ruling). The human writes the text. The contact line
+    # and the notice stay.
     body = (
         '<article class="card narrow prose">'
         '<p class="card-title">About this site</p>'

@@ -1,7 +1,7 @@
 """
 server/rulesets.py — the RuleSet that each character of the hosted server sees.
 
-Step 7 of `docs/plans/p3-tables.md` section 14 (ruled 2026-09-23):
+The rules are `docs/plans/p3-tables.md` section 14 (human's ruling):
 
   * A solo character: the book, then the library of its owner.
   * A campaign copy: the book, then the homebrew of the campaign. Not the library of

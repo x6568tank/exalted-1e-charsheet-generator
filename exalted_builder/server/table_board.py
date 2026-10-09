@@ -1,8 +1,7 @@
 """
 server/table_board.py — the board of a campaign: a shared picture of the table.
 
-Step 1 of the build order in `docs/plans/p4-board.md` section 6. The rulings are
-section 5 (2026-09-25):
+The rulings are `docs/plans/p4-board.md` section 5:
 
   * One board for each table, in `<table folder>/board.json`. The background
     image is `<table folder>/board/background.img`.
@@ -10,7 +9,7 @@ section 5 (2026-09-25):
     who spectates watches. The page tells `put` that it spectates.
   * Only the Storyteller clears the board and sets the background (Q1, Q2).
   * No hidden layer (Q4). Each member sees each object.
-  * A token can show an image that a member uploaded (the human, 2026-09-25). The
+  * A token can show an image that a member uploaded (human's ruling). The
     file is `<table folder>/board/tokens/<id>.img`, and its id is a hash of its
     encoded bytes. Clear and delete remove each file that no token uses.
 
