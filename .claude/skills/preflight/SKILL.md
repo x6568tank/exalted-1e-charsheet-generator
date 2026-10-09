@@ -120,7 +120,7 @@ Prefer asserting on content the widget must emit over asserting it did not crash
 
 ## Pass 4 — the report
 
-Run the full suite (`.venv/bin/python -m pytest -q`) and give the human:
+Run the full suite (`.venv/bin/python -m pytest -q -n 4`) and give the human:
 
 1. **What to click, in priority order** — the specific pages and the specific
    character shapes, so the click-through is aimed rather than exploratory.

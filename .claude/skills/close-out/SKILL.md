@@ -12,7 +12,7 @@ true while the real record goes in `docs/status/`.
 ## 1. The suite
 
 ```
-.venv/bin/python -m pytest -q
+.venv/bin/python -m pytest -q -n 4
 ```
 
 Record the **exact** number. Not "tests pass" — the count, because it is the anchor

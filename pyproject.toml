@@ -14,6 +14,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8",
+    # Runs the suite on several processes: `pytest -n 4` (docs/testing.md).
+    "pytest-xdist>=3",
     # The PDF sheet and the tests that read it back. Both are dev-time needs too:
     # tests/test_pdf.py renders real documents and extracts their text.
     "reportlab>=4",

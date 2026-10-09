@@ -100,3 +100,36 @@ def _notify(self, message, **kwargs) -> None:
 
 
 UserNotify.__call__ = _notify
+
+
+# --------------------------------------------------------------------------- #
+# Garbage collection: freeze the long-lived heap at the start of each module
+# --------------------------------------------------------------------------- #
+#
+# The NiceGUI user simulation calls `gc.collect()` twice for each test. A full
+# collection examines each tracked object. The heap grows to more than a million
+# objects during the suite. Thus each collection becomes slower, and the suite
+# took 21 minutes.
+#
+# `gc.freeze()` moves all objects that are alive now to a permanent generation.
+# `gc.collect()` does not examine them. At the start of each module, this hook
+# releases the previous freeze, collects, and freezes again. Thus the garbage of
+# a module is released when the next module starts.
+
+import gc
+
+_frozen_module = None
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item) -> None:
+    global _frozen_module
+    if item.module is not _frozen_module:
+        gc.unfreeze()
+        gc.collect()
+        gc.freeze()
+        _frozen_module = item.module
+
+
+def pytest_sessionfinish(session) -> None:
+    gc.unfreeze()

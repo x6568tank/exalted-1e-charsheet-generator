@@ -39,8 +39,36 @@ tests. It is `tests/test_extract_columns.py`, the column-splitting guards added 
 born-digital extractor fixes in `bb5adae`. A data sweep that adds no tests moves this
 number by zero, which is worth remembering before reading a jump as coverage.
 
-Run with `.venv/bin/python -m pytest`. The suite takes 6–7 minutes; **if nothing
-executable has changed since the last green run, reuse that number and say so.**
+Run with **`.venv/bin/python -m pytest -n 4`** (pytest-xdist, in the `dev` extra:
+`.venv/bin/pip install -e '.[dev]'`). On the 8-core dev laptop, 2026-10-09: **4:42 with `-n 4`**
+on 4,390 tests. Measured earlier the same day on 4,177 tests: 3:00 with `-n 4`, 2:27 with
+`-n auto` (8 workers), 8:06 in one process, 21:22 before the fix. ⚠ **Not `-n auto`
+by default**: it pins every core for the run and the human's machine stops being
+usable (the human, 2026-10-09: "good lord"). **If nothing
+executable has changed since the last green run, reuse that number and say so.** For one
+file or a `-k` selection, leave `-n` off: starting the workers costs more than it saves.
+
+### Why the suite was slow, and the two fixes (2026-10-09)
+
+- ⚠ **The NiceGUI user simulation calls a full `gc.collect()` twice per UI test**
+  (`nicegui/testing/general.py`, `nicegui_reset_globals`), ~520 UI tests. A full
+  collection walks every tracked object, and the heap grows past a million objects
+  during the suite, so each collection got slower as the run went on: a UI test's
+  setup took 0.3 s alone and 1.6 s late in a full run. **Fix:** `tests/conftest.py`
+  freezes the heap (`gc.freeze()`) at the start of each test module, so the per-test
+  collections only walk what that module made.
+- **Parallel workers** (`-n 4`). Tests isolate their files under `tmp_path`, and the
+  NiceGUI simulation is per process, so the suite runs green across workers. Of three
+  `-n auto` runs, one failed `test_traits_reload_holds_scroll_position` — and that
+  test turned out to be **vacuous**: the scroll hold from building the page put the
+  bar back to 0 before it saved, so it compared 0 with 0, and it tested the mechanism
+  only when a loaded CPU let that hold expire first. Fixed (it waits out the hold and
+  asserts `saved > 0`), negative-controlled against a removed `_hold_scroll`.
+  ⚠ The scroll hold is time-based (120 ms). Under heavy load a layout pass can land
+  after it releases; a Qt scroll test that fails only under `-n` is that, first.
+- Not fixed, measured: each UI test re-runs its main file, which re-loads the rulebook
+  (~0.1 s a test); ~18 table tests wait on the real 2 s poll
+  (`table_view.POLL_SECONDS`).
 
 ## Reading the number
 

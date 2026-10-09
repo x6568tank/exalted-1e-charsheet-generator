@@ -1,6 +1,48 @@
-# Session handoff — 2026-09-26 (the packaged webapp retired; README rewritten; v1.4.0 released)
+# Session handoff — 2026-10-09 (refactor pass opened; item 1, the suite speed, done)
 
 # 👉 YOU ARE HERE
+
+**Features are paused for an optimization and refactoring pass** (the human, 2026-10-09:
+*"we're done with features for now"*). The plan, its order and the deferred runtime
+findings: **`docs/plans/refactor-pass.md`. Read it first.**
+
+* **Item 1, the suite speed: DONE, committed and pushed.** The suite is **~3–5 min with
+  `.venv/bin/python -m pytest -n 4`** (was 21:22 in one process). Two changes: a
+  per-module `gc.freeze()` in `tests/conftest.py` (NiceGUI's user simulation runs a
+  full `gc.collect()` twice per UI test over a heap past a million objects), and
+  pytest-xdist in the `dev` extra. Detail: `docs/testing.md`.
+  * ⚠ **Each machine needs `.venv/bin/pip install -e '.[dev]'` once**, or `-n` is an
+    error.
+  * ⚠ **`-n 4`, never `-n auto`**: all 8 cores made the laptop unusable (the human:
+    *"good lord"*). Ask before repeated full parallel runs.
+  * 🐞 Found on the way: `test_traits_reload_holds_scroll_position` was vacuous (it
+    compared 0 with 0). Fixed and negative-controlled.
+* ⚠ **The measurements were taken on a STALE checkout.** This laptop's `main` was at
+  `dd997e5` (P3 step 9 built). The other machine had pushed 24 commits (P4, accounts,
+  v1.4.0). The suite work was rebased onto them, then re-run green (number below). The
+  runtime profile in `refactor-pass.md` (line counts, the ~350 ms builder page, the Qt
+  window) is from the old tree: **re-measure before you act on it.**
+
+**Next: item 2 — split `ui/view.py`** the way `engine/validate/` was split
+(`docs/plans/validate-refactor.md` is the worked example: a facade package that
+re-exports every name, so no call site changes; the suite green at every commit; a
+written import DAG). Re-count the oversized modules first; the list in
+`refactor-pass.md` predates the 24 commits. Then items 3 (docstrings) and 4 (values
+computed twice across `ui/` and `qt/`), then the four deferred runtime findings.
+
+**Suite:** 4390 passed + 1 skipped, **OBSERVED 2026-10-09 with `-n 4` in 4:42** on the rebased tree (the 3:00 and 8:06 in `docs/testing.md` were measured on the old tree, 4,177 tests).
+
+**Working tree:** clean after this commit, pushed to `origin/main`.
+
+**Deployed:** unchanged — this work touches tests, docs and the dev extra only.
+
+🖱 **Owed:** nothing.
+
+❓ **Open for the human:** nothing.
+
+---
+
+## The session before — the packaged webapp retired; v1.4.0 (2026-09-26)
 
 **The packaged webapp is retired (decision 0021) and v1.4.0 is released, Qt only.**
 

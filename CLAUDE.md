@@ -211,7 +211,8 @@ Read 0019 before you cite 0009. Read 0016 before you cite 0008 against a pool ca
 - Python, pydantic v2, pytest.
 - Frontend: NiceGUI, in the optional `[ui]` extra. Qt frontend: PySide6, in
   `exalted_builder/qt/`. Start it with `python -m exalted_builder.qt [path]`.
-- The virtual environment is `.venv/`. Run the tests with `.venv/bin/python -m pytest`.
+- The virtual environment is `.venv/`. Run the tests with `.venv/bin/python -m pytest -n 4`.
+  See `docs/testing.md`.
 - Git remote `origin` is `github.com/x6568tank/exalted-1e-charsheet-generator`. It tracks
   `main`.
 - A `v*` tag builds two assets: two operating systems x the Qt product. A build that is not
@@ -340,5 +341,6 @@ the primary trap.
 | Deploying to the home server: the container, the tunnel, the backups | `deploy/homeserver.md` |
 | Accounts: email, password change, logins, delete, rename | `plans/account-management.md` |
 | Variant-menu Charms | `plans/variant-menu-charms.md` |
+| The optimization and refactoring pass, and the deferred runtime findings | `plans/refactor-pass.md` |
 | Why the Mist numina are deferred: there is no effect list to author | `status/mist-numina.md` |
 | The full multi-splat plan | `~/.claude/plans/should-we-plan-out-encapsulated-crab.md` |

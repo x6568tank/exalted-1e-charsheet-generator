@@ -195,12 +195,15 @@ def test_traits_reload_holds_scroll_position(qtbot, ruleset):
     qtbot.addWidget(page)
     page.resize(1000, 700)
     page.show()
-    for _ in range(6):
-        QApplication.processEvents()
+    QApplication.processEvents()
+    qtbot.wait(250)                         # let the construction scroll-hold release
     bar = page._body_scroll.verticalScrollBar()
     assert bar.maximum() > 0                # the form really overflows
     bar.setValue(bar.maximum() // 2)
     saved = bar.value()
+    # ⚠ Without the wait above, the construction hold puts the bar back to 0, and the
+    # test compares 0 with 0.
+    assert saved > 0
     page.add_craft()                        # a body reload
     for _ in range(6):
         QApplication.processEvents()
