@@ -6,7 +6,7 @@ and the running available-XP must all stay consistent, and undo must reverse the
 
 import pytest
 
-from exalted_builder.engine import advancement, derive, lifecycle
+from exalted_builder.engine import advancement, costs, derive, lifecycle
 from exalted_builder.models.character import Character, Specialty
 from exalted_builder.models.rules import (
     AbilityName,
@@ -399,7 +399,7 @@ def test_raise_to_refuses_the_whole_click_when_only_part_is_affordable():
     """A half-applied click is the failure mode this exists to prevent: the player
     asked for 5 and must not silently land on 4 with their XP gone."""
     rs, c = _ruleset(), _locked(xp=200)
-    one = advancement.costs.attribute_step(rs, c, 3, AT.DEXTERITY)
+    one = costs.attribute_step(rs, c, 3, AT.DEXTERITY)
     c.xp_earned = one + 1                              # enough for the first dot only
     with pytest.raises(advancement.AdvancementError):
         advancement.raise_to(rs, c, "attributes.dexterity", 5)

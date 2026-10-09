@@ -330,17 +330,19 @@ def test_no_module_in_the_chargen_or_xp_path_imports_pools():
     knows what a wound penalty is; if validate or advancement ever imports it, the
     isolation that decision 0006 protects has been breached.
 
-    ⚠ `validate` is a PACKAGE, so its target expands to every module inside it — a
-    check that named only `validate/__init__.py` would go blind to the domain
-    modules the 2026-08-17 split moved the rules into. The targets are asserted to
+    ⚠ `validate` and `advancement` are PACKAGES, so each target expands to every
+    module inside it — a check that named only `__init__.py` would go blind to the
+    domain modules the 2026-08-17 and 2026-10-09 splits moved the rules into. The targets are asserted to
     exist for the same reason: a missing file must fail, never silently pass.
     """
     import re
     root = pathlib.Path(pools.__file__).parent
     importer = re.compile(r"^\s*(from\s+\S*\s+import\s+.*\bpools\b|import\s+.*\bpools\b)",
                           re.MULTILINE)
-    targets = [root / name for name in ("advancement.py", "lifecycle.py", "costs.py")]
-    targets += sorted((root / "validate").rglob("*.py"))
+    targets = [root / name for name in ("lifecycle.py", "costs.py")]
+    for package in ("validate", "advancement"):
+        assert (root / package).is_dir(), f"{package}/ is not a package — update the targets"
+        targets += sorted((root / package).rglob("*.py"))
     assert len(targets) >= 4, f"target list collapsed to {targets} — the walk is broken"
     for path in targets:
         assert path.exists(), f"{path} does not exist — update this test's targets"

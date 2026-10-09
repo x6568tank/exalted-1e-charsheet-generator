@@ -13,7 +13,7 @@ that Art." Keep `_refuse` raising exactly that.
 
 **Naming.** Several of these share a name with the `engine.advancement` function they
 call after the lock (`raise_thaum_science`, `add_thaum_orientation`). That is why this
-is its own module rather than more of `advancement.py`: the dispatcher and the priced
+is its own module rather than more of `advancement`: the dispatcher and the priced
 purchase are two different things and cannot both be `advancement.raise_thaum_science`.
 Read `thaum_actions.x` as "the lock-aware x", `advancement.x` as "the XP purchase".
 

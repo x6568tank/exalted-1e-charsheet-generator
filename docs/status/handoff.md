@@ -1,49 +1,63 @@
-# Session handoff — 2026-10-09 (refactor pass: item 2, the `ui/view.py` split, done)
+# Session handoff — 2026-10-09 (refactor pass: item 2, the module splits, done)
 
 # 👉 YOU ARE HERE
 
 **Features are paused for an optimization and refactoring pass.** Plan, order and the
 deferred runtime findings: **`docs/plans/refactor-pass.md`. Read it first.**
 
-* **Item 2: `ui/view.py` (5,143 lines) is now the package `ui/view/`.** It has 21 domain
-  modules and a facade, and the largest module is `sheet.py` (~780 lines). It was split
-  the `engine/validate/` way: `view.X` still resolves everywhere, and **no call site
-  changed** except one test's monkeypatch. The module list and the DAG are in
-  `ARCHITECTURE.md`, "`ui/view/` — a package". The record is in `refactor-pass.md`,
-  "Item 2".
-  * The safety net is **`tests/test_view_facade.py`**. It was written first, and it passed
-    on the unsplit file.
-  * 🐞 **What the safety net missed at first:** ten *function-local* `from ..engine import
-    …` lines needed a third dot. The undefined-name check cannot see this kind of error,
-    and 105 tests failed. A relative-import resolution check now catches it, and it is
-    negative-controlled.
-  * ⚠ **A monkeypatch on the facade does not reach a domain module.** Patch the module
-    that reads the name. This will bite in every later split as well.
-* Item 1 (suite speed) was done earlier the same day; see `refactor-pass.md`.
+* **Item 2 is DONE: three modules split into facade packages**, each the
+  `engine/validate/` way (`pkg.X` still resolves; a script did the move; every line and
+  name accounted for):
+  * `ui/view.py` 5,143 → `ui/view/`, 21 modules (`9076302`)
+  * `models/rules.py` 3,162 → `models/rules/`, 9 modules (`bbbeda3`)
+  * `engine/advancement.py` 2,173 → `engine/advancement/`, 9 modules
+  Module lists and DAGs: `ARCHITECTURE.md`. The record: `refactor-pass.md` item 2.
+* **The size pass is over, by the human's rule** ("if a file is better off on its own,
+  don't split it"). Everything left above ~1,200 lines is one class (`CharmsPage`,
+  `_TableView`, …), one closure-built function (`build_picker`, `build_editor`), or a
+  file whose size is its point (`engine/merits.py`, decision 0011). The list with reasons
+  is in `refactor-pass.md`. ⚠ A further split there is a class/function DECOMPOSITION,
+  a different refactor with behaviour risk — ask before starting one.
+* The safety net is **`tests/test_package_facades.py`**, parametrized over all three
+  packages. Add a package to `PACKAGES` BEFORE splitting it.
+* 🐞 Traps hit on the way, all now enforced: function-local relative imports needing a
+  dot (105 failures, now a resolution check); a monkeypatch on a facade not reaching the
+  domain module; `advancement.costs` read through the facade; a test naming
+  `advancement.py` by path.
+* ⚠ **A new `XpEntry.target` domain now touches three modules:** the purchase,
+  `advancement/undo.py`, `advancement/audit.py` (plus `ui/view/xp_log.py`'s label).
 
-**Next:** continue item 2 with the next oversized module. Re-counted today:
-`models/rules.py` 3,162, `qt/charms.py` 3,121, `engine/advancement.py` 2,173,
-`ui/picker.py` 2,155, `server/table_view.py` 2,092. Ask the human which, if any, is worth
-splitting. Several may be cohesive, as `budgets.py` was. Then item 3 (docstrings), then
-item 4 (values computed twice across `ui/` and `qt/`), then the four deferred runtime
-findings. Their paths are now easier to see in `ui/view/`.
+**Next:** item 3, the docstring pass (`CLAUDE.md` §6, `docs/comment-standard.md`): input,
+output and mechanism only, no decision logs. Then item 4 (values computed twice across
+`ui/` and `qt/`), then the four deferred runtime findings, now easier to see in the split
+packages.
 
-**Suite:** 4397 passed + 1 skipped, **OBSERVED 2026-10-09 with `-n 4` in 4:35** (4390
-+ the 7 new safety-net tests). Only comments and docs changed after that run, and the two
-affected test files re-ran green (57).
+🐞 **A pre-existing timing flake, not from the splits:**
+`test_traits_reload_holds_scroll_position` failed once under `-n 4` (bar at 0, expected 96)
+and passes alone 5/5. `_hold_scroll` in `qt/editor.py` releases on a fixed 120 ms
+wall-clock timer, so a slow layout pass can land after it. A slow machine would show the
+same thing. Not fixed; detail is in `refactor-pass.md`.
 
-**Working tree:** **dirty, uncommitted.** The split, the new test, the comment repoints
-(`ui/view.py` → `ui/view/`), `ARCHITECTURE.md`, `refactor-pass.md` and this file are
-uncommitted on top of `d8a8667`. They are not pushed.
+**Suite:** 4425 passed + 1 skipped, **OBSERVED 2026-10-09 in ONE process (10:58)**.
+This is a clean re-run: the `-n 4` run before it failed on the flake above and on a test
+I edited mid-run. The arithmetic: 4412 + 5 facade cases + 9 `test_engine_seam` cases (one
+per new file).
 
-**Deployed:** unchanged. The server runs this code, so it needs a rebuild once the split
-is pushed. No behaviour changed.
+**Working tree:** clean after the advancement commit, pushed to `origin/main`.
 
-🖱 **Owed:** nothing. This is a pure move. A smoke launch of the Qt app and of the dev
-builder after the push is cheap insurance, but it is not a checklist.
+**Deployed:** unchanged. The server runs this code, so rebuild after this push. No
+behaviour changed.
 
-❓ **Open for the human:** nothing on rules. Decide whether to commit and push, and
-which module (if any) to split next.
+🖱 **Owed:** nothing. These are pure moves. A smoke launch of the Qt app after the rebuild
+is cheap insurance.
+
+❓ **Open for the human:** nothing on rules.
+
+---
+
+## The session before — the `ui/view.py` split, earlier the same day
+
+See `refactor-pass.md` item 2. The first split; the safety net was born there.
 
 ---
 

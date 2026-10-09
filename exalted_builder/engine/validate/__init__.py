@@ -10,7 +10,7 @@ This module holds two things and nothing else:
 
   * **`validate()`** — the post-lock roll-up. Every `check_*` in the package must be
     reachable from it, from `validate_chargen` (in `budgets.py`) or from
-    `validate_xp` (in `engine/advancement.py`).
+    `validate_xp` (in `engine/advancement/audit.py`).
     `tests/test_validator_rollup.py` asserts exactly that, because a checker dropped
     from this function keeps passing its own unit tests and silently stops running.
   * **the facade** — `validate.X` is the ONE public path to every name in the

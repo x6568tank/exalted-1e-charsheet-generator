@@ -40,6 +40,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 PACKAGES = [
     ("exalted_builder.ui.view", 150),
     ("exalted_builder.models.rules", 50),
+    ("exalted_builder.engine.advancement", 40),
 ]
 _IDS = [dotted.rsplit(".", 1)[1] for dotted, _ in PACKAGES]
 

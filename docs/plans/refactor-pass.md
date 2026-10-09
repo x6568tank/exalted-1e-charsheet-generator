@@ -23,7 +23,9 @@ Left, measured, not done: each UI test re-loads the rulebook through its main fi
 (~0.1 s); ~18 table tests wait on the real 2 s poll; NiceGUI's own event dispatch
 (`inspect.signature` per change) is ~10% of a UI test.
 
-## Item 2 — split `ui/view.py`: DONE 2026-10-09
+## Item 2 — split the oversized modules: DONE 2026-10-09
+
+### `ui/view.py` → `ui/view/`
 
 5,143 lines → the package `ui/view/`, 21 domain modules and a facade. One commit,
 mechanical: a script sliced the file by line range, computed each module's imports from
@@ -69,17 +71,51 @@ minimums, `EssencePoolSpec`, `BackgroundBudgetTier`. No call site changed. The s
 over the view split: +5 facade tests, +9 `test_engine_seam` cases (it parametrizes per
 engine-side file, and `rules/` is 9 files where `rules.py` was 1).
 
+### `engine/advancement.py` → `engine/advancement/`: DONE 2026-10-09
+
+2,173 lines → 9 modules, largest `traits.py` (~670). The sections were already
+independent: every module imports only `_base` (the XP ledger and the commit helpers),
+and `traits` also imports `undo` (`refund_to` calls `undo_last`). Same script and checks.
+
+* 🐞 **An imported module was public surface again** — the validate split's lesson 2.
+  `tests/test_advancement.py` read `advancement.costs.attribute_step`. The facade walk
+  caught it before the suite ran; the test imports `costs` directly now.
+* 🐞 **A test named the file.** `test_no_module_in_the_chargen_or_xp_path_imports_pools`
+  listed `advancement.py` by name. It asserted existence, so it failed loudly rather than
+  going blind; it expands `advancement/` like `validate/` now, negative-controlled by
+  planting a `pools` import.
+* ⚠ The three branches a new `XpEntry.target` needs are in three modules now:
+  `magic`/`traits`/… (the purchase), `undo.undo_last`, `audit._expected_cost`. The
+  facade docstring says so.
+* 🐞 **A timing flake, NOT from the split:** `test_traits_reload_holds_scroll_position`
+  failed once under `-n 4` (bar 0, expected 96) and passes alone 5/5. `_hold_scroll`
+  (`qt/editor.py`) releases on a fixed 120 ms wall-clock timer; under load the layout
+  pass that yanks the bar can land after the release. That is also the product's
+  behaviour on a slow machine. Not fixed — a candidate for the deferred runtime work.
+
+**Suite: 4,425 passed + 1 skipped, OBSERVED 2026-10-09 in ONE process (10:58)** — a clean re-run after the `-n 4` run above failed on the flake and on `test_pools` (edited mid-run). +14: +5 facade cases, +9 `test_engine_seam` cases.
+
 ### Not split, by the human's rule ("if a file is better off on its own, don't")
 
 * `qt/charms.py` (3,121) — 2,386 lines are ONE class, `CharmsPage` (86 methods).
 * `ui/picker.py` (2,155) — 1,993 lines are ONE function, `build_picker` (closures).
 * `server/table_view.py` (2,092) — 1,447 lines are ONE class, `_TableView`.
+* `qt/advantages.py` (1,776), `qt/custom.py` (1,191), `ui/editor.py` (1,576),
+  `ui/advantages.py` (1,336) — the same: one page class or one `build_*` function.
+* `qt/editor.py` (1,700) — the Edit tab's class hierarchy: `_EditorPage` (603) and its two
+  subclasses `IdentityPage` and `TraitsPage`. A reader of either needs the base; kept.
+* `qt/party.py` (1,581) — `PartyPage` (922) and `PartyWindow` (365), one window.
+* `engine/validate/charms.py`, `budgets.py` — judged cohesive in the 2026-08-17 split.
+* `engine/merits.py` (1,215) — decision 0011's ONE calculation; its containment test
+  keys on that path. Splitting it would defeat the rule it exists for.
+
+**The size pass ends here.** Everything left above ~1,200 lines is one class, one
+function, or a file whose size is its point.
 
 A file split cannot move a class or a closure; each would need a decomposition of the
 class or the function, which is a different refactor with real behaviour risk.
 
-Next by size, re-counted 2026-10-09: `models/rules.py` 3,162, `qt/charms.py` 3,121,
-`engine/advancement.py` 2,173, `ui/picker.py` 2,155, `server/table_view.py` 2,092.
+
 
 ## Runtime measurements, 2026-10-09 (dev laptop)
 

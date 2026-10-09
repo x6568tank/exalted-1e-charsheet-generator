@@ -98,7 +98,7 @@ no mutation.
 | `validate/` | Is this legal? Chargen budgets, trait minimums, Charm prerequisites, Combos, Arrays, spell access, splat gates, the canonical Charm-pick enumeration. **A package of 15 domain modules** — see below |
 | `derive.py` | What follows from the traits? Willpower, Essence pools, the health track, soak, Clarity |
 | `costs.py` | What did chargen cost? Bonus-point accounting and the per-purchase breakdown |
-| `advancement.py` | What does this cost now, and was the ledger honest? Post-lock purchases and the XP audit |
+| `advancement/` | What does this cost now, and was the ledger honest? Post-lock purchases and the XP audit. **A package since 2026-10-09**, split like `ui/view/`: `advancement.X` is the one public path; modules `_base` (the ledger) · `undo` · `traits` · `magic` · `charm_slots` · `thaumaturgy` · `audit` · `merit_purchases` · `fetters`. ⚠ A new `XpEntry.target` domain needs a purchase function, a branch in `undo.undo_last` and one in `audit._expected_cost` — three modules now |
 | `lifecycle.py` | `lock_chargen` / `unlock_chargen` — the transition between the two modes |
 | `refit.py` | Alchemical vat refit: moving Charms between Slots and the Panoply |
 | `adversaries.py` | The little the GM roster needs: template instantiation, the printed health/trait/attack notation codec, damage track, armour+shield soak and dodge. No validation — an `Adversary` is never built to a budget |
