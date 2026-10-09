@@ -979,7 +979,7 @@ def load_adversary_catalog(data_dir: str | Path) -> dict[str, Adversary]:
     Deliberately NOT part of the RuleSet, and loaded by its own call. The
     templates are book data, but they are not rules: nothing resolves a
     prerequisite through them, nothing link-checks them, and no character is ever
-    validated against one. Keeping them out also keeps models/rules.py from
+    validated against one. Keeping them out also keeps models/rules/ from
     importing the character-domain Adversary, which would be an import cycle.
 
     Raises RuleDataError on malformed rows, the same as the rest of the book data

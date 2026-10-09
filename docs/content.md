@@ -4,13 +4,13 @@ How the JSON under `exalted_builder/data/` is organised, and the conventions tha
 new row load instead of being rejected.
 
 **This file does not list fields.** The authoritative, field-level truth is the pydantic
-models in `exalted_builder/models/rules.py` — read them, or copy a working row out of
+models in `exalted_builder/models/rules/` — read them, or copy a working row out of
 `data/charm.example.json` (annotated) or `data/armor.json`. A hand-written schema table
 here would drift the first time a field is added, and then there would be two answers.
 
 | I want to… | Read |
 |---|---|
-| know a field's name, type or default | `models/rules.py` |
+| know a field's name, type or default | `models/rules/` |
 | see a minimal working row | `data/charm.example.json` |
 | transcribe Charms from a book page | `tools/CHARM_AUTHORING_SPEC.md` |
 | check a file before committing it | `tools/validate_charms.py` |

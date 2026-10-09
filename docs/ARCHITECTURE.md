@@ -43,7 +43,7 @@ id. Keeping those two domains apart is the central idea of the whole design.
 | What | The rulebook: Charms, spells, costs, budgets, gear | One character's current state and its audit trail |
 | Where | `exalted_builder/data/*.json` (+ the user's `custom/`) | A `.character.json` wherever the user put it |
 | Lifetime | Loaded once at startup, read-only | Mutated constantly while building |
-| Shape | `models/rules.py` → `RuleSet` | `models/character.py` → `Character` |
+| Shape | `models/rules/` → `RuleSet` | `models/character.py` → `Character` |
 | Identity | Stable string ids (`solar.melee.fire-and-stones-strike`) | References rules **by id, never by name** |
 
 ## Module responsibilities
@@ -55,9 +55,13 @@ ratings, valid enums, ratings ≤ 5 where the trait is bounded. Game legality �
 caps, prerequisites, whether that Charm is learnable — is `engine/validate.py`'s job,
 because it needs the `RuleSet` and the models deliberately do not have it.
 
-* `rules.py` — the catalogue: `Charm`, `Spell`, `CasteDefinition`, `ExaltDefinition`,
-  the cost/budget tables, `RuleSet` itself, and the shared enums.
-* `character.py` — the save file. It imports the shared **enums** from `rules.py`
+* `rules/` — the catalogue: `Charm`, `Spell`, `CasteDefinition`, `ExaltDefinition`,
+  the cost/budget tables, `RuleSet` itself, and the shared enums. A package since
+  2026-10-09, split like `ui/view/` (below): `rules.X` is the one public path, and the
+  modules in dependency order are `_base` (the enums and the shared small models) ·
+  `charms` · `castes` · `thaumaturgy` · `gear` · `backgrounds` · `traits` · `budgets` ·
+  `ruleset`. `tests/test_package_facades.py` guards it.
+* `character.py` — the save file. It imports the shared **enums** from `rules`
   (`AbilityName`, `AttributeName`, `VirtueName`, `Damage`, `Orientation`) because both
   domains name the same traits; it must never import the **catalogue** — no `RuleSet`,
   no `Charm`. That is the line, and it is what "the models don't import the rules"
@@ -185,7 +189,7 @@ above it:
   `ui/view/play.py` would make `from .. import play` and `from . import play` two
   different modules. Hence `play_state`, `combo_rows`, `custom_forms`, `adversary_rows`.
 
-`tests/test_view_facade.py` guards it: every `view.X` read anywhere must resolve, every
+`tests/test_package_facades.py` guards it (and `models/rules/`): every `view.X` read anywhere must resolve, every
 public name must be on the facade, no function reads an unbound name, every relative
 import resolves (a function-local `from ..engine import dice` broke in the split and
 nothing else saw it statically), and the basename rule.
@@ -271,7 +275,7 @@ validated against the budgets       wp_virtue_component     xp_log, audited agai
 ## Data conventions
 
 * **Schemas live in code.** The authoritative field-level truth is
-  `models/rules.py` and `models/character.py`. Do not duplicate a schema into prose
+  `models/rules/` and `models/character.py`. Do not duplicate a schema into prose
   where it can drift; for a working example of a data file, copy
   `data/charm.example.json` or `data/armor.json`.
 * **Ids are stable, namespaced strings** — `solar.melee.fire-and-stones-strike`. User

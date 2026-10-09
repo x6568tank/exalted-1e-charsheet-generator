@@ -41,7 +41,7 @@ once. Module list and the DAG: `ARCHITECTURE.md`, "`ui/view/` — a package".
 Five helpers moved to `_base` to break the one cycle (`charm_trees` ↔ `sheet`):
 `_cost_str`, `_charm_description`, `_SHAPING_TURNS`, `source_label`, `_health_label`.
 
-The safety net, `tests/test_view_facade.py`, was written first and passed on the unsplit
+The safety net, `tests/test_view_facade.py` (now `test_package_facades.py`), was written first and passed on the unsplit
 file. What went wrong anyway:
 
 1. **Function-local relative imports.** Ten `from ..engine import dice` lines inside
@@ -52,6 +52,31 @@ file. What went wrong anyway:
    `viewmod.build_play_view`; `build_party_card_view` reads it inside `play_state`. It
    patches `view.play_state` now. (`test_qt_play`'s twin still patches the facade,
    correctly — `qt/play.py` reads `viewmod.build_play_view`.)
+
+### `models/rules.py` → `models/rules/`: DONE 2026-10-09
+
+3,162 lines → 9 modules, largest `budgets.py` (~900, the cost tables and
+`ExaltDefinition`). Same script, same checks: every line and every name accounted for,
+the real rulebook loads (1,921 Charms), and every pydantic model reports
+`__pydantic_complete__` — a forward reference to a name a module does not import only
+fails at validation time, so that check matters more here than an import. Eight small
+shared models moved to `_base` to break the one cycle (`charms`/`castes` ↔ `budgets` ↔
+`backgrounds`): `Source`, `Damage`, `DAMAGE_LABELS`, the three ability/attribute
+minimums, `EssencePoolSpec`, `BackgroundBudgetTier`. No call site changed. The safety net is now
+`tests/test_package_facades.py`, parametrized over both packages.
+
+**Suite: 4,411 passed + 1 skipped, OBSERVED 2026-10-09 at `-n 4` in 4:44.** The +14
+over the view split: +5 facade tests, +9 `test_engine_seam` cases (it parametrizes per
+engine-side file, and `rules/` is 9 files where `rules.py` was 1).
+
+### Not split, by the human's rule ("if a file is better off on its own, don't")
+
+* `qt/charms.py` (3,121) — 2,386 lines are ONE class, `CharmsPage` (86 methods).
+* `ui/picker.py` (2,155) — 1,993 lines are ONE function, `build_picker` (closures).
+* `server/table_view.py` (2,092) — 1,447 lines are ONE class, `_TableView`.
+
+A file split cannot move a class or a closure; each would need a decomposition of the
+class or the function, which is a different refactor with real behaviour risk.
 
 Next by size, re-counted 2026-10-09: `models/rules.py` 3,162, `qt/charms.py` 3,121,
 `engine/advancement.py` 2,173, `ui/picker.py` 2,155, `server/table_view.py` 2,092.

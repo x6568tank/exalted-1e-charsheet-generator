@@ -32,7 +32,7 @@ from __future__ import annotations
 
 # Re-exported, not defined here. `view.X` is the ONE public path to every presenter
 # name. A domain module is an implementation detail, not a second front door.
-# tests/test_view_facade.py fails if a caller reads a name that is not here.
+# tests/test_package_facades.py fails if a caller reads a name that is not here.
 #
 # ⚠ A monkeypatch on this module does not reach the domain modules. Patch the
 # module that defines the name AND each module that reads it.

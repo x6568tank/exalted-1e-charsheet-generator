@@ -208,7 +208,7 @@ def test_awareness_charms_gate_on_the_generic_unsurpassed_sense_discipline(rs):
 def test_castebook_multi_gate_charms_check_but_never_price_their_second_ability(rs):
     """Four castebook Charms print a second "Minimum <Ability>" line. `min_ability`
     stays the PRIMARY (category) gate — the extras are requirement checks only and must
-    never leak into Caste/Favoured pricing (the rule set out in models/rules.py)."""
+    never leak into Caste/Favoured pricing (the rule set out in models/rules/)."""
     extras = {
         "solar.linguistics.masterful-training-manual": (AB.LORE, 3),
         "solar.performance.impenetrable-identity": (AB.PRESENCE, 3),

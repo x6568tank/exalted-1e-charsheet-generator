@@ -286,7 +286,7 @@ class PathRating(BaseModel):
 
 
 # --------------------------------------------------------------------------- #
-# Thaumaturgy holdings (Player's Guide CH3). See models/rules.py for the
+# Thaumaturgy holdings (Player's Guide CH3). See models/rules/ for the
 # catalogue side and docs/status/thaumaturgy.md for the design.
 # --------------------------------------------------------------------------- #
 

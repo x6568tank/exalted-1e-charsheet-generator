@@ -575,7 +575,7 @@ def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
     `catalog` is passed in rather than read off the RuleSet on purpose. The
     templates are book data, but they are not *rules*: they take no part in
     prerequisite resolution or load-time link-checking, which is what a RuleSet
-    is for. Keeping them out also keeps models/rules.py from having to import the
+    is for. Keeping them out also keeps models/rules/ from having to import the
     character-domain Adversary, which would be a cycle."""
     party = party_of()
 

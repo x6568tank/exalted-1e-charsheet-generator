@@ -1,50 +1,68 @@
 """
-tests/test_view_facade.py — the safety net for the split of `ui/view.py`.
+tests/test_package_facades.py — the safety net for each module that the refactor pass
+split into a facade package.
 
 Plan: docs/plans/refactor-pass.md, item 2. The worked example is
-docs/plans/validate-refactor.md. This file exists BEFORE the split, on purpose.
+docs/plans/validate-refactor.md. Each package is added to `PACKAGES` BEFORE its split,
+and the tests must pass on the unsplit file first.
 
-`view.X` is the ONE public path to every presenter name. 95 files reach the
-presenter through `view`, `viewmod` or a `from .view import` line. A split keeps
-them working only while the facade in `ui/view/__init__.py` re-exports every name
-that a caller reads. These tests make that a checked fact.
-
-Four guards:
+`pkg.X` is the ONE public path to every name of a split package. Callers keep working
+only while the facade `__init__.py` re-exports every name that a caller reads. These
+tests make that a checked fact. For each package:
 
 * Every public name that a domain module defines is on the facade.
-* Every `<alias>.X` in the codebase, where the alias is bound to the view module,
-  resolves. Also every name in a `from ...view import` line. This walk goes from the
+* Every `<alias>.X` in the codebase, where the alias is bound to the package,
+  resolves. Also every name in a `from ...pkg import` line. This walk goes from the
   callers, so it also sees private names and imported modules that a caller reads.
 * No function in the package reads a name that no scope binds. A domain module that
   lacks an import fails here, before a branch of the suite runs it.
-* No domain module has the basename of a module in `ui/`. See the naming rule in
-  docs/plans/validate-refactor.md: `from .. import play` and `from . import play`
-  must not be two different modules.
+* Every relative import in the package resolves.
+* No domain module has the basename of a sibling module of the package. See the
+  naming rule in docs/plans/validate-refactor.md: `from .. import play` and
+  `from . import play` must not be two different modules.
 """
 
 from __future__ import annotations
 
 import ast
+import importlib
+import importlib.util
 from pathlib import Path
+
+import pytest
 
 from tests.test_validator_rollup import _loads, _module_scope, _own_scope
 
 _ROOT = Path(__file__).resolve().parents[1]
-_UI = _ROOT / "exalted_builder" / "ui"
-_VIEW_DOTTED = "exalted_builder.ui.view"
+
+# (dotted name, the least number of distinct names that callers read). The minimum
+# is a premise: a walk that finds fewer names is broken, not clean.
+PACKAGES = [
+    ("exalted_builder.ui.view", 150),
+    ("exalted_builder.models.rules", 50),
+]
+_IDS = [dotted.rsplit(".", 1)[1] for dotted, _ in PACKAGES]
 
 
-def _view_files() -> list[Path]:
-    """Every source file of the presenter: the package, or the single module."""
-    package = _UI / "view"
-    if package.is_dir():
-        return sorted(package.rglob("*.py"))
-    return [_UI / "view.py"]
+def _location(dotted: str) -> Path:
+    """The path of the package, or of the single module before the split, without
+    the suffix."""
+    return _ROOT.joinpath(*dotted.split("."))
 
 
-def _domain_files() -> list[Path]:
+def _package_files(dotted: str) -> list[Path]:
+    """Every source file of the package, or the single module before the split."""
+    where = _location(dotted)
+    if where.is_dir():
+        return sorted(where.rglob("*.py"))
+    return [where.with_suffix(".py")]
+
+
+def _domain_files(dotted: str) -> list[Path]:
     """The domain modules of the package. Empty before the split."""
-    return [p for p in _view_files() if p.name != "__init__.py" and p.parent.name == "view"]
+    where = _location(dotted)
+    return [p for p in _package_files(dotted)
+            if p.name != "__init__.py" and p.parent == where]
 
 
 def _toplevel_names(tree: ast.Module) -> set[str]:
@@ -59,40 +77,35 @@ def _toplevel_names(tree: ast.Module) -> set[str]:
     return names
 
 
-def _is_view_module(module: str | None, level: int, path: Path) -> bool:
-    """True if `from <module> import ...` (at `level`) in `path` names the presenter
-    package or one of its parents."""
+def _absolute(module: str | None, level: int, path: Path) -> str:
+    """The dotted name that `from <dots><module> import` in `path` names."""
     if level == 0:
-        return module == _VIEW_DOTTED
-    package = path.parent
-    for _ in range(level - 1):
-        package = package.parent
-    try:
-        base = ".".join(package.relative_to(_ROOT).parts)
-    except ValueError:
-        return False
-    return (f"{base}.{module}" if module else base) == _VIEW_DOTTED
+        return module or ""
+    package = ".".join(path.parent.relative_to(_ROOT).parts)
+    return importlib.util.resolve_name("." * level + (module or ""), package)
 
 
-def _view_references(path: Path, tree: ast.AST) -> set[str]:
-    """Every name that `path` reads from the view module: `<alias>.X` for each alias
-    an import binds to the module, and each name of a `from ...view import` line."""
+def _references(dotted: str, path: Path, tree: ast.AST) -> set[str]:
+    """Every name that `path` reads from the module `dotted`: `<alias>.X` for each
+    alias an import binds to the module, and each name of a `from <module> import`
+    line."""
+    parent, leaf = dotted.rsplit(".", 1)
     aliases: set[str] = set()
     names: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
-                if alias.name == _VIEW_DOTTED and alias.asname:
+                if alias.name == dotted and alias.asname:
                     aliases.add(alias.asname)
         elif isinstance(node, ast.ImportFrom):
-            if _is_view_module(node.module, node.level, path):
+            try:
+                target = _absolute(node.module, node.level, path)
+            except (ValueError, ImportError):
+                continue
+            if target == dotted:
                 names.update(a.name for a in node.names if a.name != "*")
-            else:
-                for alias in node.names:
-                    parent = node.module or ""
-                    if alias.name == "view" and _is_view_module(
-                            f"{parent}.view" if parent else "view", node.level, path):
-                        aliases.add(alias.asname or "view")
+            elif target == parent:
+                aliases.update(a.asname or leaf for a in node.names if a.name == leaf)
     # ⚠ An alias can also be a local variable in another function of the same file
     # (`view = build_sheet_view(...)`). Read only the accesses in a scope where the
     # alias is not assigned.
@@ -122,38 +135,39 @@ def _own_nodes(scope):
         stack.extend(ast.iter_child_nodes(node))
 
 
-def _caller_files() -> list[Path]:
-    view_files = set(_view_files())
+def _caller_files(dotted: str) -> list[Path]:
+    own = set(_package_files(dotted))
     files: list[Path] = []
     for sub in ("exalted_builder", "tests", "tools"):
         root = _ROOT / sub
         if root.is_dir():
-            files.extend(p for p in sorted(root.rglob("*.py")) if p not in view_files)
+            files.extend(p for p in sorted(root.rglob("*.py")) if p not in own)
     return files
 
 
-def test_every_view_reference_in_the_codebase_resolves():
-    from exalted_builder.ui import view
-
+@pytest.mark.parametrize("dotted,minimum", PACKAGES, ids=_IDS)
+def test_every_reference_in_the_codebase_resolves(dotted, minimum):
+    module = importlib.import_module(dotted)
     seen: dict[str, str] = {}
-    for path in _caller_files():
+    for path in _caller_files(dotted):
         try:
             tree = ast.parse(path.read_text(), filename=str(path))
         except SyntaxError:
             continue
-        for name in _view_references(path, tree):
+        for name in _references(dotted, path, tree):
             seen.setdefault(name, str(path.relative_to(_ROOT)))
 
-    assert len(seen) > 150, f"only found {len(seen)} view references — the walk broke"
+    assert len(seen) > minimum, f"only found {len(seen)} references — the walk broke"
     missing = sorted(f"{name} (first read in {where})"
-                     for name, where in seen.items() if not hasattr(view, name))
-    assert not missing, ("read through the view facade but NOT on it:\n  "
+                     for name, where in seen.items() if not hasattr(module, name))
+    assert not missing, (f"read through the {dotted} facade but NOT on it:\n  "
                          + "\n  ".join(missing))
 
 
-def test_the_reference_walk_sees_every_import_shape(tmp_path):
+def test_the_reference_walk_sees_every_import_shape():
     """Negative control for the walk. Each import shape that the codebase uses must
     give its names, and a local variable with the alias name must not."""
+    dotted = "exalted_builder.ui.view"
     probe = _ROOT / "exalted_builder" / "qt" / "_probe.py"
     src = (
         "from ..ui import view as viewmod\n"
@@ -168,31 +182,37 @@ def test_the_reference_walk_sees_every_import_shape(tmp_path):
         "    view = build_sheet_view(rs, ch)\n"
         "    return view.not_a_module_name\n"
     )
-    names = _view_references(probe, ast.parse(src))
+    names = _references(dotted, probe, ast.parse(src))
     assert names == {"build_sheet_view", "alpha", "beta", "gamma"}
 
-    inside = _UI / "_probe.py"
+    inside = _ROOT / "exalted_builder" / "ui" / "_probe.py"
     src = "from .view import resolve_tab\nfrom . import view\nx = view.delta\n"
-    assert _view_references(inside, ast.parse(src)) == {"resolve_tab", "delta"}
+    assert _references(dotted, inside, ast.parse(src)) == {"resolve_tab", "delta"}
+
+    engine = _ROOT / "exalted_builder" / "engine" / "validate" / "_probe.py"
+    src = "from ...models.rules import RuleSet, Charm\n"
+    assert _references("exalted_builder.models.rules", engine,
+                       ast.parse(src)) == {"RuleSet", "Charm"}
 
 
-def test_every_public_name_in_a_domain_module_is_on_the_facade():
+@pytest.mark.parametrize("dotted", [d for d, _ in PACKAGES], ids=_IDS)
+def test_every_public_name_in_a_domain_module_is_on_the_facade(dotted):
     """Private names are exempt here. The call-site walk above covers each private
     name that a caller reads."""
-    from exalted_builder.ui import view
-
+    module = importlib.import_module(dotted)
     orphans: list[str] = []
-    for path in _domain_files():
+    for path in _domain_files(dotted):
         for name in sorted(_toplevel_names(ast.parse(path.read_text()))):
-            if not name.startswith("_") and not hasattr(view, name):
+            if not name.startswith("_") and not hasattr(module, name):
                 orphans.append(f"{name} ({path.name})")
-    assert not orphans, ("defined in a domain module but NOT re-exported by "
-                         "ui/view/__init__.py: " + ", ".join(orphans))
+    assert not orphans, (f"defined in a domain module but NOT re-exported by "
+                         f"{dotted}: " + ", ".join(orphans))
 
 
-def test_no_view_function_reads_a_name_it_never_binds():
+@pytest.mark.parametrize("dotted", [d for d, _ in PACKAGES], ids=_IDS)
+def test_no_function_reads_a_name_it_never_binds(dotted):
     offenders: list[str] = []
-    files = _view_files()
+    files = _package_files(dotted)
     assert files and all(p.exists() for p in files), files
     for path in files:
         tree = ast.parse(path.read_text(), filename=str(path))
@@ -227,15 +247,12 @@ def _unresolved_imports(path: Path, tree: ast.AST) -> list[str]:
 
     ⚠ The check above cannot see these. A function-local `from ..engine import dice`
     binds `dice` in the function, so the name is defined. The import fails only when
-    the function runs. The split moved such imports one package deeper."""
-    import importlib.util
-
-    package = ".".join(path.parent.relative_to(_ROOT).parts)
+    the function runs. The view split moved ten such imports one package deeper."""
     bad: list[str] = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.ImportFrom) or not node.level:
             continue
-        target = importlib.util.resolve_name("." * node.level + (node.module or ""), package)
+        target = _absolute(node.module, node.level, path)
         try:
             found = importlib.util.find_spec(target) is not None
         except ModuleNotFoundError:
@@ -245,25 +262,26 @@ def _unresolved_imports(path: Path, tree: ast.AST) -> list[str]:
     return bad
 
 
-def test_every_relative_import_in_the_package_resolves():
+@pytest.mark.parametrize("dotted", [d for d, _ in PACKAGES], ids=_IDS)
+def test_every_relative_import_in_the_package_resolves(dotted):
     bad: list[str] = []
-    for path in _view_files():
+    for path in _package_files(dotted):
         bad += _unresolved_imports(path, ast.parse(path.read_text()))
     assert not bad, "relative imports that name no module:\n  " + "\n  ".join(bad)
 
 
 def test_the_relative_import_check_can_fail():
-    path = _view_files()[0]
+    path = _ROOT / "exalted_builder" / "ui" / "view" / "_probe.py"
     src = "def f():\n    from ..engine import dice\n    return dice\n"
-    if path.parent.name == "view":
-        assert _unresolved_imports(path, ast.parse(src)) == [
-            f"{path.relative_to(_ROOT)}:2 exalted_builder.ui.engine"]
+    assert _unresolved_imports(path, ast.parse(src)) == [
+        "exalted_builder/ui/view/_probe.py:2 exalted_builder.ui.engine"]
     src = "def f():\n    from ...engine import dice\n    return dice\n"
-    assert _unresolved_imports(_UI / "view" / "_probe.py", ast.parse(src)) == []
+    assert _unresolved_imports(path, ast.parse(src)) == []
 
 
-def test_no_domain_module_shares_a_basename_with_a_ui_module():
-    shells = {p.stem for p in _UI.glob("*.py")}
-    clashes = sorted(p.stem for p in _domain_files() if p.stem in shells)
-    assert not clashes, (f"ui/view/ modules with the name of a ui/ module: {clashes}. "
-                         "Rename them; see docs/plans/validate-refactor.md.")
+@pytest.mark.parametrize("dotted", [d for d, _ in PACKAGES], ids=_IDS)
+def test_no_domain_module_shares_a_basename_with_a_sibling_module(dotted):
+    siblings = {p.stem for p in _location(dotted).parent.glob("*.py")}
+    clashes = sorted(p.stem for p in _domain_files(dotted) if p.stem in siblings)
+    assert not clashes, (f"{dotted} modules with the name of a sibling module: "
+                         f"{clashes}. Rename them; see docs/plans/validate-refactor.md.")

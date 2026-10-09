@@ -559,7 +559,7 @@ class GearField:
     tip: str = ""
 
 
-# The four gear models, as forms. ⚠ Derived from `models/rules.py` FIELD BY FIELD, not
+# The four gear models, as forms. ⚠ Derived from `models/rules/` FIELD BY FIELD, not
 # from the Gear tab's owned-row editors: a character's `Weapon` is not a `WeaponType`
 # (`gear_actions.library_payload` is the codec between them), and the two field sets
 # differ at both ends.
