@@ -27,10 +27,26 @@ deferred runtime findings: **`docs/plans/refactor-pass.md`. Read it first.**
 * ⚠ **A new `XpEntry.target` domain now touches three modules:** the purchase,
   `advancement/undo.py`, `advancement/audit.py` (plus `ui/view/xp_log.py`'s label).
 
-**Next:** item 3, the docstring pass (`CLAUDE.md` §6, `docs/comment-standard.md`): input,
-output and mechanism only, no decision logs. Then item 4 (values computed twice across
-`ui/` and `qt/`), then the four deferred runtime findings, now easier to see in the split
-packages.
+**Next: item 3, the docstring pass. The scope is `server/`, not the whole codebase.**
+
+* The rule: `CLAUDE.md` §6 and `docs/comment-standard.md`. A docstring gives input,
+  output and mechanism only. KEEP page citations, ⚠ trap records (pull a trap OUT of
+  narration as an explicit ⚠, never delete it), and the contract. Dated narration
+  becomes an undated "(human's ruling)". The reasons go in the commit message.
+* ⚠ **`comment-standard.md` says there is no backlog. That was true on 2026-09-10.**
+  The pass covered validate, `ui/`, `models/`, `engine/` and `qt/`. **`server/` (9,614
+  lines, 2026-09-11 onward: P2 hosting, P3 campaigns, P4 the board, accounts) has never
+  had it.** The hosted-era files in `ui/` were also added after the pass (find them with
+  `git log --since=2026-09-10 --diff-filter=A -- exalted_builder/ui`). Today's three
+  split packages need no pass: their bodies moved verbatim from passed files.
+* Measure first, as the `qt/` pass did: docstring and comment lines per file, then the
+  longest docstrings. The `qt/` record in `comment-standard.md` is the worked example. It
+  found that the pass removes narration, not bulk, and density barely moved.
+* Comments only, so the suite cannot catch a deleted ⚠. Diff-review every ⚠ that a
+  change touches. When it is done, add `server/` to `comment-standard.md`'s record.
+
+Then item 4 (values computed twice across `ui/` and `qt/`), then the four deferred
+runtime findings, now easier to see in the split packages.
 
 🐞 **A pre-existing timing flake, not from the splits:**
 `test_traits_reload_holds_scroll_position` failed once under `-n 4` (bar at 0, expected 96)

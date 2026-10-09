@@ -6,7 +6,7 @@ Features are paused (the human, 2026-10-09). Order agreed:
    before it was stopped.
 2. **Split the oversized modules**, the `engine/validate/` way (facade package, suite
    green at every commit, an import DAG). First target `ui/view.py` (5,081 lines).
-3. The docstring pass (deferred until after the validate split, never done).
+3. The docstring pass. ⚠ NOT "never done": `docs/comment-standard.md` records it done for `engine/validate/` (2026-08-17), `ui/`, `models/`, `engine/` (2026-08-20) and `qt/` (2026-09-10). The real gap (measured 2026-10-09) is **`server/`, 9,614 lines, all written after the last pass**, plus the hosted-era additions to `ui/` (P3, P4, accounts). The three split packages need no pass: their bodies moved verbatim from passed files, and their new module docstrings are written to the standard.
 4. Audit for presenter/engine values computed twice across `ui/` and `qt/` — not a
    UI parity merge (the two are separate design surfaces).
 
