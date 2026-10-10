@@ -25,7 +25,7 @@ from nicegui.testing import User
 pytest.importorskip("bcrypt")
 
 from exalted_builder.models.character import Character  # noqa: E402
-from exalted_builder.server import auth, config, db  # noqa: E402
+from exalted_builder.server import auth, config, db, site  # noqa: E402
 from exalted_builder.server.characters import CharacterStore  # noqa: E402
 from exalted_builder.server.throttle import LoginThrottle  # noqa: E402
 
@@ -410,6 +410,28 @@ def test_an_unsafe_redirect_target_becomes_the_home_page(target) -> None:
     assert auth.safe_target(target) == auth.HOME_PATH
 
 
+@pytest.mark.parametrize("target", [
+    "/\t/elsewhere.example", "/\n/elsewhere.example", "/\r/elsewhere.example",
+    "/\t\t/elsewhere.example/x?y=1", "\t//elsewhere.example", "/home\x00",
+    "/home\x7f",
+])
+def test_a_control_character_in_the_redirect_target_becomes_the_home_page(target) -> None:
+    """⚠ The browser removes each tab, LF and CR from a URL before it parses it
+    (WHATWG URL standard). Thus "/<TAB>/host" passes a check for "//", and the
+    browser opens "//host". `ui.navigate.to` gives the raw string to `window.open`.
+    Reproduced in Chromium: `/login?redirect_to=/%09/evil.example` goes to
+    `http://evil.example/` after a correct login."""
+    assert auth.safe_target(target) == auth.HOME_PATH
+
+
+@pytest.mark.parametrize("target", ["/\t/elsewhere.example", "/\n/elsewhere.example"])
+def test_the_theme_route_refuses_a_control_character_too(target: str) -> None:
+    """`site._local` is the second copy of the rule. Starlette encodes the tab in a
+    `Location` header, thus `/theme` is not open now. Keep the two checks the same."""
+    assert site.is_local_path(target) is False
+
+
 @pytest.mark.parametrize("target", ["/home", "/gm", "/gm?x=1", "/wiki/charms"])
 def test_a_path_of_this_server_is_kept(target: str) -> None:
     assert auth.safe_target(target) == target
+    assert site.is_local_path(target) is True

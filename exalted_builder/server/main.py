@@ -25,7 +25,8 @@ from nicegui import ui
 
 from .. import custom_content, persistence, rules_db
 from ..server import (account_page, auth, characters, chrome, config, crawl, db, home,
-                      nav, public, quota, site, table_log, table_view, tables, wiki)
+                      nav, public, quota, site, table_log, table_view, tables,
+                      upload_limit, wiki)
 from ..server.rulesets import Rulesets
 from ..server.session import SessionRegistry
 
@@ -133,6 +134,12 @@ def main() -> None:
     # ⚠ Before `ui.run`. `ui.run` adds the session middleware outside the gate,
     # thus the login state is readable when the gate runs.
     auth.install_gate()
+    # ⚠ The browser applies `max_file_size` of an upload control. This is the limit
+    # that the server applies. See server/upload_limit.py.
+    upload_limit.install_upload_limit()
+    # A raised login epoch ends the open pages of the old login. See
+    # `auth.end_stale_pages`.
+    auth.start_page_sweep()
 
     # The 10 MB limit of each account folder. Each hosted write goes through
     # `persistence.atomic_write`, thus this one guard covers each write site.

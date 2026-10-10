@@ -126,14 +126,20 @@ def _here() -> str:
     return request.url.path + (f"?{query}" if query else "")
 
 
-def _local(path: str) -> str:
-    """Return `path` if it is a path of this server. Return "/" in all other cases.
+def is_local_path(path: str | None) -> bool:
+    """Return True if `path` is a path of this server and the browser reads it so.
 
     ⚠ An absolute URL sends the browser to any site. "//host" is an absolute URL too.
+    ⚠ The browser removes each tab, LF and CR from a URL before it parses it. Thus
+    "/<TAB>/host" becomes "//host". Refuse each control character.
     """
-    if not path or not path.startswith("/") or path.startswith("//") or "\\" in path:
-        return "/"
-    return path
+    return bool(path) and path.startswith("/") and not path.startswith("//") \
+        and "\\" not in path and not any(ord(c) < 0x20 or ord(c) == 0x7f for c in path)
+
+
+def _local(path: str) -> str:
+    """Return `path` if it is a path of this server. Return "/" in all other cases."""
+    return path if is_local_path(path) else "/"
 
 
 def theme_href(splat: str, back: str = "") -> str:

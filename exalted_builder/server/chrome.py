@@ -161,6 +161,8 @@ def require_account(current_user_id: Callable[[], int | None]) -> int:
     user_id = current_user_id()
     if user_id is None:
         raise PermissionError("No account is logged in. The login gate did not run.")
+    # ⚠ A raised login epoch must end this page too. See `auth.end_stale_pages`.
+    auth.bind_page(user_id)
     return user_id
 
 

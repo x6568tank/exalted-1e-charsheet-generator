@@ -28,13 +28,15 @@ solved here: the session id does not change at login. See section 5.1d.
 
 from __future__ import annotations
 
+import asyncio
+import logging
 import math
 from pathlib import Path
 from urllib.parse import quote
 
 from fastapi import Request
 from fastapi.responses import RedirectResponse
-from nicegui import app, run, ui
+from nicegui import Client, app, background_tasks, context, run, ui
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from . import config, db, site
@@ -121,11 +123,105 @@ def current_username() -> str | None:
 
 def log_in(user_id: int, username: str) -> None:
     """Record the login of account `user_id` for the current browser, at the
-    current login epoch of the account."""
+    current login epoch of the account.
+
+    If the current page is bound (`bind_page`), bind it again at the new epoch.
+    Thus the page that changes the password does not end itself."""
     app.storage.user[USER_ID] = user_id
     app.storage.user[USERNAME] = username
     path = db_path()
     app.storage.user[LOGIN_EPOCH] = 0 if path is None else db.login_epoch(path, user_id)
+    client = _current_client()
+    if client is not None and client.id in _PAGES:
+        _PAGES[client.id] = (user_id, app.storage.user[LOGIN_EPOCH])
+
+
+# --------------------------------------------------------------------------- #
+# The open pages of each login
+# --------------------------------------------------------------------------- #
+
+# The login of each open gated page: client id -> (account id, login epoch).
+# ⚠ The gate checks the epoch at each HTTP request. An open page is a socket. Its
+# handlers captured the account id at the build, and no request passes the gate
+# again. Thus a raised epoch must end the open pages too. `end_stale_pages` does.
+_PAGES: dict[str, tuple[int, int]] = {}
+
+# Seconds between two sweeps of `start_page_sweep`. A change on the account page
+# ends the pages at once. The sweep is for a change from another process, for
+# example an operator reset (`server/users.py`).
+SWEEP_SECONDS = 5.0
+
+
+def _current_client() -> Client | None:
+    try:
+        return context.client
+    except RuntimeError:
+        return None
+
+
+def bind_page(user_id: int) -> None:
+    """Record that the current page belongs to the login of `user_id`.
+
+    Call it in the build of each gated page. `chrome.require_account` calls it.
+    """
+    client = _current_client()
+    if client is None:
+        return
+    _PAGES[client.id] = (user_id, int(app.storage.user.get(LOGIN_EPOCH, 0)))
+    client.on_delete(lambda: _PAGES.pop(client.id, None))
+
+
+def end_stale_pages() -> int:
+    """End each bound page whose login epoch is older than the database epoch.
+    Return the number of pages that ended.
+
+    The browser of the page reloads, thus a login that is still good gets a new
+    page. `Client.delete` removes the elements and their handlers, and the upload
+    routes of the page, on the server. Thus a client that ignores the reload
+    cannot use them.
+    """
+    path = db_path()
+    if path is None:
+        return 0
+    ended = 0
+    epochs: dict[int, int] = {}
+    for client_id, (user_id, epoch) in list(_PAGES.items()):
+        if user_id not in epochs:
+            epochs[user_id] = db.login_epoch(path, user_id)
+        if epochs[user_id] == epoch:
+            continue
+        _PAGES.pop(client_id, None)
+        client = Client.instances.get(client_id)
+        if client is None:
+            continue
+        # ⚠ Remove the elements first: that removes each handler and each upload
+        # route at once. The client stays a short time, thus the reload reaches
+        # the browser. `Client.delete` stops the outbox before it sends it.
+        client.run_javascript("location.reload()")
+        client.remove_all_elements()
+        background_tasks.create(_delete_later(client), name="end a stale page")
+        ended += 1
+    return ended
+
+
+async def _delete_later(client: Client) -> None:
+    await asyncio.sleep(2.0)
+    if not client.is_deleted and client.id in Client.instances:
+        client.delete()
+
+
+def start_page_sweep() -> None:
+    """Run `end_stale_pages` each `SWEEP_SECONDS` while the server runs."""
+
+    async def sweep() -> None:
+        while True:
+            await asyncio.sleep(SWEEP_SECONDS)
+            try:
+                end_stale_pages()
+            except Exception:  # noqa: BLE001 - one failed sweep must not stop the next
+                logging.getLogger(__name__).exception("The page sweep failed.")
+
+    app.on_startup(lambda: background_tasks.create(sweep(), name="page sweep"))
 
 
 def log_out() -> None:
@@ -143,8 +239,7 @@ def safe_target(target: str | None) -> str:
     sends a player from this server to any site. "//host" is an absolute URL too.
     An open path is refused, because `/logout` there logs the player out again.
     """
-    if (not target or not target.startswith("/") or target.startswith("//")
-            or "\\" in target or target.split("?")[0] in OPEN_PATHS):
+    if not site.is_local_path(target) or target.split("?")[0] in OPEN_PATHS:
         return HOME_PATH
     return target
 

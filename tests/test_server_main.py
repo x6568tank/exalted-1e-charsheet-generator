@@ -15,7 +15,7 @@ import pytest
 
 from exalted_builder import custom_content, persistence
 from exalted_builder.models.character import Character
-from exalted_builder.server import auth, characters, config, db, main
+from exalted_builder.server import auth, characters, config, db, main, upload_limit
 
 
 @pytest.fixture
@@ -191,6 +191,8 @@ def test_main_installs_the_gate_and_the_quota_before_the_server_runs(root: Path,
     calls: list[str] = []
     guards: list = []
     monkeypatch.setattr(auth, "install_gate", lambda: calls.append("gate"))
+    monkeypatch.setattr(upload_limit, "install_upload_limit", lambda: calls.append("uploads"))
+    monkeypatch.setattr(auth, "start_page_sweep", lambda: calls.append("sweep"))
     monkeypatch.setattr(persistence, "set_write_guard",
                         lambda guard: (calls.append("quota"), guards.append(guard)))
     monkeypatch.setattr(custom_content, "require_explicit_dir",
@@ -205,9 +207,10 @@ def test_main_installs_the_gate_and_the_quota_before_the_server_runs(root: Path,
 
     main.main()
 
-    assert calls == ["gate", "quota", "library=True", "run"], (
-        f"main made the calls {calls}. It must install the gate and the quota, "
-        "switch off the default homebrew library, then run.")
+    assert calls == ["gate", "uploads", "sweep", "quota", "library=True", "run"], (
+        f"main made the calls {calls}. It must install the gate, the upload limit, "
+        "the page sweep and the quota, switch off the default homebrew library, "
+        "then run.")
     assert guards[0].root == root, "The quota guards a folder that is not the root."
     assert guards[0].limit == 10 * 1024 * 1024
     assert guards[0].db_path == database, (

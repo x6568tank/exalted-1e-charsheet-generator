@@ -48,6 +48,7 @@ def register_account_page(db_path: Path, characters: CharacterStore, tables: Tab
         user_id = auth.current_user_id()
         if user_id is None:
             return None
+        auth.bind_page(user_id)
         username = auth.current_username() or ""
         (email_card, name_card, password_card, logins_card, colours_card,
          delete_card) = auth.form_frame("account", username, cards=6, grid=True)
@@ -124,6 +125,7 @@ def register_account_page(db_path: Path, characters: CharacterStore, tables: Tab
                     return
                 # The change raised the epoch. Record it, thus this browser stays in.
                 auth.log_in(user_id, username)
+                auth.end_stale_pages()
                 current.value = new.value = again.value = ""
                 _say(password_message, "Changed. Every other device is logged out.",
                      error=False)
@@ -140,6 +142,7 @@ def register_account_page(db_path: Path, characters: CharacterStore, tables: Tab
             def log_out_others() -> None:
                 db.raise_login_epoch(db_path, user_id)
                 auth.log_in(user_id, username)
+                auth.end_stale_pages()
                 _say(logins_message, "Every other device is logged out.", error=False)
 
             ui.button("Log out other devices", icon="devices",
@@ -181,6 +184,8 @@ def register_account_page(db_path: Path, characters: CharacterStore, tables: Tab
                                         sessions=sessions)
                 auth.log_out()
                 ui.navigate.to(nav.FRONT_PATH)
+                # ⚠ After the navigation: this page ends too.
+                auth.end_stale_pages()
 
             ui.button("Delete my account", icon="delete_forever", on_click=delete).props(
                 "unelevated color=negative").classes("w-full q-mt-md").mark(

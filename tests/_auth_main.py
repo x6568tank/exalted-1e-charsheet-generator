@@ -14,7 +14,7 @@ from pathlib import Path
 from nicegui import ui
 
 from exalted_builder import persistence
-from exalted_builder.server import auth, db, main, quota
+from exalted_builder.server import auth, db, main, quota, upload_limit
 
 # runpy executes this file by path, thus the repository root can be absent from
 # sys.path and `tests` is then not importable.
@@ -32,6 +32,7 @@ shutil.rmtree(state.ROOT, ignore_errors=True)
 
 state.REGISTRY = main.build_server(session_root=state.ROOT, db_path=state.DB)
 auth.install_gate()
+upload_limit.install_upload_limit()
 # ⚠ The guard stays installed after the case. It checks paths under `state.ROOT`
 # only, thus no other test sees it.
 persistence.set_write_guard(quota.FolderQuota(state.ROOT, db_path=state.DB))
