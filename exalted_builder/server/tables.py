@@ -73,6 +73,11 @@ CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 CODE_LENGTH = 6
 _CODE_TRIES = 20
 
+# The largest number of campaigns that one account runs (human's ruling,
+# 2026-10-10). ⚠ Each campaign folder has its own quota. Without the cap, one
+# account fills the disk.
+MAX_CAMPAIGNS = 20
+
 STORYTELLER = "storyteller"
 MEMBER = "member"
 
@@ -365,11 +370,18 @@ class TableStore:
     def create(self, st_id: int, name: str) -> TableRow:
         """Make a table that `st_id` runs: the row, the folder and a join code.
 
-        Draw the code again on a clash with an existing code.
+        Refuse a table past `MAX_CAMPAIGNS` for `st_id`. Draw the code again on a
+        clash with an existing code.
         """
         name = name.strip()
         if not name:
             raise TableStoreError("A campaign needs a name.")
+        with closing(db.connect(self.db_path)) as connection:
+            (count,) = connection.execute(
+                "SELECT COUNT(*) FROM tables WHERE storyteller_id = ?", (st_id,)).fetchone()
+        if count >= MAX_CAMPAIGNS:
+            raise TableStoreError(
+                f"You run at most {MAX_CAMPAIGNS} campaigns. Delete one to make another.")
         table_id = f"table.{secrets.token_hex(6)}"
         for _ in range(_CODE_TRIES):
             code = new_join_code()

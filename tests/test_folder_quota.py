@@ -11,6 +11,7 @@ asserted in `test_server_main.py`.
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 import pytest
@@ -18,6 +19,7 @@ import pytest
 from exalted_builder import custom_content, persistence
 from exalted_builder.models.character import Character
 from exalted_builder.models.party import Party
+from exalted_builder.server import quota
 from exalted_builder.server.quota import FolderQuota, QuotaExceeded, folder_size
 
 LIMIT = 100_000
@@ -165,6 +167,46 @@ def test_a_homebrew_row_past_the_limit_is_refused(root: Path, guard) -> None:
             custom_dir=root / "user-1" / "custom")
 
     assert custom_content.library_charms(root / "user-1" / "custom") == []
+
+
+def _disk_free(monkeypatch, free: int) -> None:
+    """Make `shutil.disk_usage` of the quota module give `free` bytes free."""
+    monkeypatch.setattr(quota.shutil, "disk_usage",
+                        lambda path: shutil._ntuple_diskusage(10 * free, 9 * free, free))
+
+
+def test_a_write_that_leaves_too_little_free_disk_is_refused(root: Path, monkeypatch) -> None:
+    """⚠ The quota is per folder, and signups and campaigns are many. The session
+    root is a bind mount, thus a full disk is the disk of the host. The floor is
+    the last limit (human's choice, 2026-10-10)."""
+    _disk_free(monkeypatch, 1000)
+
+    with pytest.raises(QuotaExceeded, match="server is out of space"):
+        FolderQuota(root, limit=LIMIT, min_free=990)(root / "user-1" / "a.json", 20)
+
+
+def test_a_write_that_leaves_the_free_floor_is_allowed(root: Path, monkeypatch) -> None:
+    _disk_free(monkeypatch, 1000)
+
+    FolderQuota(root, limit=LIMIT, min_free=990)(root / "user-1" / "a.json", 10)
+
+
+def test_the_free_floor_applies_to_a_campaign_folder_too(root: Path, monkeypatch) -> None:
+    _disk_free(monkeypatch, 1000)
+
+    with pytest.raises(QuotaExceeded, match="server is out of space"):
+        FolderQuota(root, limit=LIMIT, min_free=990)(root / "table-x" / "map.png", 20)
+
+
+def test_the_free_floor_reads_a_root_that_is_not_made_yet(tmp_path: Path) -> None:
+    """⚠ The first save makes the root. `shutil.disk_usage` of an absent path raises."""
+    root = tmp_path / "not-yet"
+
+    FolderQuota(root, limit=LIMIT, min_free=0)(root / "user-1" / "a.json", 10)
+
+
+def test_the_default_free_floor_is_one_gigabyte() -> None:
+    assert FolderQuota(Path("/")).min_free == 1024 ** 3
 
 
 def test_no_guard_means_no_limit(root: Path) -> None:

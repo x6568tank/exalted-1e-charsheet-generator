@@ -4,6 +4,10 @@ server/quota.py — the disk limit of each account folder on the hosted server.
 The limits are 10 MB for each account folder and 50 MB for each campaign folder
 (human's ruling).
 
+`FolderQuota` also keeps `MIN_FREE_BYTES` free on the disk of the root. The limits
+are per folder, and the number of accounts has no limit. The root is a bind mount,
+thus a full disk is the disk of the host.
+
 `FolderQuota` is a write guard for `persistence.atomic_write`. Each write of the
 server goes through that function: Save, the auto-save, the save of a tab, Save
 party, and each write to the homebrew library. Thus one check covers each write
@@ -17,6 +21,7 @@ of the account covers it. See hosting-state-model.md section 5.3.
 
 from __future__ import annotations
 
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -27,6 +32,10 @@ QUOTA_BYTES = 10 * 1024 * 1024
 # The limit of each campaign folder, for the maps of the board (human's ruling,
 # docs/plans/p4-board.md).
 TABLE_QUOTA_BYTES = 50 * 1024 * 1024
+
+# The free space that each write leaves on the disk of the root (human's choice,
+# 2026-10-10).
+MIN_FREE_BYTES = 1024 ** 3
 
 # The name of a table folder starts with this. `TableStore.table_dir` makes it.
 # A table folder has the limit `table_limit`.
@@ -51,7 +60,8 @@ def folder_size(folder: Path) -> int:
 
 @dataclass(frozen=True)
 class FolderQuota:
-    """Refuse a write that makes a folder of `root` larger than its limit.
+    """Refuse a write that makes a folder of `root` larger than its limit, or that
+    leaves less than `min_free` bytes free on the disk.
 
     The folder is the first path component below `root`: one account folder, with
     the limit `limit`, or one campaign folder, with the limit `table_limit`.
@@ -60,6 +70,7 @@ class FolderQuota:
     root: Path
     limit: int = QUOTA_BYTES
     table_limit: int = TABLE_QUOTA_BYTES
+    min_free: int = MIN_FREE_BYTES
     # The account database. With it, a write into the folder of a deleted account is
     # refused. ⚠ The operator deletes from another process, and an open page of the
     # account can still save. See docs/plans/account-management.md.
@@ -68,8 +79,9 @@ class FolderQuota:
     def __call__(self, path: Path, size: int) -> None:
         """Raise `QuotaExceeded` if a write of `size` bytes to `path` is over the limit.
 
-        A write that replaces a file frees the size of that file. Do nothing for a
-        path outside `root`.
+        Also raise it if the write leaves less than `min_free` bytes free on the
+        disk. A write that replaces a file frees the size of that file. Do nothing
+        for a path outside `root`.
         """
         root = self.root.resolve()
         target = path.resolve()
@@ -91,6 +103,12 @@ class FolderQuota:
                 f"{owner} has no space left: {used / 2**20:.1f} MB of "
                 f"{limit / 2**20:.1f} MB used. Ask the server admin to remove "
                 "old files.")
+        # ⚠ The root can be absent before the first save. Measure its nearest
+        # parent that exists.
+        disk = next(folder for folder in (root, *root.parents) if folder.exists())
+        if shutil.disk_usage(disk).free - size < self.min_free:
+            raise QuotaExceeded(
+                "The server is out of space. Nothing is saved. Tell the server admin.")
 
     def _refuse_deleted(self, folder: str) -> None:
         """Raise `QuotaExceeded` if `folder` is the folder of a deleted account."""

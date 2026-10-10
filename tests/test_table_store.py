@@ -96,6 +96,26 @@ def test_a_campaign_needs_a_name(store: TableStore) -> None:
         store.create(ST, "   ")
 
 
+def test_an_account_runs_at_most_the_campaign_cap(store: TableStore) -> None:
+    """⚠ Each campaign folder has its own 50 MB quota. Without a cap, one account
+    fills the disk with campaigns. The human set the cap on 2026-10-10."""
+    for number in range(tables.MAX_CAMPAIGNS):
+        store.create(ST, f"Campaign {number}")
+
+    with pytest.raises(TableStoreError, match="at most"):
+        store.create(ST, "One too many")
+
+    store.create(PLAYER, "Another account is not affected")
+
+
+def test_a_deleted_campaign_frees_its_place_under_the_cap(store: TableStore) -> None:
+    rows = [store.create(ST, f"Campaign {number}") for number in range(tables.MAX_CAMPAIGNS)]
+
+    store.delete(ST, rows[0].id)
+
+    store.create(ST, "In the freed place")
+
+
 def test_a_join_code_has_six_characters_with_no_look_alikes() -> None:
     codes = {tables.new_join_code() for _ in range(200)}
 
