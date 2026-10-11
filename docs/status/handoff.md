@@ -19,7 +19,7 @@ interrupted it for security.
 The close-out commit after it changes comments and docs only; not re-run.
 
 **Working tree:** clean after the close-out commit. `fdf634f` and `fa9c453` are pushed;
-**the close-out commit is NOT pushed.**
+the close-out commits are pushed too.
 
 **Deployed:** `fa9c453` is live — read from the site's build line, 2026-10-10. The
 rebuild also carried everything since `da9b6b5` (2026-09-26): the refactor-pass splits
@@ -29,10 +29,9 @@ and the `server/` docstrings.
 devices" in one → the other reloads to the login page. A 21st campaign → the cap message.
 
 ❓ **Open for the human:**
-* **The 1 GiB free-disk floor is my default**, not your number (`quota.MIN_FREE_BYTES`).
-* **The three low/info findings** (CSRF on `GET /logout` and `/theme`, the per-account
-  join throttle, the session id at login): you said "unsure"; my recommendation was to
-  leave all three. Recorded in §5.1d's known limits.
+* ✅ Ruled 2026-10-11: the 1 GiB free-disk floor stands, and the three low/info findings
+  (CSRF on `GET /logout` and `/theme`, the per-account join throttle, the session id at
+  login) are left as they are. Recorded in §5.1d.
 * Carried: whether to do the `ui/`/`models/`/`engine/` docstring pass now (below).
 
 ---

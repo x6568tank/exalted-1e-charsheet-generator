@@ -1084,9 +1084,9 @@ run the only file sources are an upload and the session's own folder.
   (below) bounds the disk however many accounts there are; the account table itself still
   grows. The human ruled "not now" on a signup limit (2026-09-26).
 * **The join-code throttle is per account**, so many accounts get around it. A guessed code
-  only makes a request the Storyteller must approve. Recorded 2026-10-10, not acted on.
+  only makes a request the Storyteller must approve. **Left as is — human's ruling 2026-10-11.**
 * **`GET /logout` and `GET /theme` change state** — a forged link can log a player out or
-  change their colours. Trivial CSRF; recorded 2026-10-10, not acted on.
+  change their colours. Trivial CSRF. **Left as is — human's ruling 2026-10-11.**
 * ~~**No account delete, and no password change by the player.**~~ — ✅ **closed
   2026-09-26**: `/account` has both, plus an optional email for manual resets
   (`docs/plans/account-management.md`). The email reopens the "no email column" half
@@ -1126,8 +1126,8 @@ patch were built after, as `fa9c453`. Both live on the server the same day (buil
 4. **Campaign cap** — `tables.MAX_CAMPAIGNS = 20` per account (the human's number);
    `TableStore.create` refuses the 21st, a delete frees a place.
 5. **Free-disk floor** — `FolderQuota` refuses a write that would leave less than
-   `quota.MIN_FREE_BYTES` (1 GiB) free. The human asked for the check; **the 1 GiB is a
-   default I chose**. The session root is a bind mount, so a full disk is the host's.
+   `quota.MIN_FREE_BYTES` (1 GiB) free. The human asked for the check; the 1 GiB was a
+   default chosen here, **accepted by the human 2026-10-11**. The session root is a bind mount, so a full disk is the host's.
    gilserver had 403 GB free at deploy.
 
 🐞 **Found on the way:**
