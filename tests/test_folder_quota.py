@@ -178,7 +178,7 @@ def _disk_free(monkeypatch, free: int) -> None:
 def test_a_write_that_leaves_too_little_free_disk_is_refused(root: Path, monkeypatch) -> None:
     """⚠ The quota is per folder, and signups and campaigns are many. The session
     root is a bind mount, thus a full disk is the disk of the host. The floor is
-    the last limit (human's choice, 2026-10-10)."""
+    the last limit. The human asked for it on 2026-10-10."""
     _disk_free(monkeypatch, 1000)
 
     with pytest.raises(QuotaExceeded, match="server is out of space"):

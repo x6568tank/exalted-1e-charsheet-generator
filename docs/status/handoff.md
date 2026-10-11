@@ -1,6 +1,43 @@
-# Session handoff — 2026-10-09 (refactor pass: item 2, the module splits, done)
+# Session handoff — 2026-10-10 (security review applied and deployed)
 
 # 👉 YOU ARE HERE
+
+**The refactor pass is still the frame** (`docs/plans/refactor-pass.md`); this session
+interrupted it for security.
+
+* **A pentest patch from another Claude session is applied (`fdf634f`)**, plus the two
+  findings it did not patch (`fa9c453`): post-login open redirect via `/<TAB>/host`;
+  open pages of an ended login kept working; upload size enforced only in the browser;
+  a cap of 20 campaigns per account; a 1 GiB free-disk floor in `FolderQuota`.
+  **The record: `hosting-state-model.md` §5.1d, "Security review, 2026-10-10".**
+* 🐞 The patch's test read a NiceGUI-internal field this machine's 3.13 lacks — fixed in
+  the test; and the free-disk check crashed before the session root existed — fixed, with
+  a test.
+* `pytest-xdist` was missing from this machine's `.venv`; installed.
+
+**Suite:** 4450 passed + 1 skipped, **OBSERVED 2026-10-10 at `-n 4`** after `fa9c453`.
+The close-out commit after it changes comments and docs only; not re-run.
+
+**Working tree:** clean after the close-out commit. `fdf634f` and `fa9c453` are pushed;
+**the close-out commit is NOT pushed.**
+
+**Deployed:** `fa9c453` is live — read from the site's build line, 2026-10-10. The
+rebuild also carried everything since `da9b6b5` (2026-09-26): the refactor-pass splits
+and the `server/` docstrings.
+
+🖱 **Owed:** the security fixes are not clicked. Two tabs logged in → "Log out other
+devices" in one → the other reloads to the login page. A 21st campaign → the cap message.
+
+❓ **Open for the human:**
+* **The 1 GiB free-disk floor is my default**, not your number (`quota.MIN_FREE_BYTES`).
+* **The three low/info findings** (CSRF on `GET /logout` and `/theme`, the per-account
+  join throttle, the session id at login): you said "unsure"; my recommendation was to
+  leave all three. Recorded in §5.1d's known limits.
+* Carried: whether to do the `ui/`/`models/`/`engine/` docstring pass now (below).
+
+---
+
+## The session before — refactor pass: item 2, the module splits, done (2026-10-09)
 
 **Features are paused for an optimization and refactoring pass.** Plan, order and the
 deferred runtime findings: **`docs/plans/refactor-pass.md`. Read it first.**
@@ -683,8 +720,8 @@ Nothing is in flight. P0–P4 of `vtt.md` are done; account management is done. 
 - **Auth limits still open, all known and costed** (`hosting-state-model.md` §5.1d):
   signup is not rate-limited and accounts are not capped — ⚠ the human asked and ruled
   **"not now"** (2026-09-26): watch `users list` and the disk instead; the session id does
-  not rotate at login; **a tab already open when its login ends keeps working until it
-  loads a page** (every page load checks the login epoch; the open socket does not).
+  not rotate at login. ~~An open tab outlived its login~~ — ✅ closed 2026-10-10. Since
+  then: a 20-campaign cap and a free-disk floor bound the disk regardless of signups.
 - **A content-fidelity SCRIPT** (`tools/`) — diff authored descriptions against pasted
   source and REPORT differences. ⚠ **An option, not a debt.** It must never go into the suite.
 

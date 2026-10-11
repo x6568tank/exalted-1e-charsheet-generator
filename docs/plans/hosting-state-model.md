@@ -1080,7 +1080,13 @@ run the only file sources are an upload and the session's own folder.
   in cooldown by guessing — at most 15 minutes at a time. It is in memory, so a restart
   clears it.
 * **Signup is not rate-limited and the account count is not capped.** The quota bounds
-  each account's disk, not the number of accounts.
+  each account's disk, not the number of accounts. Since 2026-10-10 the free-disk floor
+  (below) bounds the disk however many accounts there are; the account table itself still
+  grows. The human ruled "not now" on a signup limit (2026-09-26).
+* **The join-code throttle is per account**, so many accounts get around it. A guessed code
+  only makes a request the Storyteller must approve. Recorded 2026-10-10, not acted on.
+* **`GET /logout` and `GET /theme` change state** — a forged link can log a player out or
+  change their colours. Trivial CSRF; recorded 2026-10-10, not acted on.
 * ~~**No account delete, and no password change by the player.**~~ — ✅ **closed
   2026-09-26**: `/account` has both, plus an optional email for manual resets
   (`docs/plans/account-management.md`). The email reopens the "no email column" half
@@ -1090,6 +1096,53 @@ run the only file sources are an upload and the session's own folder.
   `atomic_write`. `test_folder_quota.py::test_a_homebrew_row_past_the_limit_is_refused`.
 * **Two devices of one account share one live `Character`.** Saves are consistent; the
   view that did not make an edit is stale until it reloads. This is the ruling's cost.
+
+#### 🛡 Security review, 2026-10-10 — five fixes, deployed
+
+A Claude session ran a dedicated pentest against a local copy of the hosted server and
+wrote a patch; the human read it, and it was applied as `fdf634f`. Two findings it did not
+patch were built after, as `fa9c453`. Both live on the server the same day (build line
+`fa9c453 · 2026-10-10`), pushed to `origin/main`.
+
+1. **Post-login open redirect.** `safe_target` refused `//host` but not `/<TAB>/host`;
+   the browser strips tab/LF/CR before it parses, and `ui.navigate.to` hands the raw
+   string to `window.open`. `/login?redirect_to=/%09/evil.example` left the site after a
+   correct login. Now `site.is_local_path` refuses every control character, and both
+   `safe_target` and `site._local` (the `/theme` copy) use it.
+2. **A raised login epoch did not end pages already open.** 🐞 The house bug, type 1:
+   the epoch check lived in the HTTP gate only; an open page is a socket whose handlers
+   captured `user_id` at build. After a password change, an old tab deleted a character.
+   Now gated pages bind to their login (`auth.bind_page`, from `chrome.require_account`
+   and `/account`), and `auth.end_stale_pages` strips the elements (handlers and upload
+   routes with them), reloads the browser and deletes the client. `/account` calls it at
+   once; a 5 s sweep (`auth.start_page_sweep`) covers an operator reset from another
+   process. Account delete raises the epoch too (`db.tombstone_user`), so it is covered.
+   `tests/test_page_revocation.py`.
+3. **Upload limits were browser-side only** (`max_file_size` is a Quasar prop). A 300 MB
+   POST to the import route answered 200 and cost ~300 MB of RSS (container: 2 GB).
+   `server/upload_limit.UploadLimit`, an ASGI middleware installed by `main`, answers 413
+   over 13 MB by `Content-Length` and by counting chunked bytes. ⚠ The 13 MB must stay
+   above the largest control (`table_board_view.MAX_UPLOAD_BYTES`, 12 MB).
+4. **Campaign cap** — `tables.MAX_CAMPAIGNS = 20` per account (the human's number);
+   `TableStore.create` refuses the 21st, a delete frees a place.
+5. **Free-disk floor** — `FolderQuota` refuses a write that would leave less than
+   `quota.MIN_FREE_BYTES` (1 GiB) free. The human asked for the check; **the 1 GiB is a
+   default I chose**. The session root is a bind mount, so a full disk is the host's.
+   gilserver had 403 GB free at deploy.
+
+🐞 **Found on the way:**
+* The patch's large-import test read `Upload._registered_url`, which NiceGUI 3.13 does
+  not have (the pentest machine ran a newer NiceGUI). It reads `props["url"]` now; the
+  middleware's route match is the same on both versions.
+* The free-disk check first crashed with `FileNotFoundError` when the root did not exist
+  yet — a real first-save case, caught by a campaign-page test. It measures the nearest
+  existing parent now, with a regression test.
+
+**Suite:** 4450 passed + 1 skipped, observed at `-n 4` on 2026-10-10 after both commits.
+**Not browser-verified** — the pentest reproduced each of 1–3 in headless Chromium before
+the fix, but nobody clicked the fixed build. Worth clicking: with two tabs logged in,
+"Log out other devices" in one — the other reloads to the login page; a 21st campaign
+shows the cap message.
 
 ### 5.2 Correcting the original §5 on `app.storage.user`
 

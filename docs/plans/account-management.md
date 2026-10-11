@@ -42,6 +42,10 @@ devices" raise the epoch. The browser that made the change stores the new epoch 
 stays logged in. Closes the §5.1d limit *"A password reset does not end the logins
 that exist."*
 
+⚠ **An open page needs its own end** (found 2026-10-10): the gate checks the epoch per
+HTTP request only. `auth.end_stale_pages` ends open pages of a stale login.
+`hosting-state-model.md` §5.1d, "Security review".
+
 ### ⚠ The delete keeps a tombstone row — ids must never be reused
 
 `users.id` is `INTEGER PRIMARY KEY` without `AUTOINCREMENT`: SQLite gives a new row
