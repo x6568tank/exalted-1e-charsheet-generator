@@ -50,12 +50,10 @@ def _label(value: str) -> str:
 
 
 def _opts_with(names: list[str], current: str | None) -> list[str]:
-    """Options for an add-unique select that always contain the current value.
+    """Return the options of an add-unique select, with the current value included.
 
-    NiceGUI 3.x raises ``ValueError: Invalid value`` if a select is constructed
-    with a ``value`` not present in its options, so a custom (off-catalog) name
-    typed into one of these comboboxes would crash on the next render/reload.
-    Folding the current value into the option list keeps that custom entry legal."""
+    ⚠ NiceGUI 3.x raises ``ValueError: Invalid value`` for a value not in the
+    options. A custom name must stay in the list."""
     if current and current not in names:
         return [*names, current]
     return names
@@ -81,20 +79,16 @@ _OPTION_TOOLTIP_SLOT = """
 
 
 class DescribedSelect(ui.select):
-    """A ``ui.select`` whose dropdown entries carry a hover tooltip with the catalog
-    description of the option, so the text authored in ``data/`` is actually readable
-    where you choose from it.
+    """A ``ui.select`` whose options show the catalogue description as a hover
+    tooltip.
 
-    NiceGUI builds each option as ``{'value': <index>, 'label': <name>}``. The
-    description has to be injected into that dict for the `option` slot to render it,
-    and it cannot simply be assigned after construction: ``Element._props`` is an
-    observable dict, so writing to it schedules an update, and
-    ``ChoiceElement.update()`` rebuilds ``options`` from the labels — silently
-    discarding the descriptions. Overriding ``_update_options`` instead re-applies
-    them every time the options are (re)built, including after ``set_options``.
+    ⚠ NiceGUI builds each option as ``{'value': <index>, 'label': <name>}``, and
+    ``ChoiceElement.update()`` rebuilds the options from the labels. Thus a
+    description written after construction is lost. ``_update_options`` is
+    overridden to add the descriptions each time the options are built.
 
     Descriptions are keyed by option NAME. A name with no description gets no
-    tooltip, so an off-catalog custom entry (folded in by `_opts_with`) is harmless."""
+    tooltip."""
 
     def __init__(self, options, *, descriptions: dict[str, str], **kwargs) -> None:
         self._descriptions = descriptions or {}
@@ -112,34 +106,27 @@ class DescribedSelect(ui.select):
             self._props["options"] = described
 
 
-# XP-log targets whose change moves OTHER rows' ceilings, so buying one has to rebuild
-# the whole editor body rather than its own dot row. Module-level and named so the rule
-# is greppable. ⚠ Omit a target here and its dependants keep their stale pips until the
-# tab is left and re-entered — Essence clicked to 6 with the Ability tracks still at 5.
+# XP-log targets whose change moves the ceilings of OTHER rows: a purchase rebuilds the
+# whole editor body. ⚠ A target missing here leaves stale pips on the dependent rows.
 #
-# Essence is the only member: past 5 it IS the ceiling on every Ability and Attribute
-# (engine.elder). Add a target here if a new rule makes one trait govern another's cap.
+# Essence is the only member: above 5 it is the ceiling of each Ability and Attribute
+# (engine.elder).
 BODY_REBUILD_TARGETS = {"essence"}
 
 
 def dot_track(pal, on_change=None, *, buy=None):
     """Build the clickable dot-track rating control, bound to a palette.
 
-    Module-level and parameterised rather than a closure inside `build_editor`, because
-    the Advantages tab needs the same control and copying it is how Backgrounds came to
-    have two implementations in the first place. `on_change` fires after any click, for
-    the caller's live readout.
+    Module-level: the Advantages tab uses the same control. `on_change` fires after
+    each click.
 
-    Returns `dots(get, setv, lo, hi, target=None)` — `get`/`setv` read and write the
-    rating, and clicking the current top pip steps it back down.
+    Returns `dots(get, setv, lo, hi, target=None)`. `get`/`setv` read and write
+    the rating. A click on the current top pip steps it down.
 
-    `buy` is decision 0013's post-lock mode: ONE track on both sides of the lock,
-    pre-lock a free setter and post-lock a stepper that spends XP. It stays opt-in per
-    CALL, not per control — a track only changes behaviour when the caller names a
-    `target` (an `XpEntry` target like `attributes.strength`), so the Advantages tab's
-    Background rows and the editor's rating controls that have no XP counterpart keep
-    the free setter untouched. This control decides nothing: when both are present it
-    hands the click to `buy` and does what it is told.
+    `buy` is the post-lock mode of decision 0013: a stepper that spends XP. Opt-in
+    per CALL: only a track with a `target` (an `XpEntry` target such as
+    `attributes.strength`) uses it. This control decides nothing: it gives the click
+    to `buy`.
     """
     def dots(get, setv, lo: int, hi: int, target: str | None = None,
              detail: str = ""):
@@ -182,15 +169,14 @@ def panel_card(pal, title: str):
 
 
 def trait_info_button(pal, make_info, key: str) -> None:
-    """The ⓘ beside a trait's dot row, opening that trait's core-book reference text.
+    """The ⓘ beside a dot row, which opens the reference text of the trait.
 
-    `make_info` is a no-arg callable returning a `viewmod.TraitInfo` or None. It is
-    called once now to decide whether there is anything to show (a ruleset with no
-    `trait_descriptions` renders no button at all) and AGAIN on each click, so the
-    highlighted rung is the character's rating at click time rather than at build time.
+    `make_info` is a no-arg callable that returns a `viewmod.TraitInfo` or None.
+    Called now (None: no button) and on each click, thus the marked rung is the
+    rating at click time.
 
-    `key` is the trait's enum value, which becomes the element's `trait-info-<key>`
-    marker — an icon button carries no text for a test to find it by."""
+    `key` gives the `trait-info-<key>` marker: an icon button has no text for a
+    test to find."""
     if make_info() is None:
         return
     def _open(_=None) -> None:
@@ -204,11 +190,9 @@ def trait_info_button(pal, make_info, key: str) -> None:
 def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                  *, with_header: bool = True, on_theme_change=None,
                  in_campaign: bool = False):
-    """Render the whole editor for `character`. Pure-ish wiring: every control
-    mutates the Character and refreshes the live readout. With `with_header=False`
-    the title/Save bar is omitted (the embedding app provides one). `on_theme_change`
-    (if given) is called after the Exalt type changes so an embedding app can re-paint
-    its own chrome (header bar / page background) to the new splat's palette.
+    """Render the editor for `character`. Each control mutates the Character and
+    refreshes the live readout. `with_header=False` omits the title/Save bar.
+    `on_theme_change` runs after an Exalt type change, for the chrome of the host.
 
     `in_campaign` is True for a campaign copy. Then Adjust XP and Downtime are not
     built: the Storyteller grants XP (p3-tables.md section 6, Q5).
@@ -300,15 +284,9 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         dialog.open()
 
     # ---- chargen choices are frozen at the lock --------------------------- #
-    # Making Edit a both-sides tab (decision 0013) exposed every free setter on it to a
-    # locked character, and some of them are not traits to be bought — they are the
-    # chargen choices the whole point accounting is measured against. Re-picking
-    # Favoured Abilities in play would silently re-rate every future purchase; changing
-    # caste, Exalt type or origin would swap the budget row the snapshot was written
-    # from. Decision 0004 already says chargen is a snapshot; this is that made visible.
-    #
-    # Applied per control rather than by hiding the panel, so the values stay READABLE
-    # in play — which is what they are for.
+    # Favoured Abilities, caste, Exalt type and origin are frozen at the lock (decision
+    # 0004): a change would re-price later purchases or change the budget row.
+    # Disabled per control, not hidden: the values stay READABLE in play.
     def _frozen(el):
         """Disable `el` once chargen is locked; pass it through untouched before."""
         if character.chargen_locked:
@@ -411,14 +389,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         dialog.open()
 
     def xp_controls() -> None:
-        """Adjust XP, and the one control the read-only log would otherwise strand.
+        """Adjust XP, and the undo of the last log row.
 
-        Traits are un-bought by clicking their dots down (the downward-click dialog),
-        but a Charm,
-        Combo, spell, specialty or thaumaturgy purchase has no downward gesture of its
-        own — the ledger's per-row undo button was the only way to reverse one. Keeping
-        the log a printout means that button has to live here instead, and naming the
-        row it will reverse is what stops "Undo" being a guess.
+        A Charm, Combo, spell, specialty or thaumaturgy purchase has no downward click,
+        thus the undo is here. The button names the row that it reverses.
         """
         ui.label("Experience").classes("text-sm font-bold tracking-widest").style(
             f"color:{pal.accent}")
@@ -534,22 +508,14 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         changed()
 
     # ---- post-lock buying (decision 0013) --------------------------------- #
-    # The dot tracks are the trait surface on BOTH sides of the lock. Pre-lock they
-    # are free setters against the chargen budget; post-lock a click is an XP
-    # transaction and every one of them goes through engine.advancement. Nothing here
-    # prices or gates anything — `raise_to`, `refund_to` and `lower_to` do, and each
-    # validates the whole click before committing any of it.
+    # Before the lock a dot track is a free setter. After it a click is an XP purchase
+    # through engine.advancement (`raise_to`, `refund_to`, `lower_to`), which
+    # validates the whole click before it commits.
     def _refresh_after(target: str, refresh) -> None:
-        """Redraw what the change actually moved.
+        """Redraw what the change moved: the own row (`refresh`), or the whole body for
+        ESSENCE, which is the ceiling of each Ability and Attribute above 5.
 
-        A dot click normally only has to redraw its own row, and `refresh` is that
-        row's. ESSENCE is the exception: it is the ceiling on every Ability and
-        Attribute track once it passes 5 (engine.elder), so the pips those rows were
-        built with are stale the moment it moves — the whole body has to rebuild.
-
-        One or the other, never both: rebuilding the body replaces the very row
-        `refresh` belongs to, and calling a refresher for a discarded element is how
-        this control gets its "nothing happened" bugs.
+        ⚠ One or the other, never both: the body rebuild replaces the row of `refresh`.
         """
         if target in BODY_REBUILD_TARGETS:
             body.refresh()
@@ -576,13 +542,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
 
     def _downward_dialog(target: str, current: int, wanted: int, refresh,
                          detail: str = "") -> None:
-        """Ask which downward event this is. The application genuinely cannot infer
-        it: taking XP back and suffering a curse both move the same dots, and they
-        differ in price, in what they log and in how far down they may go.
+        """Ask which downward event this is: an XP refund or a curse. They differ in
+        price, in log and in floor.
 
-        Refund is capped by `refundable_depth` — undo is LIFO across the WHOLE log,
-        so a raise buried under a later purchase is not refundable here and the branch
-        says so rather than silently unwinding the purchase on top of it.
+        Refund is capped by `refundable_depth` (LIFO across the WHOLE log). The dialog
+        says so for a raise under a later purchase.
         """
         dots_down = current - wanted
         depth = advancement.refundable_depth(character, target, detail)
@@ -678,14 +642,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         # Trait ceilings a Merit or Flaw has moved, read once for the dot rows below.
         mf_effects = merits.merits_and_flaws_calc(ruleset, character)
 
-        # The permanent-Essence ceiling (splat cap, Terrestrial-7 held) — post-lock
-        # the Essence track and the trait ceilings run to it; pre-lock both stop at 5
-        # (no character leaves creation with Essence above it). The trait ceiling is
-        # max(5, Essence), the same p.258 rule the raises read. A Merit can raise the
-        # ceiling — Essence Mastery takes a mortal to 3, Awakened Essence a
-        # God-Blooded — so the override is applied HERE, mirroring the order in
-        # advancement.raise_essence, or the dot row would cap below what the raise
-        # permits and the pip could not be bought at all.
+        # The permanent-Essence ceiling (engine.elder). Before the lock both tracks
+        # stop at 5. The trait ceiling is max(5, Essence) (p.258). ⚠ Apply the Merit
+        # override HERE, in the order of advancement.raise_essence: else the row caps
+        # below what the raise permits.
         essence_cap, _ = elder.essence_cap(ruleset, character)
         if mf_effects.essence_cap_override is not None:
             essence_cap = mf_effects.essence_cap_override
@@ -695,15 +655,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         abil_trait_cap = elder.trait_ceiling(character, ruleset, domain="ability")
 
         def _attr_cap(a) -> int:
-            # A Merit/Flaw that names this Attribute sets its ceiling DIRECTLY —
-            # Legendary raises it, Disfigured lowers it — and it is the chargen
-            # truth, NOT a permission to be maxed against the trait ceiling: maxed,
-            # a Disfigured Appearance reads 7 and the dot track never offers 0 (the
-            # human's click-through finding). An un-merited Attribute gets the trait
-            # ceiling. The ORIGIN's per-Attribute cap (the Unenlightened Mountain
-            # Folk's Intelligence 2, CH6 p.230) then binds on top — a value the
-            # sheet cannot hold is not offered, the same call that omits banned
-            # Backgrounds from the catalog.
+            # A Merit/Flaw ceiling on this Attribute REPLACES the trait ceiling
+            # (Legendary raises, Disfigured lowers). ⚠ Do not take the max: a
+            # Disfigured Appearance must offer 0. The origin cap (CH6 p.230) then
+            # applies on top.
             cap = mf_effects.attribute_caps.get(a.value, attr_trait_cap)
             origin_cap = b.attribute_caps.get(a.value)
             return min(cap, origin_cap) if origin_cap else cap
@@ -1043,17 +998,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                          lambda v: setattr(character, "essence_rating", v),
                          1, essence_cap if locked else min(elder.DOT_MAX, essence_cap),
                          target="essence")
-                # A mortal whose pool is unlocked hits the human ceiling at Essence 3.
-                # The book explains that ceiling in-world rather than mechanically:
-                # "the limit of human potential — mortals that exceed Essence 3 become
-                # gods" (PG p.114). Display only — the cap is enforced in
-                # advancement.raise_essence (which reads `essence_cap_override`), and
-                # the mortal XP table prices nothing past 3, so this is why the +1 is
-                # refused, not a second rule. The trigger is that SAME field, so the
-                # note only fires where the cap is actually a Merit-raised 3: an
-                # Awareness-only mortal (pool unlocked, no override) has a ceiling of
-                # 1 and must not be blamed on the god-transition clause. Read off the
-                # calc so no Merit id is named here.
+                # A mortal with an unlocked pool stops at Essence 3 (PG p.114). Display
+                # only: advancement.raise_essence enforces the cap. ⚠ The trigger is
+                # `essence_cap_override`: an Awareness-only mortal has a ceiling of 1
+                # and must not get this note. No Merit id is named.
                 if character.exalt_type == "Mortal":
                     cap = mf_effects.essence_cap_override
                     if cap is not None and character.essence_rating >= cap:
@@ -1127,13 +1075,9 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                     if locked:
                         ui.label(f"{_label(sp.ability.value)} — {sp.name}").classes("text-sm flex-1")
                         continue
-                    # Both handlers MUST call `changed()`. The row is appended blank on
-                    # Melee and retargeted afterwards, so the add itself can legitimately
-                    # push Melee over the cap for as long as it takes to pick the real
-                    # Ability — and `add_spec`'s `changed()` has already rendered that
-                    # transient `specialty-cap` error into the sticky issues column. Without
-                    # a re-run here the retarget fixes the MODEL and leaves the stale error
-                    # on screen: three Melee + three Dodge reads back as "Melee has 4".
+                    # ⚠ Both handlers MUST call `changed()`. The blank row is added on
+                    # Melee, which can show a transient `specialty-cap` error. The
+                    # retarget must re-run validation to clear it.
                     ui.select({a: _label(a.value) for a in AbilityName}, value=sp.ability,
                               on_change=lambda e, sp=sp: (setattr(sp, "ability", e.value),
                                                           changed())).classes("flex-1")
@@ -1201,14 +1145,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                     _frozen(ui.select({v: _label(v.value) for v in VirtueName}, label="Flawed Virtue",
                               value=vf.virtue if vf else None,
                               on_change=lambda e: set_virtue_flaw_virtue(e.value)).classes("w-full"))
-                    # The book's SAMPLE Flaws for the Virtue that is actually flawed
-                    # (pp.131-133) — offering a Compassion Flaw beside a flawed Valor
-                    # would be offering an illegal pick. The list is a shortcut into the
-                    # free-text field below, never a replacement for it: the page says
-                    # in as many words that these are not the only Flaws an Exalt might
-                    # develop, so a picked Flaw writes its printed text into
-                    # `description` and the player edits it from there. Rebuilt with the
-                    # panel when the Virtue changes, so the options always match.
+                    # The sample Flaws of the flawed Virtue (pp.131-133). A shortcut
+                    # into the free-text field: a pick copies the printed text into
+                    # `description`, and the player edits it. Rebuilt with the panel
+                    # when the Virtue changes.
                     samples = [f for f in ruleset.virtue_flaw_catalog.values()
                                if vf is not None and f.virtue == vf.virtue]
                     if samples:
@@ -1296,17 +1236,10 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
 
     def set_caste(value: str) -> None:
         character.caste = value
-        # The heritage determines the origin axis (`_origin_options` reads
-        # `heritage_traits.origin_options`), so switching heritage can strand the OLD
-        # heritage's origin — a Fae-Blooded's "Solar" parent, a Half-Caste's "Noble".
-        # Re-seed it the same way set_exalt_type does, or ui.select raises ValueError
-        # on a value that is not among the new heritage's options and the editor dies.
-        # Changing the origin is what set_origin does, so when it actually changes,
-        # finish the job the way set_origin does: clear the upbringing (scoped to the
-        # origin) and re-seed camp/Calling (they belong to the origin) — a stale one
-        # would resolve against the wrong row. Latent today (no splat has both castes
-        # and an intra-splat origin that set_caste re-seeds) but a trap for the next
-        # splat that does.
+        # The heritage gives the origin options (`heritage_traits.origin_options`).
+        # ⚠ Re-seed the origin as set_exalt_type does: a stale value not in the new
+        # options makes ui.select raise. If the origin changes, also clear the
+        # upbringing and re-seed camp/Calling, as set_origin does.
         origins = _origin_options(ruleset, character)
         if character.origin not in origins:
             character.origin = next(iter(origins)) if origins else ""
@@ -1345,14 +1278,9 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         character.granted_charms = granted
 
     def _drop_orphaned_elemental_powers() -> None:
-        """Elemental Powers belong to the Elemental heritage alone (PG p.68), so any
-        structural switch that walks away from it strands them: the picker tab vanishes,
-        the BP breakdown keeps charging their cost, and validation flags every one with
-        no UI path to remove them (the code-review finding). The rule lives in the engine
-        (validate.legal_elemental_powers) — this just applies it, exactly as
-        _reset_camp_for_origin applies validate.default_camp_and_calling. Say so when it
-        drops any, because unlike a camp these were bought — pre-lock their BP simply
-        returns to the pool (decision 0003: BP is a ceiling, not a wallet)."""
+        """Drop the Elemental Powers that a heritage switch no longer permits (PG
+        p.68). validate.legal_elemental_powers decides. Notify the player: before the
+        lock their BP returns to the pool (decision 0003)."""
         legal = validate.legal_elemental_powers(ruleset, character)
         if character.elemental_powers != legal:
             n = len(character.elemental_powers)
@@ -1489,12 +1417,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         body.refresh(); changed()
 
     def set_virtue_flaw_sample(flaw_id: str) -> None:
-        """Copy a sample Flaw's printed text into the free-text description.
-
-        A COPY, not a reference (decision 0007's line: ids for invariant content,
-        inline copies for variable). The player is expected to edit the text — the book
-        offers these as a guide to severity for Flaws of their own — so storing the id
-        would make an edited Flaw claim to be the printed one."""
+        """Copy the printed text of a sample Flaw into the free-text description. A
+        copy, not a reference (decision 0007): the player edits it."""
         flaw = ruleset.virtue_flaw_catalog.get(flaw_id or "")
         if flaw is None:
             return

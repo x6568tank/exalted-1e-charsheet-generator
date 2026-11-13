@@ -1,17 +1,11 @@
 """
 ui/advantages.py — Backgrounds and Merits & Flaws, on both sides of the lock.
 
-These two were the only traits filed under the Edit⇄XP split that do not BEHAVE like
-it. Edit⇄XP is one slot seen from two sides: chargen builds a baseline, XP spends
-against it. Backgrounds and M&F are not that — they are one list edited under two
-budget regimes, which is the Charms/Combos shape, so they live on a tab that is on the
-bar throughout and switches mode at the lock.
+Backgrounds and M&F are one list each, edited under two budget regimes. Thus they are
+on a tab that is always shown and changes mode at the lock, as Charms and Combos.
 
-⚠ Filing them under the Edit/XP split is what forces each to be written twice, and the
-duplicates drift: one surface filtering its Merit dropdown by splat while the other does
-not lets a Solar pick Chimera at chargen and only be told afterwards, and two
-near-identical Background panels go the same way.
-**This module is one implementation of each. Do not grow a second one anywhere else.**
+⚠ **This module is the one implementation of each. Do not add a second one.** Two
+copies drift (a splat filter on one and not on the other).
 
 Mode comes from the character, never from the caller (`_in_play`, reading
 `chargen_locked`), exactly as the Charms picker does:
@@ -69,11 +63,8 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         return character.chargen_locked
 
     # ---- live readout ----------------------------------------------------- #
-    # Ruling 1 of the plan, and the load-bearing risk of the whole refactor: these
-    # traits draw on the SHARED chargen bonus-point pool alongside everything left on
-    # the Edit tab. Without a readout here a player spends 6 BP on Merits and the total
-    # that moved is displayed on a tab they cannot see. The Charms picker carries its
-    # own for exactly this reason; this is the same pattern.
+    # These traits use the SHARED chargen bonus-point pool, thus this tab shows the
+    # total too, as the Charms picker does.
     @ui.refreshable
     def readout() -> None:
         if _in_play():
@@ -94,13 +85,9 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         bp = next((i.message for i in view.issues if i.code == "bonus-points"), "")
         ui.label(bp).classes("text-sm font-semibold").style(f"color:{pal.accent}")
         ui.separator()
-        # Only the issues this tab can do anything about — the Edit tab reports the
-        # rest, and repeating all of them here would make both readouts noise.
-        # Artifact issues appear here too, because the Artifact BACKGROUND rating is
-        # edited on this tab and the budget findings key off it — they must update live
-        # as the rating moves, not only on the Sheet after a tab switch. ⚠ The Gear tab
-        # renders the same findings beside the items themselves, so the two overlap by
-        # design; they read one issue list, so they cannot disagree.
+        # Only the issues that this tab can fix. Artifact budget issues are included:
+        # the Artifact Background rating is edited here and they must update live.
+        # ⚠ The Gear tab shows the same issues. Both read one issue list.
         mine = [i for i in view.issues
                 if i.code != "bonus-points"
                 and ("background" in i.code or "merit" in i.code or "flaw" in i.code
@@ -168,13 +155,10 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                       for s in artifactsmod.hearthstones(rs.artifact_catalog)}
 
     def _bg_type(bg):
-        """The catalogue entry a Background row names, or None for free text.
+        """Return the catalogue entry of a Background row, or None for free text.
 
-        Resolved through the SPLAT-FILTERED catalogue, which is what makes a
-        Dragon-Blooded Manse row find the Dragon-Blooded allowance rather than the
-        corebook's — the six Manse variants share two names between them, so a global
-        lookup by name would answer for whichever copy it met first (the Illuminated
-        Artifact scar)."""
+        ⚠ Resolved through the SPLAT-FILTERED catalogue: the Manse variants share
+        names, thus a global lookup by name can return a copy of a different splat."""
         return _bg_types.get(bg.name.strip().lower())
 
     def _grows_stones(bg) -> bool:
@@ -221,13 +205,11 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                                       default_icon="diamond")
 
     def _render_hearthstones(bg):
-        """The stones held on one Manse row, plus a running total against the
-        allowance. The total is printed on screen rather than left to the validator:
-        the allowance differs per splat and per rating, so a player cannot know it
-        without being told, and the Issue would be their first hint.
+        """The stones on one Manse row, and a running total against the allowance. The
+        allowance differs by splat and rating, thus the screen shows it.
 
-        Returns its own sync function, which the caller chains onto the row's
-        rating-change callback — see `_sync` below."""
+        Returns its sync function. The caller chains it onto the rating-change
+        callback of the row (see `_sync` below)."""
         # Declared before `_sync_total` closes over it and CREATED after the stone
         # rows, so the running total prints beneath them. Late binding makes the order
         # legal; the first call is the one at the end of this function.
@@ -278,25 +260,17 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         _sync_total()
         return _sync_total
 
-    # ⚠ Anything reading a Background rating MUST be driven from `_sync`, which is
-    # where a rating change arrives — two consumers have gone stale in this panel by
-    # not being (the Hearthstone denominator, see `row_sync`'s rebind below, and the
-    # artifact budget header back when it lived on this tab).
-    #
-    # There is no cross-panel hook to the artifact header any more: it renders on the
-    # Gear tab, the two tabs render separately, so there is nothing here to refresh.
-    # The link that
-    # replaced it is the "buys N dot(s)" note in `_sync`, which `_sync` recomputes.
+    # ⚠ Each reader of a Background rating MUST be driven from `_sync`, where a rating
+    # change arrives (the Hearthstone denominator: see `row_sync` below). The
+    # "buys N dot(s)" note links to the Gear tab, and `_sync` recalculates it.
 
     def _background_rows(bg_cap) -> None:
-        """The Background list itself — identical in both regimes but for the rating
-        control, which is `bg_cap`'s business. ONE body for both, never two functions
-        differing only in their header.
+        """The Background list, the same in both regimes except the rating control
+        (`bg_cap`). ONE body for both.
 
-        ⚠ `bg_cap` is called with (bg, on_rating_change) and MUST invoke the callback
-        when the rating moves: the rung label under the row is keyed to the rating,
-        and the play regime's number input does not rebuild the panel, so without it
-        the rung would keep describing the rating the row was drawn at."""
+        ⚠ `bg_cap` is called with (bg, on_rating_change) and MUST call the callback
+        when the rating changes: the rung label follows the rating, and the play
+        regime does not rebuild the panel."""
         # The origin matters for `excluded_origins` (the ancient-only Savant): a
         # modern Dragon King must not see it, an ancient one must.
         bg_catalog = validate.background_catalogue_for(rs, character)
@@ -316,16 +290,13 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 # rebound below, once `desc`/`rung` exist.
                 row_sync: dict = {}
                 bg_cap(bg, lambda rs_=row_sync: rs_.get("fn", lambda: None)())
-                # A Manse row gets the Hearthstone catalogue, because the stone is what
-                # the Manse produces (core p.338) and its level is the MANSE's, not
-                # Artifact's — picking one deliberately does NOT create an
-                # `ArtifactEntry`, which would charge the p.131 Artifact budget for a
-                # stone Artifact dots never bought.
+                # A Manse row gets the Hearthstone catalogue. The stone level is the
+                # MANSE level (core p.338). ⚠ A pick does NOT create an
+                # `ArtifactEntry`: that would charge the p.131 Artifact budget.
                 #
-                # The Demesne toggle sits on every Background that COULD grow stones,
-                # including one already flipped to Demesne — otherwise flipping it
-                # would hide the control that flips it back. The picker sits only on
-                # rows that actually grow them.
+                # The Demesne toggle is on each Background that COULD grow stones, also
+                # when set to Demesne: else the toggle hides itself. The picker is only
+                # on rows that grow stones.
                 if artifactsmod.grows_hearthstones(_bg_type(bg)):
                     ui.switch(value=bg.is_demesne,
                               on_change=lambda e, bg=bg: (
@@ -342,17 +313,12 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 ui.button(icon="delete",
                           on_click=lambda e=None, idx=idx: remove_bg(idx)
                           ).props("flat dense round")
-            # The catalogue description under the row — the dropdown tooltip made
-            # persistent, the way the M&F rows print their rules text. Refreshed by the
-            # row's own select WITHOUT rebuilding the panel: a rebuilt input eats every
-            # keystroke after the first (the filter bar's lesson). `bg` and `desc` are
-            # default-captured because the loop would otherwise bind every row's sync to
-            # the LAST row's. A free-text name no catalogue entry covers gets nothing —
-            # the label just hides. Backgrounds are free text, so this must never crash.
-            # `data-testid` is the only prop that distinguishes this label from the M&F
-            # rules-text labels below (which share its styling classes) — without it a
-            # `should_see(description)` assertion matches the dropdown option tooltips
-            # and passes against code with no persistent label at all.
+            # The catalogue description under the row. The select of the row refreshes
+            # it WITHOUT a panel rebuild: a rebuilt input loses keystrokes. `bg` and
+            # `desc` are default-captured: else each sync binds to the LAST row. A
+            # free-text name gets no description, and must never crash.
+            # ⚠ `data-testid` tells this label from the M&F rules-text labels. Else
+            # `should_see(description)` matches the dropdown tooltips.
             desc = ui.label("").classes("text-xs opacity-70 pl-1"
                                         ).props('data-testid="bg-desc"')
             # The printed rung for the rating this row actually holds — "•• Two
@@ -390,12 +356,9 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 setattr(bg, "name", e.value or ""), sync()))
             _sync()
 
-            # The Hearthstones held on this row, each with the rating the S&S p.67 cap
-            # actually measures. Editable, because a stone's level is a fact about the
-            # Manse that grew it and the printed ten are examples — a table's own stone
-            # is the ordinary case. Shown whenever any are held, even on a row flipped
-            # to Demesne or renamed off a Manse, so a stranded stone stays visible and
-            # deletable rather than becoming an Issue with no control behind it.
+            # The stones of this row, each with its rating (S&S p.67). Editable: the
+            # printed stones are examples. Shown whenever any are held, also on a
+            # Demesne or renamed row, thus a stranded stone can be deleted.
             if bg.hearthstones:
                 stones_sync = _render_hearthstones(bg)
                 # Rebind the rating hook to drive BOTH labels. `row_sync` is read
@@ -408,12 +371,9 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         # The catalogue picker replaces the blind "Add background": browse the
         # splat-filtered catalogue, pick one, or choose Custom for a blank row.
         def _open_bg_catalogue() -> None:
-            # The dialog is where a rating gets CHOSEN, so its "Full description"
-            # panel carries the whole printed ladder, not just the blurb — the row
-            # itself shows only the one rung the character holds. The summary stays
-            # the plain description so the filter and the clamped one-liner are
-            # unchanged. A Background with no transcribed ladder shows the blurb
-            # alone, exactly as before.
+            # The dialog is where a rating is CHOSEN: its "Full description" shows the
+            # whole printed ladder. The summary stays the plain description. No
+            # ladder: the description only.
             rows = []
             for b in sorted(bg_catalog, key=lambda b: b.name):
                 ladder = viewmod.background_ladder(bg_catalog, b.name)
@@ -438,13 +398,10 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
 
     def _chargen_backgrounds(b, mf_effects) -> None:
         def cap_for(name: str) -> int:
-            """The highest rating this Background may be clicked to. Ordinarily 5; a
-            held Flaw may lower it (Innocuous caps Allies/Contacts/Mentor at 2) or close
-            it outright (Followers, Cult, Command) — that half is engine.merits'. The
-            engine.validate' half is the DATA ceiling: a splat rule caps or bars the
-            Background (MF Backing ≤2, the mortal Artifact bar, the MF Artifact lift to
-            10), and the control must not offer past it — a cap you can click past is
-            not a ceiling."""
+            """Return the highest rating that a click can set. Usually 5. A held Flaw
+            can lower or close it (engine.merits). A splat rule can cap or bar it
+            (engine.validate). ⚠ The control must not offer more: a cap that a click
+            can pass is not a ceiling."""
             key = (name or "").strip().lower()
             if key in mf_effects.barred_backgrounds:
                 return 0
@@ -514,15 +471,11 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         refresh_all()
 
     # ---- Merits & Flaws: the filter bar ----------------------------------- #
-    # The whole catalogue in one flat dropdown is unusable: the chargen
-    # row select had no type-ahead at all, and the play one had type-ahead over a label
-    # that leads with the name, so "combat" found nothing. One filter, used by both —
-    # the same discipline as the rest of this module, since a second copy is what put
-    # the splat filter on one panel and not the other.
+    # One filter for both regimes.
     #
-    # The controls do NOT refresh the body. A `ui.input` fires per keystroke and a
-    # rebuilt input has lost focus, so the search box would eat every character after
-    # the first. The filter reaches into the live selects with `set_options` instead.
+    # ⚠ The controls do NOT refresh the body: a `ui.input` fires per keystroke, and a
+    # rebuilt input loses focus. The filter changes the live selects with
+    # `set_options`.
     _MF_SIDES = {"": "All", "merit": "Merits", "flaw": "Flaws"}
     mf_filter: dict[str, str] = {"text": "", "kind": "", "category": ""}
 
@@ -577,14 +530,12 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 else f"{shown} of {total} shown — clear the filter to see the rest")
 
     def _chargen_merits(b) -> None:
-        # A MERIT costs bonus points; a FLAW grants them, which is why the header
-        # reports the grant separately rather than as a negative.
+        # A MERIT costs bonus points. A FLAW grants them: the header shows the grant
+        # separately.
         #
-        # Filtered to what this character may actually take: offering a Solar Chimera
-        # only to answer with a validation error is a worse experience than not offering
-        # it. Held rows survive both this filter and the search bar's via `_row_opts`,
-        # so an entry that became illegal (a caste change) stays visible and flagged
-        # rather than vanishing.
+        # Filtered to what the character can take. A held row stays through both
+        # filters (`_row_opts`), thus an entry that became illegal stays visible and
+        # flagged.
         available = _available_merits(b.essence_start)
         merit_opts = {m.id: _merit_label(m) for m in available}
         # (select, purchase) for every row on screen, so the filter bar can re-option
@@ -755,13 +706,10 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                     choices = (meritsmod.detail_choices(definition)
                                if definition is not None else ())
                     if choices:
-                        # `ui.select` RAISES at build time when its value is not among
-                        # its options, and the raise takes the whole tab with it. A
-                        # stored detail can legitimately be off-list: validate compares
-                        # `detail.strip().title()`, so "strength" passes validation
-                        # while never matching the title-cased option. Normalise the
-                        # same way validate does, then keep anything still unmatched as
-                        # its own option rather than crashing on it.
+                        # ⚠ `ui.select` RAISES at build time for a value not in its
+                        # options. A stored detail can be off-list ("strength" passes
+                        # validate's `detail.strip().title()`). Normalize as validate
+                        # does, then keep an unmatched value as its own option.
                         detail_opts = {c: c for c in choices}
                         current = mp.detail.strip().title() if mp.detail else ""
                         if mp.detail and current not in detail_opts:
@@ -923,13 +871,10 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 _mf_changed(id=key, taken_as="", tier="", points=0, detail="")
 
             def _custom_gain() -> None:
-                # Build the prompt in the LAYOUT context, not the catalogue dialog's
-                # slot. A nested ui.dialog() creates a hidden canary element in the
-                # current slot; the catalogue dialog's clear-on-close then deletes the
-                # canary, whose weakref finalizer deletes THIS dialog — the reviewer
-                # found it as "Custom is a silent no-op". Parented into layout, the
-                # canary is a sibling of the catalogue dialog, not a descendant, so
-                # clearing the catalogue dialog leaves the prompt alive.
+                # ⚠ Build the prompt in the LAYOUT context, not in the slot of the
+                # catalogue dialog. A nested ui.dialog() puts a canary in the current
+                # slot. When the catalogue dialog clears, the canary's finalizer
+                # deletes this dialog.
                 with context.client.layout:
                     with ui.dialog() as dlg, ui.card().classes(
                             f"w-[26rem] p-4 gap-2 {pal.card_solid}"):

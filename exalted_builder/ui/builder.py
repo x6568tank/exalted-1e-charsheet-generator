@@ -6,10 +6,9 @@ a Charms tab (the Cytoscape charm-tree picker), a Combos tab, a Play tab, an ST
 Options tab (the table's optional-rule switches) and a Sheet tab (the read-only
 viewer). A top bar provides Save, Load, and Finish & Lock.
 
-The tab bar tracks the character's stage, but every tab that edits the character is on
-it throughout and changes MODE rather than going read-only or being swapped out: before
-the lock they spend the chargen budget, after it they spend experience. Play is the one
-locked-only tab. See `visible_tabs`, and decision 0013 for why there is no XP tab.
+Each tab that edits the character is always on the bar and changes MODE at the lock:
+the chargen budget before, XP after. Play is the one locked-only tab. See
+`visible_tabs`, and decision 0013 (no XP tab).
 
 Only the active tab's content is mounted (a single refreshable area), which keeps
 the Cytoscape container visible when it builds and avoids stale hidden canvases.
@@ -380,23 +379,17 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         ui.notify(f"Saved {target.name}", type="positive")
 
     async def save() -> None:
-        """Write the character. There are THREE deployments and each gets its own
-        branch:
+        """Write the character. THREE deployments, one branch each:
 
         hosted -> write to the session's own directory on the server, no dialog.
         native desktop window -> the OS "Save As" dialog (choose folder + name).
         plain browser -> a filename prompt, then a download to the browser.
 
-        ⚠ The two-way version of this was silently wrong for a hosted run: every
-        deployment that was not native downloaded, so a hosted Save showed a green
-        "Downloading …" toast and left the server untouched. It looks like it
-        worked. See hosting-per-instance.md, which records the branch and the
-        first, reverted, fix.
+        ⚠ Do not merge the hosted branch into the download branch: a hosted Save
+        would then show "Downloading …" and leave the server unchanged.
 
-        ⚠ That earlier fix read a module-level `_SERVER_SAVE_DIR`, and its own note
-        says that was safe ONLY because the deployment was one player per process.
-        That is no longer true. The destination here is `ctx["path"]`, which the
-        session owns.
+        ⚠ The destination is `ctx["path"]`, which the session owns. ⚠ Never a
+        module-level directory: the server has many players in one process.
         """
         win = _native_window()
         default_name = persistence.suggested_filename(ctx["char"])
@@ -499,14 +492,13 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         ui.notify(f"Sheet written to {target}", type="positive")
 
     def _apply_loaded(loaded: Character, path: Path | None, source_label: str) -> None:
-        """Swap in a freshly loaded character. With a real path, future saves land
-        beside it; for an uploaded file (no path) they default to the save dir.
+        """Swap in a loaded character. With a real path, later saves go beside it.
+        An uploaded file (no path) saves to the save dir.
 
-        The single funnel for every load, which is why the homebrew import happens
-        here: a save from another table carries the definitions of the custom Charms
-        it uses, and absorbing them into this machine's library is what makes those
-        Charms resolve instead of showing as ⚠ rows. Both load paths pass
-        `absorb_custom=False` so the count is still ours to report."""
+        The one funnel for each load, thus the homebrew import is here: a save from a
+        different table carries its custom Charm definitions, and absorbing them makes
+        those Charms resolve. Both load paths pass `absorb_custom=False` to report the
+        count."""
         imported = custom_content.absorb_definitions(loaded, custom_dir=ctx["custom_dir"])
         if imported:
             rules_db.reload_custom_layer(ruleset, ctx["custom_dir"])

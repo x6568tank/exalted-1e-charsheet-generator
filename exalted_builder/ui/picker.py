@@ -1,23 +1,18 @@
 """
 ui/picker.py — NiceGUI charm-tree picker (Cytoscape).
 
-Renders a Charm category's prerequisite graph with Cytoscape.js. Nodes are
-colour-coded owned / available / locked (from view.build_charm_graph, which asks
-the engine). Tapping a node toggles ownership: an available Charm is learned, an
-owned one is dropped; locked Charms refuse with a notice. A live readout re-runs
-validation on each change. Save writes JSON via persistence.
+Renders the prerequisite graph of a Charm category with Cytoscape.js. Nodes are
+owned / available / locked (view.build_charm_graph asks the engine). A node tap
+learns an available Charm or drops an owned one. A locked Charm shows a notice. The
+readout re-runs validation on each change.
 
-**Two modes, one picker.** Before Finish & Lock this is a chargen sheet: picks are
-free and reversible, and the readout tallies them against the chargen pool. After the
-lock it is a shop — Charms, spells and Ox-Body packages are bought through
-engine.advancement (priced, legality-checked, appended to the XP log), the price
-rides on the button, and nothing can be dropped: the only refund is undoing the most
-recent purchase from the Edit tab's Experience card.
+**Two modes.** Before the lock: a chargen sheet, with free and reversible picks.
+After the lock: a shop. Purchases go through engine.advancement, the price is on the
+button, and nothing can be dropped: the only refund is undo of the last purchase, on
+the Edit tab.
 
-No game logic here: the toggle asks engine.validate.meets_charm_requirements, prices
-come from engine.costs, and node states come from the engine. Cytoscape is VENDORED
-(`ui/assets.cytoscape_head_html` inlines `ui/vendor/cytoscape.min.js`), so the picker
-works offline and in a packaged build — never add a CDN dependency here.
+No game logic here. Cytoscape is VENDORED (`ui/assets.cytoscape_head_html` inlines
+`ui/vendor/cytoscape.min.js`): never add a CDN dependency.
 
 Run:
     python -m exalted_builder.ui.picker [path/to/foo.character.json] [--show] [--port N]
@@ -110,11 +105,8 @@ def _elements(graph: viewmod.CharmGraph) -> list[dict]:
 
 # --------------------------------------------------------------------------- #
 # Thaumaturgy purchases — RE-EXPORTS from engine/thaum_actions.py
-#
-# They are game logic (they mutate the save and dispatch on the lock) and import no
-# nicegui, so they do not live in the UI layer. Re-exported here because
-# `picker.buy_thaum_art(...)` is the call shape used by build_picker below, by
-# tests/_ui_main.py and by tests/test_thaumaturgy_ui.py.
+# Defined in the engine (no nicegui) and re-exported: build_picker,
+# tests/_ui_main.py and tests/test_thaumaturgy_ui.py call `picker.buy_thaum_art(...)`.
 #
 # ⚠ They raise `advancement.AdvancementError`, which build_picker catches to turn a
 # refusal into a notification. Keep it that way.
@@ -135,16 +127,13 @@ from ..engine.thaum_actions import (  # noqa: F401  (re-export for existing call
 def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                  *, with_header: bool = True, register_events: bool = True,
                  initial_group: str = "", initial_category: str = ""):
-    """Render the picker. Returns its `toggle(charm_id)` so an embedding app can
-    own a single charm_toggle event handler (set register_events=False then).
-    with_header=False omits the title/Save bar and the head <script> (the host
-    app supplies Cytoscape).
+    """Render the picker. Return its `toggle(charm_id)`, for a host that owns the
+    charm_toggle event (then pass register_events=False). with_header=False omits the
+    title/Save bar and the head <script>.
 
-    `initial_group` opens the picker on one of its other pages — 'spells', 'thaum',
-    'styles', 'forms', 'panoply' — instead of the Charm trees. Ignored when this
-    character has no such page, so a caller may pass one unconditionally.
-    `initial_category` opens a Charm-tree page on one particular tree, and is
-    likewise ignored unless that category is actually on offer to this character."""
+    `initial_group` opens another page ('spells', 'thaum', 'styles', 'forms',
+    'panoply'). `initial_category` opens one Charm tree. Each is ignored if the
+    character does not have it."""
     pal = theme.palette(character.exalt_type)
 
     def in_play() -> bool:
@@ -180,16 +169,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
     def _pretty(cat: str) -> str:
         if ":" in cat:                          # 'martial_arts:snake' -> 'Martial Arts: Snake'
             base, style = cat.split(":", 1)
-            # ⚠ The AUTHORED style name wins, exactly as it does on the Charm detail
-            # card and the preamble panel. Title-casing the slug is only a fallback,
-            # and it is wrong for any style whose printed name is not its slug:
-            # `praying-mantis` is printed "Mantis Style" (Caste Book: Eclipse p.73),
-            # and `.title()` does not repair the hyphen either.
-            #
-            # ⚠ ONE label generator, `view._style_label` — a second copy here is how
-            # the panel and the dropdown came to disagree about the same style on the
-            # same screen. Defer to it, then strip the " Style" suffix the dropdown's
-            # own format does not carry.
+            # ⚠ Use `view._style_label`, the ONE label generator: the AUTHORED name
+            # wins over the slug ("Mantis Style", Caste Book: Eclipse p.73). Then
+            # remove the " Style" suffix for the dropdown.
             name = viewmod._style_label(cat, ruleset).removesuffix(" Style")
             return f"{base.replace('_', ' ').title()}: {name}"
         return cat.replace("_", " ").title()
@@ -208,26 +190,17 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
     def _group_of(cat: str) -> str:
         if cat.startswith("martial_arts:"):
             return "styles"
-        # Resolve the raw category before any `:virtue` split, mirroring the
-        # `martial_arts:` prefix test above. `view.virtue_split` refuses to split
-        # ghost paths (their Virtue minimums are per-entry gates, not an organizing
-        # axis), so no ghost category reaches here as a sub-key today — this guard is
-        # the belt-and-braces that keeps a future Virtue-keyed arcanos category on
-        # the Arcanoi page rather than falling through to "abilities".
-        # `spirit_templates:*` deliberately falls through: the spirit Charms are
-        # excluded from `_arcanoi_categories` and belong on the Charms page.
+        # Resolve the raw category before a `:virtue` split, as for `martial_arts:`.
+        # ⚠ A guard: `view.virtue_split` does not split ghost paths. `spirit_templates:*`
+        # falls through to the Charms page.
         if cat.split(":", 1)[0] in _arcanoi_categories:
             return "arcanoi"
         return "abilities"
 
     def _visible_category_options(group: str | None = None) -> dict[str, str]:
-        """Category-dropdown options for the CURRENT character state: the categories
-        of the SELECTED splat's page in the selected group, minus any a rule hides
-        right now. The only such rule today is the Dragon-Blooded Dragon-Path gate
-        (DB p241) — the elemental Dragon styles appear only once both enlightenment
-        Charms (Spirit Sight + Spirit Walking) are known. That gate is the *character's*
-        own, so it does not follow them onto a foreign splat's page: an Eclipse
-        learning Dragon-style Charms needs a tutor, not the Immaculate initiation."""
+        """Return the category options of the selected splat page and group, minus the
+        categories a rule hides now: the Dragon-Path gate (DB p241). That gate belongs
+        to the character's own splat: it does not apply on a foreign splat page."""
         want = state["group"] if group is None else group
         # A category whose Charms span several Virtues (the spirit Charms) is split
         # into one entry per Virtue so each gets its own tree -- see view.virtue_split.
@@ -734,10 +707,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
 
     # ---- Deadly Beastman Transformation Gifts (repeatable, multi-pick; Lunar) -- #
     # Each purchase grants a fixed number of Gift picks (2 first, 1 after, p.124).
-    # The Gifts (p.126-127) have their own prerequisite chains, which is far
-    # too much to cram into the sticky detail card the way Ox-Body's two variants fit:
-    # the detail card just shows what has been bought and an Add button, and the
-    # choosing happens in a dialog with room for every Gift's description.
+    # The Gifts (p.126-127) have prerequisite chains, thus the choice is in a dialog.
+    # The detail card shows the purchases and an Add button.
 
     def remove_gift_purchase(index: int) -> None:
         if _act(charm_actions.remove_gift_purchase, character, index, kind="info"):
@@ -915,24 +886,16 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
 
     @ui.refreshable
     def style_panel() -> None:
-        """The style-level text above a martial-arts tree: its printed `Type:`, its
-        prose, and the "Weapons and Armor" rules that never had anywhere to live
-        (docs/plans/martial-arts-styles.md).
+        """The style text above a martial-arts tree: the printed `Type:`, the prose,
+        and the "Weapons and Armor" rules.
 
-        Renders NOTHING when the selected category is not an authored style — the
-        documented absences, and permanently so for a homebrew style. An empty panel
-        on every other category would be worse than no panel, the same rule the
-        sheet's conditional panels follow.
+        Renders NOTHING for a category that is not an authored style (a homebrew style).
         """
         style = viewmod.style_for_category(ruleset, state["category"])
         if style is None or not _is_graph_page():
             return
-        # ⚠ Both of these are conditional because a book may print NEITHER a `Type:`
-        # line nor prose, and a homebrew style has neither by default
-        # (docs/status/martial-arts-styles.md). Interpolating them
-        # unconditionally gives "Air Dragon Style — " with a dangling em-dash above
-        # an empty label. Same rule the printed sheet follows: nothing is rendered as
-        # nothing, never as an empty box.
+        # ⚠ Both are conditional: a book can print neither, and a homebrew style has
+        # neither. Show nothing, never an empty label with a dangling dash.
         with ui.expansion(style.heading).classes(
                 f"w-full {pal.card_soft} rounded").props("dense"):
             with ui.column().classes("w-full gap-2 p-2"):
@@ -951,12 +914,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
 
     @ui.refreshable
     def spells_panel() -> None:
-        # Spells share the Charm pool (p.100) and are gated on the Occult Sorcery /
-        # Necromancy Charms, so they get their own page of the picker rather than a
-        # cramped card under the Occult graph: the Circle dropdown chooses a circle,
-        # and each spell is a full-width row — its name, its description on the line
-        # below, and the add/remove/locked button. Rebuilt on every Charm change so
-        # learning a Circle Charm immediately unlocks its spells.
+        # Spells share the Charm pool (p.100) and have their own page: a Circle
+        # dropdown and one full-width row per spell. Rebuilt on each Charm change,
+        # thus a new Circle Charm unlocks its spells at once.
         if state["group"] != "spells":
             return
         rows = [r for r in viewmod.build_spell_picker(ruleset, character)
@@ -1013,15 +973,12 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                                 ui.label(r.reason).classes("text-xs text-amber-700 italic")
 
     # ---- Thaumaturgy (Player's Guide CH3) --------------------------------- #
-    # A cross-splat capability layer, not a splat: every shipped splat may hold it
-    # (p.114), so this page is on every character's picker. Four sub-tabs because an
-    # Art (binary), a Science (rated, on a sparse ladder), a ritual (levelled) and a
-    # formula (flat rate) are four different mechanical shapes that one flat list
-    # would fight — see docs/status/thaumaturgy.md.
+    # Not a splat: each character has this page (p.114). Four sub-tabs for four
+    # shapes: Art (binary), Science (rated), ritual (levelled), formula (flat). See
+    # docs/status/thaumaturgy.md.
     #
-    # Every gate, price and label comes from view.build_thaum_picker, which asks the
-    # engine; nothing here decides legality. Purchases edit the chargen lists before
-    # the lock and go through engine.advancement after it, exactly like spells.
+    # view.build_thaum_picker gives each gate, price and label. Purchases edit the
+    # chargen lists before the lock and go through engine.advancement after it.
 
     THAUM_TABS = {"arts": "Arts", "sciences": "Sciences",
                   "rituals": "Rituals", "formulas": "Formulas"}
@@ -1196,11 +1153,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                             "text-xs font-mono text-gray-600 w-16 text-right")
 
     # ---- Elemental Powers (Core p.296 + GoD p.56, PG p.68) ------------------ #
-    # A Charm-like catalogue for Elemental-origin God-Blooded: 7 BP each chargen,
-    # 14 XP in play ("learned in play for a number of experience points equal to
-    # double its bonus point value"). Every gate and price comes from the engine;
-    # purchases edit the chargen list before the lock and go through
-    # engine.advancement after it, exactly like spells.
+    # Elemental-origin God-Blooded: 7 BP each at chargen, 14 XP in play. The engine
+    # gives each gate and price. As spells: chargen list before the lock,
+    # engine.advancement after it.
     def _elemental_buy_button(row) -> None:
         if in_play():
             if row.owned:
@@ -1471,12 +1426,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
 
     @ui.refreshable
     def forms_panel() -> None:
-        """The Lunar Form Library: the character's Totem plus every animal shape they
-        have taken. Entirely free-form — no cost, no cap, no validation, and it is
-        never touched by the chargen budget or the XP audit. Which animals a Lunar
-        has heart's blood for is a narrative record the Storyteller adjudicates, so
-        this is a notepad, not a picker. Available pre- and post-lock alike, since
-        forms are gained in play, not bought."""
+        """The Lunar Form Library: the Totem and each animal shape. Free text: no
+        cost, no cap, no validation, not in the chargen budget or the XP audit.
+        Editable before and after the lock."""
         if state["group"] != "forms":
             return
         with ui.card().classes(f"w-full p-3 gap-3 {pal.card}"):
@@ -1502,11 +1454,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 f"dense flat no-caps color={pal.button}")
 
     # ---- Vat refit: Charm Slots vs the Panoply (Alchemical, p.88-89) ------- #
-    # An Alchemical owns more Charms than they can wear. Installed Charms sit in Slots
-    # and commit Personal Essence; the rest wait in the Panoply. This page moves them
-    # between the two. Like the Form Library it is play-state — no BP, no XP, nothing
-    # here reaches chargen validation or the XP audit — but unlike it, the move has
-    # mechanical weight, so engine.refit checks Slot fit and committed Essence.
+    # Moves Charms between the Slots and the Panoply. Play state: no BP, no XP, not
+    # in chargen validation or the XP audit. engine.refit checks Slot fit and the
+    # committed Essence.
     def do_uninstall(charm_id: str) -> None:
         try:
             refit.uninstall(ruleset, character, charm_id)
@@ -1606,11 +1556,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 _refit_row(cid, installed=False)
 
     # ---- Dragon-King Paths (PG pp.175-177) ---------------------------------- #
-    # A rated-track subsystem with its own chargen pool, NOT Charms: each Path is
-    # rated 1-6 (learned in fixed order, gated by Essence), and each dot grants that
-    # level's power. Pre-lock the rating is a free setter into character.paths;
-    # post-lock it becomes XP +/- via advancement. The breed's two element Paths are
-    # auto-favoured (★) and the player chooses one more (✚) from the other eight.
+    # A rated track, not Charms: each Path 1-6, in fixed order, gated by Essence. Before
+    # the lock a free setter into character.paths, after it XP +/- through advancement.
+    # The two breed Paths are Favoured (★). The player chooses one more (✚).
 
     def _set_path_rating(pid: str, rating: int) -> None:
         """Pre-lock free setter into character.paths (validation via validate_chargen)."""
