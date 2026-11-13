@@ -11,12 +11,8 @@ from ...models.character import Character, XpEntry
 from ...models.rules import AbilityName, RuleSet
 
 
-# Conventional maxima for raises. The 1-5 dot cap is the universal trait cap used
-# throughout chargen; Willpower's permanent maximum is 10.
-#
-# It is a FLOOR under the elder ceilings rather than the last word: age lifts Essence
-# past it and Essence lifts Abilities and Attributes past it (Player's Guide pp.258-259).
-# Every such raise asks engine.elder — the constant itself never moves.
+# The usual maxima for raises: 5 dots, and 10 for permanent Willpower. A FLOOR under
+# the elder ceilings (Player's Guide pp.258-259): each raise asks engine.elder.
 _DOT_MAX = 5
 _WILLPOWER_MAX = 10
 
@@ -62,15 +58,10 @@ def xp_available(character: Character) -> int:
 
 
 def xp_debt(character: Character) -> int:
-    """Outstanding balance owed on a Merit change the character could not afford —
-    Player's Guide p.17: "she pays whatever she has available and must allocate all
-    further experience to the remaining balance until it is paid in full."
+    """Return the balance owed on an unaffordable Merit change (Player's Guide p.17).
 
-    ⚠ DERIVED, never stored, and that is load-bearing. Storing the balance and paying
-    it down inside `add_xp` silently DESTROYS experience: the log then records only the
-    affordable part and the rest is never counted as spent. Logging the FULL cost and
-    letting `xp_available` go negative makes the debt self-evident, self-clearing as XP
-    is earned, and impossible to lose."""
+    ⚠ DERIVED, never stored. The log records the FULL cost and `xp_available` goes
+    negative. A stored balance paid in `add_xp` loses XP."""
     return max(0, -xp_available(character))
 
 

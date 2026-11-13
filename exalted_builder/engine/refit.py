@@ -2,23 +2,18 @@
 engine/refit.py — the Alchemical vat refit: moving Charms between the Charm Slots
 and the Panoply (CH2/CH3, p.88-89).
 
-An Alchemical OWNS more Charms than they can wear. Installed Charms sit in Charm
-Slots and commit Personal Essence; the rest sit "on retainer" in the character's
-Panoply, owned but inert, until the Exalt returns to a vat and is refitted. This
-module is the one place that move happens, in both directions.
+An Alchemical OWNS more Charms than the Slots hold. Installed Charms are in Slots and
+commit Personal Essence. The others are in the Panoply, owned but inert. This module
+is the one place that moves a Charm between the two.
 
-**This is play-state, not chargen and not XP.** A refit spends no bonus points and
-no experience — the Charms are already paid for; only *which* of them are worn
-changes. It therefore writes no XP entry, and `validate.charm_slot_usage` (which
-reads the frozen chargen snapshot once locked) is deliberately NOT consulted here:
-that function answers "was this character legally built?", while a refit asks "what
-is worn right now?". The two must not be confused, so this module computes the live
-load itself. Nothing here feeds chargen validation, the XP audit, or the permanent
-derivations — the same isolation play-state and the Lunar Form Library have.
+**Play state, not chargen and not XP.** A refit costs nothing and writes no XP entry.
+⚠ Do not use `validate.charm_slot_usage`: it reads the chargen snapshot. This module
+calculates the live load. Nothing here feeds chargen validation, the XP audit, or the
+permanent derivations.
 
-What a refit still respects, because those are the mechanical point of Slots:
-a Charm needs a free Slot of a kind it fits (Dedicated Slots take only Caste/Favored
-Charms), and the committed installation motes must fit the Personal Essence pool.
+A refit still respects the Slots: a Charm needs a free Slot of a kind it fits
+(Dedicated: Caste/Favored Charms only), and the installation motes must fit the
+Personal pool.
 """
 
 from __future__ import annotations
@@ -132,15 +127,12 @@ def install_block_reason(ruleset: RuleSet, character: Character, charm_id: str) 
 
 
 def uninstall_block_reason(ruleset: RuleSet, character: Character, charm_id: str) -> str:
-    """Why `charm_id` cannot be moved to the Panoply — "" when it can. Shedding load
-    never breaks a Slot or Essence rule, so the only bars are structural: the Charm
-    must be installed and occupy a Slot, and a `permanent_install` Charm (either
-    Weaving Engine, p.141) can never come out once worn.
+    """Return why `charm_id` cannot move to the Panoply, or "" if it can. The Charm
+    must be installed in a Slot, and a `permanent_install` Charm (p.141) never comes
+    out.
 
-    Note what is deliberately NOT a bar: a Charm that other installed Charms name as a
-    prerequisite. A Panoply Charm is still OWNED, and a prerequisite must be owned, not
-    worn — so uninstalling never cascades. (The pre-lock picker's `charms_depending_on`
-    guard is a different case: there the Charm is being unlearned outright.)"""
+    A prerequisite of an installed Charm is NOT a bar: a Panoply Charm is still owned.
+    An uninstall never cascades."""
     charm = ruleset.charms.get(charm_id)
     if charm_id not in character.charms:
         return "Not installed."

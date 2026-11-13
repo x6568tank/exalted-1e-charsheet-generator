@@ -7,20 +7,13 @@ returns the effective number of levels at that tier; `set_level_total` rewrites
 number asked for. Mechanism: the printed track (derive.BASE_WOUND_PENALTIES) is the
 baseline, and the character's bonus list carries only the DELTA from it — added levels
 above base, `removed=True` levels below.
+Both shells (`ui/editor.py`, `qt/editor.py`) use these functions.
 
-This is `engine/gear_actions.py`'s shape applied to the health track, and for the same
-reason: two shells now drive this edit (`ui/editor.py` and `qt/editor.py`), and a
-shell-local copy in each is a rules bug waiting to happen.
+⚠ **The stored list is a DELTA, not the track.** An empty `health_bonus_levels` means
+"unmodified", never "no health levels". Use `derive.health_track` for the real track.
 
-⚠ **The stored list is a DELTA, not the track.** A tier showing its printed count holds
-no entries at all, so an empty `health_bonus_levels` means "unmodified", never "no
-health levels". Anything that reads the list directly to count a track will undercount
-by the whole printed baseline — `derive.health_track` is the function that assembles
-the real track.
-
-⚠ **Levels below base are stored, not deleted.** A curse that takes a level away adds a
-`removed=True` entry rather than removing a printed one, because the printed track is
-not in the character at all — there is nothing to delete.
+⚠ **Levels below base are stored, not deleted.** A curse adds a `removed=True` entry:
+the printed track is not in the character.
 """
 
 from __future__ import annotations

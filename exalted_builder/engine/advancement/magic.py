@@ -37,15 +37,10 @@ def learn_charm(ruleset: RuleSet, character: Character, charm_id: str) -> XpEntr
         raise AdvancementError(
             f"{charm.name}: Alchemicals gain Charms by buying a Charm Slot or a "
             f"Panoply (retainer) Charm, not directly.")
-    # A splat barred from Charms outright (mortals, core p.103) is refused first and
-    # by name: the generic message below blames the Charm's splat, which reads as
-    # nonsense for an `open_to_all` Charm that belongs to no one splat.
+    # A splat with no Charms (core p.103) is refused first, with its own message.
     #
-    # The bar is not absolute — a Merit reopens part of it (Essence Mastery grants
-    # Terrestrial Martial Arts, PG p.121), and chargen already honours that through
-    # charm_matches_splat. Ask the same question here rather than the splat flag
-    # alone, or a Charm a mortal may legally pick at creation becomes unbuyable the
-    # moment they lock.
+    # ⚠ Ask charm_matches_splat, not the splat flag alone: a Merit reopens part of it
+    # (PG p.121). Else a Charm legal at chargen is unbuyable after the lock.
     if (not validate.charms_available(ruleset, character)
             and not validate.charm_matches_splat(character, charm, ruleset)):
         raise AdvancementError(
@@ -82,11 +77,9 @@ def learn_charm(ruleset: RuleSet, character: Character, charm_id: str) -> XpEntr
     # General Charm Slot with it. Logged under a distinct target so undo gives the
     # Slot back too.
     grants_slot = validate.crossover_alchemical_charm(ruleset, character, charm)
-    # A chargen pick banked by a Flaw (Weak Essence, p.41) pays for this Charm instead
-    # of XP. Logged under its OWN target rather than as a zero-cost `charms` row: the
-    # XP audit re-prices every entry from the table, so a 0 filed as `charms` would be
-    # reported as a mismatch forever after. The distinct target is also what makes the
-    # credits countable — see validate.withheld_charm_credits.
+    # A banked chargen pick (Weak Essence, p.41) pays for this Charm. ⚠ Logged under
+    # its OWN target, not as a zero-cost `charms` row: the audit re-prices each entry,
+    # and validate.withheld_charm_credits counts this target.
     target = "crossover_charms" if grants_slot else "charms"
     if not grants_slot and cost > 0:
         _granted, remaining = validate.withheld_charm_credits(ruleset, character)
@@ -164,11 +157,10 @@ def add_combo(ruleset: RuleSet, character: Character, name: str,
 
 def add_array(ruleset: RuleSet, character: Character, name: str,
               charm_ids: list[str]) -> XpEntry:
-    """Buy an Alchemical Array post-lock (p.89) for the sum of its member Charms'
-    minimum Attribute ratings. Legality is `validate.array_issues` plus the two
-    cross-Array rules `validate_arrays` adds — only a Charm-Slot splat may build
-    Arrays, and a Charm may sit in only one — checked here against the Arrays the
-    character already holds so a post-lock purchase cannot reuse a linked Charm."""
+    """Buy an Alchemical Array after the lock (p.89), for the sum of the minimum
+    Attribute ratings of its Charms. Checks `validate.array_issues` and the two
+    cross-Array rules of `validate_arrays`: only a Slot splat, and a Charm in one
+    Array only."""
     _ensure_locked(character)
     if not validate.uses_charm_slots(ruleset, character):
         raise AdvancementError(
@@ -194,12 +186,10 @@ def add_array(ruleset: RuleSet, character: Character, name: str,
 
 def learn_ox_body(ruleset: RuleSet, character: Character, variant_key: str,
                   *, dedicated: bool = False) -> XpEntry:
-    """Buy one more Ox-Body Technique with the chosen health-level package (post-lock).
-    Gated by the splat's once-per-dot-of-cap-trait limit (Endurance, Stamina for Lunar,
-    Essence for Alchemical). Priced as a normal new Charm — EXCEPT for a Charm-Slot
-    splat (Alchemical), where every purchase installs the Charm in its own Slot (user
-    ruling), so it costs a Slot (General 12 / Dedicated 10) and raises the Slot count.
-    `dedicated` chooses the Slot kind and is ignored by non-Slot splats."""
+    """Buy one more Ox-Body Technique with the chosen package, after the lock. Capped
+    at one per dot of the cap trait. Priced as a new Charm, EXCEPT for a Slot splat
+    (Alchemical): each purchase uses its own Slot (human's ruling) and costs a Slot.
+    `dedicated` selects the Slot kind. Non-Slot splats ignore it."""
     _ensure_locked(character)
     charm = validate.ox_body_charm(ruleset, character)
     if charm is None:
@@ -267,14 +257,11 @@ def learn_martial_arts_charm(ruleset: RuleSet, character: Character, charm_id: s
 
 
 def learn_gift(ruleset: RuleSet, character: Character, gift_keys: list[str]) -> XpEntry:
-    """Buy one more purchase of the Gift-granting Charm (Deadly Beastman
-    Transformation, p.124-127) with the chosen Gift(s), post-lock. Gated by the
-    once-per-point-of-Essence cap; `gift_keys` must match what this purchase
-    grants (2 on the first purchase, 1 on each after); each Gift's own
-    prerequisites (among the character's already-known Gifts and the rest of
-    this same purchase, taken as one atomic set — the rulebook applies a
-    purchase's Gifts together, p.124) and repeat cap must hold. Priced as a
-    normal new Charm regardless of how many Gifts are chosen."""
+    """Buy one more purchase of the Gift Charm (Deadly Beastman Transformation,
+    p.124-127) after the lock. Checks: the Essence cap; `gift_keys` matches the count
+    of this purchase (2 first, then 1); each Gift's prerequisites against the known
+    Gifts and this purchase as one set (p.124); each repeat cap. Priced as a new
+    Charm."""
     _ensure_locked(character)
     charm = validate.gift_charm(ruleset, character)
     if charm is None:
@@ -316,11 +303,9 @@ def learn_gift(ruleset: RuleSet, character: Character, gift_keys: list[str]) -> 
 
 def learn_variant_purchase(ruleset: RuleSet, character: Character,
                            charm_id: str, variant_keys: list[str]) -> XpEntry:
-    """Buy one more purchase of a generic variant-menu Charm post-lock (Environmental
-    Hazard-Resisting Meditation, Zenith p.72-73). Priced as a normal new Charm.
-
-    Gated by the Charm's min essence, its purchase cap, and — when it marks its
-    variants unique — the versions already taken."""
+    """Buy one more purchase of a variant-menu Charm after the lock (Zenith p.72-73).
+    Priced as a new Charm. Checks min essence, the purchase cap, and unique
+    variants."""
     _ensure_locked(character)
     charm = ruleset.charms.get(charm_id)
     if charm is None:

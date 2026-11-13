@@ -19,12 +19,9 @@ from .charms import charm_occupies_slot, meets_charm_requirements, uses_charm_sl
 
 
 def eligible_array_charms(ruleset: RuleSet, character: Character) -> list[str]:
-    """Ids of the character's known Charms that may legally be linked into an Array
-    (p.89) — Attribute-based and `arrayable`, which excludes the Ability-based
-    supernatural martial arts and the Weaving Engines. Order follows the character's
-    Charm list. This is the Array counterpart of `eligible_combo_charms`: it does NOT
-    exclude Charms already sitting in an Array (`validate_arrays` reports reuse), so
-    the caller decides whether to offer them again."""
+    """Return the ids of known Charms that can go in an Array (p.89): Attribute-based
+    and `arrayable`. In the order of the Charm list. Charms already in an Array are
+    included: `validate_arrays` reports reuse."""
     out: list[str] = []
     for cid in character.charms:
         charm = ruleset.charms.get(cid)
@@ -34,11 +31,9 @@ def eligible_array_charms(ruleset: RuleSet, character: Character) -> list[str]:
 
 
 def array_issues(ruleset: RuleSet, character: Character, array) -> list[Issue]:
-    """Legality findings for a single Alchemical Array (p.89): two or more *known*
-    Charms, no Charm twice, and every member Attribute-based (supernatural martial
-    arts, which are Ability-based, may not join). The instant-duration / one-Simple
-    limits are NOT checked here — they bound the integrated Combos an Array grants,
-    not the Array itself. `where` is the Array's name."""
+    """Return the issues of one Alchemical Array (p.89): two or more KNOWN Charms, no
+    Charm two times, each member Attribute-based. The instant / one-Simple limits
+    apply to the integrated Combos, not here. `where` is the Array name."""
     issues: list[Issue] = []
     known = set(character.charms)
     where = array.name or "(unnamed array)"
@@ -130,11 +125,8 @@ def owns_submodule(character: Character, charm_id: str, key: str) -> bool:
 
 def submodule_block_reason(ruleset: RuleSet, character: Character,
                            charm_id: str, key: str) -> str:
-    """Why this submodule cannot be purchased right now — "" when it can. The same
-    gates `validate_submodules` and `advancement.learn_submodule` apply (parent Charm
-    installed, own Essence and Attribute minimums), phrased for the picker so the UI
-    never re-derives them. Says nothing about affordability: BP and XP are the
-    caller's budget question, not a legality one."""
+    """Return why this submodule cannot be bought now, or "" if it can: the gates of
+    `validate_submodules` and `advancement.learn_submodule`. Not affordability."""
     definition = submodule_def(ruleset, charm_id, key)
     if definition is None:
         return "No such submodule."

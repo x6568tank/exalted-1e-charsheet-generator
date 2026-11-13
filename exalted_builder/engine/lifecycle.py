@@ -1,11 +1,9 @@
 """
 engine/lifecycle.py — chargen lifecycle transitions.
 
-`lock_chargen` freezes the creation snapshot: it stores `wp_virtue_component` (the
-two highest Virtues at lock) so post-creation Virtue gains can never raise
-Willpower, and snapshots the current traits as the XP baseline. Pure apart from
-mutating the passed Character; it does not judge legality — validate the chargen
-first if you want to refuse an illegal lock.
+`lock_chargen` freezes the creation snapshot: it stores `wp_virtue_component` (the two
+highest Virtues, decision 0005) and copies the current traits as the XP baseline. It
+mutates the Character only. It does not check legality: validate first.
 """
 
 from __future__ import annotations
@@ -15,14 +13,11 @@ from . import derive
 
 
 def lock_chargen(character: Character, ruleset=None) -> Character:
-    """Freeze chargen: snapshot traits and pin the Willpower virtue component.
-    Idempotent in effect, but re-locking re-snapshots current state.
+    """Freeze chargen: snapshot the traits and pin the Virtue component of Willpower.
+    A second lock takes a new snapshot.
 
-    `ruleset` is OPTIONAL, the same shape `derive.willpower` and friends use: without
-    one there is no way to see a Merit, so the one Flaw that sets a STARTING trait
-    (Death's Taint, whose price above its base four points buys permanent Resonance)
-    cannot be applied. Pass it wherever you can — the omission is silent, not a
-    TypeError.
+    ⚠ Without `ruleset` Death's Taint cannot seed starting Resonance, with no error.
+    Pass it.
     """
     wp_component = derive.two_highest_virtues(character.virtues)
     character.chargen_snapshot = ChargenSnapshot(
@@ -66,13 +61,11 @@ def lock_chargen(character: Character, ruleset=None) -> Character:
         wp_virtue_component=wp_component,
     )
     character.wp_virtue_component = wp_component
-    # Death's Taint buys a STARTING permanent Resonance out of its price — the only Flaw
-    # that seeds a trait rather than bounding one. ⚠ Seeded HERE: lock is where chargen
-    # values become the character's own, and deriving the value without writing it here
-    # leaves the character starting at 0 with nothing reading it.
+    # Death's Taint: its price above four points buys STARTING permanent Resonance.
+    # ⚠ Seeded HERE, at the lock.
     #
-    # Never overwrites a track the ledger has already moved: a re-lock after play would
-    # otherwise undo a Harrowing or re-inflict a shed dot.
+    # Never overwrite a track that the ledger has moved: a re-lock after play would
+    # undo a Harrowing.
     if ruleset is not None and not _permanent_resonance_moved(character):
         character.limit_permanent = derive.permanent_limit_start(ruleset, character)
     character.chargen_locked = True

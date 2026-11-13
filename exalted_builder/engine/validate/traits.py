@@ -77,11 +77,8 @@ def check_references(ruleset: RuleSet, character: Character) -> list[Issue]:
     return issues
 
 
-# Permanent Resonance (Death's Taint) moves on the XP ledger like a curse, but with its
-# own prices in each direction — free to gain, five to shed — so it needs a target the
-# audit can recognise. `_expected_cost` must test this BEFORE its general "a reduction
-# is free" rule, which would otherwise price the shed at 0 and report a mismatch on
-# every later validation.
+    # Permanent Resonance has its own prices: free to gain, five to shed. ⚠
+    # `_expected_cost` must test this target BEFORE its "a reduction is free" rule.
 PERMANENT_RESONANCE_TARGET = "limit_permanent"
 
 
@@ -136,11 +133,8 @@ def check_caste_splat(ruleset: RuleSet, character: Character) -> list[Issue]:
     )]
 
 
-# Lunar Casteless (p.90-91, p.108): unlike Dragon-Blooded Dynastic/Outcaste — an
-# origin variant orthogonal to caste — Lunar Casteless is a single condition
-# expressed on BOTH fields at once (no Caste Attributes, only 6 Charms, no
-# Ability minimums, no Renown). The two must move together: Casteless origin iff
-# the Casteless caste, never one without the other.
+# Lunar Casteless (p.90-91, p.108) is one condition on two fields: the Casteless
+# origin if and only if the Casteless caste.
 LUNAR_CASTELESS_CASTE_ID = "casteless"
 
 
@@ -201,12 +195,9 @@ def check_splat_consistency(ruleset: RuleSet, character: Character) -> list[Issu
             ))
             continue
         if splat_of(charm) == character.exalt_type:
-            # The Charm belongs to the character's OWN splat yet charm_matches_splat
-            # refused it — a heritage bar (a God-Blooded holding a God-Blooded Arcanos,
-            # p.47 "do not use Charms"), not a splat mismatch. "Wrong splat" would be
-            # actively misleading, the same call the mortal branch above makes. Checked
-            # before the ST foreign-charm privilege: the toggle waives the p.127
-            # generalist rule, not a bar on the character's own catalogue.
+            # A Charm of the OWN splat that charm_matches_splat refused is a heritage
+            # bar (p.47), not a splat mismatch. Checked before the ST foreign-charm
+            # toggle, which waives the p.127 rule only.
             issues.append(Issue(
                 code="charm-wrong-splat", where=cid,
                 message=f"Charm {charm.name!r} belongs to the character's own "
@@ -263,16 +254,13 @@ def check_specialties(ruleset: RuleSet, character: Character) -> list[Issue]:
 
 
 def check_fetters_and_passions(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """The two ghost-only rated traits (E:Ab p.126-127, p.283). Empty for every other
-    splat, whose lists and Fetter budget are both empty.
+    """Check the two ghost-only rated traits (E:Ab p.126-127, p.283).
 
-    ⚠ Both rules run on BOTH sides of the lock, because both keep moving:
+    ⚠ Both rules run on BOTH sides of the lock:
 
-      * the Fetter ceiling is "Willpower + Essence" — a ghost who buys Willpower may
-        hold more, and one cursed down to a lower Willpower is now over the cap;
-      * the Passion pool tracks the Virtues forever (p.283: "There is no other way for
-        these Traits to increase"), so an XP Virtue raise opens a dot to distribute and
-        leaving it undistributed is a live finding.
+      * the Fetter ceiling is Willpower + Essence, which change;
+      * the Passion pool follows the Virtues (p.283): an XP Virtue raise opens a dot
+        to distribute.
     """
     issues: list[Issue] = []
     if not character.fetters and not character.passions:

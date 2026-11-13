@@ -4,10 +4,9 @@ engine/validate/illuminated.py — the Cult of the Illuminated: Camps and Callin
 An alt-origin for Solars and Dragon-Blooded. The character picks a Camp and a Calling;
 the Calling grants Charms and sets Ability minimums.
 
-⚠ `camp_for` searches EVERY camp while `camps_for` searches only the character's. A UI
-select whose value resolves against a global table while its options are scoped is a
-build-time crash waiting for a second owner to exist — which is what shipping Cult
-Dragon-Blooded did.
+⚠ `camp_for` searches EVERY camp. `camps_for` searches only the camps of the
+character. A select whose value resolves globally but whose options are scoped
+crashes at build when a second splat has camps.
 
 ⚠ The Cult prints its OWN Artifact Background, so catalogue entries must be keyed by
 ID, not name. A name matches both the Cult's copy and the corebook's, and the
@@ -129,18 +128,13 @@ def check_camp_and_calling(ruleset, character) -> list[Issue]:
 
 
 def default_camp_and_calling(ruleset, character) -> tuple[str, str, list[str]]:
-    """The (camp id, calling id, granted Charm ids) a character of this splat/origin
-    should default to — the first camp offered, its first Calling, and that camp's
-    automatic grants. All three empty when the origin has no camps.
+    """Return the default (camp id, calling id, granted Charm ids) of this
+    splat/origin: the first camp, its first Calling, and its fixed grants. All empty
+    if the origin has no camps.
 
-    Lives here rather than in the editor because "which camp is legal, and what does it
-    hand you" is a rules question, and the UI is meant to contain no game logic. It also
-    makes the behaviour testable without driving a browser: picking the Illuminated
-    origin has to leave the character LEGAL, not merely leave three more dropdowns to
-    fill in.
-
-    Keeps a camp/Calling the character already has if it is still valid, so re-running
-    this is idempotent and never silently discards a player's choice."""
+    A rules question, thus in the engine: selecting the origin leaves the character
+    LEGAL. A camp/Calling that is still valid is kept, thus a second run changes
+    nothing."""
     camps = ruleset.camps_for(character.exalt_type, character.origin)
     if not camps:
         return "", "", []
@@ -235,11 +229,8 @@ def granted_charm_issues(ruleset, character) -> list[Issue]:
                 for cid in by_cat[chosen][:choice.pick]:
                     remaining.remove(cid)
         else:
-            # A flat pool: `pick` Charms from anywhere in it, in any combination
-            # (Cult p.96, the Dragon-Blooded Tabernacle package). No cross-style
-            # complaint is possible here — mixing IS the shape — so the only failure
-            # is the wrong COUNT, and an over-count leaves the surplus in `remaining`
-            # to be reported as granted-charm-extra like any other stray id.
+            # A flat pool (Cult p.96): any mix. Only the COUNT can fail. A surplus
+            # stays in `remaining` and is reported as granted-charm-extra.
             pool = set(choice.pool_charm_ids(ruleset.charms))
             taken = [cid for cid in remaining if cid in pool]
             if len(taken) < choice.pick:

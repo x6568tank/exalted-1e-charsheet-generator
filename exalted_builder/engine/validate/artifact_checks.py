@@ -33,17 +33,13 @@ from .backgrounds import background_rating, background_rows
 
 
 def _purchased_at_chargen_issues(character: Character) -> list[Issue]:
-    """Artifacts marked as PURCHASED before the lock; empty once locked.
+    """Return the artifacts marked PURCHASED before the lock. Empty after the lock.
 
-    The corebook defines the Artifact column of every gear table as "the number of dots
-    in the Artifact Background the character must spend TO START THE GAME OWNING one of
-    these" (p.342, p.345 for armour), so the Background is the pre-game channel and cash
-    is the in-play one (human's ruling).
+    The Background is the pre-game channel (p.342, p.345) and cash the in-play one
+    (human's ruling).
 
-    ⚠ Without this, `acquired` is a hole straight through the budget at the one phase
-    the budget exists for. Silent post-lock by design — buying with money is the whole
-    point of the other channel, and Resources is a hint rather than a validation
-    (core p.325).
+    ⚠ Without this, `acquired` is a hole in the budget at chargen. Silent after the
+    lock: Resources is a hint (core p.325).
     """
     if character.chargen_locked:
         return []
@@ -210,12 +206,8 @@ def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
                                 f"permission; {item.name} is {item.rating}.",
                     ))
         return issues
-    # The multiplier rule (DB/DK "twice the dots' worth" p.176, Alchemical three):
-    # each Background dot buys `rating_per_dot` dots of artifact, capping the combined
-    # rating at background × rating_per_dot. This was data-only — never enforced —
-    # before this check; a Dragon King with Artifact • and a 3-dot artifact passed
-    # silently. rating_per_dot 1 (a rule with no multiplier) is the Solar default and
-    # imposes nothing.
+    # The multiplier rule (DB/DK p.176, Alchemical three): combined rating up to
+    # background × rating_per_dot. rating_per_dot 1 imposes nothing.
     if rule.rating_per_dot > 1:
         combined = artifacts.combined_rating(character)
         if rating == 0:

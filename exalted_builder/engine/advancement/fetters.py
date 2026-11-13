@@ -17,10 +17,8 @@ from ._base import _DOT_MAX, AdvancementError, _commit, _ensure_locked
 # --------------------------------------------------------------------------- #
 # Fetters and Passions (ghosts — Exalted: The Abyssals p.283)
 #
-# Four operations, two of which have no analogue anywhere else in the build: a
-# "shift" moves a trait's FOCUS without changing any rating, so it is priced flat and
-# the totals do not move. Passions are never bought — their dots come from the
-# Virtues (p.283) — so `raise_passion` deliberately does not exist.
+# A "shift" moves the FOCUS of a trait with no rating change: a flat price, and the
+# totals stay. Passions are never bought (p.283): there is no `raise_passion`.
 # --------------------------------------------------------------------------- #
 
 def _fetter_index(character: Character, name: str) -> int:
@@ -92,18 +90,12 @@ def shift_fetter(ruleset: RuleSet, character: Character, name: str,
 
 def shift_passion(ruleset: RuleSet, character: Character, frm: str, to: str,
                   to_virtue: Optional[VirtueName] = None) -> XpEntry:
-    """Move one dot from one Passion to another (p.283, "Shift Passion | 20").
+    """Move one dot from one Passion to another (p.283, "Shift Passion | 20"). The
+    TOTAL does not change. A Passion at zero is removed.
 
-    "This decreases a Passion by one dot. In turn, it increases an existing Passion by
-    one dot or creates a new one-dot Passion." So the TOTAL never moves — which is what
-    keeps this consistent with p.283's other half, that Passions rise only when the
-    Virtues do. A Passion emptied to zero is removed rather than left as a 0-dot row.
-
-    `to_virtue` names the Virtue the destination Passion belongs to when it is being
-    created; it defaults to the source's, since the pools are per-Virtue and a shift
-    across Virtues would move a dot between two pools that the Virtues, not the player,
-    are supposed to size. Passing one explicitly is allowed — the page does not forbid
-    it — and `validate.check_fetters_and_passions` reports the result either way.
+    `to_virtue`: the Virtue of a new destination Passion. The default is the source
+    Virtue. Another Virtue is allowed (the page does not bar it), and
+    `validate.check_fetters_and_passions` reports the result.
     """
     _ensure_locked(character)
     src = next((p for p in character.passions if p.name == frm), None)

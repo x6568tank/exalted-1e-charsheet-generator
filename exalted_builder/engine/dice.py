@@ -1,24 +1,17 @@
 """
 engine/dice.py — the dumb roller (decision 0019).
 
-In: a dice COUNT the player typed, a target number, a die size, and the two
-printed switches. Out: the faces rolled, the success count and a botch flag.
-Between them sit exactly two rules off the page — the Rule of Ten and the Rule
-of One — both of which are properties of a handful of dice and know nothing
-about whose dice they are.
+In: a dice COUNT that the player typed, a target number, a die size, and the two
+printed switches. Out: the faces, the success count and a botch flag. Two rules
+apply: the Rule of Ten and the Rule of One.
 
-⚠ **What must never enter this signature: a roll.** Decision 0009 barred rolling
-entirely, and 0019 reversed it only for a roller that takes a NUMBER. The gap
-between a `RollDefinition` (or a `Character`, or a `PoolBreakdown`) and this
-function is the whole safety mechanism: a roller that cannot know which roll it
-is rolling cannot be asked to add the Charm dice, which is the open-ended job
-decision 0008 rejected. Pre-filling the count from a pool row is the SURFACE's
-business and legal only under 0019's three conditions — chiefly that the
-result's label is the player's free text and never the roll's name.
+⚠ **What must never enter this signature: a roll.** 0019 reversed decision 0009 only
+for a roller that takes a NUMBER. A roller that does not know its roll cannot be asked
+to add the Charm dice (0008). A surface can pre-fill the count only under the three
+conditions of 0019: the result label is the player's free text, never the roll name.
 
-Also out, and none of it belongs here later: Storyteller modifiers, opposed
-rolls or any resolution, and a success-odds display (0009 barred that by name
-and 0019 kept the bar).
+Out of scope: Storyteller modifiers, opposed rolls or any resolution, and a
+success-odds display (0009, 0019).
 """
 
 from __future__ import annotations
@@ -41,10 +34,9 @@ MAX_DICE = 100
 
 @dataclass(frozen=True)
 class RollResult:
-    """One roll's dice and what they came to.
+    """The dice of one roll and their result.
 
-    ⚠ Deliberately carries no name, id or label for the roll. See the module
-    docstring: a label the app chose is the app asserting the pool was right.
+    ⚠ No name, id or label for the roll. See the module docstring.
     """
     faces: tuple[int, ...]
     successes: int
@@ -87,10 +79,8 @@ def count_successes(faces, target_number: int = DEFAULT_TARGET_NUMBER, *,
     or higher AND at least one 1 (the Rule of One, p.89) — one success or more
     and the 1s are ignored entirely.
 
-    ⚠ The two switches default ON because the rules are general; the printed
-    exceptions (damage rolls, the Rune) are per-effect and turn both off
-    together, and the player sets them because the Storyteller said so. The
-    roller cannot work it out — it does not know which roll this is.
+    ⚠ The two switches default ON. The printed exceptions (damage rolls, the Rune)
+    turn both off. The player sets them: the roller does not know the roll.
     """
     hits = [f for f in faces if f >= target_number]
     successes = len(hits)

@@ -6,27 +6,20 @@ Each function dispatches on the lock: a chargen list edit before it, an
 show, and raises `advancement.AdvancementError` when the purchase is refused. None of
 them decides legality — the gates come from `engine.validate`.
 
-This is `engine/thaum_actions.py`'s shape applied to the Charm picker, and for the
-same reason: two shells now drive these purchases (`ui/picker.py` and
-`qt/charms.py`), and a picker-local copy in each is a rules bug waiting to happen.
+Both shells (`ui/picker.py`, `qt/charms.py`) call these functions.
 
 ⚠ **The raised type is part of the contract.** Both shells catch
 `advancement.AdvancementError` to turn a refusal into a notification; a different
 exception type here becomes a traceback instead of "prerequisites not met".
 
-**Naming.** `learn_charm` / `learn_spell` share a name with the
-`engine.advancement` function they call after the lock. Read `charm_actions.x` as
-"the lock-aware x", `advancement.x` as "the XP purchase" — the same split
-`thaum_actions` documents.
+**Naming.** `charm_actions.x` is the lock-aware x. `advancement.x` is the XP
+purchase that it calls after the lock.
 
 ⚠ **A variant-menu Charm is NOT toggleable and must be refused here.** Ox-Body
-Technique and Deadly Beastman Transformation are bought as a PACKAGE (a variant key,
-a Gift list) into their own character fields, `ox_body` and `beastman_gifts` — never
-by appending the Charm id to `character.charms`. The web picker avoids this by
-branching in its detail card before an Add button is ever drawn, which is a guard in
-a widget: the Qt picker toggles straight from a node click and had no such branch, so
-it would have mis-written the purchase. `variant_menu_reason` is that guard moved
-where both shells run it.
+Technique and Deadly Beastman Transformation are bought as a PACKAGE into
+`ox_body` and `beastman_gifts`, never by appending the id to `character.charms`.
+`variant_menu_reason` is the guard, here because the Qt picker toggles straight from
+a node click.
 """
 
 from __future__ import annotations
@@ -78,10 +71,8 @@ def learn_charm(ruleset: RuleSet, character: Character, charm_id: str) -> str:
     """Add one copy of a Charm: an XP purchase after the lock, an append to the
     chargen pick list before it.
 
-    Owned-but-under-cap is a legitimate call on BOTH sides of the lock (the picker's
-    "Add another" for a generic repeatable Charm — Mountain Folk Essence Satiation /
-    Stone-Still Lungs, CH6 pp.245-246); it is `toggle_charm` that reads a second click
-    as a removal."""
+    A Charm owned but under its cap is legal on BOTH sides of the lock ("Add another",
+    CH6 pp.245-246). `toggle_charm` reads a second click as a removal."""
     charm = ruleset.charms.get(charm_id)
     if charm is None:
         _refuse(f"Unknown Charm {charm_id!r}.")
@@ -138,13 +129,10 @@ _CHARM_XP_TARGETS = ("charms", "crossover_charms", validate.WITHHELD_CHARM_TARGE
 
 
 def undo_charm_reason(character: Character, charm_id: str) -> str:
-    """Why `charm_id` cannot be handed back post-lock, or "" when it can.
+    """Return why `charm_id` cannot be given back after the lock, or "" if it can.
 
-    ⚠ The XP log is APPEND-ONLY and undo is last-in-first-out (decision 0004), so the
-    only Charm a shell may offer to remove is the one the MOST RECENT entry bought —
-    prerequisites and Combo members have to come off after the things that depend on
-    them, which is exactly what LIFO guarantees. Anything else has no correct
-    implementation: removing it without the ledger leaves the XP spent and the Charm
+    ⚠ The XP log is APPEND-ONLY and undo is LIFO (decision 0004): only the Charm of
+    the MOST RECENT entry can be removed. Else the XP stays spent and the Charm is
     gone.
     """
     if not character.chargen_locked:
@@ -171,11 +159,10 @@ def undo_charm(ruleset: RuleSet, character: Character, charm_id: str) -> str:
 
 
 def toggle_charm(ruleset: RuleSet, character: Character, charm_id: str) -> str:
-    """The picker's node click: learn an unowned Charm, drop an owned one.
+    """The picker node click: learn an unowned Charm, drop an owned one.
 
-    ⚠ Post-lock this NEVER drops — `learn_charm` refuses an already-known Charm with
-    the undo-on-the-Edit-tab message, because a click in a shop is a purchase and a
-    second click must not become a refund."""
+    ⚠ After the lock this NEVER drops: a second click in a shop must not be a
+    refund. `learn_charm` refuses a known Charm."""
     if charm_id in character.charms and not character.chargen_locked:
         return drop_charm(ruleset, character, charm_id)
     return learn_charm(ruleset, character, charm_id)
@@ -292,19 +279,16 @@ def remove_gift_purchase(character: Character, index: int) -> str:
 
 # ---- Alchemical submodules (p.89) --------------------------------------- #
 #
-# A submodule permanently upgrades ONE Charm, so it is bought on that Charm's detail
-# panel rather than from a catalogue. Dual cost: bonus points at chargen, experience
-# after the lock.
+# A submodule upgrades ONE Charm and is bought on its detail panel: bonus points at
+# chargen, XP after the lock.
 
 def learn_submodule(ruleset: RuleSet, character: Character,
                     charm_id: str, key: str) -> str:
     """Buy one submodule: an XP purchase after the lock, an append to
     `character.submodules` before it (where the bonus-point calc picks it up).
 
-    ⚠ The chargen half checks `validate.submodule_block_reason` — the same gate the
-    detail panel greys its button on. Without it a shell that drew the button anyway,
-    or one that never asked, could append a submodule whose Essence/Attribute minimum
-    the character does not meet."""
+    ⚠ The chargen half checks `validate.submodule_block_reason`, as the detail panel
+    does. Else a shell can add a submodule whose minimums are not met."""
     definition = validate.submodule_def(ruleset, charm_id, key)
     if definition is None:
         _refuse(f"No submodule {key!r} on Charm {charm_id!r}.")
@@ -335,10 +319,9 @@ def drop_submodule(character: Character, charm_id: str, key: str) -> str:
 
 # ---- Generic variant-menu Charms (everything but Ox-Body and the Gifts) ---- #
 #
-# Environmental Hazard-Resisting Meditation (Caste Book: Zenith p.72-73) is the only
-# member today: four named resistances, one per purchase, at most one purchase per
-# Resistance dot and each version only once. Stored on `character.variant_purchases`
-# keyed by charm_id, so a second Charm of this shape needs data and nothing else.
+# Example: Environmental Hazard-Resisting Meditation (Caste Book: Zenith p.72-73).
+# Stored on `character.variant_purchases` by charm_id: a new Charm of this shape
+# needs data only.
 
 def add_variant_purchase(ruleset: RuleSet, character: Character, charm_id: str,
                          variant_keys: list[str]) -> str:

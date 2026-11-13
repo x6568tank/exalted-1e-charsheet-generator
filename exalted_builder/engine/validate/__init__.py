@@ -6,18 +6,15 @@ Pure legality checks: (RuleSet, Character) -> list[Issue]. Where the models guar
 traits a character holds are legal given the rulebook. No I/O, no mutation; an empty
 list means legal for the checks run.
 
-This module holds two things and nothing else:
+This module holds two things:
 
-  * **`validate()`** — the post-lock roll-up. Every `check_*` in the package must be
+  * **`validate()`** — the post-lock roll-up. Each `check_*` in the package must be
     reachable from it, from `validate_chargen` (in `budgets.py`) or from
     `validate_xp` (in `engine/advancement/audit.py`).
-    `tests/test_validator_rollup.py` asserts exactly that, because a checker dropped
-    from this function keeps passing its own unit tests and silently stops running.
-  * **the facade** — `validate.X` is the ONE public path to every name in the
-    package. 1,465 call sites across `engine/`, `ui/` and `tests/` reach these
-    through `validate.`, and a domain module is an implementation detail rather than
-    a second front door. A rule that moves out of here gains a re-export line, and
-    every caller keeps working unchanged.
+    `tests/test_validator_rollup.py` asserts it: a checker dropped from the roll-up
+    still passes its own unit tests and stops running.
+  * **the facade** — `validate.X` is the ONE public path to each name in the
+    package. A rule that moves to a domain module gets a re-export line here.
 
 The rules themselves live in the domain modules, in dependency order:
 
@@ -36,8 +33,7 @@ The rules themselves live in the domain modules, in dependency order:
     traits       reference integrity, splat consistency, specialties, Ghost Fetters
     budgets      the chargen point accounting and `validate_chargen`
 
-All thresholds come from the RuleSet (budgets / cost tables), never hardcoded, so
-correcting the data corrects the engine.
+All thresholds come from the RuleSet (budgets / cost tables), never from code.
 """
 
 from __future__ import annotations
@@ -327,11 +323,7 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
         # Warnings, not errors: the story can make this state (human's ruling). The
         # frozen-choice gates stay chargen-only.
         issues += merit_issues(ruleset, character, post_lock=True)
-    # Elemental Powers legality runs on BOTH sides of the lock, like every other
-    # trait check here — the powers are bought in play as well as at creation, and a
-    # chargen-only read would go dead the moment the character locks (the house bug).
-    # `character.elemental_powers` is the LIVE list: at lock it still holds the
-    # chargen picks, and in play learn_elemental_power appends to it, so the snapshot
-    # (which only ever holds chargen picks) is the wrong resolution here.
+    # Elemental Powers on BOTH sides of the lock (the house bug). Reads the LIVE
+    # `character.elemental_powers`: the snapshot has only the chargen picks.
     issues += elemental_power_issues(ruleset, character, character.elemental_powers)
     return issues

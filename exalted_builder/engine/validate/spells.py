@@ -23,16 +23,11 @@ from .charms import charm_matches_splat, meets_charm_requirements
 
 
 def granted_circles(ruleset: RuleSet, character: Character) -> set[SpellCircle]:
-    """The set of magic circles the character can cast in, taken from the
-    `grants_circle` of every known initiation Charm PLUS any circle a Merit grants
-    outright. Track-agnostic (sorcery or, later, necromancy) — the circle enum
-    carries the distinction.
+    """Return the circles that the character can cast in: the `grants_circle` of each
+    known initiation Charm, PLUS each circle that a Merit grants.
 
-    The Merit half is not a convenience: a splat that may hold no Charms at all
-    (mortals) can never satisfy the Charm half, so Essence Mastery's Terrestrial
-    sorcery would be permanently unreachable without it. This is the function the
-    *gates* use (meets_spell_requirements, check_spell_access), which is why the
-    grant has to land here and not only in accessible_circles."""
+    ⚠ The Merit half is necessary: a mortal has no Charms. The gates
+    (meets_spell_requirements, check_spell_access) use this function."""
     out = {
         ruleset.charms[cid].grants_circle
         for cid in character.charms
@@ -43,15 +38,10 @@ def granted_circles(ruleset: RuleSet, character: Character) -> set[SpellCircle]:
 
 
 def accessible_circles(ruleset: RuleSet, character: Character) -> set[SpellCircle]:
-    """Every magic circle this character can reach — the circle granted by any
-    initiation Charm they may learn (their own Exalt type, or an `open_to_all`
-    Charm), unioned with circles already granted by known Charms.
+    """Return each circle that the character can reach: the circles of initiation
+    Charms they can learn, plus the circles already granted. The spell picker uses it.
 
-    This is what the spell picker should show, and it is deliberately NOT the same
-    as the Exalt's nominal `magic_track`: a splat whose Charm trees hold BOTH sorcery
-    and necromancy initiations (Abyssals carry Terrestrial/Celestial Sorcery AND the
-    three Necromancy circles) reaches both tracks, so its picker must too. Track is a
-    display-ordering hint, not an access gate — the gate is the granting Charm."""
+    ⚠ Not `magic_track`: Abyssals reach both tracks. The granting Charm is the gate."""
     # Merit-granted circles (mortals + Essence Mastery, capped at Terrestrial) arrive
     # through granted_circles, which is where the gates read them too. See engine.merits.
     out = granted_circles(ruleset, character)
@@ -85,15 +75,11 @@ def meets_spell_requirements(ruleset: RuleSet, character: Character, spell,
 
 
 def check_spell_access(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """A known Spell requires a known Charm whose `grants_circle` matches
-    the Spell's circle.
+    """Check that each known Spell has a known Charm whose `grants_circle` is the
+    circle of the Spell.
 
-    Exact-circle match is correct for 1e (core pp.191): the three initiation
-    Charms form a prerequisite chain — Celestial Circle Sorcery requires
-    Terrestrial, Solar requires Celestial — so a higher-circle sorcerer always
-    also holds the lower Charms (enforced by check_charm_prerequisites) and can
-    cast lower-circle spells through them. No separate circle-nesting rule is
-    needed here; the prerequisite chain provides it.
+    An exact match is correct (core pp.191): the initiation Charms form a
+    prerequisite chain, thus a higher-circle sorcerer holds the lower Charms too.
     """
     granted = granted_circles(ruleset, character)
     barred = ruleset.exalt_for(character.exalt_type).barred_spell_ids

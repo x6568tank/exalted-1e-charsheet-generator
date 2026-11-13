@@ -16,8 +16,7 @@ from ._base import AdvancementError, _commit, _ensure_locked
 # --------------------------------------------------------------------------- #
 # Thaumaturgy (Player's Guide CH3)
 # --------------------------------------------------------------------------- #
-# Cross-splat: every splat but the Fair Folk may buy these, so nothing here keys off
-# exalt_type beyond the cost multiplier baked into engine.costs.
+# Not keyed to a splat. engine.costs applies the cost multiplier.
 
 def _thaum(character: Character) -> ThaumaturgyState:
     """The character's ThaumaturgyState, creating it on first purchase. Character.
@@ -91,11 +90,8 @@ def raise_thaum_science(ruleset: RuleSet, character: Character, science_id: str)
 def learn_thaum_ritual(ruleset: RuleSet, character: Character, ritual_id: str = "", *,
                        name: str = "", level: int = 1,
                        orientation: Orientation = Orientation.REALM) -> XpEntry:
-    """Learn a ritual in ONE regional version. Catalogue (`ritual_id`) or custom
-    (`name` + `level`) — the book expects STs to write more.
-
-    Exactly one orientation is bought here; further versions go through
-    `add_thaum_orientation`, so no log row is ever ambiguous between the two.
+    """Learn a ritual in ONE regional version: catalogue (`ritual_id`) or custom
+    (`name` + `level`). More versions go through `add_thaum_orientation`.
     """
     _ensure_locked(character)
     if ritual_id:

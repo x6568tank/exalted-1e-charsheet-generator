@@ -6,8 +6,7 @@ Output: the field set, with `Character.house_rules` created on first write. Mech
 the field name is checked against the model, then the value is coerced to the type the
 model declares — because the three control shapes hand back three different things.
 
-Both shells edit these, so the coercion lives here rather than in either one. It is
-game data (it re-prices chargen), not presentation.
+Both shells use it. It is game data (it re-prices chargen).
 
 ⚠ **`bool(value)` is right for exactly one of the three shapes.** A checkbox sends a
 bool; the M&F-method select sends its stored string, which `bool()` would turn into

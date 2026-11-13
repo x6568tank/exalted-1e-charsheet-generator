@@ -20,38 +20,26 @@ from ._base import Issue, ability_rating
 
 
 def elemental_powers_available(ruleset: RuleSet, character: Character) -> bool:
-    """Whether the elemental-powers catalogue is open to this character at all — the
-    Elemental-origin God-Blooded gate (PG p.68, "descendents of elementals draw on the
-    innate powers of their heritage"). The UI reads this to decide whether the picker
-    page exists; every requirement check starts from it too.
+    """Return True if the elemental-powers catalogue is open: Elemental-origin
+    God-Blooded (PG p.68). The UI uses it for the picker page.
 
-    The gate is CASTE-level, not just splat-and-origin: the retired Merit's printed
-    restriction barred every heritage but god-blooded (`barred_castes`), and "Elemental"
-    is only an origin option on the god-blooded row — so a hand-edited save with
-    `caste="demon-blooded"` + `origin="Elemental"` must NOT open the catalogue. `origin`
-    alone is not enough; a stray origin string could pass it."""
+    ⚠ Test the CASTE too, not only the origin: a stray origin string on a different
+    heritage must not open the catalogue."""
     return (character.exalt_type == "God-Blooded"
             and character.caste == "god-blooded"
             and character.origin == "Elemental")
 
 
 def legal_elemental_powers(ruleset: RuleSet, character: Character) -> list[str]:
-    """The Elemental Powers a heritage change leaves the character able to hold.
-    The catalogue belongs to the Elemental origin alone (see elemental_powers_available),
-    so any structural switch away from it orphans every held power — the picker tab
-    vanishes, the BP breakdown keeps charging, and validation errors with no UI path to
-    remove them. The editor reads this after a heritage/caste/origin switch and drops
-    whatever it no longer authorizes (the same shape as default_camp_and_calling: the
-    engine decides, the UI applies)."""
+    """Return the held Elemental Powers that the character can still hold after a
+    heritage change. The editor drops the others: else they stay charged with no UI
+    to remove them."""
     return list(character.elemental_powers) if elemental_powers_available(ruleset, character) else []
 
 
 def meets_elemental_power_requirements(ruleset: RuleSet, character: Character, power) -> bool:
-    """Whether the character could legally learn `power` right now: Elemental origin,
-    min Essence, and every Merit in `required_merits` held. The forward-looking
-    counterpart of elemental_power_issues, used by the picker to decide which powers
-    are selectable. Ownership is excluded exactly as meets_charm_requirements excludes
-    it — the caller checks "already owned" separately."""
+    """Return True if the character can learn `power` now: Elemental origin, min
+    Essence, and each `required_merits` held. Ownership is not checked."""
     if not elemental_powers_available(ruleset, character):
         return False
     if character.essence_rating < power.min_essence:

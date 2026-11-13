@@ -7,20 +7,13 @@ None when it went through. Mechanism: resolve the pick against `engine.camp`'s v
 of the package, then rewrite only the part of `character.granted_charms` that pick
 owns.
 
-This is `engine/gear_actions.py`'s shape applied to the camp panel, and for the same
-reason: two shells drive these writes (`ui/editor.py` and `qt/editor.py`), and a
-shell-local copy in each is a rules bug waiting to happen.
+Both shells (`ui/editor.py`, `qt/editor.py`) use these functions.
 
-⚠ **A refusal is RETURNED, not raised and not notified.** These sit below the UI, so
-they cannot call `ui.notify`; and unlike a purchase there is no `AdvancementError`
-shape here, because a refused pick is an ordinary outcome rather than an error. The
-caller must show the string AND re-render — a refused pick leaves the control showing
-something the character does not hold, and the redraw is what snaps it back. Dropping
-the string on the floor is how a dropdown comes to look broken.
+⚠ **A refusal is RETURNED, not raised and not notified.** The caller must show the
+string AND re-render: the redraw resets the control to the held value.
 
-⚠ **Each write owns exactly one slice of `granted_charms`.** The fixed grants and
-every OTHER choice must survive it, which is why each function computes what the old
-selection covered and subtracts precisely that rather than clearing the list.
+⚠ **Each write owns one part of `granted_charms`.** It removes only what the old
+selection of that choice covered. The fixed grants and the other choices stay.
 """
 
 from __future__ import annotations
@@ -50,13 +43,10 @@ def set_calling(character: Character, calling_id: str) -> None:
 
 def set_camp_choice(ruleset: RuleSet, character: Character,
                     choice_index: int, key: str) -> Optional[str]:
-    """Resolve one granted-Charm choice, replacing whatever was selected for THAT
-    choice and leaving the fixed grants and the other choices alone.
+    """Resolve one granted-Charm choice. Replace the selection of THAT choice only.
 
-    Returns a refusal string when the option is listed but not selectable. ⚠ Such an
-    option is offered on purpose — the rulebook prints it and hiding it would
-    misrepresent the page — so this refuses rather than falling through and assigning
-    an empty list, which cleared the control and looked like a broken dropdown."""
+    Returns a refusal string for an option that is listed but not selectable. ⚠ Do
+    not fall through and assign an empty list: that clears the control."""
     camp = ruleset.camps.get(character.camp)
     if camp is None or choice_index >= len(camp.granted_charm_choices):
         return None
@@ -83,13 +73,10 @@ def set_camp_choice(ruleset: RuleSet, character: Character,
 
 def set_camp_choice_charms(ruleset: RuleSet, character: Character,
                            choice_index: int, ids: list[str]) -> Optional[str]:
-    """Set WHICH Charms a category choice grants, within the already-chosen style.
+    """Set the Charms of a category choice, in the chosen style.
 
-    The style pick seeds a reachable default; this is how the player changes it.
-    Over-picking is REFUSED rather than silently truncated — the package is exactly
-    `pick` Charms and quietly dropping one would misreport the grant. Under-picking is
-    allowed through so the control can be emptied and refilled; the engine's
-    `granted-charm-missing` issue covers the incomplete state."""
+    Over-picking is REFUSED, not truncated: the package is exactly `pick` Charms.
+    Under-picking is allowed: `granted-charm-missing` reports it."""
     camp = ruleset.camps.get(character.camp)
     if camp is None or choice_index >= len(camp.granted_charm_choices):
         return None

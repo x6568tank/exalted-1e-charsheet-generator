@@ -7,25 +7,16 @@ show, and raises `advancement.AdvancementError` when the purchase is refused. No
 them decides legality — the gates come from `engine.validate`.
 
 ⚠ **The raised type is part of the contract.** `ui/picker.py` catches
-`advancement.AdvancementError` to turn a refusal into a notification; a different
-exception type here becomes a traceback in the browser instead of "Already trained in
-that Art." Keep `_refuse` raising exactly that.
+`advancement.AdvancementError` to show a notification. Keep `_refuse` raising exactly
+that.
 
-**Naming.** Several of these share a name with the `engine.advancement` function they
-call after the lock (`raise_thaum_science`, `add_thaum_orientation`). That is why this
-is its own module rather than more of `advancement`: the dispatcher and the priced
-purchase are two different things and cannot both be `advancement.raise_thaum_science`.
-Read `thaum_actions.x` as "the lock-aware x", `advancement.x` as "the XP purchase".
+**Naming.** `thaum_actions.x` is the lock-aware x. `advancement.x` is the XP purchase
+(`raise_thaum_science`, `add_thaum_orientation`).
 
-This is game logic and imports no `nicegui`, so it does not belong in the UI layer
-(CLAUDE.md: "don't leak game logic into the UI"). `ui/picker.py` re-exports every
-public name.
+No `nicegui` import. `ui/picker.py` re-exports each public name.
 
-⚠ **Module-level, never closures inside a widget builder.** These are the functions
-that actually mutate a save, and a bug in one silently corrupts a character's point
-accounting, so they must be reachable from tests without driving a browser — several
-buy buttons legitimately share a label, which makes click-testing them individually
-impossible.
+⚠ **Module-level, never closures in a widget builder.** Tests must reach them: some
+buy buttons share a label and cannot be clicked one by one.
 """
 
 from __future__ import annotations

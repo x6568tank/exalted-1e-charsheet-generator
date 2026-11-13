@@ -23,18 +23,9 @@ from .charms import is_martial_arts_charm
 _COMBO_DURATION = "Instant"
 
 
-# Castes allowed to mix Ability-based and Attribute-based Charms in one Combo
-# (Lunars p.122): Solar Eclipse and Abyssal Moonshadow are "gifted generalists"
-# who may cross the two Charm systems; every other caste (including every
-# Lunar caste, whose native Charms are ALL Attribute-based already, and any
-# other splat's caste) may not. A Lunar combining native Attribute Charms with
-# an open_to_tiers Ability-keyed Martial Arts style (e.g. Five-Dragon Style, a
-# Celestial-tier style a Lunar can learn) hits this the same as anyone else —
-# the sourcebook names only Eclipse/Moonshadow for the crossover, not "any
-# Lunar." This checks Combo COMPOSITION legality only; the p.122 dice-pool cap
-# for a mixed Combo (2x Essence) is a play-time numeric limit with no home in
-# this engine, same as the rest of attack/damage math (see the Combat/attack
-# derivation out-of-scope decision).
+# Castes that can mix Ability-based and Attribute-based Charms in one Combo (Lunars
+# p.122): Solar Eclipse and Abyssal Moonshadow only. Composition only: the p.122
+# dice-pool cap of a mixed Combo is out of scope (decision 0008).
 _MIXED_COMBO_CASTES = {"eclipse", "moonshadow"}
 
 
@@ -125,11 +116,8 @@ def combo_issues(ruleset: RuleSet, character: Character, combo) -> list[Issue]:
 
 
 def eligible_combo_charms(ruleset: RuleSet, character: Character) -> list[str]:
-    """Ids of the character's known Charms that may legally go in a Combo — i.e.
-    those of instant duration (core p.213). Order follows the character's Charm
-    list, then the Dragon-King Path powers (owned dots projected into virtual Charm
-    rows; only instant-duration powers are Combo-legal, p.177). The picker offers
-    these when adding a Charm to a Combo."""
+    """Return the ids of known Charms that can go in a Combo: instant duration (core
+    p.213). The Charm list order, then the instant Path powers (p.177)."""
     out: list[str] = []
     for cid in character.charms:
         charm = ruleset.charms.get(cid)

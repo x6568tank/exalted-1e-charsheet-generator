@@ -2,16 +2,14 @@
 engine/advancement/__init__.py — post-lock XP advancement transitions. This file is
 the public surface of the package.
 
-The chargen counterpart is engine.lifecycle; this is the *post-lock* layer. Each
-`raise_*`/`learn_*`/`add_*` is a transition that mutates the Character: it prices
-the advance via engine.costs, checks it is legal and affordable, applies the trait
-change, and appends an append-only XpEntry to character.xp_log. `undo_last`
-reverses the most recent entry (last-in-first-out, so the log and the traits never
-drift out of sync). `validate_xp` audits the result.
+The post-lock layer (engine.lifecycle is the chargen layer). Each
+`raise_*`/`learn_*`/`add_*` prices the advance (engine.costs), checks it is legal and
+affordable, changes the trait, and appends an XpEntry to character.xp_log.
+`undo_last` reverses the most recent entry (LIFO, thus the log and the traits agree).
+`validate_xp` audits the result.
 
-Not pure — like lifecycle, these are state transitions. Legality that needs the
-rules (Charm prerequisites, spell-circle access, Combo composition) is delegated to
-engine.validate; the trait caps live here.
+State transitions, not pure. engine.validate gives the rules legality. The trait
+caps are here.
 
 ⚠ A new `XpEntry.target` domain needs a purchase function AND a branch in
 `undo.undo_last` AND a branch in `audit._expected_cost` (and a label in
