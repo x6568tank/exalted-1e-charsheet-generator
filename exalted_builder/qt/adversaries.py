@@ -22,10 +22,9 @@ decoration. It is the readout that the user reads on this tab.
 dot tracks. The user types these values from a page, or invents them. The user never buys
 them. Thus a stepper with a rules limit states a rule that does not apply.
 
-⚠ **This surface has produced a dead field one time.** `powers`, `combat_pool` and
-`cost_to_dematerialize` existed in the model, no widget could edit them, and the save
-removed them. `tests/test_qt_adversaries.py` reads `Adversary.model_fields` and drives
-each widget. Thus a new field fails the test until you connect both ends.
+⚠ **Each model field needs a widget.** A field that no widget edits is lost on save.
+`tests/test_qt_adversaries.py` reads `Adversary.model_fields` and drives each widget.
+Thus a new field fails the test until you connect both ends.
 """
 
 from __future__ import annotations

@@ -872,7 +872,7 @@ class CharmsPage(QWidget):
         clear_layout(lay)
 
     # ------------------------------------------------------------------ #
-    # buying (the picker's toggle, ported) — the one thing the spike left out
+    # buying (the toggle of the picker)
     # ------------------------------------------------------------------ #
 
     def _chargen_pick_bp(self, *, charm_id=None, spell_id=None) -> int:
@@ -1990,8 +1990,8 @@ class CharmsPage(QWidget):
         return page
 
     # ------------------------------------------------------------------ #
-    # splat-specific picker extras (Form Library / Vat Refit / Paths /
-    # Elemental Powers) — the picker's pages the spike deferred
+    # splat-specific picker pages (Form Library / Vat Refit / Paths /
+    # Elemental Powers)
     # ------------------------------------------------------------------ #
 
     def _combos_label(self) -> str:

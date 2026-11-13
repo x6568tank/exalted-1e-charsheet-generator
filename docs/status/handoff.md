@@ -1,26 +1,26 @@
-# Session handoff — 2026-11-13 (comment pass, first sweep)
+# Session handoff — 2026-11-13 (comment pass, two sweeps)
 
 # 👉 YOU ARE HERE
 
-**Comment pass to the new standard (2026-11-13): first sweep done, NOT committed.**
-171 `*.py` files changed, prose only. `tools/prose_guard.py HEAD <file>` passes on every
-one (code identical by AST, no citation or ⚠ lost; `engine/validate/charms.py` shows
-the known false positive `p. 0` from "`_cap. 0 =`"). Suite: 4492 passed + 1 skipped,
-OBSERVED after the pass at `-n 4`.
+**Comment pass to the new standard (2026-11-13): two sweeps done, on branch
+`comment-pass` (not merged, not pushed).** Prose only: `tools/prose_guard.py` passes on
+every changed file against the pre-pass baseline `6f8cbfe` (the `p. 0` hit in
+`engine/validate/charms.py` is a regex false positive on "`_cap. 0`"). Suite: 4492 passed
++ 1 skipped, OBSERVED after the second sweep at `-n 4`.
 
-* **Zero dated stamps** in `exalted_builder/` (only `tests/test_build_info.py` keeps
-  dates — they are test data). Every "found when / used to / regression" history in
-  package code and in test docstrings rewritten as a contract or a ⚠.
-* **Rewritten to the field-comment rule** (citation + one clause): all of `models/`
-  (`budgets.py` 902→483 lines, `character.py` −375), and in `engine/`: `merits`,
-  `derive`, `artifacts`, `elder`, `paths`, `camp`, `gear_actions`, `play`,
-  `adversaries`, `validate/charms`, `validate/budgets`, `validate/backgrounds`.
-* **Left for a second sweep** (dates and history are gone, but the prose is still
-  long): the rest of `engine/` (`costs`, `pools`, `advancement/*`, other validate
-  modules), `ui/`, `qt/`, `server/`, and most test docstrings. Reasons and design
-  discussion still sit in many of those docstrings.
-* The human's edits to `docs/comment-standard.md` and `CLAUDE.md` §6 are in the same
-  uncommitted tree.
+* Sweep 1: zero dated stamps in `exalted_builder/` (only `tests/test_build_info.py`
+  keeps dates: test data); bug history rewritten as contracts or ⚠ in package code and
+  test docstrings; `models/` and the heavy engine modules rewritten to the field-comment
+  rule.
+* Sweep 2: the rest of `engine/`; in `ui/` every block of 6+ lines (editor, picker,
+  Advantages, builder, Gear, catalogue, custom, the presenters); in `qt/` and `server/`
+  the three blocks that still carried history.
+* **Not done:** short (<6-line) blocks in `ui/` were not each rewritten; `qt/` and
+  `server/` were STE already and got no full rewrite; test docstrings outside the
+  history pass are unchanged.
+* ⚠ Tooling lesson: the line-range edits went wrong whenever a range came from a
+  displayed listing instead of the source; the scripts that did the pass are in
+  `/tmp/cp/` on this laptop only.
 
 **A second review of `server/` (2026-11-09, this laptop) is applied:**
 `docs/plans/server-review.md`. All but finding 7 (NiceGUI's per-request `_users` leak;
