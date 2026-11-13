@@ -15,7 +15,7 @@
     Storyteller's permission."
 
 Modelled as data, not a caste check in code: `CasteDefinition.foreign_charms` +
-`foreign_charm_xp_multiplier`. That paid off — the Moonshadow half (2026-07-29)
+`foreign_charm_xp_multiplier`. That paid off — the Moonshadow half
 was three keys in castes.json and ZERO engine, UI or pricing changes; every
 Moonshadow test below reaches the same code paths as its Eclipse twin. The
 chargen half of the rule is `Character.house_rules.st_foreign_charms` (it moved

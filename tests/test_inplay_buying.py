@@ -21,11 +21,9 @@ def test_xp_is_chargen_hidden():
 
 
 def test_edit_survives_the_lock(_decision="0013"):
-    """Edit used to be swapped OUT for XP here. It is now a both-sides tab like
-    Charms, Combos and Advantages: the dot tracks change mode rather than being
-    replaced by a second implementation of the same traits. That duplication is what
-    let a hardcoded ceiling on the XP side make Legendary Attribute unbuyable while
-    chargen honoured it."""
+    """Edit is a both-sides tab here, as Charms, Combos and Advantages: the dot tracks
+    change mode. A second implementation of the traits would drift (Legendary
+    Attribute)."""
     tabs = builder.visible_tabs(locked=True)
     assert "Edit" in tabs
 
@@ -48,7 +46,7 @@ def test_resolve_tab_leaves_a_still_visible_tab_alone():
 
 
 def test_resolve_tab_refuses_custom_when_the_page_has_no_library():
-    """Server review finding 1: the hosted page sends a forged "Custom" here."""
+    """A page with no library refuses a forged "Custom" tab name."""
     for locked in (False, True):
         assert "Custom" not in builder.visible_tabs(locked, custom=False)
         assert builder.resolve_tab("Custom", locked, custom=False) == "Edit"

@@ -7,19 +7,14 @@ it is given; nothing here derives a capacity — the health-track shape, the Ess
 pools and permanent Willpower all come from `engine.derive` via `view.build_play_view`,
 and this layer only overlays the player's fill-state onto them.
 
-Moved out of `ui/play.py` on 2026-08-22 (tier 3 of the `ui/` audit) so both shells
-drive one copy, in `engine/charm_actions.py`'s and `engine/gear_actions.py`'s shape.
+Both shells use this module.
 
-⚠ **This is a DUMB tracker and must stay one.** No auto mote-accounting, no
-damage-wrapping rules, no auto-healing — the Storyteller stays in control. The clamps
-below are the only arithmetic here, and they exist to keep a stored number inside the
-capacity the sheet displays, not to enforce a printed rule.
+⚠ **A manual tracker.** No mote accounting, no damage rules, no healing. The clamps
+keep a stored number inside the displayed capacity. They do not apply a printed rule.
 
 ⚠ **decision 0006 — play-state is validation-isolated.** Nothing in
-`engine/validate/` may import this module or read `Character.play`: play-state never
-reaches chargen, the XP audit, or a permanent derivation. `tests/test_play_state.py`
-asserts the import direction, so a future convenience import fails loudly rather than
-quietly making a marked health box change what a character may legally buy.
+`engine/validate/` may import this module or read `Character.play`.
+`tests/test_play_state.py` asserts the import direction.
 """
 
 from __future__ import annotations
@@ -32,16 +27,14 @@ MARK_CYCLE: list[Damage | None] = [None, Damage.BASHING, Damage.LETHAL,
 
 
 def play_state(character: Character) -> PlayState:
-    """The character's play-state, created on first edit so a never-played character
-    keeps a clean save until the tracker is actually used."""
+    """Return the PlayState, created on the first edit."""
     if character.play is None:
         character.play = PlayState()
     return character.play
 
 
 def normalize_health(character: Character, n: int) -> list[Damage | None]:
-    """Pad/trim the stored marks to the current health-track length (Ox-Body or a
-    curse bought later changes the box count). Returns the live list."""
+    """Pad or trim the marks to the health-track length `n`. Return the live list."""
     h = play_state(character).health
     if len(h) < n:
         h += [None] * (n - len(h))
@@ -62,8 +55,8 @@ def set_motes(character: Character, field: str, value, cap: int) -> None:
 
 
 def set_fatigue(character: Character, value) -> None:
-    """Set the accumulated armour-fatigue points (p.332). No upper clamp: the rule
-    prints no maximum, and the penalty keeps accruing on every failed roll."""
+    """Set the armor-fatigue points (p.332). No upper clamp: the rule gives no
+    maximum."""
     play_state(character).fatigue = max(0, int(value or 0))
 
 
@@ -80,17 +73,15 @@ def set_count(character: Character, field: str, clicked: int, cap: int) -> None:
 
 
 def clear_damage(character: Character) -> None:
-    """Wipe every health mark. A convenience for "the scene ended", not a healing
-    rule — nothing here knows how long a level takes to heal."""
+    """Clear all health marks. Not a healing rule."""
     play_state(character).health = []
 
 
 def clear_motes(character: Character) -> None:
-    """Reset the spent-mote fields to full.
+    """Reset the spent motes.
 
-    ⚠ MOTES ONLY. Willpower, health and Limit recover on their own terms (Storyteller
-    discretion), so the tracker does not bulk-reset them — a "clear everything" button
-    would be the tracker deciding a recovery rule, which is exactly what it must not do.
+    ⚠ MOTES ONLY. Willpower, health and Limit recover at Storyteller discretion. Do
+    not add a bulk reset.
     """
     state = play_state(character)
     state.motes_personal_spent = 0

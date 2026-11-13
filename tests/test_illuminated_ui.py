@@ -1,16 +1,12 @@
 """Render tests for the Cult of the Illuminated UI (Phase 4).
 
-The engine and data landed before any UI could reach them, and a `ui.select` whose
-value is not in its options raises at RENDER time rather than in a unit test (see
-CLAUDE.md's NiceGUI 3.x gotcha) — which is exactly the shape of every control added
-here, since camp/Calling/grant-choice are all selects seeded from character state.
+A `ui.select` whose value is not in its options raises at RENDER time, not in a unit
+test. Each control here is a select seeded from character state.
 
-One route per test, per tests/test_gm.py's note: a @ui.page route builds once per
-session, so sharing one between tests leaks state.
+One route per test (see tests/test_gm.py): a @ui.page route builds once per session.
 
-These prove the pages render and the right strings reach the DOM. They do NOT prove
-the layout is right — the Lunar Gift-dialog pass found two bugs no server-render check
-could (see CLAUDE.md). Budget a browser click-through regardless.
+These tests prove that the pages render and that the strings reach the DOM. They do
+NOT prove the layout. A browser click-through is still necessary.
 """
 
 import pytest
@@ -103,9 +99,8 @@ async def test_a_standard_solar_editor_has_no_camp_panel(user: User) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_a_plain_solar_can_reach_the_illuminated_origin(user: User) -> None:
-    """Regression: `_SPLAT_ORIGINS` had no "Solar" key on the first pass, so the Origin
-    dropdown never rendered for a Solar and the whole origin was unselectable — every
-    engine test passed while the feature was unreachable from the UI."""
+    """A Solar gets the Origin dropdown (`_SPLAT_ORIGINS` has a "Solar" key). Without
+    it the origin cannot be selected in the UI while each engine test passes."""
     await user.open('/solar-origin')
     await user.should_see("Origin")
     await user.should_see("Standard")           # the default, shown as the select value
@@ -116,12 +111,11 @@ async def test_a_plain_solar_can_reach_the_illuminated_origin(user: User) -> Non
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_editor_renders_the_which_charms_sub_select(user: User) -> None:
-    """Regression: choosing the style used to be the ONLY control, with the two Charms
-    auto-seeded and unchangeable — "two Charms ... only lets you select one". A second,
-    multi-select control must render beside it, carrying the chosen Charms as its value.
+    """A style choice shows a second, multi-select control for the two Charms, with
+    the chosen Charms as its value.
 
-    A multi-select DOES put its selected labels in the DOM (as chips), unlike a closed
-    single select, so both the label and the current picks are assertable here."""
+    A multi-select puts its selected labels in the DOM (as chips), thus the label and
+    the picks can be asserted."""
     await user.open('/ill-editor-tabernacle')
     await user.should_see("Which 2?")             # the sub-select's own label
     # The two Snake Charms seeded in _ui_main.py, shown as chips.
@@ -159,14 +153,11 @@ async def test_the_flat_pool_choice_renders_one_control_carrying_its_picks(
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_a_camp_from_another_splats_cult_does_not_blank_the_editor(
         user: User) -> None:
-    """Regression, found by preflight before the click-through: `camp_for` resolves a
-    stored camp id against the WHOLE camp table, so a Dragon-Blooded carrying the
-    Solar Cult's "kether-rock" reached `ui.select` as a value outside its options —
-    which raises at BUILD time and takes the enclosing tab down with it. Unreachable
-    until a second splat owned camps.
+    """A stored camp of a different splat does not break the page. `camp_for`
+    resolves against ALL camps, and a value outside the options raises at BUILD time.
 
-    The page must render, clamped to a camp this character can actually attend; the
-    mismatch is reported as `camp-wrong-origin` in the issue panel, not by crashing."""
+    The page renders with a camp that the character can attend. The mismatch shows as
+    `camp-wrong-origin` in the issue panel."""
     await user.open('/cult-db-crossed')
     await user.should_see("Training Camp")
     await user.should_see("The Sequestered Tabernacle")

@@ -2,7 +2,7 @@
 Storyteller's switches in `server/table_st.py`.
 
 Step 6 of the build order in `docs/plans/p3-tables.md` section 15.4. The design is
-section 5, and Q2 (ruled 2026-09-12: the Storyteller sets the PER-CHARACTER
+section 5, and Q2 ruled: the Storyteller sets the PER-CHARACTER
 permissions of a campaign copy).
 
 ⚠ Section 5: the table's file is canonical, and each copy holds a synced copy.
@@ -367,7 +367,7 @@ def test_a_permission_for_a_copy_in_another_table_is_refused(
 
 
 # --------------------------------------------------------------------------- #
-# The request card names the house rules a base was made under (human, 2026-09-22)
+# The request card names the house rules a base was made under (human's ruling)
 # --------------------------------------------------------------------------- #
 
 

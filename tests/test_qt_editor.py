@@ -256,7 +256,7 @@ def test_trait_columns_do_not_inherit_the_column_gap_as_row_spacing(ruleset, qtb
     The Attributes and Abilities panels put three columns in a QHBoxLayout with a 24px
     gap between them; each column is a bare QVBoxLayout, which silently took that 24 as
     its ROW spacing. Attribute rows sat 41px apart against the Virtues' 21, which reads
-    as the card trying to fill itself vertically (human, 2026-08-22).
+    as the card trying to fill itself vertically (human's ruling).
 
     Pins the MECHANISM — every column's spacing is the deliberate row spacing and none
     is the column gap — rather than a pixel measurement, which would rot the first time
@@ -547,7 +547,7 @@ def _spec_names(page, ability):
 
 
 def test_a_specialty_is_an_instance_not_a_rated_track(qtbot, ruleset):
-    """⚠ The ruling (human, 2026-07-31): you do not RAISE a specialty, you take the
+    """⚠ The ruling (human's ruling): you do not RAISE a specialty, you take the
     same one again. So two "Swords" are ONE group taken twice — shown ×2, never as a
     dot track — and `view.specialty_groups` is what says so."""
     from exalted_builder.models.character import Specialty
@@ -563,7 +563,7 @@ def test_a_specialty_is_an_instance_not_a_rated_track(qtbot, ruleset):
 
 
 def test_specialties_hang_off_their_own_ability(qtbot, ruleset):
-    """⚠ The panel is GONE (human, 2026-08-22). A specialty belongs to one Ability, so
+    """⚠ The panel is GONE (human's ruling). A specialty belongs to one Ability, so
     it is a child row under that Ability — and the add control is per-Ability, which is
     what removes the old blank-row-on-Melee-then-retarget dance."""
     char = Character(id="c.s", exalt_type="Solar", caste="dawn")
@@ -578,8 +578,7 @@ def test_specialties_hang_off_their_own_ability(qtbot, ruleset):
 
 
 def test_the_add_button_knows_its_own_ability(qtbot, ruleset):
-    """The regression the new shape is FOR: clicking + on Archery must not append a
-    row on Melee for the player to retarget."""
+    """A + on Archery adds a row on Archery, not on Melee."""
     char = Character(id="c.s", exalt_type="Solar", caste="dawn")
     page = _traits(ruleset, char)
     qtbot.addWidget(page)
@@ -843,7 +842,7 @@ def test_a_camp_with_no_calling_does_not_title_the_panel_after_one(qtbot, rulese
 
 
 # --------------------------------------------------------------------------- #
-# found in the click-through, 2026-08-22
+# camp choices
 # --------------------------------------------------------------------------- #
 
 def test_an_unresolved_choice_does_not_announce_a_pick(qtbot, ruleset):
@@ -883,8 +882,7 @@ def test_a_resolved_choice_carries_no_blank_option(qtbot, ruleset):
 
 
 def test_resolving_the_style_opens_the_charm_list(qtbot, ruleset):
-    """The other half of the click-through finding: the "Which N?" list appears once a
-    style is actually chosen."""
+    """The "Which N?" list shows when a style is chosen."""
     from PySide6.QtWidgets import QListWidget
     char = _illuminated(ruleset, camp="sequestered-tabernacle", calling="exemplar",
                         abilities={AbilityName.MARTIAL_ARTS: 4})
@@ -1022,10 +1020,8 @@ def test_the_ceiling_note_fires_only_at_the_ceiling(ruleset, qtbot):
 
 def test_the_ceiling_note_does_not_fire_for_an_awareness_only_mortal(ruleset, qtbot):
     """⚠ The trigger is `essence_cap_override`, not "the pool is unlocked". Essence
-    Awareness alone unlocks part of the pool and leaves the cap at the splat's 1, so
-    such a mortal clicked to 3 is at an ILLEGAL rating, not at the human limit, and
-    must not be blamed on the god-transition clause. This is the wrong-field
-    regression the webapp already carries a test for."""
+    Awareness alone leaves the cap at 1, thus a mortal clicked to 3 is at an ILLEGAL
+    rating, and the god-transition clause must not take the blame."""
     from exalted_builder.models.character import MeritFlawPurchase
     char = Character(id="c.aware", exalt_type="Mortal", caste="", origin="heroic")
     char.abilities[AbilityName.OCCULT] = 3

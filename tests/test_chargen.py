@@ -388,12 +388,10 @@ def test_locked_snapshot_is_validated_not_current_traits():
     assert "bonus-points-exceeded" in codes      # essence 5 -> 21 BP, from the snapshot
 
 
-# --- unspent free dots (2026-07-30) ---------------------------------------- #
-# The budget arithmetic used to be one-sided: every domain charged
-# `max(0, spend - budget)` to bonus points, and nothing ever noticed a character who
-# spent too LITTLE — so a completely blank sheet reported "✓ Legal". Warnings rather
-# than errors: an unfinished sheet is incomplete, not illegal (rules authority,
-# 2026-07-30), and the UI's legality banner filters on severity == "error".
+# --- unspent free dots ---------------------------------------- #
+# The budget arithmetic charges `max(0, spend - budget)` and does not see an
+# underspend. These are warnings, not errors (human's ruling): an unfinished sheet is
+# incomplete, not illegal. The legality banner filters on severity == "error".
 
 def test_the_legal_baseline_reports_no_unspent_dots():
     """False-positive guard, and the strongest one available: _legal_solar spends
@@ -426,7 +424,7 @@ def test_unspent_dots_do_not_make_a_character_illegal():
 
 
 def test_bonus_points_are_never_reported_as_unspent():
-    """Deliberate (rules authority, 2026-07-30): "BP are bonus for a reason".
+    """Deliberate (human's ruling): "BP are bonus for a reason".
     Backgrounds ARE covered; bonus points are not."""
     rs, c = _ruleset(), _legal_solar()
     c.backgrounds = []                              # 7 background dots now unspent

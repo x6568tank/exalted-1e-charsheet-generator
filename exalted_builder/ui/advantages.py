@@ -178,10 +178,8 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         return _bg_types.get(bg.name.strip().lower())
 
     def _grows_stones(bg) -> bool:
-        """Whether this row gets the Hearthstone picker. Asks the DATA (does this
-        Background produce stones?) rather than the row's free-text name, and honours
-        the per-row Demesne toggle — a Demesne grows none (human's ruling
-        2026-08-12)."""
+        """Return True if this row gets the Hearthstone picker. Asks the DATA, not the
+        free-text name. A Demesne row grows none (human's ruling)."""
         return (not bg.is_demesne) and artifactsmod.grows_hearthstones(_bg_type(bg))
 
     def _open_hearthstones(bg) -> None:
@@ -238,20 +236,11 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         def _sync_total() -> None:
             """Repaint the running total IN PLACE.
 
-            ⚠ The allowance is recomputed HERE, on every call, never captured when the
-            row was built. Both halves of "4 / 3" move: the numerator when a stone is
-            added or re-rated, and the DENOMINATOR when the Manse rating changes — a
-            Manse raised from ••• to ••••• is a bigger Manse and legalises the stone
-            that was over budget a moment ago. A build-time allowance froze the
-            denominator at whatever the rating happened to be when the panel was drawn
-            (browser, 2026-08-12).
+            ⚠ Calculate the allowance HERE, on each call. Do not capture it at build:
+            the Manse rating changes the denominator.
 
-            ⚠ And never `refresh_all()` from the rating control. Rebuilding the panel
-            rebuilds the inputs inside it, and a rebuilt input eats every keystroke
-            after the first — the filter bar's lesson, recorded on the Background
-            description label a few lines below, and the same shape as the dice-pool
-            panel bug preflight caught on 2026-08-12 (state destroyed by exactly the
-            click that produced it)."""
+            ⚠ Never call `refresh_all()` from the rating control. A rebuilt input loses
+            each keystroke after the first."""
             if total is None:
                 return
             allowance = (None if bg.is_demesne
@@ -387,10 +376,8 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 if effective != bg.rating:
                     note = f"effective {bg.name} {effective}"
                     rung_text = f"{rung_text}  ·  {note}" if rung_text else note
-                # The link to the Gear tab, where the artifacts themselves now live
-                # (2026-08-13). The Background is what PAYS for them, so the row says
-                # what it bought — otherwise moving the panel would leave the dots here
-                # with no visible consequence, and the budget stated in only one place.
+                # The link to the Gear tab, where the artifacts are. The row states
+                # what the Background bought.
                 if bg.name.strip().lower() == artifactsmod.ARTIFACT_BACKGROUND:
                     owned = len(artifactsmod.budgeted_items(character))
                     buys = f"buys {bg.rating} dot(s) of artifacts · {owned} owned"
@@ -430,11 +417,9 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
             rows = []
             for b in sorted(bg_catalog, key=lambda b: b.name):
                 ladder = viewmod.background_ladder(bg_catalog, b.name)
-                # A blank line BETWEEN rungs, not just before the first: six rungs on
-                # consecutive lines read as one block, and the dialog is where the
-                # player compares them to choose a rating (human, click-through
-                # 2026-08-12). The dialog's label renders these newlines only because
-                # it carries `whitespace-pre-line` — see ui/catalogue.py.
+                # A blank line BETWEEN rungs, for comparison (human's ruling). The
+                # dialog label shows the newlines only with `whitespace-pre-line` (see
+                # ui/catalogue.py).
                 full = b.description + (
                     "\n\n" + "\n\n".join(f"{dot}  {text}" for dot, text in ladder)
                     if ladder else "")
@@ -502,10 +487,8 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
             ).props("dense").classes("w-16").mark("bg-rating"))
 
     # ---- Artifacts: individually rated items ------------------------------- #
-    # Artifacts MOVED to the Gear tab (ui/gear.py) on 2026-08-13, with their budget
-    # header and their catalogue picker. What stays here is the LINK: the Artifact
-    # Background row prints what its dots buy and how many are owned, so the rule is
-    # stated on both surfaces rather than owned silently by one.
+    # The artifacts are on the Gear tab (ui/gear.py). The Artifact Background row here
+    # states what its dots buy and how many are owned.
 
     # ---- Merits & Flaws: chargen ------------------------------------------ #
     def set_merit(mp, merit_id: str) -> None:
@@ -646,11 +629,8 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
             ).classes("text-xs opacity-60")
             for idx, mp in enumerate(character.merits_flaws):
                 definition = rs.merits_flaws.get(mp.merit_id)
-                # A player-authored "Custom" row (2026-08-10): no catalogue entry, no
-                # mechanical effect — just a name the sheet renders. It gets a plain
-                # text input instead of the select and NONE of the definition-driven
-                # controls, because `merit_id` resolves to nothing and every one of
-                # those controls reads `definition` (which would be None).
+                # A player-authored "Custom" row: a text input and NONE of the
+                # definition controls, because `definition` is None.
                 if mp.custom_name:
                     with ui.row().classes("w-full items-center gap-2 flex-wrap"):
                         ui.input(value=mp.custom_name, label="Custom Merit / Flaw",
@@ -661,11 +641,8 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                                   on_click=lambda e=None, idx=idx: remove_merit(idx)
                                   ).props("flat dense round")
                     continue
-                # flex-wrap, NOT no-wrap: the merge of the two old panels put more
-                # controls on this row than either had alone — entry, side, tier, arena,
-                # stipulations and detail can all appear at once — and a no-wrap row
-                # crushes its later children to slivers rather than wrapping them. That
-                # is how a sheet panel went invisible on 2026-07-31.
+                # ⚠ flex-wrap, NOT no-wrap: this row can hold six controls, and a
+                # no-wrap row crushes the later ones to nothing.
                 with ui.row().classes("w-full items-center gap-2 flex-wrap"):
                     # An off-catalogue id (a save opened without its data) stays
                     # selectable rather than 500ing the select — the same guard the
@@ -1103,15 +1080,13 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                     "text-xs italic opacity-70")
 
     # ---- Fetters and Passions (ghosts only, E:Ab p.126-127, p.283) --------- #
-    # On this tab rather than Edit (human, 2026-08-01): they are lists edited under
-    # two budget regimes, which is exactly the shape this tab exists for, not the one
-    # slot seen from two sides that the Edit/XP dot tracks are.
+    # On this tab, not Edit (human's ruling): lists with budgets.
     #
-    # The two behave very differently and the panels must not blur that:
+    # The two differ:
     #   * a FETTER is bought — pool dots, then bonus points, then experience;
-    #   * a PASSION is not bought at ANY point. Its dots come from the Virtues and the
-    #     player only distributes them (p.283). So its "pool" readout is a derivation
-    #     that keeps moving after the lock, and there is no price anywhere on it.
+    #   * a PASSION is never bought. Its dots come from the Virtues and the player
+    #     distributes them (p.283). Its pool readout is a live derivation, with no
+    #     price.
 
     def _has_fetters() -> bool:
         b = rs.budgets_for(character.exalt_type, character.origin, character.upbringing)

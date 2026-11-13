@@ -1,13 +1,26 @@
-# Session handoff — 2026-11-13 (second server review applied; next: comment pass)
+# Session handoff — 2026-11-13 (comment pass, first sweep)
 
 # 👉 YOU ARE HERE
 
-**Next: a full comment pass to the NEW standard.** The human overhauled
-`docs/comment-standard.md` and `CLAUDE.md` §6 on 2026-11-13 (the old one was "far too
-lenient"); those two edits are the human's and may still be uncommitted. Start with the
-code of `91143ce`, `ec83826`, `25e4fe5`: their tests' docstrings carry "Server review
-finding N" history and `table_board.py` has a reason/history comment on
-`MAX_TOKEN_INPUT_PIXELS`.
+**Comment pass to the new standard (2026-11-13): first sweep done, NOT committed.**
+171 `*.py` files changed, prose only. `tools/prose_guard.py HEAD <file>` passes on every
+one (code identical by AST, no citation or ⚠ lost; `engine/validate/charms.py` shows
+the known false positive `p. 0` from "`_cap. 0 =`"). Suite: 4492 passed + 1 skipped,
+OBSERVED after the pass at `-n 4`.
+
+* **Zero dated stamps** in `exalted_builder/` (only `tests/test_build_info.py` keeps
+  dates — they are test data). Every "found when / used to / regression" history in
+  package code and in test docstrings rewritten as a contract or a ⚠.
+* **Rewritten to the field-comment rule** (citation + one clause): all of `models/`
+  (`budgets.py` 902→483 lines, `character.py` −375), and in `engine/`: `merits`,
+  `derive`, `artifacts`, `elder`, `paths`, `camp`, `gear_actions`, `play`,
+  `adversaries`, `validate/charms`, `validate/budgets`, `validate/backgrounds`.
+* **Left for a second sweep** (dates and history are gone, but the prose is still
+  long): the rest of `engine/` (`costs`, `pools`, `advancement/*`, other validate
+  modules), `ui/`, `qt/`, `server/`, and most test docstrings. Reasons and design
+  discussion still sit in many of those docstrings.
+* The human's edits to `docs/comment-standard.md` and `CLAUDE.md` §6 are in the same
+  uncommitted tree.
 
 **A second review of `server/` (2026-11-09, this laptop) is applied:**
 `docs/plans/server-review.md`. All but finding 7 (NiceGUI's per-request `_users` leak;

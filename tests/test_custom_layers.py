@@ -1,9 +1,8 @@
 """Homebrew layers that stack: `rules_db.with_custom_layers` and
 `rules_db.reload_custom_layers`.
 
-Step 7 of `docs/plans/p3-tables.md`. A draft for a campaign builds under the book,
-then the homebrew of the campaign, then the library of its owner (ruled
-2026-09-23).
+Step 7 of `docs/plans/p3-tables.md`. A campaign draft builds under the book, then
+the campaign homebrew, then the owner's library (human's ruling).
 
 ⚠ `reload_custom_layer` deletes each custom row before it merges ONE folder. Thus
 two nested calls keep only the outer folder. The layer functions clear once and
@@ -82,7 +81,7 @@ def test_the_book_does_not_change(book, tmp_path) -> None:
 
 
 def test_the_first_layer_wins_a_clash(book, tmp_path) -> None:
-    """The campaign is first, thus its version wins (ruled 2026-09-23)."""
+    """The campaign is first, thus its version wins (human's ruling)."""
     first, second = tmp_path / "campaign", tmp_path / "owner"
     _charms(first, [_charm("custom.a", name="Campaign Version")])
     _charms(second, [_charm("custom.a", name="Owner Version")])

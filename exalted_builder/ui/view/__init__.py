@@ -296,8 +296,7 @@ from .xp_log import (          # noqa: F401 — re-exported for callers
     build_xp_log,
 )
 
-# Moved to the engine on 2026-08-22, and re-exported for the existing callers.
-# `ui/picker.py` reads `view._style_label`, and
+# Defined in the engine and re-exported. `ui/picker.py` reads `view._style_label`, and
 # `test_no_second_style_label_generator_disagrees_with_the_authored_name` asserts it.
 from ...engine.camp import (CampCharmOption, CampChoiceOption,  # noqa: F401
                             CampChoiceView, CampView, build_camp_view, requires_camp)

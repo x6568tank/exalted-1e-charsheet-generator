@@ -65,7 +65,7 @@ async def test_download_buttons_are_absent_on_the_desktop(create_user) -> None:
 
 
 # The desktop load dialogs keep their path field. On the server a path from the
-# browser is a path on the SERVER (closed 2026-09-12, `beda3ec`); the hosted pages
+# browser is a path on the SERVER (closed, `beda3ec`); the hosted pages
 # have no Load at all, and `test_character_pages.py` asserts that.
 _PATH_DIALOGS = [
     # (route, button mark, text the dialog shows)

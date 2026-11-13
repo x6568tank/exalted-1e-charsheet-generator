@@ -581,7 +581,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         if not warning:
             _do_unlock()
             return
-        # Ruled 2026-09-12: an Unlock after XP is allowed, with a warning.
+        # An Unlock after XP is allowed, with a warning (human's ruling).
         with ui.dialog() as dialog, ui.card().classes(f"w-[30rem] p-4 gap-2 {_pal().card_solid}"):
             ui.label("Unlock a character that has spent XP?").classes("text-base font-bold")
             ui.label(warning).classes("text-sm")

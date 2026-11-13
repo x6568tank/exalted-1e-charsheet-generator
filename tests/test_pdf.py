@@ -410,7 +410,7 @@ def test_both_paper_sizes_are_offered_and_differ(ruleset, paper):
 def test_an_empty_specialties_panel_is_dropped_not_printed_blank(ruleset):
     """An empty box holding "—" takes a third of a row to say nothing. On screen
     that panel is a landmark you return to; on paper it is just a blank rectangle.
-    Human's call, 2026-08-14.
+    human's ruling.
 
     Negative-controlled against a character who HAS specialties, so this cannot
     pass by the panel having vanished for everyone.
@@ -455,9 +455,8 @@ def test_the_bottom_band_reflows_when_the_equipment_panel_is_dropped(ruleset):
 
 
 def test_an_anima_alone_keeps_the_left_panel_without_a_gear_placeholder(ruleset):
-    """The panel is NOT empty merely because there is no gear — an Alchemical with
-    no weapons still has an Anima, and the panel used to print "—" above it for the
-    gear that was not there."""
+    """An Alchemical with no weapons still has an Anima: the panel shows no "—" for
+    the missing gear."""
     view = _sheet(ruleset, _ROOT / "examples" / "gearheart.character.json")
     assert view.anima and not view.weapons and not view.armor
     text = _text(pdf.build_pdf(view))
@@ -507,7 +506,7 @@ def test_unknown_paper_size_is_rejected(ruleset):
 
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_builder_offers_a_print_button_and_its_dialog(user) -> None:
-    """Print lives in the header bar's ⋮ menu (since 2026-09-12), NOT on the Sheet
+    """Print lives in the header bar's ⋮ menu (since), NOT on the Sheet
     tab: `render_sheet` takes a SheetView and no callbacks, and a button inside it
     would need one — which is what the GM party screen and the render tests
     depend on it not having."""
@@ -562,7 +561,7 @@ def test_export_filenames_are_made_safe(ruleset, typed, expected):
 
 
 def test_an_attuned_artifact_is_marked_on_paper(ruleset):
-    """Phase 3 of attunement (human, 2026-09-07: "printed sheet should"). ⚠ The Essence
+    """Phase 3 of attunement (human: "printed sheet should"). ⚠ The Essence
     pools on the same page are the FULL ones — only the Play tab subtracts — so this
     marker is the printed sheet's whole account of where the motes went."""
     from exalted_builder.models.character import Weapon

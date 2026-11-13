@@ -1,29 +1,23 @@
 """
 engine/derive.py — pure derivations: (RuleSet, Character) -> computed traits.
 
-Everything here is a pure function of the rules and a character: no I/O, no
-mutation, no UI. These derive the values a sheet shows but a save file does not
-store, because they are fully determined by stored traits:
+Each function is a pure function of the rules and a character: no I/O, no mutation,
+no UI. The results are values that the sheet shows and the save does not store:
 
-  * Willpower      — sum of the two highest Virtues (frozen at lock so post-
-                     creation Virtue gains can't raise it), plus any purchased.
-  * Essence pools  — Solar Personal / Peripheral motes.
-  * Health track   — the fixed base levels plus Charm-granted bonus levels.
+  * Willpower      — sum of the two highest Virtues (frozen at lock, decision
+                     0005), plus the purchased dots.
+  * Essence pools  — Personal / Peripheral motes.
+  * Health track   — the base levels plus the bonus levels.
 
 Soak (Exalted 1e core, pp. 231-232):
-  * Bashing soak    = Stamina + armour bashing soak.
-  * Lethal soak     = floor(Stamina / 2) + armour lethal soak, BUT only magical
-                      beings (Exalted, manifested spirits, Fair Folk) add the
-                      half-Stamina; mortals rely on armour alone for lethal.
-  * Aggravated soak = armour lethal soak only. "A character can never soak
-                      aggravated damage with her Stamina, even if she is a
-                      magical being." Armour protects as it does against lethal.
-The "raw damage can never be reduced below 1 by soak" rule is damage resolution,
-not a soak score, so it is not applied here.
+  * Bashing soak    = Stamina + armor bashing soak.
+  * Lethal soak     = floor(Stamina / 2) + armor lethal soak. Only magical beings
+                      add the half-Stamina.
+  * Aggravated soak = armor lethal soak only. Stamina never soaks aggravated.
+The "minimum 1 damage" rule is damage resolution. It is not applied here.
 
-The "may not start Willpower above 8 unless two Virtues are >= 4" rule is a
-*legality* constraint, not a derivation: it lives in engine.validate. Derivation
-reports the raw computed value.
+The starting Willpower cap is legality, in engine.validate. Derivation returns the
+raw value.
 """
 
 from __future__ import annotations
@@ -35,24 +29,22 @@ from pydantic import BaseModel
 from ..models.character import Armor, Character, Weapon
 from ..models.rules import AttributeName, MagicalMaterial, RuleSet, VirtueName
 
-# The fixed Exalted health track: -0/-1/-1/-2/-2/-4/Incapacitated. Penalties for
-# the wound-penalty levels; the Incapacitated level has no dice penalty and is
-# rendered separately. Charm-granted bonus levels (Ox-Body, etc.) are merged in.
+# The base health track: -0/-1/-1/-2/-2/-4/Incapacitated. Incapacitated has no
+# penalty and renders separately. Bonus levels are merged in.
 BASE_WOUND_PENALTIES: tuple[int, ...] = (0, -1, -1, -2, -2, -4)
 
 
 class HealthLevelView(BaseModel):
-    """One row of the derived health track. `penalty` is None for the
-    Incapacitated level. `source` is '' for the base track or a Charm id for a
-    bonus level."""
+    """One row of the derived health track. `penalty` is None for Incapacitated.
+    `source` is '' for a base level or a Charm id for a bonus level."""
     penalty: Optional[int]
     incapacitated: bool = False
     source: str = ""
 
 
 class SoakView(BaseModel):
-    """Per-damage-type soak totals plus the natural/armour breakdown a sheet
-    shows. Aggravated has no natural component by rule."""
+    """The soak totals by damage type, with the natural and armor parts.
+    Aggravated has no natural part."""
     bashing: int
     lethal: int
     aggravated: int
@@ -63,42 +55,28 @@ class SoakView(BaseModel):
 
 
 class DerivedTraits(BaseModel):
-    """Computed, non-stored traits for display and for the engine to reason
-    about."""
+    """Computed traits for display and for the engine."""
     willpower: int                 # total permanent Willpower
     wp_from_virtues: int           # the two-highest-Virtues component used
     essence_personal: int
     essence_peripheral: int
-    # The two pools are ONE pool, all of it Peripheral (Beacon of Power). Personal is
-    # then 0 by rule rather than by arithmetic, which a sheet must be able to tell
-    # apart: "Personal 0" alone reads as a bug.
+    # The pools are one Peripheral pool (Beacon of Power). The sheet needs the flag:
+    # "Personal 0" alone looks like a defect.
     essence_single_pool: bool
-    # Motes drawable without a Willpower roll (Essence Awareness, PG p.120), or None
-    # when the whole pool is — see `essence_freely_accessible`. Carried beside the
-    # totals rather than reducing them: the other two thirds still exist.
+    # PG p.120: motes free of a Willpower roll. None = all. See
+    # `essence_freely_accessible`. It does not reduce the totals.
     essence_free: Optional[int]
     health_levels: list[HealthLevelView]
     soak: SoakView
 
 
 # --- Clarity (Alchemical, CH2 p.69-71) -------------------------------------- #
-# The Alchemical replacement for Limit. It has two halves that behave differently,
-# and only one of them belongs here:
+# Permanent Clarity: one dot per Essence dot above 5, plus one for each installed
+# Charm that grants it (p.69). Derived, not stored: removal is automatic (p.70).
 #
-#   PERMANENT Clarity is fully determined by stored traits — one dot per dot of
-#   Essence above 5, plus one for each installed Charm that grants it (p.69). It is
-#   therefore DERIVED, exactly like the health track or the Essence pools, and never
-#   stored. That also makes p.70's "removing these conditions immediately removes the
-#   appropriate amount of permanent Clarity" free: uninstall the Charm or drop the
-#   Essence and the dots go with it, with no bookkeeping.
+# Temporary Clarity: set by the Storyteller, on PlayState.
 #
-#   TEMPORARY Clarity is pure Storyteller adjudication (suppressing Virtues, weeks
-#   without human contact, Compassion rolls after a scene). It lives on PlayState with
-#   Limit and Renown, and nothing here computes it.
-#
-# The effects table below is DISPLAY ONLY. The dice penalties and bonuses are reported
-# as printed text so a sheet can show which band applies; nothing applies them to a
-# roll, the same scope line combat/attack derivation sits behind.
+# The effects table is display text only. Nothing applies it to a roll.
 
 CLARITY_MAX = 10                   # "cannot ever exceed 10 under any circumstances"
 
@@ -127,8 +105,8 @@ CLARITY_BANDS: tuple[tuple[int, str, str], ...] = (
 
 
 class ClarityView(BaseModel):
-    """The Clarity picture for a sheet: the derived permanent half with its sources
-    itemised, the tracked temporary half, and the band the total falls in."""
+    """The Clarity of a sheet: the permanent sources, the temporary value, and the
+    band of the total."""
     permanent: int
     temporary: int
     total: int                     # permanent + temporary, capped at CLARITY_MAX
@@ -138,12 +116,12 @@ class ClarityView(BaseModel):
 
     @property
     def capped(self) -> bool:
-        """True when permanent + temporary was clipped by the hard 10 ceiling."""
+        """Return True if CLARITY_MAX clipped permanent + temporary."""
         return self.permanent + self.temporary > CLARITY_MAX
 
 
 def clarity_band(total: int) -> tuple[str, str]:
-    """The (label, effects) band `total` falls in (p.70-71)."""
+    """Return the (label, effects) band of `total` (p.70-71)."""
     for bound, label, effects in CLARITY_BANDS:
         if total <= bound:
             return label, effects
@@ -151,42 +129,28 @@ def clarity_band(total: int) -> tuple[str, str]:
 
 
 def uses_clarity(ruleset: RuleSet, character: Character) -> bool:
-    """Whether Clarity applies to this character, from `ExaltDefinition.clarity`.
-    ⚠ Asked of the splat, never inferred from the Charms it can hold — "any Charm
-    granting permanent Clarity" is far too loose a test."""
+    """Return `ExaltDefinition.clarity`. ⚠ Read the splat flag. Do not infer it
+    from the Charms."""
     exalt = ruleset.exalt_for(character.exalt_type)
     return bool(exalt and exalt.clarity)
 
 
 def limit_label(ruleset: RuleSet, character: Character) -> str:
-    """What this character's splat calls its Limit track — "Paradox" for a Sidereal
-    (p.253), "Limit" for everyone else. A rename only: the mechanic, the 0-10 range
-    and the break threshold are identical, which is why this is one string on the
-    ExaltDefinition rather than a second track."""
+    """Return the name of the Limit track of the splat (p.253). Display only."""
     exalt = ruleset.exalt_for(character.exalt_type)
     return (exalt.limit_label if exalt and exalt.limit_label else "Limit")
 
 
 def limit_max(ruleset: RuleSet, character: Character) -> int:
-    """The maximum of this character's Limit / Paradox / Resonance track.
+    """Return the maximum of the Limit / Paradox / Resonance track.
 
-    Ordinarily the constant 10 — the triage's ruling 5 is that this is a constant rather
-    than something derived. TWO things move it:
+    The base is the constant 10. Two values subtract from it:
 
-    * Greater Curse "reduces their maximum Limit pool by one dot per point invested in
-      the Flaw, to a maximum reduction of five dots" (p.40), which makes Limit Break
-      arrive sooner.
-    * **Permanent Resonance occupies the track.** "Permanent Resonance is cumulative
-      with temporary Resonance" (p.41), which the human (rules authority, 2026-07-31)
-      reads as headroom rather than a rating riding alongside: 2 permanent means the
-      temporary track tops out at 8 and the Break arrives two points sooner. This is
-      what the field is FOR — the same shape a permanent Limit would take on a Solar.
+    * Greater Curse (p.40).
+    * **Permanent Resonance uses track space** (p.41, human's ruling): 2 permanent
+      gives a temporary maximum of 8.
 
-    Both subtract, and the floor is 0: a character whose permanent Resonance has reached
-    a shortened maximum has no temporary track left at all.
-
-    Play-state (decision 0006): read by the tracker and the sheet, never by chargen
-    validation or the XP audit.
+    The floor is 0. Play state (decision 0006).
     """
     from . import merits                                   # merits imports validate
     effects = merits.merits_and_flaws_calc(ruleset, character)
@@ -195,9 +159,8 @@ def limit_max(ruleset: RuleSet, character: Character) -> int:
 
 
 def permanent_limit_cap(ruleset: RuleSet, character: Character) -> int:
-    """The ceiling on PERMANENT Resonance — "Characters may not have a permanent
-    Resonance higher than their Essence" (p.41). 0 for a character without the Flaw,
-    which is also what the field should read for them."""
+    """Return the ceiling on permanent Resonance: Essence (p.41). 0 without the
+    Flaw."""
     from . import merits
     effects = merits.merits_and_flaws_calc(ruleset, character)
     if effects.permanent_limit_start is None:
@@ -206,43 +169,33 @@ def permanent_limit_cap(ruleset: RuleSet, character: Character) -> int:
 
 
 def permanent_limit_start(ruleset: RuleSet, character: Character) -> int:
-    """The permanent Resonance the character BEGAN play with, bought with Death's Taint
-    ("Characters who actually start with this greater taint add one additional bonus
-    point per dot", p.41). 0 without the Flaw, and 0 with its base four-point version.
+    """Return the permanent Resonance at the start of play, from Death's Taint (p.41).
+    0 without the Flaw.
 
-    Distinct from `Character.limit_permanent`, which is where it stands NOW — the Flaw
-    buys a starting rating, and play moves it from there through the XP ledger."""
+    `Character.limit_permanent` is the current value."""
     from . import merits
     effects = merits.merits_and_flaws_calc(ruleset, character)
     return effects.permanent_limit_start or 0
 
 
 def luck_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
-    """(luck, bad luck) — the two pools Lucky and Unlucky create, which exist only
-    because those entries do. A character may hold both: "characters may be
-    simultaneously Lucky and Unlucky" (p.39), and the two do not cancel here because
-    the player and the Storyteller spend them independently.
-
-    SPENDING them is rerolling, which is decision 0009 and stays out. These are
-    counters for the tracker to display and nothing more."""
+    """Return (luck, bad luck) from Lucky and Unlucky (p.39). They do not cancel.
+    Counters only: spending is dice (decision 0009)."""
     from . import merits
     effects = merits.merits_and_flaws_calc(ruleset, character)
     return effects.luck_pool, effects.bad_luck_pool
 
 
 def has_virtue_flaw(ruleset: RuleSet, character: Character) -> bool:
-    """Whether this character's splat has a Virtue Flaw at all. False for the
-    Dragon-Blooded, Sidereals and Alchemicals — see `ExaltDefinition.has_virtue_flaw`.
-    Note this is NOT the same question as whether the splat has a Limit track: a
-    Sidereal has Paradox but no flawed Virtue."""
+    """Return `ExaltDefinition.has_virtue_flaw`. ⚠ Not the same as a Limit track:
+    a Sidereal has Paradox and no Virtue Flaw."""
     exalt = ruleset.exalt_for(character.exalt_type)
     return bool(exalt and exalt.has_virtue_flaw)
 
 
 def permanent_clarity(ruleset: RuleSet, character: Character) -> list[tuple[str, int]]:
-    """The itemised sources of permanent Clarity (p.69): one dot per dot of Essence
-    above 5, plus one per installed Charm that grants it. Reads the character's LIVE
-    installed Charms, so a vat refit that sheds such a Charm sheds its dots too."""
+    """Return the sources of permanent Clarity (p.69). Reads the LIVE installed
+    Charms."""
     sources: list[tuple[str, int]] = []
     over = max(0, character.essence_rating - 5)
     if over:
@@ -255,7 +208,7 @@ def permanent_clarity(ruleset: RuleSet, character: Character) -> list[tuple[str,
 
 
 def clarity(ruleset: RuleSet, character: Character) -> ClarityView:
-    """The full Clarity view: derived permanent + tracked temporary, capped at 10."""
+    """Return the ClarityView: permanent + temporary, capped at 10."""
     sources = permanent_clarity(ruleset, character)
     perm = sum(dots for _label, dots in sources)
     temp = character.play.clarity_temporary if character.play is not None else 0
@@ -266,26 +219,20 @@ def clarity(ruleset: RuleSet, character: Character) -> ClarityView:
 
 
 def two_highest_virtues(virtues: dict[VirtueName, int]) -> int:
-    """Sum of the two highest Virtue ratings — the Willpower component at chargen."""
+    """Return the sum of the two highest Virtue ratings."""
     ordered = sorted(virtues.values(), reverse=True)
     return sum(ordered[:2])
 
 
 def willpower(character: Character, ruleset: Optional[RuleSet] = None) -> int:
-    """Permanent Willpower = the Virtue component + purchased dots − any forfeited.
+    """Return permanent Willpower: the Virtue component + purchased - forfeited.
 
-    Pre-lock the Virtue component tracks the current two highest Virtues; once
-    chargen is locked it is the frozen `wp_virtue_component`, so raising a Virtue
-    afterward does not raise Willpower — EXCEPT for Callous, the one sanctioned
-    exception to decision 0005, whose Virtue component keeps tracking (and therefore
-    needs `ruleset` to be seen at all).
+    Before the lock the Virtue component is the two highest Virtues. After the lock it
+    is `wp_virtue_component` (decision 0005). Callous is the exception: the component
+    follows the Virtues.
 
-    `ruleset` is optional and only ever subtracts: the Weak-Willed Flaw sells permanent
-    Willpower dots for bonus points, and without a RuleSet there is no way to know a
-    Flaw is held. Every caller that has one should pass it — the same optional-ruleset
-    shape `soak` already uses. Floored at zero; the floors that actually apply (4 for
-    the Exalted, 2 otherwise) are validated at chargen rather than clamped here, so a
-    sheet below them reports rather than silently corrects.
+    ⚠ Without `ruleset` the result is incorrect for Callous and Weak-Willed. Pass it.
+    The floor is 0. Validate checks the chargen floors.
     """
     virtue_part = wp_virtue_component(character)
     forfeited = 0
@@ -293,10 +240,7 @@ def willpower(character: Character, ruleset: Optional[RuleSet] = None) -> int:
         from . import merits
         effects = merits.merits_and_flaws_calc(ruleset, character)
         forfeited = effects.forfeited_willpower_dots
-        # Callous is the one sanctioned exception to decision 0005: its Willpower keeps
-        # following the Virtues after the lock rather than holding the frozen component.
-        # Without a RuleSet there is no way to know the Flaw is held, so a caller that
-        # omits it silently gets the pinned value — pass one.
+        # Callous: the exception to decision 0005.
         if effects.willpower_tracks_virtues:
             virtue_part = two_highest_virtues(character.virtues)
     return max(0, virtue_part + character.willpower_purchased - forfeited)
@@ -309,10 +253,8 @@ def wp_virtue_component(character: Character) -> int:
 
 
 def _peripheral_virtue_term(mode: str, virtues: dict[VirtueName, int]) -> int:
-    """The Virtue contribution to the Peripheral pool for a splat: all four Virtues
-    (Solar), the two highest only (Dragon-Blooded, p.152), the single highest only
-    (Lunar, p.91 — scaled separately by EssencePoolSpec.peripheral_virtue_coeff), or
-    none."""
+    """Return the Virtue term of the Peripheral pool: all four Virtues, the two
+    highest (p.152), the highest (p.91), or none."""
     if mode == "all":
         return sum(virtues.values())
     if mode == "two_highest":
@@ -323,15 +265,9 @@ def _peripheral_virtue_term(mode: str, virtues: dict[VirtueName, int]) -> int:
 
 
 def _named_virtue_term(spec, virtues: dict[VirtueName, int]) -> int:
-    """The NAMED Virtues added flat to the Personal pool — the "+ Conviction" in the
-    unlocked mortal's pool (PG p.114), and the Dragon-Kings' "+ Conviction + Valor"
-    (PG p.177), which no virtue_mode can express (two SPECIFIC named Virtues, not the
-    two highest). Sums the single `personal_named_virtue` and the list
-    `personal_named_virtues`, each at `personal_named_virtue_coeff` — backwards
-    compatible, since the list defaults empty. Zero for every splat that names none,
-    which is all of them; an unrecognised name contributes nothing rather than
-    raising, so a typo in the data degrades to a wrong number rather than a crash the
-    loader would not have caught."""
+    """Return the NAMED Virtues added flat to the Personal pool (PG p.114, PG p.177).
+    The sum of `personal_named_virtue` and `personal_named_virtues`, each times
+    `personal_named_virtue_coeff`. An unknown name adds 0."""
     names = []
     if spec.personal_named_virtue:
         names.append(spec.personal_named_virtue)
@@ -347,9 +283,8 @@ def _named_virtue_term(spec, virtues: dict[VirtueName, int]) -> int:
 
 
 def _breeding_rating(character: Character, name: str, override: Optional[int]) -> int:
-    """The character's effective rating in the pool-feeding Background, which a Merit
-    may raise above the one they bought (Legendary Breeding). `override` is
-    MeritEffects.breeding_rating_override, and wins outright when set."""
+    """Return the effective rating of the pool Background. `override`
+    (MeritEffects.breeding_rating_override) wins if set."""
     if override is not None:
         return override
     return max((b.rating for b in character.backgrounds
@@ -358,30 +293,22 @@ def _breeding_rating(character: Character, name: str, override: Optional[int]) -
 
 def _breeding_bonus(character: Character, name: str, table: list[int],
                     override: Optional[int] = None) -> int:
-    """The additive pool bonus from a Background-derived term (DB Breeding): look up
-    the character's rating in `name` and index `table` (clamped to its length). Returns
-    0 when the Background is absent or the table is empty."""
+    """Return the pool bonus of the Background `name`: `table` indexed by the rating,
+    clamped to its length. 0 if the Background is absent or the table is empty."""
     if not name or not table:
         return 0
     return table[min(_breeding_rating(character, name, override), len(table) - 1)]
 
 
 def essence_pool_is_merged(ruleset: RuleSet, character: Character) -> bool:
-    """Are the two Essence pools a single Peripheral pool? Separate from
-    `essence_pools` because that returns motes and this is about their SHAPE — a
-    sheet showing "Personal 0" needs to know whether it is reporting a rule or a
-    character with no Essence at all.
+    """Return True if the two pools are one Peripheral pool.
 
-    THREE sources, deliberately one read site: a Merit that merges (Beacon of Power,
-    p.41), the splat itself (ghosts E:Ab p.126, God-Blooded PG p.66), and a Flaw that
-    SPLITS what the splat merged (Aura of Power, PG p.67). Ask here, never any source
-    directly, or the next splat with a merged pool has to be added in as many places as
-    there are callers.
+    Three sources, one read site: Beacon of Power (p.41), the splat (E:Ab p.126,
+    PG p.66), and Aura of Power, which splits (PG p.67). Ask here. Do not read a
+    source directly.
 
-    ⚠ The split is checked FIRST, because it has to beat the splat's own shape and not
-    merely a Merit's. A God-Blooded's `single_essence_pool` is True, so testing the
-    splat first would return True and Aura of Power would do nothing — which is exactly
-    what it did until 2026-09-03.
+    ⚠ The split is checked FIRST. A God-Blooded `single_essence_pool` is True, thus a
+    splat check first disables Aura of Power.
     """
     from . import merits as _merits
     effects = _merits.merits_and_flaws_calc(ruleset, character)
@@ -393,29 +320,14 @@ def essence_pool_is_merged(ruleset: RuleSet, character: Character) -> bool:
 
 
 def essence_freely_accessible(ruleset: RuleSet, character: Character) -> Optional[int]:
-    """How many motes of the pool may be drawn on WITHOUT a Willpower roll, or None
-    when the whole pool may be (which is everyone except a mortal holding Essence
-    Awareness alone).
+    """Return the motes that the character can draw with no Willpower roll. Return
+    None if the full pool is free.
 
-    Essence Awareness (PG p.120) unlocks a mortal's pool only in part: "divide it into
-    two pools: the first, equal to one third of the pool, can be drawn on normally …
-    the other two thirds can only be accessed with a Willpower roll". Essence Mastery
-    (p.121) removes the restriction — "her entire Essence pool without limit or
-    required rolls" — and so does having a native pool, which is why an Exalt is never
-    restricted by holding the Merit.
+    PG p.120: Essence Awareness gives one third. Essence Mastery (p.121) or a native
+    pool gives all. The roll is not modelled (decision 0009). The value is a share of
+    the WHOLE pool. It does not reduce the totals.
 
-    The ROLL itself is deliberately not modelled: it is dice (decision 0009), and it
-    stays in the Merit's printed description where the player can read it. What is
-    modelled is the SIZE of the freely-drawable portion, because that is a number on
-    the sheet. The other two thirds are not lost — the pool is still the full pool —
-    so this is carried alongside the totals rather than reducing them.
-
-    Returns the share of the WHOLE pool (personal + peripheral); the split is over
-    "his Essence pool", not over either half. In practice a mortal's unlocked pool is
-    entirely Personal.
-
-    ⚠ ROUNDING IS AN OPEN QUESTION: p.120 says "one third" and prints no rounding
-    rule. Floor is used here. Confirm with the rules authority before relying on it.
+    ⚠ The page gives no rounding. Floor is used. Confirm with the rules authority.
     """
     from . import merits as _merits
     if _merits.merits_and_flaws_calc(ruleset, character).essence_pool_unrestricted:
@@ -425,17 +337,14 @@ def essence_freely_accessible(ruleset: RuleSet, character: Character) -> Optiona
 
 
 def _heritage_traits(ruleset: RuleSet, character: Character):
-    """The character's `CasteDefinition.heritage_traits` (a God-Blooded heritage), or
-    None for every non-God-Blooded caste. One read site for the heritage-keyed bits
-    this module derives (the Awakened-Essence pool formula, PG p.66)."""
+    """Return `CasteDefinition.heritage_traits` of the character, or None (PG p.66)."""
     caste = ruleset.castes.get(character.caste)
     return caste.heritage_traits if caste is not None else None
 
 
 def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
-    """(personal, peripheral) motes, from the character's Exalt-type formula
-    (RuleSet.exalt_for → EssencePoolSpec), a pure data lookup rather than a per-splat
-    branch.
+    """Return (personal, peripheral) motes from the EssencePoolSpec of the splat
+    (RuleSet.exalt_for).
 
       * Solar (core p.104):    Personal = Essence×3 + Willpower;
                                Peripheral = Essence×7 + Willpower + ΣVirtues.
@@ -446,19 +355,11 @@ def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
                                Peripheral = Essence×4 + Willpower×2 + (highest
                                Virtue × 4).
 
-    The Breeding term (p.158-159) is a flat per-rating bonus added to BOTH pools,
-    keyed off the character's Breeding Background rating; splats without it carry
-    empty tables.
+    Breeding (p.158-159) adds to both pools.
 
-    Merits reshape all three of those parts (A5), and never by naming themselves here:
-    they can UNLOCK a pool a splat does not have (mortals: "they lack an Essence pool,
-    either Peripheral or Personal", PG p.114 — `ExaltDefinition.unlocked_essence`
-    replaces the empty default spec), raise the effective Breeding rating, and MERGE the
-    two pools into one Peripheral pool. Which Merits do any of that is engine.merits'
-    business, not this function's — see decision 0011."""
-    # Import locally: engine.merits imports the models only, but keeping this out
-    # of the module header avoids a derive <-> merits cycle if merits ever needs
-    # a derivation of its own.
+    Merits can unlock a pool (PG p.114: `ExaltDefinition.unlocked_essence`), raise
+    the Breeding rating, and merge the pools (decision 0011)."""
+    # A local import prevents a derive <-> merits cycle.
     from . import merits as _merits
     effects = _merits.merits_and_flaws_calc(ruleset, character)
     exalt = ruleset.exalt_for(character.exalt_type)
@@ -466,8 +367,7 @@ def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
     if effects.essence_pool_unlocked:
         heritage = _heritage_traits(ruleset, character)
         if heritage is not None and heritage.unlocked_essence is not None:
-            # A God-Blooded's Awakened-Essence pool is per-heritage (PG p.66), so the
-            # caste's formula wins over the Exalt-level one (which no God-Blooded sets).
+            # PG p.66: the formula of the heritage wins.
             spec = heritage.unlocked_essence
         elif exalt.unlocked_essence is not None:
             spec = exalt.unlocked_essence
@@ -490,24 +390,17 @@ def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
                      * spec.peripheral_virtue_coeff)
                   + breeding_pp)
     if essence_pool_is_merged(ruleset, character):
-        # "a single Essence pool equal to the sum of their Personal and Peripheral
-        # Essence, all of which is considered Peripheral" (p.41). Merged AFTER both
-        # are computed, so every term above still contributes exactly what it did.
+        # p.41: merged AFTER both pools are calculated.
         #
-        # ⚠ Asked of `essence_pool_is_merged`, never of `effects` directly: a ghost's
-        # pool is merged by its SPLAT, not by a Merit, so reading the Merit field here
-        # reports the right shape on the sheet while returning the wrong motes.
+        # ⚠ Ask `essence_pool_is_merged`, not `effects`: a ghost's pool is merged by
+        # the SPLAT. The Merit field gives the incorrect motes for a ghost.
         peripheral += personal
         personal = 0
     elif effects.essence_pool_split_thirds:
-        # Aura of Power (PG p.67): "divide their Essence pool, placing one third into
-        # Personal (rounded down) and the remaining two thirds into Peripheral."
+        # Aura of Power (PG p.67): one third Personal (rounded down), the remainder
+        # Peripheral.
         #
-        # ⚠ Run on the TOTAL, and the remainder goes to Peripheral. A God-Blooded's
-        # whole pool arrives as Personal from the heritage spec, so splitting either
-        # half alone would lose motes — 31 must become 10 + 21, never 10 + 0. "Rounded
-        # down" is the printed word, so the floor is the third and Peripheral takes
-        # what is left, which keeps the two summing to the pool at every value.
+        # ⚠ Split the TOTAL. A God-Blooded pool is all Personal: 31 becomes 10 + 21.
         total = personal + peripheral
         personal = total // 3
         peripheral = total - personal
@@ -515,34 +408,21 @@ def essence_pools(ruleset: RuleSet, character: Character) -> tuple[int, int]:
 
 
 def attunement_cost(ruleset: RuleSet, character: Character, item) -> int:
-    """What `item` costs THIS wielder to keep attuned, in motes.
+    """Return the motes that `item` costs THIS wielder to keep attuned.
 
-    The printed commitment, DOUBLED when the wielder is not a "user" of the item's
-    magical material — jade for a non-Terrestrial, soulsteel for a non-Abyssal, and so
-    on (human's ruling 2026-09-03, generalised from the Hearthstone Compass note in
-    `images/Dragonblooded/Aspects/Earth/CH 6 - Miracles of Pasaip.md`, which calls out
-    that it does NOT impose "the usual double mote commitment for non-Terrestrials").
+    The printed cost, DOUBLED if the item's material belongs to a different Exalt type
+    (human's ruling; `images/Dragonblooded/Aspects/Earth/CH 6 - Miracles of
+    Pasaip.md`).
 
-    `item` is an `artifacts.ArtifactItem`, never a stored row: the fold is where the
-    one-object rule for a linked pair lives.
+    `item` is an `artifacts.ArtifactItem`, not a stored row.
 
-    ⚠ "Not a user" is NOT the same question as `applied_material(...) is None`, which is
-    also None for a MUNDANE item. A mundane artifact names no material and never
-    doubles; only a known material belonging to another Exalt does.
+    ⚠ Not the same as `applied_material(...) is None`, which is also None for a
+    MUNDANE item. A mundane item never doubles.
 
-    ⚠ A character of a type NO material resonates with — a mortal, a God-Blooded, a
-    ghost — pays the PRINTED cost, never double (human's ruling 2026-09-03). This is
-    printed, not inferred: both routes such a character has to attuning at all say so.
-    Magical Attunement for mortals is "provided she pays the normal commitment cost.
-    She never gains any bonus from an artifact's Magical Material" (PG p.120), and the
-    God-Blooded version "cannot receive a Magical Material bonus from artifacts
-    regardless of how many motes they spend" (PG p.66). The doubling is about wielding
-    ANOTHER Exalt's material; a character with no material of their own is not on that
-    axis at all.
+    ⚠ A character type with no resonant material (mortal, God-Blooded, ghost) pays
+    the PRINTED cost (PG p.120, PG p.66; human's ruling).
 
-    ⚠ Asked of the CATALOGUE, never of a Merit id — no module outside `engine/merits.py`
-    may name one (decision 0011), and this way every future non-Exalt splat is covered
-    without anyone remembering to add it.
+    ⚠ Reads the CATALOGUE, not a Merit id (decision 0011).
     """
     if item.attunement <= 0:
         return 0
@@ -555,41 +435,25 @@ def attunement_cost(ruleset: RuleSet, character: Character, item) -> int:
 
 
 def _has_a_resonant_material(ruleset: RuleSet, character: Character) -> bool:
-    """Whether ANY magical material resonates with this character's Exalt type — i.e.
-    whether they are on the material-resonance axis at all (core p.341)."""
+    """Return True if a magical material resonates with the Exalt type (core p.341)."""
     return any(m.exalt_type == character.exalt_type
                for m in ruleset.material_catalog.values())
 
 
 def committed_attunement(ruleset: RuleSet, character: Character) -> dict:
-    """Motes currently committed to attuned artifacts, split by pool:
-    `{"personal": n, "peripheral": n}`.
+    """Return the motes committed to attuned artifacts: `{"personal": n,
+    "peripheral": n}`.
 
-    Walks `artifacts.artifact_items` — the ONE enumeration — so a daiklave entered as
-    both an artifact row and its weapon stat line is charged once, exactly as it is for
-    the p.131 budget. Unattuned items and items with no printed cost contribute nothing.
+    Uses `artifacts.artifact_items`, thus a linked artifact and weapon row count one
+    time, as for the p.131 budget. An unattuned item adds 0.
 
-    ⚠ `Weapon.quantity` is NOT a multiplier. Twenty attuned arrows are not twenty
-    attunements; the count exists for ammunition and nothing in the engine reads it
-    (decision 0008). `ArtifactItem` does not carry it, which is what makes that
-    structural rather than remembered.
+    ⚠ `Weapon.quantity` is NOT a multiplier (decision 0008). `ArtifactItem` does not
+    carry it.
 
-    ⚠ **A commitment allocated to a pool the character does not HAVE is re-routed to
-    the one they do.** `attuned_pool` is the player's choice between two real pools
-    (core pp.147-148), not a licence to spend from an empty one — so when the named
-    pool's maximum is 0 and the other's is not, the motes come from the other.
-
-    That covers two characters who would otherwise attune for FREE, and the second is
-    why this is a general rule rather than a merged-pool special case:
-
-    * a **merged pool** (ghost, Beacon of Power) has personal 0 by rule (p.41);
-    * a **mortal** has the whole pool in PERSONAL and peripheral 0 — and
-      `attuned_pool` DEFAULTS to "peripheral", so the default value silently switched
-      the whole mechanism off. Species 3 of the house bug, found 2026-09-03 by a test
-      whose fixture happened to be a mortal.
-
-    When neither pool exists there is nothing to route to and the cost still lands on
-    the stored choice, so it shows up rather than disappearing.
+    ⚠ **A commitment to a pool that the character does not HAVE moves to the pool
+    that the character has** (core pp.147-148). Examples: a merged pool (personal 0,
+    p.41); a mortal (peripheral 0, and `attuned_pool` defaults to "peripheral").
+    If neither pool exists, the cost stays on the stored pool.
     """
     from . import artifacts as artifactsmod
 
@@ -610,13 +474,11 @@ def committed_attunement(ruleset: RuleSet, character: Character) -> dict:
 
 
 def charm_installation_pool(ruleset: RuleSet, character: Character) -> int:
-    """The motes an Alchemical's installed Charms may commit against (CH2 p.62): the
-    Personal Essence pool, or the WHOLE pool when the two are merged into one.
+    """Return the motes for Alchemical Charm installation (CH2 p.62): Personal, or
+    the WHOLE pool if merged.
 
-    ⚠ A merged pool (Beacon of Power p.41, a ghost's splat) leaves Personal at 0 by
-    rule, so a caller comparing installation motes against `essence_pools(...)[0]`
-    reports that nothing fits — the pool the Charms actually draw on is the single
-    merged one. Ask here rather than unpacking `essence_pools` at the call site."""
+    ⚠ A merged pool has Personal 0 (p.41). Ask here. Do not use
+    `essence_pools(...)[0]`."""
     personal, peripheral = essence_pools(ruleset, character)
     if essence_pool_is_merged(ruleset, character):
         return personal + peripheral
@@ -625,21 +487,17 @@ def charm_installation_pool(ruleset: RuleSet, character: Character) -> int:
 
 def health_track(character: Character,
                  ruleset: Optional[RuleSet] = None) -> list[HealthLevelView]:
-    """The base wound levels plus any Charm-granted bonus levels, ordered from
-    least to most severe (0, -1, -2, -4), with Incapacitated last. Bonus levels
-    of equal penalty follow the base levels they share a tier with.
+    """Return the base levels plus the bonus levels, from least to most severe
+    (0, -1, -2, -4), with Incapacitated last.
 
-    `ruleset` is optional and only Merits & Flaws need it: Large Size grants levels and
-    Small takes one away, the first sources of a health level in this build that are not
-    Charms. Without a RuleSet there is no way to know a Merit is held, so the track is
-    the Charm-only one — the same optional-ruleset shape `soak` and `willpower` use.
+    ⚠ Without `ruleset` the Merit levels (Large Size, Small) are missing. Pass it.
     """
     levels = [HealthLevelView(penalty=p) for p in BASE_WOUND_PENALTIES]
     levels += [
         HealthLevelView(penalty=hl.penalty, source=hl.source_charm)
         for hl in character.health_bonus_levels if not hl.removed
     ]
-    # Ox-Body Technique purchases: each chosen package's levels (stored inline).
+    # Ox-Body purchases: the inline levels of each package.
     levels += [
         HealthLevelView(penalty=p, source="Ox-Body Technique")
         for purchase in character.ox_body for p in purchase.health_levels
@@ -650,9 +508,7 @@ def health_track(character: Character,
         effects = merits.merits_and_flaws_calc(ruleset, character)
         levels += [HealthLevelView(penalty=penalty, source=label)
                    for penalty, label in effects.health_levels_granted]
-        # Dragon-King breed extra levels (Anklok and Mosok gain one additional -0
-        # level, PG pp.171/174), read from the caste's breed_traits. The stable sort
-        # below places the -0 level correctly.
+        # Dragon-King breed levels (PG pp.171/174).
         cd = ruleset.castes.get(character.caste)
         breed = cd.breed_traits if (cd and cd.breed_traits) else None
         if breed and breed.bonus_health_levels:
@@ -660,8 +516,7 @@ def health_track(character: Character,
                        for p in breed.bonus_health_levels]
 
     def _remove(penalty: int) -> None:
-        """Drop one level of this penalty, base first — base levels lead the list, so
-        first-match is what 'base first' means here."""
+        """Remove one level of `penalty`. Base levels are first in the list."""
         idx = next((i for i, lv in enumerate(levels) if lv.penalty == penalty), None)
         if idx is not None:
             levels.pop(idx)
@@ -670,7 +525,7 @@ def health_track(character: Character,
     for hl in character.health_bonus_levels:
         if hl.removed:
             _remove(hl.penalty)
-    # Flaws do the same — Small "costs her one -1 health level" (p.32).
+    # Flaws: Small (p.32).
     for penalty in (effects.health_levels_removed if effects else ()):
         _remove(penalty)
     # Stable sort by severity: 0 first (highest penalty value), -4 last.
@@ -682,18 +537,13 @@ def health_track(character: Character,
 def applied_material(
     ruleset: RuleSet, character: Character, item: Weapon | Armor
 ) -> Optional[MagicalMaterial]:
-    """The magical material whose bonus applies to `item` for this character, or
-    None. A material's bonus applies only when the item names a known material AND
-    that material resonates with the character's Exalt type (core p.341): an
-    orichalcum daiklave aids a Solar, but a jade one does not.
+    """Return the material whose bonus applies to `item` for this character, or None.
+    The item must name a known material that resonates with the Exalt type (core
+    p.341).
 
-    ⚠ A character barred from material bonuses outright gets None whatever they carry —
-    the two Merits that let a non-Exalt attune at all both refuse the bonus in as many
-    words (PG p.120, p.66). Read through `MeritEffects.no_magical_material_bonus`,
-    never by naming a Merit id (decision 0011). Before 2026-09-03 the rule had no
-    implementation and still LOOKED enforced, because a holder's Exalt type happens to
-    match nothing in the catalogue — the exalt_type test below was doing it by
-    accident. That accident still holds; this is the reason.
+    ⚠ Return None if `MeritEffects.no_magical_material_bonus` is set (PG p.120, p.66;
+    decision 0011). The exalt_type test also gives None for these characters, by
+    accident (the house bug, type 2).
     """
     from . import merits as _merits
     key = getattr(item, "material", "")
@@ -708,9 +558,8 @@ def applied_material(
 
 
 def effective_weapon(ruleset: RuleSet, character: Character, weapon: Weapon) -> Weapon:
-    """A copy of `weapon` with its magical-material bonus folded into the stats —
-    applied only when the wielder's Exalt type matches the material (p.341).
-    Mundane weapons and non-matching wielders return an unmodified copy."""
+    """Return a copy of `weapon` with the material bonus added, if the Exalt type
+    matches (p.341)."""
     mat = applied_material(ruleset, character, weapon)
     if mat is None:
         return weapon.model_copy()
@@ -723,8 +572,8 @@ def effective_weapon(ruleset: RuleSet, character: Character, weapon: Weapon) -> 
 
 
 def effective_armor(ruleset: RuleSet, character: Character, armor: Armor) -> Armor:
-    """A copy of `armor` with its magical-material bonus folded in, gated on the
-    wearer's Exalt type matching the material (p.341)."""
+    """Return a copy of `armor` with the material bonus added, if the Exalt type
+    matches (p.341)."""
     mat = applied_material(ruleset, character, armor)
     if mat is None:
         return armor.model_copy()
@@ -737,19 +586,11 @@ def effective_armor(ruleset: RuleSet, character: Character, armor: Armor) -> Arm
 
 
 def damaged_armor(ruleset: RuleSet, character: Character, armor: Armor) -> Armor:
-    """A copy of `armor` with any Damaged Artifact reduction applied (PG p.38).
+    """Return a copy of `armor` with the Damaged Artifact reduction (PG p.38).
 
-    Applied AFTER the magical-material bonus, deliberately: the Flaw describes an item
-    that "has suffered damage", and what it lost is points off what the item actually
-    provides, moonsilver reinforcement included. Doing it the other way round would let
-    a magical material repair the damage.
+    ⚠ Applied AFTER the material bonus. Else a material repairs the damage.
 
-    Soak floors at 0 in every case — a damaged artifact never soaks negatively — and
-    the three-point tier is not a subtraction at all: "the artifact is presently
-    useless", so both tracks go to zero however good the armour was.
-
-    Untouched for mundane armour, undamaged artifacts, and every character holding no
-    Merits, which is the overwhelming majority of calls.
+    The floor is 0. The three-point tier ("presently useless") sets both tracks to 0.
     """
     from . import artifacts, merits          # local: both import derive at module load
     effects = merits.merits_and_flaws_calc(ruleset, character)
@@ -769,18 +610,13 @@ def damaged_armor(ruleset: RuleSet, character: Character, armor: Armor) -> Armor
 
 
 def soak(character: Character, ruleset: Optional[RuleSet] = None) -> SoakView:
-    """Per-damage-type soak (bashing / lethal / aggravated), Exalted 1e pp.231-232.
+    """Return the soak by damage type (Exalted 1e pp.231-232).
 
-    Armour soak is summed across all worn pieces (the model permits several; the
-    common case is one suit). Only magical beings add half-Stamina to lethal soak;
-    aggravated never benefits from Stamina. Mortals (exalt_type "Mortal") get no
-    Stamina contribution to lethal. When `ruleset` is given, magical-material
-    bonuses are folded into the armour soak via effective_armor (Exalt-gated) and any
-    Damaged Artifact reduction is taken off afterwards via damaged_armor.
+    The armor soak is the sum of all worn pieces. The material bonus
+    (effective_armor) and the Damaged Artifact reduction (damaged_armor) need
+    `ruleset`.
 
-    ⚠ Both of those need the RuleSet, so a call that omits it returns armour soak
-    UNDAMAGED as well as unenchanted — the optional parameter makes an omission a
-    silent wrong answer rather than an error. Pass it."""
+    ⚠ Without `ruleset` the armor soak is incorrect, with no error. Pass it."""
     stamina = character.attributes[AttributeName.STAMINA]
     pieces = (
         [damaged_armor(ruleset, character, effective_armor(ruleset, character, a))
@@ -790,11 +626,8 @@ def soak(character: Character, ruleset: Optional[RuleSet] = None) -> SoakView:
     armor_bashing = sum(a.soak_bashing for a in pieces)
     armor_lethal = sum(a.soak_lethal for a in pieces)
 
-    # Dragon-Kings (PG p.165 "Dragon King Physiology" sidebar): the breed's innate
-    # armour adds to BOTH natural numbers, and Stamina adds NOTHING to lethal ("their
-    # bashing soak equals [their Stamina + their innate armor] and their lethal soak
-    # equals their innate armor"). The breed traits live on the caste, so this half
-    # needs the ruleset; without one the innate armour is unknown and contributes 0.
+    # Dragon-Kings (PG p.165): innate armor adds to both natural values. Stamina adds
+    # nothing to lethal. Without `ruleset` the innate armor is 0.
     breed = None
     if ruleset is not None:
         cd = ruleset.castes.get(character.caste)
@@ -802,11 +635,8 @@ def soak(character: Character, ruleset: Optional[RuleSet] = None) -> SoakView:
     innate_b = breed.innate_soak_bashing if breed else 0
     innate_l = breed.innate_soak_lethal if breed else 0
 
-    # The Exalt "magical beings add half-Stamina to lethal soak" rule, data-driven via
-    # ExaltDefinition.stamina_adds_to_lethal_soak (False for Dragon-Kings p.165, and
-    # for Mortals who never got the term at all). The no-ruleset fallback keeps the
-    # historical `exalt_type != "Mortal"` behaviour; every caller that passes the
-    # ruleset reads the field instead, so one mechanism decides the number.
+    # ExaltDefinition.stamina_adds_to_lethal_soak (p.165). With no ruleset, the
+    # fallback is `exalt_type != "Mortal"`.
     add_sta = character.exalt_type != "Mortal"
     if ruleset is not None:
         ex = ruleset.exalts.get(character.exalt_type)
@@ -844,34 +674,20 @@ def derive(ruleset: RuleSet, character: Character) -> DerivedTraits:
 
 # --------------------------------------------------------------------------- #
 # Ghost traits: Fetters and Passions (Exalted: The Abyssals p.126-127, p.283)
-#
-# Two rated traits no other splat has. They are here rather than in `validate`
-# because both are DERIVATIONS that hold on both sides of the lock — the Passion
-# pool most of all, and that is the whole risk in this area.
+# These are derivations that apply on both sides of the lock.
 # --------------------------------------------------------------------------- #
 
 def passion_pool(character: Character) -> dict[VirtueName, int]:
-    """How many dots of Passion the character may distribute, PER VIRTUE.
+    """Return the Passion dots that the character can distribute, by Virtue (p.126).
 
-    p.126: "Choose a number of dots of Passions for each Virtue equal to the number of
-    dots the character has in that Virtue." The pools are per-Virtue, not one
-    aggregate — Compassion 3 buys three dots of Compassion Passions and nothing else.
-
-    ⚠ THIS IS A LIVE DERIVATION, NOT A CHARGEN BUDGET, and the distinction is the
-    whole reason it lives in `derive`. p.283: "Ghosts increase their Passions when they
-    increase their Virtues. There is no other way for these Traits to increase" — and
-    the human confirmed (rules authority, 2026-08-01) that this holds post-lock, so
-    buying a Virtue dot with experience immediately makes another Passion dot
-    available. Snapshotting this at the lock, the way Willpower's Virtue component is
-    snapshotted under decision 0005, would be the exact opposite of what the page says.
-
-    Reads the CURRENT Virtues for that reason, and takes no `ChargenSnapshot`.
+    ⚠ A LIVE DERIVATION, NOT A CHARGEN BUDGET (p.283, human's ruling). Reads the
+    CURRENT Virtues. Do not use a ChargenSnapshot.
     """
     return {v: character.virtues.get(v, 0) for v in VirtueName}
 
 
 def passion_dots_spent(character: Character) -> dict[VirtueName, int]:
-    """How many dots of Passion the character has actually distributed, per Virtue."""
+    """Return the Passion dots distributed, by Virtue."""
     out: dict[VirtueName, int] = {v: 0 for v in VirtueName}
     for p in character.passions:
         out[p.virtue] = out.get(p.virtue, 0) + p.rating
@@ -879,30 +695,22 @@ def passion_dots_spent(character: Character) -> dict[VirtueName, int]:
 
 
 def passion_dots_unspent(character: Character) -> dict[VirtueName, int]:
-    """Pool minus spent, per Virtue. A negative value means over-distributed, which
-    validate reports; this function does not clamp, so the sheet can show the overrun
-    rather than silently hiding it."""
+    """Return pool - spent, by Virtue. Not clamped: a negative value shows an
+    overrun, which validate reports."""
     pool = passion_pool(character)
     spent = passion_dots_spent(character)
     return {v: pool[v] - spent[v] for v in VirtueName}
 
 
 def fetter_dots_spent(character: Character) -> int:
-    """Total dots across every Fetter — what both the chargen pool and the hard cap
-    are measured against."""
+    """Return the total dots of all Fetters."""
     return sum(f.rating for f in character.fetters)
 
 
 def fetter_cap(character: Character, ruleset: Optional[RuleSet] = None) -> int:
-    """The hard ceiling on TOTAL Fetter dots: "A ghost can never have more dots of
-    Fetters than his Willpower + Essence" (p.127; restated as the p.283 footnote
-    "Total dots of Fetters cannot exceed Willpower + Essence").
+    """Return the ceiling on TOTAL Fetter dots: Willpower + Essence (p.127, p.283).
+    It applies on both sides of the lock.
 
-    Unlike the chargen pool this binds forever, so it is derived rather than budgeted —
-    a ghost who buys Willpower or Essence with experience may hold more Fetters, and
-    one cursed down to a lower Willpower is over the cap and told so.
-
-    `ruleset` is optional and only ever lowers the answer, the same shape `soak` and
-    `willpower` use: without it a Flaw that sells Willpower dots cannot be seen.
+    ⚠ Without `ruleset` a Flaw that sells Willpower dots is missing. Pass it.
     """
     return willpower(character, ruleset) + character.essence_rating

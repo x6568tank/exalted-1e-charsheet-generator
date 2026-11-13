@@ -1,4 +1,4 @@
-"""Catalogue picker dialogs (2026-08-10).
+"""Catalogue picker dialogs.
 
 The five "add" surfaces open a browse-before-you-choose dialog now: name + summary
 with the full description collapsible, plus a "Custom" row for free-text items. These
@@ -35,7 +35,7 @@ def _pick_in_dialog(user, name: str) -> None:
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_shop_autofills_a_weapons_printed_stats(user) -> None:
     """Was `test_the_weapon_dialog_…`, against the per-panel dialog. Browsing moved to
-    the single Buy surface on 2026-08-13 — four dialogs over four catalogues is four
+    the single Buy surface — four dialogs over four catalogues is four
     shops — so the autofill contract is asserted there now."""
     await user.open('/blank-gear')
     user.find(marker="buy-button").click()
@@ -50,7 +50,7 @@ async def test_the_shop_autofills_a_weapons_printed_stats(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_shop_can_MAKE_a_thing_as_well_as_sell_one(user) -> None:
-    """The last per-panel button died here (2026-08-13). "Custom weapon" lives in the
+    """The last per-panel button died here. "Custom weapon" lives in the
     Buy dialog now, because a shop spanning four catalogues CAN know which list a blank
     row belongs in once you say which kind you are making — and three editor panels
     beside an inventory that already lists everything was four surfaces for one job.
@@ -143,11 +143,9 @@ async def test_a_locked_custom_merit_row_renders_by_name_in_play(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_background_dialogs_ladder_is_readable_line_by_line(user) -> None:
-    """The dialog is where a RATING gets chosen, so its full text is the whole printed
-    ladder — and a plain NiceGUI label collapses newlines, which ran six rungs together
-    into one paragraph (human, click-through 2026-08-12). Two halves, both required: the
-    text must carry blank lines BETWEEN rungs, and the label must be told to render
-    them. Asserting only the string would pass against a wall of text on screen."""
+    """The dialog shows the full printed ladder, one rung per paragraph (human's
+    ruling). Two halves: the text carries blank lines BETWEEN rungs, and the label
+    renders them. ⚠ The string alone passes against one block of text on screen."""
     await user.open('/backgrounds-ladder-dialog')
     user.find("Add background").click()
     full = next(el for el in user.find(ui.label).elements

@@ -28,9 +28,7 @@ class CharmRow:
     cost: str
     duration: str = ""
     description: str = ""
-    # Homebrew from the user's custom library rather than a printed Charm. The sheet
-    # badges it: the human's requirement is that custom content stay easily
-    # distinguishable from canon (2026-07-29).
+    # Homebrew from the custom library. The sheet marks it (human's ruling).
     custom: bool = False
     # The id does not resolve in the RuleSet at all — a deleted custom Charm, or a
     # save opened on a machine without the library that defined it. The row is still

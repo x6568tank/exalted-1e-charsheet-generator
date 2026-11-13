@@ -181,7 +181,7 @@ def test_the_state_holds_no_pool_or_character_reference():
                           "open", "next_key"}
 
 
-# --- choosing who rolls, and how many times (human's ask, 2026-09-09) -------
+# --- choosing who rolls, and how many times (human's ruling) -------
 #
 # ⚠ Both halves stay inside 0019: the tick chooses a CHARACTER, and the repeat
 # count is a number the Storyteller types. Neither names a roll.
@@ -268,17 +268,14 @@ def test_the_batch_detail_counts_the_repeats_not_the_rows():
     assert batch.detail.startswith("3 rolls · ")
 
 
-# --- the duplicate-id collision (found at the browser, 2026-09-09) ----------
+# --- the duplicate-id collision ----------------------------------------------- #
 
 def test_two_characters_sharing_an_id_still_get_their_own_dice():
-    """⚠ THE regression test for the bug the human hit: every app path that made
-    a blank character handed it the literal "char.new", so two of them in one
-    party keyed to ONE row. The second row's count overwrote the first's and both
-    characters rolled the same number of dice.
+    """⚠ Two members with one id ("char.new") get two rows with unique keys. Else the
+    second row's count overwrites the first.
 
-    `new_character_id` stops NEW parties from reaching this shape; parties already
-    saved with the duplicate cannot be migrated, so `batch_roster` must keep the
-    keys unique on its own.
+    Saved parties can hold duplicate ids and there are no migrations, thus
+    `batch_roster` must keep the keys unique itself.
     """
     from exalted_builder.models.character import Character
     from exalted_builder.models.party import Party, PartyMember

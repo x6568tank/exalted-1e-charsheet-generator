@@ -74,9 +74,8 @@ def build_combos(ruleset: RuleSet, character: Character, save_fn: SaveFn,
             "text-sm font-bold").style("color:#15803d" if not errors else "color:#b91c1c")
 
     # ---- mutations -------------------------------------------------------- #
-    # ⚠ These are one-line wrappers over `engine.combo_actions` and must STAY that way.
-    # They were the real implementations until 2026-08-27, which is why the native shell
-    # could not reach them — the mutations are game logic and belong in the engine.
+    # ⚠ One-line wrappers over `engine.combo_actions`. Keep them so: the mutations are
+    # game logic, and both shells must reach them.
     def add_combo(name: str) -> None:
         combo_actions.add_combo(character, name)
         refresh()

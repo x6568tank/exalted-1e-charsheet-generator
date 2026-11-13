@@ -322,7 +322,7 @@ def test_old_bundles_without_adversaries_still_load(tmp_path):
 # --------------------------------------------------------------------------- #
 # The catalogue
 #
-# Generic templates only — the human's 2026-08-01 ruling. The named individuals
+# Generic templates only — the human's ruling. The named individuals
 # in the same chapter (Fakharu, the Mask of Winters, Sesus Nagezzer, Denovah
 # Avaku, Ahn-Aru, Typhon, Juggernaut) are NOT catalogue rows, and the Fair Folk
 # are out of scope entirely under decision 0010.
@@ -350,7 +350,7 @@ def test_the_four_exalt_templates_are_roles_not_people(catalog):
     Dragon-Blooded warrior" (p.308). Those four are in, with the names stripped;
     the genuinely unique ones (Fakharu, the Mask of Winters, Juggernaut) are not.
 
-    Human's ruling 2026-08-01, taking option 2 of three."""
+    human's ruling, taking option 2 of three."""
     exalts = {t.name for t in catalog.values() if "Exalt" in t.categories}
     assert exalts == {"Dynasty Noble", "Ambitious Young Officer",
                       "Bronze Faction Functionary", "Deathknight"}
@@ -430,13 +430,9 @@ def test_soak_adds_back_up_to_the_printed_total(ruleset, catalog, key, printed_l
 ])
 def test_dodge_derives_the_second_printed_number(ruleset, catalog, key, base,
                                                  printed_after):
-    """The human's ruling: only the base dodge is stored, and the mobility
-    penalties of the worn armour AND the carried shield derive the rest.
-
-    This used to come out one too high on the three shield-carrying rows,
-    recorded as a known gap. The p.335 shield rules closed it: a target shield
-    "adds 1 to the mobility penalty of her armor", so it simply sums. Every
-    printed pair in the catalogue now round-trips."""
+    """Only the base dodge is stored (human's ruling). The mobility penalties of the
+    armor AND the shield give the rest (p.335: a target shield adds 1). Each printed
+    pair in the catalogue round-trips."""
     t = catalog[key]
     assert t.dodge == base
     assert adv.dodge_after_armor(ruleset, t) == printed_after
@@ -527,14 +523,9 @@ STATED_OTHERWISE = {
 def test_beasts_carry_the_p317_default_attributes(catalog):
     """p.317: assume Intelligence 1, Perception 2 and Wits 3 **unless stated**.
 
-    ⚠ This test used to assert the default on EVERY beast, which held only because
-    every beast in the build then came from a book that printed no mental Attributes.
-    The rule's own wording carries the exception and the assertion did not — the
-    "a test can encode a one-book sample as a rule" trap, and the Marukani horses
-    (Scavenger Sons p.88) are the first beasts to state otherwise.
-
-    The override list is explicit rather than a blanket skip, so a beast that drifts
-    off the default by ACCIDENT still fails here.
+    ⚠ Do not assert the default on EVERY beast: the Marukani horses (Scavenger Sons
+    p.88) state other values. The override list is explicit, thus a beast that leaves
+    the default by ACCIDENT still fails.
     """
     beasts = [t for t in catalog.values() if "Beast" in t.categories]
     assert len(beasts) >= 20
@@ -604,7 +595,7 @@ def test_every_armor_reference_resolves(ruleset, catalog):
 def test_the_yeddim_trample_has_no_invented_numbers(catalog):
     """p.317 prints "-2x3/-4/I" in the Yeddim's Attack column — health-level
     notation, not Speed/Accuracy/Damage. The human ruled it a misprint
-    (2026-08-01): almost certainly the health track's own continuation typeset
+   : almost certainly the health track's own continuation typeset
     into the wrong column, which is why the health track ends in exactly those
     boxes. So the attack is named and left unrated.
 
@@ -700,7 +691,7 @@ def test_a_count_track_fills_to_the_click_and_empties_back():
 
 
 # --------------------------------------------------------------------------- #
-# Categories — a LIST of equal filing labels (human, 2026-08-27)
+# Categories — a LIST of equal filing labels (human's ruling)
 # --------------------------------------------------------------------------- #
 
 def test_the_category_codec_round_trips():

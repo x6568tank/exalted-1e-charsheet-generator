@@ -15,11 +15,8 @@ from ...models.rules import RuleSet
 # --------------------------------------------------------------------------- #
 # Storyteller options (Character.house_rules)
 #
-# The model marks TABLE-WIDE vs PER-CHARACTER in comments only — a deliberate
-# choice (human, 2026-07-29) to keep HouseRules one flat model. The tab still has
-# to *show* that split, so the machine-readable version lives here, in the
-# presenter, rather than being pushed back into the model. A future party-wide
-# "apply to all" control should read `scope` from here too.
+# The model marks TABLE-WIDE vs PER-CHARACTER in comments only (human's ruling).
+# `scope` here is the machine-readable form. An "apply to all" control reads it.
 # --------------------------------------------------------------------------- #
 
 @dataclass
@@ -252,8 +249,8 @@ def build_house_rules(ruleset: RuleSet, character: Character) -> list[HouseRuleR
                         f"and this character is {character.exalt_type}.")
             elif getattr(rules, fld) is not None:
                 rating = getattr(rules, fld)
-                # The ST's pick is how many Inheritance DOTS are FREE, not the rating
-                # itself (human 2026-08-02) — the bonus points always follow the sheet.
+                # The free Inheritance DOTS, not the rating (human's ruling). The
+                # bonus points follow the sheet.
                 note = (f"Setting the first {rating} dot(s) of Inheritance free for "
                         f"every God-Blooded: no pool dots, no above-cap bonus points. "
                         f"The bonus points and Flaw capacity still follow each "

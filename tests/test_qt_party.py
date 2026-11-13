@@ -384,7 +384,7 @@ def test_an_alchemical_card_gets_clarity_and_no_limit(ruleset, make_window):
 
 def test_only_a_jadeborn_card_offers_the_great_geas(ruleset, make_window):
     """⚠ Divergence is Storyteller-adjudicated and never engine-enforced, so the nine
-    clauses ride the card as its copy of the page (the human's ruling, 2026-08-07) —
+    clauses ride the card as its copy of the page (human's ruling) —
     and a control only that splat has must not appear on anyone else's card."""
     from exalted_builder.engine import derive
     jadeborn = _solar("Stone", exalt_type="Mountain-Folk", caste="")
@@ -401,7 +401,7 @@ def test_only_a_jadeborn_card_offers_the_great_geas(ruleset, make_window):
 # ⚠ **The port dropped this and the tests could not see it.** The webapp renders the
 # roster as a card grid on the party page; the native app compressed it into a table
 # plus ONE detail pane, so a Storyteller running a fight could see exactly one bandit's
-# health at a time — "gming combat is a challenge" (human, 2026-08-28). Every adversary
+# health at a time — "gming combat is a challenge" (human's ruling). Every adversary
 # test was green throughout, because they all addressed the tab that DID exist. The
 # shape a port compresses is where its missing controls are.
 # --------------------------------------------------------------------------- #
@@ -508,11 +508,8 @@ def test_a_roster_card_prints_the_stats_a_roll_is_called_against(make_window):
 
 
 def test_a_member_card_click_leaves_the_tabs_scroll_where_it_was(make_window, qtbot):
-    """⚠ The adversary detail pane's bug (human, 2026-08-28) on the surface one tab
-    over, found by the same probe and never separately reported. A play-state click used
-    to `reload()` every card, which deletes the box under the cursor; Qt passes the focus
-    on and the scroll area follows it. Measured before the fix: 354 → 463, with the focus
-    left in the toolbar's party-name field.
+    """⚠ A play-state click repaints. A `reload()` of each card deletes the box under
+    the cursor: Qt moves the focus, and the scroll area follows it.
 
     Negative-control it by putting `self.reload()` back into `_health`'s handler."""
     window, _ctx, _calls = make_window(_party(*[_solar(f"PC{i}") for i in range(6)]))
@@ -670,7 +667,7 @@ def test_every_batch_row_lines_its_dice_box_up(make_window, qtbot):
     assert len(xs) == 1, f"batch rows drew their dice boxes at {sorted(xs)}"
 
 
-# --- choosing who rolls, and how many times (human's ask, 2026-09-09) -------
+# --- choosing who rolls, and how many times (human's ruling) -------
 
 def test_every_batch_row_offers_a_tick_and_a_repeat_count(make_window):
     from PySide6.QtWidgets import QCheckBox

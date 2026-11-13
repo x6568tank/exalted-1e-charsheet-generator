@@ -1,4 +1,4 @@
-"""Each hosted account has its own homebrew library (section 5.3, ruled 2026-09-12).
+"""Each hosted account has its own homebrew library (section 5.3, ruled.
 
 The library is `<account folder>/custom`. The RuleSet of a session merges that
 library over the book and no other. The hosted server switches the default
@@ -115,7 +115,7 @@ async def test_the_library_is_in_the_account_folder(create_user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_homebrew_tab_shows_the_accounts_own_homebrew_only(create_user) -> None:
-    """The library is on /home since 2026-09-12: it belongs to the account, not
+    """The library is on /home since: it belongs to the account, not
     to one character, thus the character page has no Custom tab."""
     user_a, ctx_a = await _open(create_user)
     user_b, ctx_b = await _open(create_user)

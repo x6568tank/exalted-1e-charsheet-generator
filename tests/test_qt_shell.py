@@ -60,12 +60,10 @@ def test_theme_does_not_border_every_widget():
 
 def test_every_editable_class_the_port_uses_is_themed():
     """⚠ "If a widget class is not named in `qt/theme.py::qss`, assume it is unstyled" —
-    and an unstyled input renders the platform's WHITE on the dark page. QPlainTextEdit
-    was missing while its sibling QTextEdit was present, which is how the Custom tab's
-    paste box shipped white-on-white beside a correctly themed pane.
+    and an unstyled input renders the platform's WHITE on the dark page.
 
-    Pins the classes the port actually instantiates, so adding a new kind of input
-    without theming it fails here rather than at a click-through.
+    Pins the classes that the port instantiates. A new kind of input with no theme
+    fails here.
     """
     solar_qss = qtheme.qss(palette("Solar"))
     for widget in ("QLineEdit", "QSpinBox", "QComboBox", "QListWidget", "QTextEdit",
@@ -90,8 +88,7 @@ def test_shell_themes_to_the_splat_palette(ruleset, qtbot):
 
 
 def test_shell_central_widget_has_the_pages(ruleset, qtbot):
-    # Regression: the tab bar was built but never made the central widget, so the
-    # window's content area rendered blank gray under the toolbar.
+    # The tab bar is the central widget. Else the content area is blank.
     win = MainWindow(ruleset, Character(id="char.new"), Path("/tmp/c.json"))
     qtbot.addWidget(win)
     assert win.centralWidget() is not None
@@ -123,7 +120,7 @@ def _charm_subtabs(win):
 
 
 def test_combos_is_not_a_rail_tab_at_all(ruleset, qtbot):
-    # Combos moved UNDER Charms (2026-08-21). ⚠ This is what makes the ghost test
+    # Combos moved UNDER Charms. ⚠ This is what makes the ghost test
     # below a real negative control again: with no rail entry to hide, an assertion
     # that the ghost's RAIL lacks Combos would pass for every splat and prove nothing.
     win = MainWindow(ruleset, Character(id="char.new", exalt_type="Solar"),
@@ -198,7 +195,7 @@ def test_shell_new_resets_the_character(ruleset, qtbot, monkeypatch):
     # ⚠ The failure is ORDERING-DEPENDENT and therefore invisible: it appears only
     # when a main-file test sorts BEFORE this file. `test_session_isolation.py`
     # sorts after; `test_hosted_save.py` does not, and that is what exposed it on
-    # 2026-09-11.
+    #.
     from exalted_builder.qt import main_window as qt_main_window
     monkeypatch.setattr(qt_main_window.QMessageBox, "question",
                         staticmethod(lambda *a, **k: 16384))   # Yes
@@ -208,7 +205,7 @@ def test_shell_new_resets_the_character(ruleset, qtbot, monkeypatch):
 
 
 def test_the_advantages_rail_item_is_the_real_page(ruleset, qtbot):
-    """Ported 2026-08-21 — the rail slot must hold AdvantagesPage, not the "still on
+    """Ported — the rail slot must hold AdvantagesPage, not the "still on
     the webapp" placeholder, and switching to it must reload it from the shared
     character (the rail handler's setCurrentIndex + reload)."""
     from exalted_builder.qt.advantages import AdvantagesPage
@@ -222,7 +219,7 @@ def test_the_advantages_rail_item_is_the_real_page(ruleset, qtbot):
     char.backgrounds.append(BackgroundEntry(name="Resources", rating=2))
     win.rail.setCurrentRow(_RAIL_TABS.index("Advantages"))
     assert win.stack.currentWidget() is page
-    # Shape B: the held Backgrounds are a TABLE, not stacked rows (2026-08-21).
+    # Shape B: the held Backgrounds are a TABLE, not stacked rows.
     table = page._tables["Backgrounds"]
     assert [table.topLevelItem(i).text(0)
             for i in range(table.topLevelItemCount())] == ["Resources"]
@@ -266,10 +263,10 @@ def test_downtime_is_not_offered_before_the_lock(ruleset, qtbot):
 
 
 def test_the_downtime_age_is_a_calculator_field_not_a_character_trait(ruleset, qtbot):
-    """⚠ Human's ruling 2026-08-06: the numeric age trait is gone and age gates
+    """⚠ human's ruling: the numeric age trait is gone and age gates
     nothing, so the p.259 rate comes from a CALCULATOR field on the window.
 
-    ⚠ There IS a `Character.age`, added 2026-08-21 — free-text BIOGRAPHY ("mid
+    ⚠ There IS a `Character.age`, added — free-text BIOGRAPHY ("mid
     thirties"), flavour the engine never reads. It is a `str` for that reason, and the
     calculator must not be wired to it: the two are different things wearing one name.
     """
@@ -311,7 +308,7 @@ def test_a_young_character_earns_nothing_from_the_chart(ruleset, qtbot):
 
 
 def test_the_popover_shows_bonus_points_in_chargen_and_the_ledger_after(ruleset, qtbot):
-    """⚠ Bonus points are a CHARGEN surface only (human, 2026-08-22). The readout BAR
+    """⚠ Bonus points are a CHARGEN surface only (human's ruling). The readout BAR
     already drops the line post-lock, so a popover still reporting "12 / 15 spent"
     disagreed with the bar directly above it. The slot is the Experience card instead."""
     from PySide6.QtWidgets import QLabel
@@ -377,7 +374,7 @@ def test_opening_the_party_window_loads_the_adversary_catalogue(ruleset, qtbot):
 
 
 def test_open_in_builder_retargets_this_window_by_reference(ruleset, qtbot):
-    """The human's call (2026-08-27): ONE builder, retargeted — not a window per member.
+    """The human's call: ONE builder, retargeted — not a window per member.
     ⚠ By reference, so every edit lands on the card with no syncing code."""
     win = MainWindow(ruleset, _party_char(), Path("/tmp/c.json"))
     qtbot.addWidget(win)
@@ -440,11 +437,9 @@ def test_a_builder_change_redraws_a_VISIBLE_party_window_only(ruleset, qtbot):
 
 
 def test_no_empty_table_anywhere_in_the_port_is_a_bare_void(ruleset, qtbot):
-    """⚠ An empty table is indistinguishable from a broken one — reported against the
-    adversary roster the first time it was opened (human, 2026-08-27): a header over a
-    large blank rectangle reads as "nothing loaded". Every collection tab had the same
-    hole, so the guard is a SWEEP rather than one tab's test: build every page of both
-    windows for a fresh character and demand that any table holding no rows says why.
+    """⚠ An empty table looks broken (human's ruling): a header over a blank area
+    reads as "nothing loaded". A SWEEP: build each page of both windows for a new
+    character, and each table with no rows must say why.
 
     ⚠ Written against the shell, not against a list of tabs, so a NEW collection tab
     fails here until it is wired. `qt/layout.py::empty_note` is the one way to satisfy it.
@@ -504,7 +499,7 @@ def test_no_argument_starts_a_blank_character(ruleset):
 
 
 # --------------------------------------------------------------------------- #
-# The lock actions (2026-09-12)
+# The lock actions
 # --------------------------------------------------------------------------- #
 
 
@@ -533,7 +528,7 @@ def test_only_the_lock_action_that_applies_is_on_the_toolbar(ruleset, qtbot, mon
 
 
 def test_unlock_after_xp_asks_first(ruleset, qtbot, monkeypatch):
-    """Ruled 2026-09-12: allowed, with a warning. No leaves the character locked."""
+    """Ruled: allowed, with a warning. No leaves the character locked."""
     from PySide6.QtWidgets import QMessageBox
     from exalted_builder.models.character import XpEntry
 

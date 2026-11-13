@@ -134,20 +134,14 @@ def spent_motes(play: PlayView, state) -> tuple[int, int]:
 
 
 def build_play_view(ruleset: RuleSet, character: Character) -> PlayView:
-    """Capacities for the in-play tracker. Pure read of the engine derivations —
-    the health track shape, the Essence pools, and permanent Willpower.
+    """Return the capacities of the in-play tracker, from the engine derivations: the
+    health track, the Essence pools, and permanent Willpower.
 
-    ⚠ Committed motes SHRINK the maxima rather than being displayed beside them
-    (human, 2026-09-02): attunement is a live capacity, so the Play tab's boxes get
-    literally shorter. This is not the Alchemical installation-motes model, which
-    displays a fit against `charm_installation_pool` without subtracting — correct
-    there because installation is a chargen-legality check.
+    ⚠ Committed motes REDUCE the maxima (human's ruling). Not the Alchemical
+    installation-motes model, which does not subtract: that is a chargen check.
 
-    ⚠ Floored at 0, and the fill state is CLAMPED ON READ rather than written back.
-    Attuning something while motes are already spent leaves a stored
-    `motes_*_spent` above the new maximum; `play.set_motes` clamps to a cap its caller
-    passes in and never sees this. A derivation must not mutate the save to fix it —
-    un-attuning has to give the motes back untouched.
+    ⚠ The floor is 0. The fill state is CLAMPED ON READ, not written back: a
+    derivation must not change the save, thus un-attuning gives the motes back.
     """
     d = derive.derive(ruleset, character)
     committed = derive.committed_attunement(ruleset, character)

@@ -8,12 +8,10 @@ Mechanism: resolve the stored camp and Calling through `engine.validate`, then
 flatten the camp's `granted_charm_choices` into the two-control shape the editors
 render.
 
-⚠ **This is a VIEW, not a mutator.** `engine/camp_actions.py` holds the writes; the
-two are split so a shell can re-derive the panel without risking a change to it.
+⚠ **A VIEW, not a mutator.** `engine/camp_actions.py` holds the writes.
 
-⚠ **It lived in `ui/view/` until 2026-08-22** and is re-exported from there, so
-`viewmod.build_camp_view` and `viewmod.CampView` still resolve. It moved because
-`engine/camp_actions.py` needs it and the engine may not import from `ui/`.
+`ui/view/` re-exports `build_camp_view` and `CampView`. The engine must not import
+from `ui/`.
 """
 
 from __future__ import annotations
@@ -30,15 +28,10 @@ from .validate import _charm_name
 
 @dataclass(frozen=True)
 class CampChoiceOption:
-    """One option within a camp's grant choice.
+    """One option of a camp grant choice.
 
-    `available` is False when the option cannot actually be taken — which for this book
-    means a martial-arts style the page offers but whose Charms `data/` cannot yet
-    supply `pick` of. All four of the Tabernacle's styles are authored as of 2026-07-25,
-    so nothing trips this today; it stays because the next book to offer a style before
-    its Charms exist will. Such an option is still LISTED, because the rulebook offers
-    it and hiding it would misrepresent the page — but the UI must refuse to select it
-    rather than assign nothing and silently blank the control."""
+    `available` is False if `data/` has fewer than `pick` Charms of the style. The
+    option is still listed. ⚠ The UI must refuse to select it."""
     key: str
     label: str
     charm_ids: list[str]
@@ -48,15 +41,11 @@ class CampChoiceOption:
 
 @dataclass(frozen=True)
 class CampCharmOption:
-    """One Charm selectable inside an already-chosen category option.
+    """One Charm in a chosen category option (p.90).
 
-    The Tabernacle's package is "two Charms from ONE of four martial arts" (p.90) —
-    choosing the STYLE is only half the choice, and the player picks WHICH Charms.
-    `meets_minimums` is False when the character does not yet meet the Charm's own trait
-    minimums; the page requires those ("must meet the minimum requirements", p.90) and
-    `validate.granted_charm_issues` raises `granted-charm-minimum` for a violation, so
-    the option is still offered but flagged. Charm PREREQUISITES are deliberately not
-    considered — the package hands out Charms whose tree the character has not climbed."""
+    `meets_minimums` is False if the character fails the trait minimums of the Charm.
+    The option is offered with a flag: `validate.granted_charm_issues` reports
+    `granted-charm-minimum`. Charm prerequisites are not checked."""
     charm_id: str
     label: str
     meets_minimums: bool = True
@@ -65,18 +54,12 @@ class CampCharmOption:
 
 @dataclass(frozen=True)
 class CampChoiceView:
-    """One player choice inside a training camp's free-Charm package, flattened for the
-    UI. For a fixed-set choice each option is a whole printed pair; for a category choice
-    each option is one style and `pick` says how many Charms to take from it.
+    """One player choice of a camp package, for the UI.
 
-    A category choice is TWO controls, not one: `options`/`chosen_key` pick the style,
-    then `charm_options`/`chosen_charm_ids` pick which `pick` of that style's Charms are
-    granted. `charm_options` is empty until a style is chosen, and always empty for a
-    fixed-set choice (there the printed pair IS the grant — no sub-choice).
-
-    A flat-pool choice (GrantedCharmChoice.pool_categories/pool_charms) is the mirror
-    image: `options` is EMPTY and `charm_options` holds the whole pool from the start,
-    so the editor renders one control instead of two."""
+    Fixed-set choice: each option is a printed pair. `charm_options` is empty.
+    Category choice: TWO controls. `options`/`chosen_key` select the style.
+    `charm_options`/`chosen_charm_ids` select `pick` Charms of it.
+    Flat-pool choice: `options` is empty. `charm_options` holds the pool."""
     label: str
     pick: int
     is_category_choice: bool
@@ -88,8 +71,7 @@ class CampChoiceView:
 
 @dataclass(frozen=True)
 class CampView:
-    """Everything the editor needs to render the camp/Calling panel. Empty/None for
-    every character whose origin has no camps, which is how the panel stays hidden."""
+    """The data of the camp/Calling panel. Empty/None if the origin has no camps."""
     camp_options: list[tuple[str, str]]          # (id, label)
     camp_id: str
     camp_label: str
@@ -106,30 +88,22 @@ class CampView:
 
 
 def requires_camp(ruleset: RuleSet, character: Character) -> bool:
-    """Whether this character's origin uses training camps (Cult of the Illuminated).
-    Budget-driven, so no splat or origin is named in the UI."""
+    """Return True if the origin uses training camps, from the budget."""
     b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
     return b.requires_camp or b.requires_calling
 
 
 def build_camp_view(ruleset: RuleSet, character: Character) -> Optional[CampView]:
-    """The camp/Calling panel, or None when the origin has no camps."""
+    """Return the camp/Calling panel, or None if the origin has no camps."""
     if not requires_camp(ruleset, character):
         return None
 
     camps = ruleset.camps_for(character.exalt_type, character.origin)
     camp = validate.camp_for(ruleset, character)
     calling = validate.calling_for(ruleset, character)
-    # `camp_for` resolves the stored id against the WHOLE camp table, so a camp
-    # belonging to another splat's Cult resolves fine and would be handed to the
-    # select as a value that is not one of its options — which `ui.select` raises on
-    # at BUILD time, taking the rest of the tab down with it. Clamp to something
-    # offered; the engine still reports `camp-wrong-origin` in the issue panel, which
-    # is where a mismatch belongs. Unreachable until Cult Dragon-Blooded shipped
-    # (2026-08-12) — with one splat owning every camp, the value was always an option.
-    # Only a MISMATCH is clamped. A character with no camp chosen yet keeps the empty
-    # select it has always had — filling it in here would show a camp the character
-    # does not actually hold.
+    # ⚠ `camp_for` resolves against ALL camps. A camp of a different splat is not an
+    # option, and `ui.select` raises at BUILD time. Clear a MISMATCH only. The engine
+    # reports `camp-wrong-origin`. An empty value stays empty.
     if camps and character.camp and camp not in camps:
         camp = camps[0]
     if calling is not None and camp is not None and \
@@ -175,17 +149,11 @@ def build_camp_view(ruleset: RuleSet, character: Character) -> Optional[CampView
                         available=ok, reason=reason))
                     if ids and any(c in held for c in ids):
                         chosen = cat
-            # A flat-pool choice reaches here with `options` still empty, and that is
-            # what tells the editor to render only the Charm multi-select: the shape
-            # has no style step, and a select over nothing would be an empty dropdown
-            # the player can neither use nor dismiss.
+            # A flat-pool choice has no `options`: the editor shows only the Charm
+            # control.
             #
-            # Choosing the style is only half a category choice — the page grants
-            # "two Charms from ONE of four martial arts" (p.90), so the player also
-            # picks WHICH. Offer the chosen style's whole roster, flagging any Charm
-            # whose own trait minimums the character does not meet (still selectable:
-            # validate.granted_charm_issues reports it as granted-charm-minimum, and
-            # raising the trait later clears it).
+            # A category choice offers all Charms of the chosen style (p.90), with a
+            # flag on a Charm whose minimums fail (granted-charm-minimum).
             charm_options: list[CampCharmOption] = []
             chosen_charm_ids: list[str] = []
             pool: list[str] = []

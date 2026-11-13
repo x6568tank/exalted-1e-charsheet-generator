@@ -1,6 +1,6 @@
 """Mundane goods and the services price list — Manacle and Coin p.123.
 
-The human's ruling of 2026-08-13 is the whole shape of this file: the price tables hold
+human's ruling is the whole shape of this file: the price tables hold
 two different kinds of thing, and only one of them is inventory.
 
   * `goods` — something the character then HOLDS (clothes, jewelry, an animal, an
@@ -31,7 +31,7 @@ def rs():
 def test_the_price_table_loaded(rs):
     """93 rows: 43 off M&C p.123, 13 Everyday Wonders p.125, 22 phase-1, 15 phase-2.
 
-    2026-08-15, the phase-1 scan of the never-opened books — 20 off Kingdom of Halta
+   , the phase-1 scan of the never-opened books — 20 off Kingdom of Halta
     pp.89-93 and 2 off Bastions of the North (the ice weasel fur p.39, the glider
     p.98). Five printed entries carry TWO Resources costs each, and the rules
     authority ruled the encoding by WHY there are two (docs/status/phase-1-scan.md):
@@ -42,7 +42,7 @@ def test_the_price_table_loaded(rs):
     what the other Haltan rows already carry, per the p.89 blanket rule that costs run
     one dot lower within the Republic.
 
-    2026-08-15, phase 2 — 9 off Scavenger Sons: the Deep-Forest Drugs (pp.32-33) and
+   , phase 2 — 9 off Scavenger Sons: the Deep-Forest Drugs (pp.32-33) and
     Southern Magical Gemstones (p.47) sections and the water shoes (p.55). The same
     three-way encoding applies: soma and the water shoes are remoteness premiums priced
     outside their region of origin, the life flowers and dreamstones are two products
@@ -105,7 +105,7 @@ def test_the_cash_column_is_reference_text_never_arithmetic(rs):
 async def test_the_goods_section_and_the_price_list_both_render(user) -> None:
     await user.open('/goods')
     # "Goods" is a filter chip on the inventory now, not a panel of its own — the three
-    # per-kind panels were folded into the inventory rows on 2026-08-13.
+    # per-kind panels were folded into the inventory rows.
     await user.should_see("Inventory")
     await user.should_see("Prices — services & upkeep")
     await user.should_see("Reference only")
@@ -190,7 +190,7 @@ def test_the_everyday_wonders_landed(rs):
 def test_created_walkaway_is_transcribed_as_printed(rs):
     """⚠ A printed oddity, not corrected: its three siblings are '… charm' and this row
     is not, and the word appears nowhere else in the book. CONFIRMED by the rules
-    authority 2026-08-13 — the entry is just "Created walkaway", and whether the book
+    authority — the entry is just "Created walkaway", and whether the book
     dropped a word is unknowable from the page. Do not complete it."""
     g = rs.gear_catalog["gear.created-walkaway"]
     assert g.name == "Created walkaway"
@@ -254,7 +254,7 @@ async def test_only_an_item_with_an_attunement_cost_offers_the_toggle(user) -> N
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_toggle_starts_off_and_reveals_the_pool_choice(user) -> None:
     """⚠ Nothing auto-attunes — not on purchase, not on load. Ownership and attunement
-    are different facts (human, 2026-09-02), which is what keeps this inside
+    are different facts (human's ruling), which is what keeps this inside
     `engine/play.py`'s dumb-tracker bar.
 
     ⚠ Asserted on the pool dropdown's visibility, not on `Weapon.attuned`. The

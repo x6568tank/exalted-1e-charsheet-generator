@@ -247,7 +247,7 @@ async def test_another_device_shows_the_new_name(user: User) -> None:
     assert "Harmonious" not in response.text
 
 
-# ---- the throttle on the current password (server review finding 5) -------------- #
+# ---- the throttle on the current password ------------------------------------- #
 
 # Each action: (the password field, the extra fields, the save button).
 _ACTIONS = {

@@ -57,11 +57,9 @@ from .view import SheetView
 # adds a panel to the screen sheet now has to decide about the printed one too.
 # --------------------------------------------------------------------------- #
 
-#: Ruled off the printed sheet by the human, 2026-08-14 (decision 4 of the plan).
-#: `issues` and the four `xp_*` ledger fields are build-time tools, not table-time
-#: ones; the experience TOTAL still prints. `charms` is the flat concatenation of
-#: `charm_sections`, which is what we render — printing both would duplicate every
-#: Charm on the page.
+#: Not on the printed sheet (human's ruling). `issues` and the four `xp_*` ledger
+#: fields are build-time tools. The experience TOTAL still prints. `charms` is the
+#: flat form of `charm_sections`, which is rendered: both would duplicate each Charm.
 DELIBERATELY_OMITTED = {
     "issues", "xp_log", "xp_earned", "xp_spent", "xp_available", "charms",
 }
@@ -550,10 +548,8 @@ def _advantage_panels(view: SheetView, width: float, st, accent, columns: int) -
                 p.trait(f"  {name}", rating)
         out.append(p)
 
-    # Dropped when empty, like every other panel in this band. ui/app.py prints a
-    # box containing "—" instead, which is right on screen (the panel is a landmark
-    # you return to) and wrong on paper, where it is an empty rectangle taking a
-    # third of a row to say nothing. Human's call, 2026-08-14.
+    # Dropped when empty, as each panel in this band (human's ruling). On paper an
+    # empty box uses space for nothing.
     if view.specialties:
         p = _Panel("Specialties", pw, st, accent)
         for ability, name, rating in view.specialties:
@@ -676,9 +672,8 @@ def _bottom_band(view: SheetView, width: float, st, accent) -> Table:
 # --------------------------------------------------------------------------- #
 
 def _provenance(row) -> str:
-    """The screen sheet's ✎ / ⚠ markers as words. Custom content must stay
-    obvious at a glance on a sheet (the human's requirement, 2026-07-29), and on
-    paper a hover tooltip is not a way to say so."""
+    """Return the screen markers ✎ / ⚠ as words. Custom content must be visible on a
+    sheet (human's ruling). Paper has no tooltip."""
     if getattr(row, "missing", False):
         return " [missing]"
     if getattr(row, "custom", False):
@@ -785,14 +780,11 @@ def suggested_filename(view: SheetView) -> str:
 
 
 def normalize_pdf_filename(name: str, view: SheetView, *, fallback: str = "") -> str:
-    """A user-typed export name, made safe and given a .pdf extension. Mirrors
-    persistence.normalize_save_filename: the player may type anything into the
-    dialog, including nothing, and the result is handed straight to a browser
-    download or an OS save dialog.
+    """Return a safe export name with a .pdf extension, from free-text input (as
+    persistence.normalize_save_filename). The input can be empty.
 
-    `fallback` names the document when the field is left empty and `view` is not
-    the whole story — a PARTY export cleared to blank must not be named after
-    whichever member happens to be first in the list.
+    `fallback` names the document when the input is empty. A PARTY export must not
+    take the name of its first member.
     """
     raw = (name or "").strip()
     if raw.lower().endswith(".pdf"):

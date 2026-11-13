@@ -281,7 +281,7 @@ def test_a_tracker_click_leaves_the_detail_panes_scroll_where_it_was(make_page, 
     """⚠ **The bug this whole widget exists for.** The detail pane sits in a
     QScrollArea, and a click that REBUILDS it deletes the button under the cursor; Qt
     hands the focus to whatever inherits it and the scroll area scrolls to follow, so
-    every damage mark threw the pane down the page (human, 2026-08-28) — unusable for
+    every damage mark threw the pane down the page (human's ruling) — unusable for
     the one thing the surface is for.
 
     Negative-control it by putting `self._sync_detail()` back into `_cycle`: the scroll

@@ -31,7 +31,7 @@ class SheetView:
     concept: str
     nature: str
     anima: str
-    # free-fill biography (human 2026-08-21) — (label, value) pairs, empty ones dropped
+    # free-fill biography — (label, value) pairs, empty ones dropped
     biography: list[tuple[str, str]]
     # Lunar Form Library (narrative only — see models.character.AnimalForm)
     totem: str
@@ -169,20 +169,15 @@ DEFAULT_ABILITY_GROUPS: tuple[tuple[str, tuple[AbilityName, ...]], ...] = (
 
 
 def repeatable_cap_trait(charm) -> tuple[str, str]:
-    """`(trait label, unit noun)` naming what limits a repeatable Charm's purchases,
-    e.g. ("Endurance", "dot") or ("Essence", "point"). ("", "") if not repeatable.
+    """Return `(trait label, unit noun)` of the cap of a repeatable Charm, e.g.
+    ("Endurance", "dot") or ("Essence", "point"). ("", "") if not repeatable.
 
-    Never hardcode the trait in UI copy: it varies by splat even for the SAME Charm.
-    Ox-Body caps on Endurance for Solar/Dragon-Blooded/Abyssal but on **Stamina** for
-    Lunar (The Lunars p.132, "once per dot of human-form Stamina"), and Deadly
-    Beastman Transformation caps on Essence (p.124), which is neither an Ability nor
-    an Attribute. This mirrors engine.validate._repeatable_purchase_cap, which
-    resolves the same field to the actual number.
+    ⚠ Never hardcode the trait in UI text: it changes by splat for the SAME Charm
+    (Lunar Ox-Body: Stamina, The Lunars p.132; Deadly Beastman Transformation:
+    Essence, p.124). engine.validate._repeatable_purchase_cap gives the number.
 
-    The UNIT comes from engine.validate.repeatable_cap_unit — engine.charm_actions
-    words the same "once per <unit> of <trait>" refusal, and the pair had been derived
-    in two places. Only the trait LABEL is local, so it gets `_label`'s display
-    formatting rather than the engine's plainer one."""
+    The unit comes from engine.validate.repeatable_cap_unit. Only the label is local,
+    for `_label` formatting."""
     name = getattr(charm, "repeatable_cap_ability", "") if charm else ""
     if not name:
         return ("", "")
@@ -197,11 +192,8 @@ def merit_rows(ruleset: RuleSet, character: Character
     since a save opened without its data set should say so, not quietly shrink."""
     rows: list[tuple[str, str, str, str, str]] = []
     for mp in character.merits_flaws:
-        # A player-authored "Custom" row (2026-08-10): display-only, no mechanical
-        # effect — render it by its name rather than as a missing-data warning. The
-        # discriminator is the EMPTY merit_id, not custom_name's truthiness: the name
-        # is player-editable and may be blanked, but the row must still read as custom
-        # (see the chargen-row comment in ui/advantages.py).
+        # A player-authored "Custom" row: show it by name. ⚠ The discriminator is the
+        # EMPTY merit_id, not custom_name, which the player can blank.
         if not mp.merit_id:
             rows.append((mp.custom_name or "Custom", "", mp.detail, "merit",
                          "Custom — no printed effect."))
@@ -332,16 +324,13 @@ def style_for_category(ruleset: RuleSet, category: str) -> Optional[StyleView]:
 
 def specialty_groups(character: Character,
                      ability: AbilityName) -> list[tuple[str, int]]:
-    """One Ability's specialties as [(name, how many times taken)], first-seen order.
+    """Return the specialties of one Ability as [(name, times taken)], in first-seen
+    order.
 
-    ⚠ A specialty is an INSTANCE, not a rated trait (human, 2026-07-31): "you don't
-    raise specialties, you just take the same one multiple times". So the COUNT is the
-    stacking, and a group of two is two `Specialty` rows on the character — never one
-    row rated 2. A renderer showing "Swords ×2" is describing two instances; anything
-    that writes back must add or drop whole instances.
+    ⚠ A specialty is an INSTANCE, not a rated trait (human's ruling). "Swords ×2" is
+    two rows. A writer must add or remove whole instances.
 
-    Unnamed rows are kept (they group under ""), because chargen appends a blank row and
-    the player names it afterwards — dropping them here would make a fresh row vanish.
+    Unnamed rows group under "": chargen adds a blank row for the player to name.
     """
     counts: dict[str, int] = {}
     for sp in character.specialties:
@@ -697,9 +686,8 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     for sid in character.spells:
         spell = ruleset.spells.get(sid)
         if spell is None:
-            # Mirrors the missing-Charm row above: a spell whose definition has gone
-            # (a deleted custom spell) must show as lost, not quietly vanish off the
-            # sheet leaving the character looking like it never knew it.
+            # A spell whose definition is gone (a deleted custom spell) shows as
+            # lost, as the missing-Charm row above.
             spells.append(SpellRow(sid, "?", "—", missing=True))
             continue
         spells.append(SpellRow(spell.name, spell.circle.value, _cost_str(spell.cost),

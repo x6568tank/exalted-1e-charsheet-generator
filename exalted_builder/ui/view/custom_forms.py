@@ -363,7 +363,7 @@ CUSTOM_KINDS: dict[str, CustomKind] = {
 def unlock_warning(character: Character) -> str:
     """Return the warning to show before an Unlock, or "" if none is needed.
 
-    Ruled 2026-09-12: an Unlock after XP is allowed, with a warning.
+    An Unlock after XP is allowed, with a warning (human's ruling).
     `lifecycle.unlock_chargen` drops the snapshot and nothing else. Thus the dots
     bought with XP count as creation dots, and the XP log still records them."""
     spent = advancement.xp_spent(character)

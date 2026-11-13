@@ -395,10 +395,9 @@ def test_missing_spell_still_gets_a_sheet_row():
 
 
 def test_a_missing_id_never_crashes_a_render_path():
-    """Blanket regression: every presenter that walks a character's Charms or spells
-    must tolerate an id that does not resolve. This is the guard rail for deleting a
-    custom Charm a character already owns — the one destructive thing the authoring
-    page can do."""
+    """Each presenter that walks a character's Charms or spells tolerates an id that
+    does not resolve: the authoring page can delete a custom Charm that a character
+    owns."""
     rs, char = _shipped()
     char.charms.append("custom.deleted-charm")
     char.spells.append("custom.deleted-spell")
@@ -855,7 +854,7 @@ def test_reload_reports_problems_on_the_ruleset(tmp_path):
 
 
 def test_reload_re_merges_the_gear_catalogues_too(tmp_path):
-    """⚠ The gear half was MISSING from `reload_custom_layer` until 2026-08-27, while
+    """⚠ The gear half was MISSING from `reload_custom_layer` until, while
     `load_ruleset` merged it from the start — so a library weapon reached Buy only after
     an app restart, and any surface reading the catalogue after a reload saw the row as
     unloaded. Invisible for months because `library_gear` had exactly one caller (the
@@ -983,10 +982,10 @@ def test_health_type_is_unset_wherever_the_page_does_not_name_a_damage_type():
     printed Charm with a health cost just said "1 health level", so the field had to
     default to unset and change nothing about how they read.
 
-    **That stopped being true on 2026-08-01.** Stolen Wax Discipline (E:Ab p.237) is
+    **That stopped being true.** Stolen Wax Discipline (E:Ab p.237) is
     the first PRINTED Charm to name the type — "5 motes, one lethal health level" —
     so the field gained a book-data consumer. Fertile Soul Endowment (Player's Guide
-    p.83, authored 2026-08-11) is the second: "10 motes, 1 Willpower, 1 lethal health
+    p.83, authored) is the second: "10 motes, 1 Willpower, 1 lethal health
     level". The invariant that still holds, and the one worth testing, is the narrower
     one: the field is set only where the page actually names a type, and unset
     everywhere else — so this list grows as such Charms are authored, and the loop

@@ -20,7 +20,7 @@ from ...models.rules import AbilityName, RuleSet
 _DOT_MAX = 5
 _WILLPOWER_MAX = 10
 
-# "You can only have 3 specialties per ability" (human, rules authority, 2026-07-31).
+# 3 specialties per Ability (human's ruling).
 # Counts ROWS, not distinct names — two Swords and one Parrying fills Melee.
 SPECIALTIES_PER_ABILITY = 3
 
@@ -29,7 +29,7 @@ def specialty_cap(ruleset: RuleSet, character: Character, ability: AbilityName) 
     """Specialty-row cap for one Ability. The Mountain Folk may have up to five
     Specialties in any Craft (CH6 p.230: "Jadeborn can have up to five Specialties in
     any Craft, but they cannot purchase the same specialty more than three times");
-    every other Ability of every splat caps at three (the 2026-07-31 ruling)."""
+    every other Ability of every splat caps at three (human's ruling)."""
     if ability == AbilityName.CRAFT and ruleset.exalt_for(character.exalt_type).id == "Mountain-Folk":
         return 5
     return SPECIALTIES_PER_ABILITY

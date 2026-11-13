@@ -67,9 +67,9 @@ async def _log_in(user: User, username: str, password: str = state.PASSWORD,
 
 # The routes that a visitor with no login can open, BY NAME. Each is public on
 # purpose, by a ruling of the human: the login pages (section 5.1d), and the front
-# page, About and the wiki (docs/plans/vtt.md 9.4 and 9.5, 2026-09-12), and the two
-# files for crawlers (asked for by the human, 2026-09-26), and the site colours
-# (asked for by the human, 2026-09-26: a visitor with no login selects them too).
+# page, About and the wiki (docs/plans/vtt.md 9.4 and 9.5), and the two
+# files for crawlers (asked for by the human), and the site colours
+# (asked for by the human: a visitor with no login selects them too).
 # ⚠ A route that opens without a name here fails the first case. Do not add a name
 # to make it pass without a ruling.
 PUBLIC_ROUTES = frozenset({
@@ -214,7 +214,7 @@ async def _new_character(user: User) -> dict:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_save_folder_is_the_account_folder(user: User) -> None:
-    """The ruling of 2026-09-11: the save folder belongs to the account, not to
+    """The ruling of: the save folder belongs to the account, not to
     the browser. Piece 4 puts each character in `characters/` below it."""
     await _sign_up(user, "Harmonious")
     ctx = await _new_character(user)
@@ -317,7 +317,7 @@ async def test_logout_closes_the_gate(user: User) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_login_needs_the_case_of_the_signup(user: User) -> None:
-    """The human's ruling, 2026-09-11: usernames are case-sensitive."""
+    """human's ruling: usernames are case-sensitive."""
     db.create_user(state.DB, "Harmonious", state.PASSWORD)
 
     await _log_in(user, "harmonious")
@@ -438,7 +438,7 @@ def test_a_path_of_this_server_is_kept(target: str) -> None:
 
 
 # A browser strips a tab and a newline from a URL, thus "/\t/host" is "//host".
-# Server review finding 3. Each control character and each whitespace is refused.
+# The check refuses each control character and each whitespace.
 _STRIPPED = ["/\t/elsewhere.example", "/\n/elsewhere.example", "/\r/elsewhere.example",
              "/ /elsewhere.example", "/\x00/elsewhere.example", "/\x1f/elsewhere.example",
              "/\x7f/elsewhere.example", "/\u00a0/elsewhere.example",

@@ -1,6 +1,6 @@
 """Each upload handler checks the file size before it reads: `ui/upload_check.py`.
 
-Server review finding 4. `ui.upload(max_file_size=...)` is a browser-side prop.
+`ui.upload(max_file_size=...)` is a browser-side prop.
 `server/upload_limit.py` limits the request; these tests cover the handlers.
 
 PRODUCTION wiring: `tests/_auth_main.py`.

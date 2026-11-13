@@ -16,34 +16,24 @@ from ._base import Source
 # --------------------------------------------------------------------------- #
 # Thaumaturgy (Player's Guide CH3)
 #
-# Thaumaturgy is NOT a splat and NOT an origin: it is an orthogonal capability
-# layer. p.114 — the Exalted learn it "without any difficulty", the Wyld-tainted
-# "with no restraint", Dragon Kings can, spirits pay double, the Fair Folk not at
-# all, and the dead retain what they learned but may never use it (see
-# ExaltDefinition.thaumaturgy_usable). It therefore keys off nothing; any
-# character may hold it.
+# Thaumaturgy is not a splat and not an origin. It is a layer that any character can
+# hold (p.114; see ExaltDefinition.thaumaturgy_usable).
 #
-# Four branches, four different mechanical shapes (p.113):
+# Four branches (p.113):
 #   Arts       - BINARY. Trained = +2 dice. Specialties +1 die each, max two
 #                applied to a roll. Buyable WITHOUT the parent Art.
 #   Sciences   - RATED, with printed per-dot descriptions.
 #   Rituals    - LEVELLED 1-5, gated only on Occult >= level.
 #   Formulas   - rote recipes for a Science, cheapest of all.
 #
-# Everything the chapter says about RESOLVING these (ward Strength/Durability,
-# the banishment table, summoning difficulties, internal-alchemy failure, the
-# four ways to pay a cost) is dice resolution and deliberately OUT OF SCOPE, the
-# same call as combat derivation. `roll`/`cost`/`time` below are display strings
-# the engine never parses.
+# Resolution is out of scope (decision 0016). `roll`/`cost`/`time` are display
+# strings. The engine does not parse them.
 # --------------------------------------------------------------------------- #
 
 class Orientation(str, Enum):
-    """The regional version of a ritual or formula (p.124). Every ritual and
-    formula has one. Casting one from a foreign orientation costs +1 difficulty at
-    one region away and +2 at two, with prep time x2/x5 — all of which is dice
-    resolution and out of scope. What IS in scope is that a thaumaturge may learn
-    several versions of the same spell, each extra costing a flat 1 point, so a
-    character's holding is (id, {orientations}) and never a bare id."""
+    """The regional version of a ritual or formula (p.124). Each extra version costs
+    1 point, thus a holding is (id, {orientations}), not an id. The casting penalties
+    are out of scope."""
     NORTH = "North"
     SOUTH = "South"
     EAST = "East"
@@ -52,29 +42,16 @@ class Orientation(str, Enum):
 
 
 class ThaumaturgicAspect(BaseModel):
-    """One sub-field of an Art — Summoning's "ghosts", Warding's "the Wyld".
+    """One field of an Art: Summoning "ghosts", Warding "the Wyld".
 
-    **An aspect IS a printed general specialty.** The source uses both words for
-    one thing: the stat block heads the list "Aspects:", while the prose (p.126)
-    says "each field of study is further subdivided into a number of specialties"
-    and "Each art lists a number of specialties". The worked example settles it by
-    using a printed aspect as its middle term — "mastering the Art (Warding, +2),
-    a general specialty in the Art (Fair Folk, +1) and a relevant specialty (Local
-    Fair Folk, +1)" — and "Fair Folk" is an item on Warding's Aspects line.
+    An aspect is a printed general specialty (p.126). It costs the Art Specialty
+    rate. A narrower player specialty adds +1 more. Two specialties at most apply to
+    a roll: the maximum is +4.
 
-    So: buying an aspect is buying a specialty, at the Art Specialty rate, and a
-    player-invented narrower specialty stacks on top for another +1. At most TWO
-    specialties apply to any one roll, so the ceiling is +4 (Art +2, general +1,
-    narrow +1).
+    ⚠ **No Art is required to buy one** (p.126). Do not add a prerequisite.
 
-    **No Art is required to buy one** (p.126, and the BP-table footnote): "A
-    thaumaturge does not need to buy a field of study in order to purchase a
-    specialty in that field, and many do not." Never add a prerequisite.
-
-    `min_occult` is 0 for most: only Summoning gates its aspects individually
-    (Beasts/Mortals •, Demons/Elementals ••, Ghosts/Spirits •••, p.126-129).
-    Warding, Exorcism and Astrology print aspect lists with no per-aspect gate, so
-    0 means "no gate beyond the parent Art's own min_occult"."""
+    `min_occult`: only Summoning gates each aspect (p.126-129). 0 = no gate except
+    the `min_occult` of the Art."""
     model_config = ConfigDict(frozen=True)
     id: str
     name: str
@@ -83,15 +60,11 @@ class ThaumaturgicAspect(BaseModel):
 
 
 class ThaumaturgicArt(BaseModel):
-    """One Art (p.126-135). Binary, not rated: training grants a flat +2 dice.
+    """One Art (p.126-135). Not rated: training gives +2 dice.
 
-    `aspects` is the printed general-specialty menu — see ThaumaturgicAspect; an
-    aspect and a specialty are the same purchase. `specialties` is a spare slot for
-    any Art that ever prints a specialty list SEPARATE from its Aspects line; none
-    of the four do, so it is empty everywhere today. Player-invented specialties
-    are free text on the character (the Backgrounds precedent), because the book
-    explicitly invites them: "a character could choose to buy a specialty of 'Local
-    Fair Folk' for the Art of Warding" (p.126)."""
+    `aspects`: the general-specialty menu (see ThaumaturgicAspect). `specialties`:
+    a printed specialty list separate from the aspects. Empty for all four Arts.
+    A player specialty is free text on the character (p.126)."""
     model_config = ConfigDict(frozen=True)
     id: str
     name: str
@@ -100,32 +73,27 @@ class ThaumaturgicArt(BaseModel):
     cost: str = ""                          # display, e.g. "3 motes per attempt"
     aspects: list[ThaumaturgicAspect] = Field(default_factory=list)
     specialties: list[str] = Field(default_factory=list)   # suggested, not exhaustive
-    # Summoning only (p.127): further limiting an aspect ("Summoning (War Gods)")
-    # halves that aspect's cost. No other Art prints the option.
+    # Summoning only (p.127): a narrowed aspect costs half.
     aspect_narrowing: bool = False
     description: str = ""
     source: Source = Field(default_factory=Source)
 
 
 class ScienceLevel(BaseModel):
-    """One printed dot-rung of a Science. Keyed by `rating` rather than held in a
-    positional list BECAUSE THE LADDER IS SPARSE: Alchemy prints • •• ••• •••• and
-    then ••••••, with no five-dot rung, yet two printed formulas require Alchemy
-    ••••• and the stated rule is that a formula's required level equals its
-    difficulty (p.143). Rating 5 is thus reachable and purchasable with no
-    description. Never renumber the six-dot entry down to close the gap."""
+    """One printed rung of a Science, keyed by `rating`.
+
+    ⚠ The ladder has gaps: Alchemy has no five-dot rung, but rating 5 is legal
+    (p.143). Do not renumber the six-dot entry."""
     model_config = ConfigDict(frozen=True)
     rating: int = Field(ge=1)
     description: str = ""
 
 
 class ThaumaturgicScience(BaseModel):
-    """One Science: Alchemy, Enchantment, Geomancy or Weather Working (p.136-148).
-    The only rated branch of thaumaturgy.
+    """One Science (p.136-148). The only rated branch.
 
-    `max_rating` is per-Science and is 6 for Alchemy — see ScienceLevel. Do not
-    assume the project's usual <=5 rating bound applies here; that bound is a
-    convention that holds because chargen rarely exceeds 5, not an invariant."""
+    `max_rating` is 6 for Alchemy (see ScienceLevel). ⚠ The usual <=5 bound does not
+    apply."""
     model_config = ConfigDict(frozen=True)
     id: str
     name: str
@@ -139,25 +107,18 @@ class ThaumaturgicScience(BaseModel):
     source: Source = Field(default_factory=Source)
 
     def level(self, rating: int) -> Optional[ScienceLevel]:
-        """The printed rung at `rating`, or None where the book prints none
-        (Alchemy 5). A missing rung is legal, not a data error."""
+        """Return the printed rung at `rating`. Return None if the book has none
+        (Alchemy 5). A missing rung is legal."""
         return next((lv for lv in self.levels if lv.rating == rating), None)
 
 
 class ThaumaturgicRitual(BaseModel):
-    """One ritual (p.148-150). Levelled 1-5; "the only normal restriction on
-    purchasing a ritual is that a thaumaturge must have an Occult score equal to
-    or higher than the ritual's level".
+    """One ritual (p.148-150). Level 1-5. The character needs Occult >= level.
 
-    The chapter prints exactly five, and the book expects more to be written
-    (p.148: "there are few constant rules, but there are guidelines"), so the
-    catalogue is a seed and the character may also carry custom rituals inline —
-    the editable-custom-weapons precedent.
+    The character can also carry a custom ritual inline (p.148).
 
-    Rituals have NO stat block in the source: the heading is the name with its dot
-    rating inline and everything else is prose. `cost`/`roll`/`difficulty` are
-    therefore best-effort display strings pulled out of that prose, and
-    `description` remains authoritative."""
+    The source has no stat block. `cost`/`roll`/`difficulty` are taken from the
+    prose. `description` is the reference."""
     model_config = ConfigDict(frozen=True)
     id: str
     name: str
@@ -167,25 +128,21 @@ class ThaumaturgicRitual(BaseModel):
     resources: str = ""                     # display, e.g. "Resources 2" for components
     description: str = ""
     source: Source = Field(default_factory=Source)
-    # Stamped by the loader on a row that came from the user's library, exactly as
-    # `Charm.custom` and `Spell.custom` are. ⚠ Rituals are the ONE catalogue with a
-    # second custom shape beside this one: a ritual authored for a single character
-    # is an inline `RitualEntry` with no `ritual_id`, and never becomes a row here.
+    # Set by the loader on a row from the custom library, as `Charm.custom`.
+    # ⚠ A ritual for one character is an inline `RitualEntry` with no `ritual_id`,
+    # not a row here.
     custom: bool = False
 
 
 class ThaumaturgicFormula(BaseModel):
-    """One formula or procedure — a rote recipe belonging to a Science (p.138-142).
-    Unlike rituals these DO have a labelled stat block: Name / Alchemy / Roll /
-    Difficulty / Cost of Materials / Effects / Addiction.
+    """One formula or procedure of a Science (p.138-142).
 
-    `materials_raw` wins when set, because one printed formula costs "Equal to
-    poison cost" rather than a number of Resources dots."""
+    `materials_raw` overrides the Resources cost when set."""
     model_config = ConfigDict(frozen=True)
     id: str
     name: str
     science_id: str                         # the Science it belongs to, e.g. "alchemy"
-    # The Science rating required. NOT bounded at 5: Alchemy reaches 6.
+    # ⚠ Not bounded at 5: Alchemy reaches 6.
     level: int = Field(ge=1)
     roll: str = ""                          # display, normally "Intelligence + Occult"
     difficulty: Optional[int] = None

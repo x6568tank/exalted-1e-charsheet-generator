@@ -56,7 +56,7 @@ def _select_path(page, path_id):
 
 
 def test_solar_page_tabs(ruleset, qtbot):
-    # ⚠ Combos sits between the trees and Spells since 2026-08-21 — it moved here from
+    # ⚠ Combos sits between the trees and Spells since — it moved here from
     # the rail, because a Combo is assembled out of Charms the character already owns.
     page = CharmsPage(ruleset, {"char": Character(id="char.new", exalt_type="Solar")})
     qtbot.addWidget(page)
@@ -205,7 +205,7 @@ def test_charms_thaum_buy_flips_button_and_unlearns(qtbot, ruleset):
     assert page._selected_thaum[1].owned       # the button now reads "Drop"
     # ⚠ Owned does NOT mean the orientation pick goes away — it means it offers the
     # regions still missing, beside the Add-version button (p.124, a flat point each).
-    # This asserted the opposite until 2026-08-28, when the combo's disappearance was
+    # This asserted the opposite until, when the combo's disappearance was
     # the very bug: it made every version after the first unbuyable in this shell.
     # ⚠ isVisibleTo, not isVisible: the page is never shown in these tests,
     # so isVisible() is False for every widget on it regardless.
@@ -705,8 +705,7 @@ def test_paths_favoured_renders_saved_breed_path(ruleset, qtbot):
 
 
 def test_paths_favoured_pick_sets_favored_path(ruleset, qtbot):
-    # ⚠ The handler used to read a shared loop variable instead of its own combo,
-    # so any pick silently wrote '' (the same closure bug as the rating combos).
+    # ⚠ The handler must read its own combo, not a shared loop variable.
     char = Character(id="dk", exalt_type="Dragon-Kings", caste="pterok")
     page = CharmsPage(ruleset, {"char": char}, notify=lambda *a, **k: None)
     qtbot.addWidget(page)
@@ -957,11 +956,9 @@ def test_the_build_cache_does_not_change_which_trees_are_found(ruleset):
 
 
 def test_the_build_cache_scans_for_the_augmentation_category_once(ruleset):
-    """⚠ The regression this guards is a PERFORMANCE one, so it pins the MECHANISM
-    rather than a timing or a ratio: `augmentation_category` scans the whole Charm
-    catalogue through `charm_matches_splat`, and uncached it ran once per collapsed
-    tree — ~190,000 calls and a visible pause on the tab (human, 2026-08-21). With a
-    shared cache it must run exactly once no matter how many groups are asked for."""
+    """⚠ A PERFORMANCE guard, thus it pins the MECHANISM, not a time:
+    `augmentation_category` scans the whole catalogue through `charm_matches_splat`.
+    With the shared cache it runs exactly once for any number of groups."""
     import exalted_builder.qt.charms as charmsmod
 
     char = Character(id="c.cache", exalt_type="Alchemical", caste="orichalcum",
@@ -1442,11 +1439,9 @@ def test_add_another_disappears_at_the_cap(ruleset, qtbot):
 
 
 def test_add_another_is_offered_post_lock_with_its_xp_price(ruleset, qtbot):
-    """⚠ This used to be refused. `charm_actions.learn_charm`'s post-lock guard was a
-    bare `charm_id in character.charms` with no cap in it, so it caught repeatables in
-    a net meant for ordinary Charms — and made `advancement.learn_charm`'s deliberate,
-    page-cited support for exactly this purchase (CH6 pp.245-246) unreachable from
-    either shell."""
+    """⚠ After the lock a repeatable Charm under its cap can be bought again (CH6
+    pp.245-246). The `charm_actions.learn_charm` guard must apply the cap, not only
+    `charm_id in character.charms`."""
     from exalted_builder.engine import costs
     char = _repeatable_char()
     char.charms = [REPEATABLE]

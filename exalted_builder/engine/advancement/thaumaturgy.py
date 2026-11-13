@@ -67,10 +67,7 @@ def add_thaum_specialty(ruleset: RuleSet, character: Character, art_id: str,
 def raise_thaum_science(ruleset: RuleSet, character: Character, science_id: str) -> XpEntry:
     """Raise a Science by one dot: 7 XP for the first, then current rating × 6.
 
-    The ceiling is the Science's OWN `max_rating` rather than the usual _DOT_MAX. All
-    four Sciences stop at 5 — Alchemy's printed six-dot rung is a typo for five (human,
-    2026-07-30) — so this reads as a plain 5 today. Kept per-Science because the ceiling
-    is rules data, not an engine constant.
+    The ceiling is the `max_rating` of the Science, not _DOT_MAX. It is rules data.
     """
     _ensure_locked(character)
     science = ruleset.thaum_sciences.get(science_id)

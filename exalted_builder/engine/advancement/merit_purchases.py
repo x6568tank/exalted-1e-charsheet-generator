@@ -56,9 +56,8 @@ def _merit_purchase_gates(ruleset: RuleSet, character: Character, definition,
     must also respect. They are re-asked here rather than shared with that function
     because the two differ in kind: this refuses a purchase, that reports a holding.
 
-    ⚠ Test the buy path, not the effect. Every gate below was implemented, ran at
-    chargen, and did nothing when a Merit was bought with XP — the house bug, found
-    by preflight 2026-08-17.
+    ⚠ Test the buy path, not the effect. A gate that runs at chargen only does
+    nothing on an XP purchase (the house bug, type 1).
     """
     # The tier menu THIS character prices on, not the generic one: a tier printed for
     # another splat otherwise passes and then prices at nothing.
@@ -249,17 +248,15 @@ def gain_merit_or_flaw(ruleset: RuleSet, character: Character, merit_id: str,
 
 
 def drop_merit(ruleset: RuleSet, character: Character, index: int) -> XpEntry | None:
-    """Lose a Merit, or buy off a Flaw. Mirrors the two above: losing a MERIT pays the
-    character twice its value, losing a FLAW charges it (PG p.17). Returns None for a
-    player-authored Custom row, whose removal is a plain delete with no XP value."""
+    """Lose a Merit, or buy off a Flaw (PG p.17). Losing a MERIT pays the character
+    two times its value. Losing a FLAW charges it. Returns None for a player-authored
+    Custom row: its removal is a plain delete with no XP value."""
     _ensure_locked(character)
     if not 0 <= index < len(character.merits_flaws):
         raise AdvancementError(f"No Merit at index {index}.")
     purchase = character.merits_flaws[index]
-    # A player-authored "Custom" row (2026-08-10): display-only, no mechanical
-    # effect and no XP value — dropping it is a plain removal, not a transaction.
-    # The discriminator is the EMPTY merit_id (never edited by the name input), not
-    # custom_name's truthiness — a blanked name must still drop as custom.
+    # A player-authored "Custom" row has no XP value: a drop is a plain removal.
+    # ⚠ The discriminator is the EMPTY merit_id, not custom_name.
     #
     # Returns None and logs NOTHING: there is no XP to refund, and `undo_last` has no
     # merits branch (pre-existing — real drops share the gap), so a cost-0 ledger row

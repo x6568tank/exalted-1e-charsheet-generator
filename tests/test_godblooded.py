@@ -72,7 +72,7 @@ def test_the_godblooded_budget_is_the_printed_one(rs):
 
 
 def test_heritage_is_the_caste_axis(rs):
-    """Human ruling 2026-08-02: the five heritages are the Godblooded CASTE slot, not
+    """human's ruling: the five heritages are the Godblooded CASTE slot, not
     an origin. `caste_noun: "Heritage"` and a heritage_traits block on the caste."""
     assert rs.exalt_for("God-Blooded").caste_noun == "Heritage"
     h = rs.castes["ghost-blooded"].heritage_traits
@@ -135,7 +135,7 @@ def test_inheritance_raises_the_flaw_cap(rs):
 # --------------------------------------------------------------------------- #
 
 def test_st_inheritance_rating_sets_the_free_dots_not_the_pool(rs):
-    """Human ruling 2026-08-02: the ST option is how many Inheritance dots are FREE,
+    """human's ruling: the ST option is how many Inheritance dots are FREE,
     never the rating itself. The bonus points follow the character's SHEET background —
     a character at Inheritance 4 gets the +24 for THAT rating whether or not the ST
     grants four; the ST option only decides whether the dots cost anything."""
@@ -442,7 +442,7 @@ def test_half_caste_heritage_is_parent_keyed(rs):
 
 def test_the_half_caste_bar_list_is_human_ruled(rs):
     """p.47 makes the ST the final arbiter of the no-perfect/persistent bar, and the
-    human ruled it 2026-08-02 (review brief #2): the 8 God-Blooded Arcanoi, the 7
+    human ruled it (review brief #2): the 8 God-Blooded Arcanoi, the 7
     Maiden-approval charms, the 16 clearly-perfect/persistent defenses, plus the three
     borderline calls (Snake Head Defense, Smoke Obscuring Effect, Blade of the Battle
     Maiden) stay; the retaliation/conduit/terrain/mote charms go. Pinning the ruling so
@@ -695,7 +695,7 @@ async def test_the_picker_builds_for_a_god_blooded(user) -> None:
     # The god-blooded's catalogue is the Spirit Charms (p.48), which the picker
     # presents as one tree per Virtue; the bare 'spirit_templates' category is never
     # offered (it is split by virtue_split). The Arcanoi are Ghost-Blooded-only since
-    # human's 2026-08-07 Ox-Body ruling (the only two general_arcanoi Charms — the
+    # human's Ox-Body ruling (the only two general_arcanoi Charms — the
     # necromancy initiation and the arcanos Ox-Body — are both barred for this
     # heritage), so there is no Arcanoi page to lump anything into.
     from nicegui import ui as nicegui_ui
@@ -716,7 +716,7 @@ async def test_the_picker_builds_for_a_god_blooded(user) -> None:
 async def test_the_god_blooded_picker_offers_one_spirit_tree_per_virtue(user) -> None:
     # The spirit Charms are one data category ('spirit_templates') spanning all four
     # Virtues. The picker splits them into four trees, one per Virtue (human's visual
-    # request 2026-08-07) — the Abilities page's Category dropdown must offer
+    # request) — the Abilities page's Category dropdown must offer
     # 'spirit_templates:<virtue>', never the un-split category.
     from nicegui import ui as nicegui_ui
     await user.open('/godblooded-god-picker')
@@ -765,7 +765,7 @@ async def test_the_editor_builds_for_a_demon_blooded(user) -> None:
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_picker_builds_for_a_demon_blooded(user) -> None:
     # Same as the god-blooded: catalogue is the Spirit Charms (split per Virtue);
-    # no Arcanoi since human's 2026-08-07 Ox-Body ruling.
+    # no Arcanoi since human's Ox-Body ruling.
     from nicegui import ui as nicegui_ui
     await user.open('/godblooded-demon-picker')
     await user.should_see("Charm Details")
@@ -833,9 +833,8 @@ async def test_the_elemental_powers_page_lists_all_nine_with_none_owned(user) ->
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_sheet_lists_owned_elemental_powers(user) -> None:
-    """The click-through found the picker had the powers but the Sheet did not — the
-    Charms & Sorcery band must head an Elemental Powers section showing what the
-    character owns (and its description)."""
+    """The Charms & Sorcery band of the Sheet has an Elemental Powers section with the
+    owned powers and their descriptions."""
     await user.open('/godblooded-elemental-sheet')
     await user.should_see("Elemental Powers (1)")
     await user.should_see("Aegis")
@@ -981,7 +980,7 @@ def test_a_heritage_without_a_track_bars_nothing(rs):
 # PG p.47 "The children of the Fair Folk do not use Charms, but instead, wield gifts
 # of glamour"; p.48 "All God-Blooded with the Awakened Essence Merit apart from
 # Fae-Blooded may also learn to cast spells"; p.66 pool = (Essence x 8); the
-# Noble/Commoner origin axis (human 2026-08-02) gates the powers on pp.73-79.
+# Noble/Commoner origin axis (human's ruling) gates the powers on pp.73-79.
 
 def _fb(origin="Noble", **kw) -> Character:
     c = Character(id="fb", name="Sidhe-Spun", exalt_type="God-Blooded",
@@ -1160,7 +1159,7 @@ def test_virtue_attunement_prices_the_attuned_virtue_at_x2_xp(rs):
 def test_virtue_attunement_is_once_for_a_commoner_twice_for_a_noble(rs):
     """PG p.74: "may only purchase this Merit once. Children of fairy nobles may
     purchase this Merit up to twice" — nobility rides the Origin axis (human
-    2026-08-02), so a Noble Fae-Blooded may attune two Virtues, a Commoner one."""
+   ), so a Noble Fae-Blooded may attune two Virtues, a Commoner one."""
     m = rs.merits_flaws["mf.fae-virtue-attunement"]
     assert m.repeatable_by == "virtue"
     assert m.max_purchases_by_origin == {"Noble": 2, "Commoner": 1}
@@ -1198,7 +1197,7 @@ def test_a_commoner_cannot_buy_a_second_virtue_attunement_with_xp(rs):
 # spirit Charms "exactly as their parents" (p.48) — a catalogue that is not yet
 # authored (the GoD appendix, blocked on pages). Demon-Blooded "follow the same
 # rules regarding Charm selection as God-Blooded" (p.48). The Divine/Elemental
-# sub-axis rides the Origin axis (human 2026-08-07), gating the p.68-69 M&F.
+# sub-axis rides the Origin axis (human's ruling), gating the p.68-69 M&F.
 
 def _god(origin="Divine", **kw) -> Character:
     c = Character(id="god", name="Bright Vow", exalt_type="God-Blooded",
@@ -1225,7 +1224,7 @@ def _demon(**kw) -> Character:
 def test_the_god_blooded_heritage_row(rs):
     """p.48: learn spirit Charms exactly as their parents; p.66 pool = the Ghost-
     Blooded formula (Ess x 5) + (WP x 2) + (sum of Virtues); the Divine/Elemental
-    sub-axis is the Origin axis (human 2026-08-07)."""
+    sub-axis is the Origin axis (human's ruling)."""
     h = rs.castes["god-blooded"].heritage_traits
     assert h.origin_options == ["Divine", "Elemental"]
     assert h.charm_access == ["Spirit"]
@@ -1320,7 +1319,7 @@ def test_the_prereq_chains_of_the_elemental_powers_resolve(rs):
 # --------------------------------------------------------------------------- #
 # Elemental Powers (Core p.296 + GoD p.56, PG p.68) — Elemental-origin God-Blooded
 # --------------------------------------------------------------------------- #
-# Human's ruling 2026-08-08: the 13 transcribed powers are a 9-power learnable
+# human's ruling: the 13 transcribed powers are a 9-power learnable
 # catalogue for Elemental-origin God-Blooded — 7 BP chargen / 14 XP in play
 # ("learned in play for a number of experience points equal to double its bonus
 # point value"). The retired mf.elemental-power Merit is replaced by these nine;
@@ -1445,10 +1444,8 @@ def test_elemental_power_issues_report_hand_edited_illegal_powers(rs):
 
 
 def test_a_locked_character_is_rechecked_for_illegal_powers(rs):
-    """The house bug, pinned: elemental_power_issues used to live only in
-    validate_chargen, which the sheet runs only pre-lock — so a locked character was
-    never re-checked. Lock a clean Elemental, then hand-edit in an unqualified power;
-    validate() must flag it with chargen long over."""
+    """The house bug: elemental_power_issues must run after the lock too. Lock a clean
+    Elemental, then hand-edit an unqualified power: validate() flags it."""
     c = _elemental()
     lifecycle.lock_chargen(c, rs)
     c.elemental_powers = ["elemental.aegis", "elemental.rejuvenation"]
@@ -1602,7 +1599,7 @@ def test_god_and_demon_blooded_cannot_initiate_into_necromancy(rs):
 
 def test_god_and_demon_blooded_use_the_spirit_ox_body_not_the_arcanos(rs):
     """p.83 lists Ox-Body Technique as '(SPIRIT, ARCANOS)' — it exists in BOTH
-    catalogues. Human's ruling 2026-08-07: the SPIRIT copy is what God/Demon-Blooded
+    catalogues. human's ruling: the SPIRIT copy is what God/Demon-Blooded
     get (both heritages' `ox_body_charm_id` names it, so the purchase cap, costs and
     health track all read the spirit version), and the ARCANOS original is now
     Ghost-Blooded-only — barred for the two spirit-descended heritages."""
@@ -1632,7 +1629,7 @@ def test_god_and_demon_blooded_use_the_spirit_ox_body_not_the_arcanos(rs):
 #  - 7 GoD appendix templates (pp.125-127) + Essence-Gifting Method (PG p.123,
 #    the one Compassion-keyed spirit Charm, from the Investment Charms sidebar);
 #  - 12 corebook Charms (Exalted 1e Core pp.291-292, all four Virtue sets),
-#    transcribed 2026-08-07 via the VLM pipeline;
+#    transcribed via the VLM pipeline;
 #  - 50 STC CH3 Charms (Exalted 1e Storyteller's Companion pp.49-60), transcribed
 #    via the VLM pipeline — the Sustenance/Benefaction/Dreamspeak rows here
 #    unblock the 3 off-catalogue prereqs the GoD rows named;
@@ -1642,7 +1639,7 @@ def test_god_and_demon_blooded_use_the_spirit_ox_body_not_the_arcanos(rs):
 #    chapter's NEW CHARMS section) — Conditional Blessing (Compassion) and
 #    Conditional Curse + Dematerialize (Valor) from p.82 (Blessing/Curse share one
 #    printed block), plus Ox-Body Technique (p.83, Conviction) — the "(SPIRIT,
-#    ARCANOS)" copy for God/Demon-Blooded (human's ruling 2026-08-07).
+#    ARCANOS)" copy for God/Demon-Blooded (human's ruling).
 # Worldly Illusion appears in both GoD and the corebook batch and is authored once.
 # --------------------------------------------------------------------------- #
 
@@ -1668,7 +1665,7 @@ SPIRIT_IDS = [
     "spirit.spirit-templates.spirit-cutting",
     "spirit.spirit-templates.essence-gifting-method",
     # Corebook (Exalted 1e Core pp.291-292) — the four Virtue sets. The 12 entries
-    # transcribed 2026-08-07 from CH 8 (book pp.290-293) via the VLM pipeline.
+    # transcribed from CH 8 (book pp.290-293) via the VLM pipeline.
     "spirit.spirit-templates.measure-the-wind",
     "spirit.spirit-templates.stoic-endurance",
     "spirit.spirit-templates.touch-of-grace",
@@ -1682,7 +1679,7 @@ SPIRIT_IDS = [
     "spirit.spirit-templates.principle-of-motion",
     "spirit.spirit-templates.words-of-power",
     # STC CH3 (Exalted 1e Storyteller's Companion pp.49-60), the full Virtue-keyed
-    # spirit Charm set, transcribed 2026-08-07 via the VLM pipeline.
+    # spirit Charm set, transcribed via the VLM pipeline.
     # Compassion.
     "spirit.spirit-templates.dreamspeak",
     "spirit.spirit-templates.dreamscape",
@@ -1714,7 +1711,7 @@ SPIRIT_IDS = [
     "spirit.spirit-templates.ride",
     "spirit.spirit-templates.hollow-out-the-soul",
     # PG p.83 Ox-Body Technique — the book lists it as "(SPIRIT, ARCANOS)". The
-    # Spirit copy is what God/Demon-Blooded get (human's ruling 2026-08-07); the
+    # Spirit copy is what God/Demon-Blooded get (human's ruling); the
     # Arcanos original is now Ghost-Blooded-only (castes.json bars it for the other
     # two heritages).
     "spirit.spirit-templates.ox-body-technique",
@@ -1763,7 +1760,7 @@ SPIRIT_IDS = [
     # Occult 5, so it is Ability-gated like the Ghost-Blooded necromancy
     # initiation it mirrors. See SORCERY_INIT below.
     SORCERY_INIT,
-    # Autochthonians pp.178-180 — ten machine-spirit Charms, authored 2026-08-14.
+    # Autochthonians pp.178-180 — ten machine-spirit Charms, authored.
     # ⚠ Listing them here is not bookkeeping: this roster is what the picker tests
     # assert a God/Demon-Blooded can REACH, so adding a spirit Charm widens what that
     # heritage may buy. Two of these are restricted by the book to crystal elementals
@@ -1956,7 +1953,7 @@ def test_the_sorcery_initiation_is_reachable_in_the_picker(rs):
 
 def test_the_spirit_charms_gate_on_the_virtue_rating(rs):
     # Soul Rapt prints Min Conviction 5 + Min Essence 4 + prereq Possession (wired
-    # 2026-08-07 to the corebook entry). A Conviction-3 god-blooded fails the virtue
+    # to the corebook entry). A Conviction-3 god-blooded fails the virtue
     # rating; raising the Virtue clears it, leaving the Essence minimum and the
     # Possession prerequisite to hold.
     c = _god()                       # Conviction 3, Essence 2
@@ -1973,7 +1970,7 @@ def test_the_spirit_charms_gate_on_the_virtue_rating(rs):
 
 
 def test_the_pg_spirit_charms_gate_on_their_own_virtue(rs):
-    """The PG p.82 trio (2026-08-07): Conditional Blessing is Compassion-keyed,
+    """The PG p.82 trio: Conditional Blessing is Compassion-keyed,
     Conditional Curse and Dematerialize are Valor-keyed — the shared Blessing/Curse
     block splits on its two minimums, and the split is what this pins. Dematerialize
     is the only one a starting god-blooded already meets; Blessing and Curse need
@@ -2069,7 +2066,7 @@ def test_aura_of_power_splits_the_pool_into_thirds(rs):
 
 
 def test_aura_of_power_beats_the_splats_own_single_pool(rs):
-    """⚠ THE test. `essence_pool_is_merged` asked the splat first until 2026-09-03,
+    """⚠ THE test. `essence_pool_is_merged` asked the splat first until,
     and a God-Blooded's `single_essence_pool` is True — so the Flaw was read, stored
     and had no effect whatsoever. The sheet said "Single pool 31" and was reporting
     faithfully; there was nothing behind it."""

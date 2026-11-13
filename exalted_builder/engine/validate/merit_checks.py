@@ -9,10 +9,8 @@ which a mortal reaches magic at all, which arrive through Merits and so live her
 `MeritEffects` field or a `MeritFlaw` data field; a rule that seems to need an id
 belongs in `engine/merits.py` with a new `MeritEffects` field instead.
 
-⚠ Named `merit_checks`, not `merits`, for that rule's sake as much as readability:
-decision 0011's containment test used to exempt the BASENAME `merits.py`, so a second
-file of that name would have exempted itself from the only enforcement the rule has.
-The test now keys on the path.
+⚠ Named `merit_checks`, not `merits`: the decision 0011 containment test keys on the
+path `engine/merits.py`. Do not add a second file named `merits.py`.
 
 ⚠ `withheld_charm_credits` ships without its printed counterweight — Weak Essence's
 withheld Charms "still require the same training time", and training times are not
@@ -51,9 +49,8 @@ def merit_issues(ruleset: RuleSet, character: Character, *,
     here; that is engine.merits' job (decision 0011).
 
     `post_lock=True` returns only the `DRIFT_CODES` subset, downgraded to warnings —
-    the same shape `background_issues(post_lock=True)` uses. Human's ruling
-    2026-08-17: a character holding a benefit they no longer qualify for should be
-    told, but the story can legitimately create the state, so it is not an error.
+    the same shape `background_issues(post_lock=True)` uses. The story can make this
+    state, thus it is not an error (human's ruling).
 
     ⚠ Post-lock the gates read LIVE traits, not the snapshot. The snapshot holds the
     values as they were AT the lock, so a snapshot read would re-check what was
@@ -74,12 +71,9 @@ def merit_issues(ruleset: RuleSet, character: Character, *,
     backgrounds = snap.backgrounds if snap else character.backgrounds
 
     for purchase in character.merits_flaws:
-        # A player-authored "Custom" row (2026-08-10) has no catalogue entry by
-        # design — display-only, no mechanical effect. Nothing about it is checkable
-        # here, so it is skipped entirely rather than reported as merit-unknown. The
-        # discriminator is the EMPTY merit_id (set at creation, never edited by the
-        # name input) — not custom_name, which the player can blank and must not
-        # turn back into a merit-unknown error.
+        # Skip a player-authored "Custom" row: it has no catalogue entry. ⚠ The
+        # discriminator is the EMPTY merit_id, not custom_name, which the player can
+        # blank.
         if not purchase.merit_id:
             continue
         definition = ruleset.merits_flaws.get(purchase.merit_id)
@@ -467,17 +461,12 @@ def pool_requires_unlocking(ruleset: RuleSet, character: Character) -> bool:
 
 
 def magic_gate_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """A splat whose Essence pool must be UNLOCKED (see `pool_requires_unlocking` —
-    the God-Blooded's pool comes from the Awakened Essence Merit, PG p.66) may not
-    hold Charms, spells, or Essence above its start until the pool is unlocked:
-    p.49, "Only God-Blooded with the Awakened Essence Merit may purchase or increase
-    magical Traits."
+    """Check a splat whose Essence pool must be UNLOCKED (`pool_requires_unlocking`;
+    PG p.66): no Charms, spells, or Essence above the start until the pool is unlocked
+    (p.49). The buy path refuses the same purchases (learn_charm/learn_spell).
 
-    Mortals are deliberately skipped (`charms_available` False) — their bars already
-    live in charm_matches_splat and essence_start_cap, and this would double-report
-    the same Charm. God-Blooded hold Charms freely once unlocked (charms_available
-    True), so this gate is what stops an Awakened-Essence-less build from keeping the
-    seven-BP Charms. Mirrors the advancement-side refusal in learn_charm/learn_spell."""
+    Mortals are skipped (`charms_available` False): charm_matches_splat and
+    essence_start_cap already bar them, and this would report the same Charm again."""
     exalt = ruleset.exalt_for(character.exalt_type)
     if not pool_requires_unlocking(ruleset, character) or not exalt.charms_available:
         return []

@@ -108,17 +108,11 @@ def test_weather_working_has_its_full_dot_ladder(ruleset):
 # --------------------------------------------------------------------------- #
 
 def test_alchemy_tops_out_at_five_like_every_other_science(ruleset):
-    """**REVERSES the 2026-07-29 ruling**, which read the printed ladder literally
-    (1-2-3-4 then SIX, no five-dot rung) and said "never renumber the six-dot rung down
-    to close it". The human reversed that 2026-07-30 on a report from a player familiar
-    with the system: the printed 6 is a typographical error for 5.
+    """The Alchemy six-dot rung is a typo for five (human's ruling). See
+    `test_the_typo_reading_resolves_every_alchemy_anomaly`.
 
-    The internal evidence agrees, which is why the reversal was accepted — see
-    `test_the_typo_reading_resolves_every_alchemy_anomaly` below.
-
-    This is a DELIBERATE departure from the printed page (decision 0001 normally forbids
-    exactly this), recorded in the Science's own `description` so it cannot be quietly
-    "corrected" back by a later session reading the book."""
+    ⚠ A DELIBERATE departure from the page (decision 0001), recorded in the
+    `description` of the Science. Do not "correct" it from the book."""
     alchemy = ruleset.thaum_sciences["science.alchemy"]
     assert alchemy.max_rating == 5
     assert [lv.rating for lv in alchemy.levels] == [1, 2, 3, 4, 5]
@@ -171,16 +165,11 @@ def test_the_pg_chapter_prints_five_rituals_as_eight_purchasable_ids(ruleset):
 
 
 def test_the_book_of_bone_and_ebony_minor_rituals(ruleset):
-    """BoBE pp.118-119, "Not Quite Necromancy" — three thaumaturgic rituals a MORTAL
-    can use to achieve necromancy-like effects. Found 2026-08-14 by the human, after a
-    gap scan that structurally could not see them: rituals print no stat block at all
-    (the model says so), so a detector keyed on `Cost:` / `Prerequisite Charms:` lines
-    has nothing to match.
+    """BoBE pp.118-119, "Not Quite Necromancy": three rituals that a MORTAL can use.
+    Rituals print no stat block, thus a scan for `Cost:` lines cannot find them.
 
     ⚠ **Obstinate Crumbs has no heading of its own.** It is introduced mid-paragraph
-    inside Garrote and Murder Mansion's description — "There is another ritual called
-    Obstinate Crumbs (Ritual •••)". A heading-based sweep misses it even when looking
-    for rituals specifically.
+    in the description of Garrote and Murder Mansion.
     """
     bobe = {r.name: r for r in ruleset.thaum_rituals.values()
             if r.source.book == "Book of Bone and Ebony"}
@@ -324,7 +313,7 @@ def test_duplicate_orientations_collapse():
 
 
 def test_a_ritual_may_be_custom_instead_of_catalogued():
-    """Catalogue + custom (human's call, 2026-07-29) — the book prints five rituals
+    """Catalogue + custom (human's ruling) — the book prints five rituals
     and expects STs to write more."""
     entry = RitualEntry(name="Grandmother's Hearth-Blessing", level=2,
                         description="A homebrew ward against kitchen fires.")
@@ -369,7 +358,7 @@ def test_every_shipped_splat_may_use_thaumaturgy_at_normal_cost(ruleset):
     """p.114 — the Exalted learn it "without any difficulty". Two exceptions are
     printed: the dead cannot USE it, and spirits pay double.
 
-    The dead arrived 2026-08-01 with the Ghost splat, so `thaumaturgy_usable` now has
+    The dead arrived with the Ghost splat, so `thaumaturgy_usable` now has
     a real consumer. The spirit multiplier still has none — no playable spirit splat
     exists — so it stays on the default for every shipped row.
 

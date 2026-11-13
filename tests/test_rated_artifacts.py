@@ -8,7 +8,7 @@ expressed while the build had only a summed Artifact Background:
   * Damaged Artifact's limit is "the rating of the artifact it modifies", per-item.
 
 See docs/status/rated-artifacts.md. The tier-1 soak reading (−1 lethal AND −1 bashing,
-rather than one point shared) is the human's ruling of 2026-08-02.
+rather than one point shared) is human's ruling.
 
 ⚠ These tests exercise the BUY PATH, not just the effect — the recurring bug in this
 build is a rule that is implemented but sits where it does not run. So the Damaged
@@ -90,7 +90,7 @@ def test_unnamed_and_mundane_rows_are_not_artifacts():
 
 
 def test_zeroing_the_artifact_column_makes_a_dual_nature_device_mundane(rs):
-    """Human's ruling 2026-08-08: a dual-nature device needs no toggle — the player
+    """human's ruling: a dual-nature device needs no toggle — the player
     just sets the Background that was paid and zeroes the other. A Mountain Folk
     crossbow (catalogue row carries BOTH "Resources •• / Artifact ••") with
     `artifact_rating` left at 2 counts toward the budget; setting it to 0 makes it
@@ -164,7 +164,7 @@ def test_renegade_abyssals_use_the_core_background(rs):
     """p.131: "Renegade Abyssals use the Artifact Background found in Chapter Four:
     Traits of the main Exalted rulebook." The `Abyssal:fugitive` budget row must carry
     no `budget_tiers`, and the cascade must not hand it the loyal row's — but "uses the
-    core Background" is a RULE, not an absence of one (ruling 2026-08-13), so the
+    core Background" is a RULE, not an absence of one (human's ruling), so the
     renegade lands in the corebook branch rather than escaping the check."""
     assert rs.budgets_for("Abyssal", "fugitive").background_rules == {}
     c = _abyssal(origin="fugitive", backgrounds=[_bg("Artifact", 1)],
@@ -180,7 +180,7 @@ def test_renegade_abyssals_use_the_core_background(rs):
     ("Solar", "Dawn"), ("Lunar", "Full Moon"),
 ])
 def test_splats_with_no_artifact_rule_get_the_corebook_one(rs, splat, caste):
-    """Human ruling 2026-08-13: the corebook Artifact Background is ONE artifact rated
+    """human's ruling: the corebook Artifact Background is ONE artifact rated
     no higher than the Background, and a splat whose book alters nothing uses it. The
     multiplier splats (DB/DK/MF/Alchemical) are the ones that get several, and the
     tiered splats (loyal Abyssal, Illuminated) print their own table.
@@ -370,7 +370,7 @@ def test_acquisition_cost_respects_the_individual_cap(rs, rating, cost):
 
     p.38 prices the 4-dot tattered wings at two Abyssal Background points, reading only
     Sound Gear's "combined no higher than 5" and ignoring its "none individually above
-    Artifact 3" — its own table. The human ruled 2026-08-02 that the table wins, so the
+    Artifact 3" — its own table. The human ruled that the table wins, so the
     answer here is three, not the printed two.
     """
     assert artifacts.acquisition_cost(rs.budgets_for("Abyssal"), rating) == cost
@@ -421,7 +421,7 @@ def test_undamaged_armour_soaks_normally(rs):
 
 
 @pytest.mark.parametrize("points,lethal,bashing", [
-    (1, 7, 9),        # −1 from EACH track (human's ruling, 2026-08-02)
+    (1, 7, 9),        # −1 from EACH track (human's ruling)
     (2, 5, 7),        # the printed "six points", ruled to split 3 and 3
     (3, 0, 0),        # "the artifact is presently useless"
 ])
@@ -580,7 +580,7 @@ async def test_the_artifacts_panel_is_on_the_bar_post_lock(user) -> None:
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_a_splat_with_no_budget_TABLE_states_the_corebook_rule(user) -> None:
     """A Solar is not budgeted by a TABLE, but is governed by the corebook rule (ruling
-    2026-08-13), and the header has to say so — the player must not first learn of the
+   ), and the header has to say so — the player must not first learn of the
     one-artifact limit from a validation error raised after they picked the second.
     CHAR_ARTIFACTS_SOLAR holds Artifact 4 and one 4-dot artifact, which is legal."""
     await user.open('/artifacts-advantages-solar')
@@ -615,7 +615,7 @@ async def test_the_picker_survives_owning_no_artifacts(user) -> None:
     await user.should_see("no artifacts owned")
     # The siblings are the real assertion: a crash here blanks the whole tab. The
     # Artifacts panel is no longer one of them — it moved to the Gear tab on
-    # 2026-08-13 — so the siblings tested are the two that remain on Advantages.
+    # — so the siblings tested are the two that remain on Advantages.
     await user.should_see("Backgrounds")
     await user.should_see("Merits & Flaws")
 
@@ -636,10 +636,9 @@ async def test_a_renamed_artifact_leaves_a_labelled_stale_option(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_artifact_name_field_is_a_catalogue_combobox(user) -> None:
-    """The name field is fed from `data/artifacts.json` (the click-through wish from
-    2026-08-05). Catalogue names must be selectable, and an off-catalogue stored name
-    ("Tattered Wings") must survive as an option — the `_opts_with` guard against the
-    NiceGUI build-time crash a value-not-among-options would raise."""
+    """The name field is fed from `data/artifacts.json`. Catalogue names are
+    selectable, and an off-catalogue stored name ("Tattered Wings") stays an option:
+    `_opts_with` prevents the NiceGUI build-time crash of a value not in the options."""
     from nicegui import ui as _ui
     await user.open('/artifacts-advantages')
     await user.should_see("Tattered Wings")
@@ -650,8 +649,8 @@ async def test_the_artifact_name_field_is_a_catalogue_combobox(user) -> None:
     assert "Tattered Wings" in combobox.options          # the guard folded it in
     assert "Echo Jewel" in combobox.options              # catalogue names are offered
     assert "Myrmidon Carapace" in combobox.options
-    assert "The Jackal's Skull" in combobox.options      # the 2026-08-08 Twilight sync
-    assert "Iron Horse" in combobox.options              # the 2026-08-08 Eclipse sync
+    assert "The Jackal's Skull" in combobox.options      # the Twilight sync
+    assert "Iron Horse" in combobox.options              # the Eclipse sync
 
 
 @pytest.mark.asyncio
@@ -678,9 +677,9 @@ async def test_picking_a_catalogue_artifact_autofills_its_rating(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_a_catalogue_pick_fills_the_description_label(user) -> None:
-    """The click-through wish: a persistent description under each standalone-artifact
-    row, mirroring the Background `bg-desc` pattern. An off-catalogue name shows no
-    text; a catalogue pick shows the entry's page-vetted description."""
+    """A persistent description shows under each standalone-artifact row, as the
+    Background `bg-desc` label. An off-catalogue name shows no text. A catalogue pick
+    shows the description of the entry."""
     from nicegui import ui as _ui
     await user.open('/artifacts-advantages')
     desc = next(e for e in user.client.elements.values()
@@ -703,7 +702,7 @@ async def test_a_catalogue_pick_fills_the_description_label(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_alchemical_goods_reference_is_gone(user) -> None:
-    """The goods removal ruling (2026-08-08) pins the UI side: the Advantages tab
+    """The goods removal ruling pins the UI side: the Advantages tab
     builds without the alchemical-goods reference panel, and Godstrike Oil — the most
     distinctive of the three — does not appear anywhere on it. (The data-side pin is
     `test_the_alchemical_goods_catalogue_does_not_exist` in test_data.py.)"""
@@ -715,10 +714,8 @@ async def test_the_alchemical_goods_reference_is_gone(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_combobox_offers_the_castebook_artifacts(user) -> None:
-    """The 2026-08-08 backlog batch added ten non-gear castebook artifacts to the
-    catalogue; the name combobox must offer them (the click-through wish extends to new
-    catalogue rows — a name the dropdown doesn't offer is a name a player must type and
-    mis-price)."""
+    """The name combobox offers the ten non-gear castebook artifacts. A name that the
+    dropdown does not offer must be typed and can be mis-priced."""
     from nicegui import ui as _ui
     await user.open('/artifacts-advantages')
     await user.should_see("7/7 combined")
@@ -788,7 +785,7 @@ def test_every_catalogue_icon_resolves_in_the_font_nicegui_actually_ships() -> N
     """NiceGUI ships two icon fonts and a bare name resolves against the OLDER one,
     Material Icons. A Symbols-only name renders as nothing at all — no error, no
     fallback — which is how every melee weapon shipped with a blank where its icon
-    should be (browser, 2026-08-12). `swords` is the only Symbols-only name this build
+    should be (browser). `swords` is the only Symbols-only name this build
     wants, and it must keep Quasar's `sym_o_` prefix."""
     from exalted_builder.ui import catalogue as cataloguemod
     assert cataloguemod.icon_for(["melee"]) == "sym_o_swords"
@@ -901,7 +898,7 @@ def test_the_mountain_folk_manse_carries_two_levels_per_dot(rs) -> None:
 
 
 def test_a_demesne_grows_no_hearthstones(rs) -> None:
-    """The human's ruling, 2026-08-12: rather than model S&S p.66's Demesne stones
+    """human's ruling: rather than model S&S p.66's Demesne stones
     (one level weaker, and they decay once removed), a row flipped to Demesne simply
     produces none."""
     from exalted_builder.models.character import HearthstoneEntry
@@ -986,7 +983,7 @@ async def test_picking_a_hearthstone_records_its_rating(user) -> None:
 async def test_a_demesne_row_keeps_its_toggle_but_loses_the_picker(user) -> None:
     """The permission must move the OFFER as well as the bar, and it must be
     reversible — hiding the toggle along with the picker would strand the row as a
-    Demesne with no way back (the mortal-Artifact lesson, 2026-08-12)."""
+    Demesne with no way back (the mortal-Artifact lesson)."""
     await user.open('/manse-demesne')
     await user.should_see("Manse")
     pickers = [e for e in user.client.elements.values()
@@ -1031,11 +1028,8 @@ async def test_raising_the_manse_moves_the_hearthstone_denominator(user) -> None
     the DENOMINATOR when the Manse rating changes, because a bigger Manse legalises a
     stone that was over budget a moment ago.
 
-    Found in the browser (2026-08-12): the allowance was computed once when the row was
-    built and captured in the closure, so raising the Manse moved the printed rung and
-    left the total insisting the row was still over. The suite could not see it — every
-    test until this one read the total on a freshly built panel, which is exactly the
-    phase the stale value agrees with."""
+    ⚠ Read the total after a change, not on a new panel: a captured allowance agrees
+    with a new panel."""
     await user.open('/manse-raise')
     await user.should_see("Hearthstones: 4 / 3 levels")
     # `.clear()` first — `.type()` APPENDS, and typing "5" into a field holding "3"
@@ -1045,14 +1039,11 @@ async def test_raising_the_manse_moves_the_hearthstone_denominator(user) -> None
 
 
 def test_a_splat_whose_rule_lives_only_on_its_ORIGIN_rows_is_not_given_the_corebook(rs):
-    """The Mountain Folk cascade has no base row — only `Mountain-Folk:enlightened`
-    and `:unenlightened`, both carrying the doubled rule. A Mountain Folk who has not
-    chosen an Enlightenment yet resolves to NO rule, and the corebook fallback would
-    hand them a one-artifact limit their own book overrides.
+    """The Mountain Folk have no base row, only `Mountain-Folk:enlightened` and
+    `:unenlightened`. A Mountain Folk with no Enlightenment resolves to NO rule.
 
-    ⚠ This is the regression the fallback introduced: before the corebook default, a
-    missing rule meant no check and this character was merely unvalidated. Silence is
-    the right answer for a half-built character; the wrong rule is not.
+    ⚠ The corebook fallback must not apply then: it would enforce a rule that their
+    own book overrides. No check is the correct answer for an incomplete character.
     """
     def _codes(**kw):
         c = Character(id="mf", exalt_type="Mountain-Folk", caste="artisan",
@@ -1090,7 +1081,7 @@ def test_dragon_kings_read_their_OWN_artifact_entry_not_the_dragon_blooded_one(r
     nothing caught it. Correct behaviour, borrowed mechanism.
 
     The ladder is still the DB one, via `ladder_from`, because the page's own
-    cross-reference points there (human's call 2026-08-13).
+    cross-reference points there (human's ruling).
     """
     entries = [b for b in rs.backgrounds_for("Dragon-Kings", "ancient")
                if b.name == "Artifact"]
@@ -1110,7 +1101,7 @@ def test_dragon_kings_read_their_OWN_artifact_entry_not_the_dragon_blooded_one(r
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_background_row_states_what_its_dots_BUY(user) -> None:
     """The link that survived the split. The Artifacts panel moved to the Gear tab on
-    2026-08-13, so the cross-panel refresh hook that kept its header in step with the
+   , so the cross-panel refresh hook that kept its header in step with the
     Background rating is gone — two tabs render separately and there is nothing to
     refresh. What replaced it is this note on the Background row itself, driven by the
     same `_sync` the rung text uses.
@@ -1132,7 +1123,7 @@ async def test_the_background_row_states_what_its_dots_BUY(user) -> None:
 # had raised its rating, so it passed or failed on test ORDER: the shared-fixture trap
 # this file has hit before.)
 
-# --- the artifact/gear link (2026-08-13) ------------------------------------ #
+# --- the artifact/gear link ------------------------------------ #
 
 def test_a_granted_gear_row_is_not_a_SECOND_artifact(rs):
     """Twenty names live in both catalogues, and the artifact row carries no stats — so
@@ -1264,7 +1255,7 @@ def test_the_two_catalogues_agree_on_every_shared_artifact_rating(rs) -> None:
     assert not disagreements, "; ".join(disagreements)
 
 
-# --- the two acquisition channels (2026-08-13) ------------------------------ #
+# --- the two acquisition channels ------------------------------ #
 
 def test_a_purchased_artifact_is_not_charged_to_the_background(rs):
     """Two printed channels: the Artifact Background is the PRE-GAME one — every gear
@@ -1361,14 +1352,8 @@ async def test_the_header_says_what_the_background_did_NOT_pay_for(user) -> None
 
 
 def test_two_artifact_backgrounds_buy_TWO_artifacts(rs):
-    """⚠ Found in the browser 2026-08-13. A character holding the Artifact Background
-    TWICE at •• holds two artifacts, one per row — `background_best`'s docstring has
-    said so since 2026-07-31 ("two Artifacts at 2 dots each are two artifacts, not one
-    artifact at 4"), which is why Damaged Artifact reads the best row and not the sum.
-
-    The corebook check summed the rows instead and demanded exactly one artifact, so
-    two daiklaves on two Artifact •• rows produced "Artifact 4 permits ONE artifact
-    rated no higher than 4". The new rule agreed with neither prior ruling.
+    """⚠ Two Artifact •• rows are two artifacts, one per row (`background_best`). Two
+    daiklaves on two Artifact •• rows are legal under the corebook rule.
     """
     def _c(rows, arts):
         return Character(id="c.2r", exalt_type="Solar", caste="Dawn", essence_rating=2,
@@ -1397,24 +1382,24 @@ def test_two_artifact_backgrounds_buy_TWO_artifacts(rs):
 
 # --------------------------------------------------------------------------- #
 # Merit-gated plot devices — the Mantle of Brigid and the Sword of Ice.
-# Human's ruling 2026-08-13: the two Book of Three Circles entries that print
+# human's ruling: the two Book of Three Circles entries that print
 # "(ARTIFACT N/A)" are plot devices owned through the Legendary Artifact 10-pt
 # Merit, not through any Background.
 # --------------------------------------------------------------------------- #
 
 LEGENDARY = "mf.legendary-artifact"
 # All four `(ARTIFACT N/A)` entries in the build. The Xoanon (B&E p.104) had been
-# unauthorable since the 2026-08-11 sweep for exactly the reason the other two were,
-# and the human ruled it the same way on 2026-08-13.
+# unauthorable since the sweep for exactly the reason the other two were,
+# and the human ruled it the same way.
 #
-# The Iron Puzzle Box (Kingdom of Halta p.93) joined them 2026-08-14, on the same
+# The Iron Puzzle Box (Kingdom of Halta p.93) joined them, on the same
 # ruling, when Group A of the content re-triage was read. ⚠ It is the standing proof
 # that "no `(ARTIFACT N/A)` entry remains unauthored" is a claim about the books READ
 # SO FAR, never about the game: a book nobody has extracted yet can hold a fifth. It
 # was held back for the human's call rather than authored on the pattern, because the
 # ruling had been given per-entry each time and a plot device charged to no budget is
 # not a decision to make on someone's behalf.
-# The **Eye of Autochthon** (Storyteller's Companion p.80) joined 2026-08-14, and it is
+# The **Eye of Autochthon** (Storyteller's Companion p.80) joined, and it is
 # the entry the whole channel was named after: the Legendary Artifact Merit's own text
 # cites "the Mantle of Brigid or the Eye of Autochthon" as its two examples, and the
 # artifact's own System paragraph says its active powers "may be summarized as 'plot
@@ -1529,7 +1514,7 @@ async def test_the_inventory_prints_N_A_rather_than_five_dots(user) -> None:
 
 
 # --------------------------------------------------------------------------------------
-# The `attunement` backfill (2026-09-07). Every value was parsed out of the row's own
+# The `attunement` backfill. Every value was parsed out of the row's own
 # transcribed description; these guard the two ways that pass could be wrong.
 # --------------------------------------------------------------------------------------
 
@@ -1571,7 +1556,7 @@ def test_no_gear_statblocked_artifact_carries_its_own_attunement(rs):
 def test_the_two_ruled_in_daiklave_costs(rs):
     """⚠ Neither 5 is off a page. The Wavecleaver Daiklaive (Savage Seas p.126) and the
     Direlance (core p.342's table) are daiklave-family weapons whose own pages print no
-    attunement cost, and the human ruled 2026-09-07 that they take the family's 5. Pinned
+    attunement cost, and the human ruled that they take the family's 5. Pinned
     here because an inference from a sibling is the kind of value a later session
     "corrects" — the notes on both rows say the same thing."""
     assert rs.weapon_catalog["weapon.melee.wavecleaver-daiklaive"].attunement == 5
@@ -1580,7 +1565,7 @@ def test_the_two_ruled_in_daiklave_costs(rs):
 
 def test_the_ruled_zero_attunement_rows(rs):
     """⚠ The MIRROR of the ruling above, and the more fragile direction. Three complete
-    entries print no commitment anywhere, and the human ruled 2026-09-09 that no printed
+    entries print no commitment anywhere, and the human ruled that no printed
     attunement means 0 — for the Forge-Hand Gauntlets (Aspect Book: Fire, pp.80-81), then
     for the other two by name. Each 0 is a RULING, not an unauthored blank, and it is
     stored as an ABSENT field — so nothing on the row distinguishes it from one whose page

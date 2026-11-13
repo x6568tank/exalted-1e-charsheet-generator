@@ -222,7 +222,7 @@ def test_main_installs_the_gate_and_the_quota_before_the_server_runs(root: Path,
 
 
 def test_the_session_cookie_is_secure_and_host_only() -> None:
-    """The human's ruling, 2026-09-11: the cookie is HTTPS-only.
+    """human's ruling: the cookie is HTTPS-only.
 
     ⚠ The `__Host-` prefix is what stops a sibling subdomain (the operator runs
     several) from planting a session id. The browser enforces it only with Secure,

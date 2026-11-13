@@ -323,15 +323,9 @@ def test_trait_line_round_trips():
 # --------------------------------------------------------------------------- #
 # The dead-field guard
 #
-# This build's most-repeated bug is a value written by one side and read by
-# nobody. It happened again here during preflight: `powers`, `combat_pool` and
-# `cost_to_dematerialize` were authored into the catalogue, printed on no card,
-# and — worse — absent from the editor, so opening and saving any spirit or extra
-# silently wiped them.
-#
-# These two tests make the whole class impossible to reintroduce: every stat
-# field must be BOTH editable and displayed. A new field fails them until it is
-# wired to both ends.
+# Each stat field must be BOTH editable and displayed. A field missing from the
+# editor is lost when an entry is opened and saved. A new field fails these tests
+# until both ends use it.
 # --------------------------------------------------------------------------- #
 
 # Everything that is not a printed stat: identity, provenance, tracked state.

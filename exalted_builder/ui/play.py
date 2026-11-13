@@ -59,9 +59,9 @@ _MARK_COLOR = {
 # nothing here knows which page it is drawing on, and none of it is game logic.
 # --------------------------------------------------------------------------- #
 
-# ⚠ The mutators moved to `engine/play.py` on 2026-08-22 and are RE-EXPORTED here: two
-# shells drive them now, and `ui/gm.py` imports several by name off this module. The
-# engine copy carries decision 0006's isolation rule.
+# ⚠ The mutators are defined in `engine/play.py` and RE-EXPORTED here: `ui/gm.py`
+# imports several by name from this module. The engine copy has the decision 0006
+# isolation rule.
 play_state = engineplay.play_state
 normalize_health = engineplay.normalize_health
 cycle_mark = engineplay.cycle_mark
@@ -593,10 +593,9 @@ def build_play(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                             count_box(character, i, i < cur.limit, "limit", lim_max,
                                       body.refresh)
                     if lim_max < merits.LIMIT_MAX:
-                        # Two different causes, and the ST needs to know which: a Flaw
-                        # shortened the track outright, or permanent Resonance is
-                        # occupying part of it (ruled 2026-07-31 — permanent is headroom
-                        # off the maximum, not a rating riding alongside).
+                        # Two causes, and the ST needs to know which: a Flaw shortened
+                        # the track, or permanent Resonance uses part of it (human's
+                        # ruling).
                         why = []
                         if character.limit_permanent:
                             why.append(f"{character.limit_permanent} permanent")

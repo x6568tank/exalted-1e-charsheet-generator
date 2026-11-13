@@ -1,15 +1,10 @@
 """`engine.charm_actions` — the shared Charm/spell/variant-menu purchase dispatchers.
 
-These used to be closures inside `ui/picker.py`, and the Qt port copied them by hand.
-The copies drifted immediately: the web picker grew a variant menu for Ox-Body and
-Deadly Beastman Transformation, and the Qt copy — which toggles straight from a node
-click, with no detail-card branch in front of it — would have appended the package
-Charm's id into `character.charms`, a purchase the engine cannot price or validate.
-
-So the interesting tests here are the variant-menu refusals: they are what makes the
-shape safe for a shell that has no widget-level guard. The rest pin the lock dispatch
-(a chargen list edit before, an XP purchase after) and the refusal type, which both
-shells catch to turn into a notification.
+Both shells use these functions. The variant-menu refusals are the important tests:
+the Qt shell toggles from a node click with no widget-level guard, and a package
+Charm id in `character.charms` cannot be priced or validated. The other tests pin the
+lock dispatch (a chargen list edit before, an XP purchase after) and the refusal type,
+which both shells catch to show a notification.
 """
 from pathlib import Path
 

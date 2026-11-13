@@ -91,7 +91,7 @@ async def test_no_row_offers_a_named_roll_to_fill_its_count(user: User) -> None:
     await user.should_see("Stunts, difficulty and Charms are yours")
 
 
-# --- choosing who rolls, and how many times (human's ask, 2026-09-09) -------
+# --- choosing who rolls, and how many times (human's ruling) -------
 
 def _checkboxes(user: User):
     from nicegui.elements.checkbox import Checkbox

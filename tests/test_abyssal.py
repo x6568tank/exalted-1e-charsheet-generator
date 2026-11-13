@@ -34,7 +34,7 @@ def test_abyssal_exalt_row(rs):
     assert ab.magic_track == "necromancy"          # deathknights work Necromancy, not Sorcery
     assert ab.caste_noun == "Caste"                # Abyssals keep the Solar "Caste" noun
     # NOTHING is barred at creation: the Abyssal book states no chargen restriction on
-    # Void-Circle necromancy (rules-authority confirmed 2026-07-19), unlike Solars who
+    # Void-Circle necromancy (rules-authority confirmed), unlike Solars who
     # are barred from the Solar Circle.
     assert ab.highest_magic_circle_id == ""
     assert ab.ox_body_charm_id == "abyssal.endurance.ox-body-technique"
@@ -270,14 +270,13 @@ def test_abyssal_necromancy_spells_authored(rs):
     by_circle = {}
     for s in rs.spells.values():
         by_circle.setdefault(s.circle, []).append(s)
-    # 2026-08-11: Book of Bone and Ebony — the Arcanoi/necromancy book — was extracted
+    #: Book of Bone and Ebony — the Arcanoi/necromancy book — was extracted
     # and its 59 necromancy spells authored, roughly tripling these circles. The counts
     # are the E:Ab originals plus that batch (docs/status/spell-batch-notes.md).
     assert len(by_circle[SpellCircle.SHADOWLANDS]) == 42
     assert len(by_circle[SpellCircle.LABYRINTH]) == 24
-    # +1 on 2026-08-14: Oblivion's Avatar (Book of Bone and Ebony p.102), found by the
-    # transcribed-book gap scan. Its heading is a SHATTERED HEADING in the extract —
-    # the marker itself records the name, which is why it was authorable.
+    # +1: Oblivion's Avatar (Book of Bone and Ebony p.102). Its heading is a SHATTERED
+    # HEADING in the extract; the marker records the name.
     assert len(by_circle[SpellCircle.VOID]) == 18
     # a known spell of each circle
     assert "spell.shadowlands.summon-ghost" in rs.spells

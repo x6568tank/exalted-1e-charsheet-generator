@@ -29,7 +29,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 _DATA_DIR = _ROOT / "exalted_builder" / "data"
 _STYLES_JSON = _DATA_DIR / "martial_arts_styles.json"
 
-#: The human ruled this CORRECT AS PRINTED, 2026-08-14. "Blessing of Righteous Solar
+#: The human ruled this CORRECT AS PRINTED. "Blessing of Righteous Solar
 #: Spark Meditation" (PG p.255) sits in a Type: Celestial style but its own text
 #: names the Solar Exalted, so it is genuinely narrower than the style around it.
 #: Recorded as data because a bare inconsistency reads as an authoring slip forever
@@ -141,16 +141,12 @@ def test_styles_are_keyed_by_id_and_have_one_category_each(ruleset):
 
 
 def test_authored_styles_carry_something_printed_and_an_attribution(ruleset):
-    """An entry with nothing in it is an empty row that makes the catalogue look
-    complete, so every style must carry at least one of the three printed things.
+    """Each style carries at least one of the three printed things. An empty entry
+    makes the catalogue look complete.
 
-    ⚠ This test used to demand `tier` AND a 200-character `preamble`, which the
-    Phase-1 four happened to satisfy because all four come from the Player's Guide
-    — the one book that prints a `Type:` line and prose for every style. Phase 2
-    found that most books print NEITHER: eleven styles have only a "Weapons and
-    Armor" sidebar above the Charm list (Tiger, Ebon Shadow, the five Dragon Paths,
-    Violet Bier). Tightening this back would force a tier to be invented from
-    memory, which decision 0001 forbids.
+    ⚠ Do not demand `tier` AND `preamble`: most books print neither (Tiger, Ebon
+    Shadow, the five Dragon Paths, Violet Bier have only a "Weapons and Armor"
+    sidebar). A required tier would have to come from memory (decision 0001).
     """
     for style in ruleset.martial_arts_styles.values():
         assert style.tier or style.preamble or style.mechanics, \
@@ -356,7 +352,7 @@ async def test_a_style_with_rules_but_no_prose_renders_no_empty_label(user) -> N
 
 
 # --------------------------------------------------------------------------- #
-# Access: the PG p.235 rules, added 2026-08-14
+# Access: the PG p.235 rules, added
 # --------------------------------------------------------------------------- #
 
 def _char(splat, caste="", charms=()):
@@ -441,7 +437,7 @@ def test_a_lunar_may_never_learn_sidereal_martial_arts(ruleset):
 
 
 def test_snake_and_tiger_are_celestial_styles(ruleset):
-    """The human's ruling, 2026-08-14: Snake and Tiger are Celestial styles, open to
+    """human's ruling: Snake and Tiger are Celestial styles, open to
     the Celestial Exalted and to Dragon-Blooded who hold an initiation pair.
 
     Printed support beyond the PG p.236 `Examples:` line that names both: Sidereals
@@ -463,7 +459,7 @@ def test_snake_and_tiger_are_celestial_styles(ruleset):
 
 
 def test_no_second_style_label_generator_disagrees_with_the_authored_name(ruleset):
-    """⚠ FOUND IN THE CLICK-THROUGH, 2026-08-14. `view._style_label` was taught to
+    """⚠ FOUND IN THE CLICK-THROUGH. `view._style_label` was taught to
     prefer the authored style name — and the picker's category DROPDOWN kept its own
     independent generator, `picker._pretty`, which title-cased the slug. So the
     preamble panel said "Mantis Style" while the dropdown above it said

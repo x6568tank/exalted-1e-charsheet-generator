@@ -165,7 +165,7 @@ def test_narrowed_specialty_costs_half_rounded_up():
 def test_science_bp_is_five_then_seven_a_dot(rating, bp):
     """5 for the first dot, 7 for each after. NOT from the printed tables — those
     omit Sciences entirely, which is a printing error Grabowski cleared up later;
-    the rate comes from the rules authority (human, 2026-07-29)."""
+    the rate comes from the rules authority (human's ruling)."""
     c = _character(sciences=[ScienceRating(science_id="science.alchemy", rating=rating)])
     line = next(ln for ln in validate.bonus_point_breakdown(_ruleset(), c).lines
                 if ln.domain == "Thaumaturgy")
@@ -726,7 +726,7 @@ def test_a_level_three_ritual_is_exactly_at_the_cap():
 
 
 def test_grant_is_frozen_at_lock_and_does_not_follow_xp():
-    """Rules-authority call (human, 2026-07-29): raising Occult with XP earns no
+    """Rules-authority call (human's ruling): raising Occult with XP earns no
     further free picks. The snapshot holds chargen Occult, so this falls out."""
     rs, c = _ruleset(), _mfe(occult=2)
     lifecycle.lock_chargen(c)

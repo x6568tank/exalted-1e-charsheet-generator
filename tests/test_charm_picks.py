@@ -1,11 +1,9 @@
 """`engine.validate.charm_picks` — the one canonical Charm-pick enumeration.
 
-A repeatable Charm (Ox-Body Technique, Deadly Beastman Transformation) and a training
-camp's granted Charms each live on their OWN `Character` list, not in
-`character.charms`. Every consumer that walked `character.charms` used to special-case
-each list by hand, and four separately failed to when Gifts landed. These tests pin the
-enumeration and, more importantly, pin that the UI's Charm rows and pick counters agree
-with it — so a fifth list is one change in the engine, not a scavenger hunt.
+A repeatable Charm (Ox-Body Technique, Deadly Beastman Transformation) and the granted
+Charms of a training camp are on their OWN `Character` lists, not in
+`character.charms`. These tests pin the enumeration, and that the UI Charm rows and
+pick counters agree with it. A new list is then one change in the engine.
 """
 from pathlib import Path
 
@@ -115,9 +113,8 @@ def test_the_sheet_renders_exactly_one_row_per_pick_in_pick_order(rs):
 
 
 def test_the_pick_counters_agree_with_the_engine(rs):
-    """The picker's and editor's chargen headers both report a pick count. They used to
-    add the lists up independently; both now read `charm_pick_count`, so this asserts
-    the number they show — 3 picks, with the granted Charm free."""
+    """The picker and editor chargen headers both read `charm_pick_count`: 3 picks,
+    with the granted Charm free."""
     c = _kitchen_sink(rs)
     assert validate.charm_pick_count(rs, c) == 3
     assert len(validate.charm_picks(rs, c)) == 4      # the granted one is still listed
@@ -128,8 +125,7 @@ def test_the_pick_counters_agree_with_the_engine(rs):
 # --------------------------------------------------------------------------- #
 
 def test_every_pool_counting_pick_is_priced_once_and_granted_picks_are_free(rs):
-    """`bonus_point_breakdown` used to build its own pick list to price. Now it prices
-    the canonical one, so a new list is priced the moment it is enumerated."""
+    """`bonus_point_breakdown` prices the canonical pick list."""
     c = _kitchen_sink(rs)
     picks = validate.charm_picks(rs, c)
     costs = validate.charm_pick_bp_costs(rs, c, picks)
@@ -149,7 +145,7 @@ def test_an_unresolvable_pick_is_listed_but_not_priced(rs):
 
 
 def test_a_calling_discount_now_reaches_a_repeatable_purchase(rs):
-    """RULES-AUTHORITY CALL, CONFIRMED 2026-07-29: the Paladin Calling's discount list
+    """RULES-AUTHORITY CALL, CONFIRMED: the Paladin Calling's discount list
     (Cult of the Illuminated p.91) names Ox-Body Technique by id, so an Ox-Body
     PURCHASE is a Calling Charm and pays the Calling rate — "if it says it should be
     discounted, discount it". Every purchase, not just the first; the page says nothing
@@ -169,7 +165,7 @@ def test_a_calling_discount_now_reaches_a_repeatable_purchase(rs):
 
     bp = rs.bonus_costs_for("Solar")
     (cost,) = validate.charm_pick_bp_costs(rs, c, validate.charm_picks(rs, c))
-    assert cost == bp.calling_charm          # not bp.charm, which is what it used to be
+    assert cost == bp.calling_charm          # not bp.charm
 
 
 def test_chargen_pricing_reads_the_snapshot_not_the_xp_purchases(rs):

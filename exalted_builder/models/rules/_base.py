@@ -76,51 +76,39 @@ class CharmType(str, Enum):
     EXTRA_ACTION = "Extra Action"
     PERMANENT = "Permanent"
     SPECIAL = "Special"        # e.g. Ox-Body Technique (repeatable, permanent effect)
-    ENCHANTMENT = "Enchantment"   # Mountain Folk only (CH6 p.244): a simple Charm whose
-    # effect outlasts the instant but needs no committed Essence to sustain — "the new
-    # 'enchantment' type ... treated as simple Charms with a duration longer than
-    # instant. However, characters need not commit Essence to sustain these ongoing
-    # effects." Roughly half the Mountain Folk Charms are enchantments.
-    SIMPLE_ENCHANTMENT = "Simple/Enchantment"   # Living Earth Meditation (CH6 p.264),
-    # the one Charm the book prints with a dual Type — usable as either a Simple or an
-    # Enchantment. One entry; kept as a distinct value rather than collapsed, because
-    # the page prints it and the picker should too.
+    ENCHANTMENT = "Enchantment"   # Mountain Folk only (CH6 p.244): a simple Charm with
+    # a duration longer than instant, and no committed Essence.
+    SIMPLE_ENCHANTMENT = "Simple/Enchantment"   # Living Earth Meditation (CH6 p.264):
+    # the one Charm with a dual Type.
 
 
 class SpellCircle(str, Enum):
-    # Sorcery circles — ascend earth->Heaven (core p.191).
+    # Sorcery circles, in ascending order (core p.191).
     TERRESTRIAL = "Terrestrial"
     CELESTIAL = "Celestial"
     SOLAR = "Solar"
-    # Necromancy circles — the death-magic mirror of sorcery (Abyssal p.223). They
-    # DESCEND in the fiction (toward Oblivion) but grow in power Shadowlands->
-    # Labyrinth->Void, so they are ordered low-to-high power like the sorcery ones.
+    # Necromancy circles, in ascending order of power (Abyssal p.223).
     SHADOWLANDS = "Shadowlands"
     LABYRINTH = "Labyrinth"
     VOID = "Void"
-    # Alchemical weaving protocols — the Machine God's sorcery-analogue (Autochthonians
-    # CH4). Man-Machine ~ Terrestrial Circle, God-Machine ~ Celestial Circle in power.
-    # Gated ONLY by which Weaving Engine Charm is installed, exactly as the sorcery/
-    # necromancy circles are gated by their initiation Charms.
+    # Alchemical weaving protocols (Autochthonians CH4). The installed Weaving Engine
+    # Charm gates each circle.
     MAN_MACHINE = "Man-Machine"
     GOD_MACHINE = "God-Machine"
 
 
 class CircleKind(str, Enum):
-    """Which of the magic disciplines a circle belongs to. Matches
-    ExaltDefinition.magic_track. The tracks never cross-grant: a known Sorcery Charm
-    unlocks only sorcery circles, a Weaving Engine only weaving circles, etc.
-    (Abyssal p.223; Autochthonians CH4 — "Non-Alchemicals cannot learn weaving")."""
+    """The magic discipline of a circle. Matches ExaltDefinition.magic_track. A
+    Charm of one track never opens a circle of a different track (Abyssal p.223;
+    Autochthonians CH4)."""
     SORCERY = "sorcery"
     NECROMANCY = "necromancy"
     WEAVING = "weaving"
 
 
-# The three circles of each magic track, ordered ascending in power. Keyed by the
-# magic_track string on ExaltDefinition, so a splat's picker shows the right columns
-# (Solars: Sorcery; Abyssals: Necromancy). The engine's circle-access logic is
-# track-agnostic (exact-match + the initiation-Charm prerequisite chain) — this table
-# is for presentation and track membership, not access.
+# The three circles of each magic track, in ascending order, keyed by
+# ExaltDefinition.magic_track. For display and track membership only. The engine
+# access logic does not use it.
 TRACK_CIRCLES: dict[str, tuple["SpellCircle", ...]] = {
     CircleKind.SORCERY.value: (SpellCircle.TERRESTRIAL, SpellCircle.CELESTIAL, SpellCircle.SOLAR),
     CircleKind.NECROMANCY.value: (SpellCircle.SHADOWLANDS, SpellCircle.LABYRINTH, SpellCircle.VOID),
@@ -129,7 +117,7 @@ TRACK_CIRCLES: dict[str, tuple["SpellCircle", ...]] = {
 
 
 def circle_kind(circle: "SpellCircle") -> str:
-    """The magic track ('sorcery' | 'necromancy') a circle belongs to."""
+    """Return the magic track ('sorcery' | 'necromancy') of `circle`."""
     for kind, circles in TRACK_CIRCLES.items():
         if circle in circles:
             return kind
@@ -140,67 +128,47 @@ class Source(BaseModel):
     book: str = "Core"
     page: Optional[int] = None
 class Damage(str, Enum):
-    """A mark in a health-track box. The 1e shorthand: '/' bashing, 'x' lethal,
-    '*' aggravated. (Empty boxes are None.)
-
-    Shared vocabulary: the character marks damage in its health track, and a Charm
-    cost may name which KIND of health level it spends. It lives here, with the other
-    enums character.py already imports, rather than in a module of its own.
+    """A mark in a health-track box: '/' bashing, 'x' lethal, '*' aggravated.
+    An empty box is None. A Charm cost can also name the kind of health level.
     """
     BASHING = "/"
     LETHAL = "x"
     AGGRAVATED = "*"
-# Display names, for anywhere the shorthand glyph alone would not read.
+# Display names for the glyphs.
 DAMAGE_LABELS = {
     Damage.BASHING: "bashing",
     Damage.LETHAL: "lethal",
     Damage.AGGRAVATED: "aggravated",
 }
 class AbilityMinimum(BaseModel):
-    """A required minimum in one of a set of Abilities (OR semantics): the character
-    must have at least `rating` in AT LEAST ONE of `abilities`. A single-element list
-    is a specific-ability floor. Used for the Dragon-Blooded Dynastic schooling
-    minimums (p.151) and the Sidereal per-house minimums (p.98) — these are a floor
-    spent from the pool, NOT free extra dots."""
+    """An Ability floor with OR semantics: the character must have `rating` in at
+    least one of `abilities`. Dragon-Blooded p.151, Sidereal p.98. ⚠ Spent from the
+    pool, not free dots."""
     model_config = ConfigDict(frozen=True)
     abilities: list[AbilityName]
     rating: int = Field(ge=1)
 class AbilityGroupMinimum(BaseModel):
-    """A required minimum SUM across a GROUP of Abilities: the character's combined
-    rating across all of `abilities` must be at least `rating`. AbilityMinimum is
-    OR semantics (one of a set); this is sum-over-set, a different shape the
-    Mountain Folk Artisan's College of Divine Enlightenment schooling demands —
-    "an absolute minimum of ... •• divided among Craft Abilities" (CH6 p.230). A
-    single-element group is the same as an AbilityMinimum, so groups are only used
-    where the printed floor is explicitly "divided among" several Abilities. The
-    floor is spent from the pool, NOT free extra dots, like AbilityMinimum."""
+    """An Ability floor on a SUM: the total of `abilities` must be at least `rating`
+    (CH6 p.230). ⚠ Spent from the pool, not free dots."""
     model_config = ConfigDict(frozen=True)
     abilities: list[AbilityName]
     rating: int = Field(ge=1)
 class AttributeMinimum(BaseModel):
-    """The Attribute mirror of AbilityMinimum: the character must have at least
-    `rating` in AT LEAST ONE of `attributes` (OR semantics; a single-element list is a
-    specific-Attribute floor).
+    """An Attribute floor with OR semantics: the character must have `rating` in at
+    least one of `attributes`.
 
-    Its own type rather than a widened AbilityMinimum, because AbilityMinimum is also
-    the Dragon-Blooded/Sidereal chargen schooling minimum — those consumers budget
-    ABILITY dots and must not be handed an Attribute.
-
-    Distinct from `Charm.min_attribute`, which RETARGETS the primary `min_ability`
-    gate at an Attribute for the Attribute-keyed splats (Lunar, p.122) and therefore
-    feeds pricing and the Caste/Favoured discount. These are pure additional
-    requirements and feed neither, exactly like `extra_min_abilities`.
+    ⚠ Not an AbilityMinimum: the chargen schooling code reads AbilityMinimum as
+    Ability dots. Not `Charm.min_attribute` (Lunar, p.122), which sets the primary
+    gate and the price. This is a requirement only.
     """
     model_config = ConfigDict(frozen=True)
     attributes: list[AttributeName]
     rating: int = Field(ge=1)
 class BackgroundBudgetTier(BaseModel):
-    """One row of a Background that BUYS A BUDGET rather than rating a trait directly
-    (`BackgroundRule.budget_tiers`, `BackgroundType.hearthstone_tiers`).
+    """One row of a Background that buys a budget (`BackgroundRule.budget_tiers`,
+    `BackgroundType.hearthstone_tiers`).
 
-    The Abyssal Artifact Background (E:Ab p.131) is the first of these and the reason
-    the shape exists: its dots do not describe how good your artifact is, they buy a
-    pool of combined artifact rating plus a ceiling on any single item —
+    E:Ab p.131, the Abyssal Artifact Background:
 
         •     Trinkets            combined ≤ 3
         ••    Sound Gear          combined ≤ 5,  none individually above 3
@@ -208,51 +176,35 @@ class BackgroundBudgetTier(BaseModel):
         ••••  Supremely Appointed combined ≤ 10, no individual ceiling
         ••••• Divine Regalia      combined ≤ 13, no individual ceiling
 
-    `individual_max` is 0 for "no ceiling" — the two top rows print no limit "other
-    than it cannot be N/A", and an N/A artifact has no rating to record in the first
-    place (see character.ArtifactEntry). The one-dot row prints no individual cap
-    either, because a combined maximum of 3 already is one.
-
-    The per-item ceilings are ST-overridable in the text ("without Storyteller
-    permission"); they are reported as ordinary chargen issues, which is how every
-    other soft printed limit in this build behaves."""
+    `individual_max` 0 = no ceiling for one item. The engine reports a limit as an
+    ordinary chargen issue: the Storyteller can override it."""
     model_config = ConfigDict(frozen=True)
 
     rating: int = Field(ge=0, le=5)        # dots of the owning Background
     name: str = ""                         # the printed label ("Well-Equipped")
     combined_max: int = Field(default=0, ge=0)
     individual_max: int = Field(default=0, ge=0)   # 0 = no per-item ceiling
-    # How many ITEMS the row permits, where the page states a count rather than
-    # leaving it implied by the two maxima. 0 = uncounted, which is every Artifact row
-    # and every Hearthstone row but one: the Dragon-Blooded and Abyssal Manse ladders
-    # both print "She may have ONE Hearthstone of level 1 or 2" at a single dot, and
-    # the maxima alone would permit two level-1 stones instead.
+    # The printed number of items. 0 = no count (the Manse ladders print one).
     max_items: int = Field(default=0, ge=0)
 class EssencePoolSpec(BaseModel):
-    """Per-splat motes formula as data, so derive.essence_pools is a lookup, not a
-    branch. personal = essence*personal_essence_coeff + willpower*personal_willpower_coeff;
-    peripheral = essence*peripheral_essence_coeff + willpower*peripheral_willpower_coeff
-    + the Virtue term selected by `peripheral_virtue_mode`.
+    """The mote formula of a splat. derive.essence_pools reads it.
 
-      * Solar (core p.104):      3 / 7, virtue_mode "all"          (Ess×3+WP; Ess×7+WP+ΣVirtues)
-      * Dragon-Blooded (p.150-152): 1 / 4, virtue_mode "two_highest",
-        plus a Breeding-Background term added to BOTH pools (see below).
+    personal = essence*personal_essence_coeff + willpower*personal_willpower_coeff
+    peripheral = essence*peripheral_essence_coeff
+                 + willpower*peripheral_willpower_coeff + the Virtue term
+
+      * Solar (core p.104):      3 / 7, virtue_mode "all"
+      * Dragon-Blooded (p.150-152): 1 / 4, virtue_mode "two_highest", plus Breeding.
       * Lunar (p.91):            1 / 4, personal_willpower_coeff 2, virtue_mode
-        "highest" with peripheral_virtue_coeff 4 (Ess+WP×2; Ess×4+WP×2+highestVirtue×4).
+        "highest", peripheral_virtue_coeff 4.
 
-    `peripheral_virtue_mode`: "all" adds ΣVirtues (all four, Solar), "two_highest"
-    adds the sum of the two highest Virtues (Dragon-Blooded), "highest" adds only
-    the single highest Virtue (Lunar — scaled by `peripheral_virtue_coeff`, since
-    Lunar's term is ×4 rather than the ×1 every other splat uses), "none" adds
-    nothing.
+    `peripheral_virtue_mode`: "all" (sum of the Virtues), "two_highest", "highest"
+    (times `peripheral_virtue_coeff`), "none".
 
-    Some splats add a flat, Background-derived bonus to both pools that plain
-    coefficients can't express — the Dragon-Blooded Breeding Background (p.158-159).
-    `breeding_background` names that Background; `breeding_personal`/`breeding_peripheral`
-    are per-rating bonus tables indexed by the Background's rating (0..5, plus a
-    rating-6 row a Merit can reach — see engine.merits.LEGENDARY_BREEDING). Empty
-    tables (Solar) mean no such term. If a splat needs a term none of this can express,
-    STOP and ask for the page."""
+    `breeding_background` (p.158-159): the Background whose rating indexes
+    `breeding_personal` and `breeding_peripheral` (0..5, plus 6 from a Merit: see
+    engine.merits.LEGENDARY_BREEDING). These add to both pools. Empty = no term.
+    If a splat needs a term that this spec cannot express, stop and ask for the page."""
     model_config = ConfigDict(frozen=True)
     personal_essence_coeff: int
     personal_willpower_coeff: int = 1
@@ -260,28 +212,18 @@ class EssencePoolSpec(BaseModel):
     peripheral_willpower_coeff: int = 1
     peripheral_virtue_mode: str = "all"     # "all" | "two_highest" | "highest" | "none"
     peripheral_virtue_coeff: int = 1        # multiplies the selected Virtue term (Lunar: 4)
-    # Optional Background-derived additive term (DB Breeding, p.158-159).
+    # Breeding term (p.158-159).
     breeding_background: str = ""            # Background name whose rating indexes the tables
     breeding_personal: list[int] = Field(default_factory=list)     # index by rating 0..6
     breeding_peripheral: list[int] = Field(default_factory=list)
-    # A Virtue term on the PERSONAL pool. Every Exalt splat's personal pool is
-    # Essence/Willpower only, so these default to inert. They exist for the unlocked
-    # mortal (PG p.114), whose single pool is
-    #   Essence + Willpower + Conviction + (highest Virtue x 2)
-    # — a NAMED Virtue added flat alongside a scaled highest-Virtue term, which
-    # nothing else in this spec could express. `personal_named_virtue` is a
-    # VirtueName value ("conviction"); "" adds nothing.
+    # A Virtue term on the personal pool (PG p.114, the unlocked mortal).
+    # `personal_named_virtue` is a VirtueName value; "" adds nothing.
     personal_virtue_mode: str = "none"       # same vocabulary as peripheral_virtue_mode
     personal_virtue_coeff: int = 1
     personal_named_virtue: str = ""
     personal_named_virtue_coeff: int = 1
-    # Additional named Virtues added flat, the same shape as the single
-    # `personal_named_virtue`. The Dragon-Kings (PG p.177) are the first consumer:
-    # their single pool is Essence x 4 + Willpower x 2 + Conviction + Valor — TWO
-    # specific named Virtues, which no virtue_mode can express ("two_highest" is the
-    # two highest, not Conviction+Valor specifically). `_named_virtue_term` sums the
-    # single + the list, so the mortal's existing single-named-virtue formula is
-    # unchanged (the list defaults empty).
+    # More named Virtues, added flat (PG p.177). `_named_virtue_term` sums
+    # `personal_named_virtue` and this list.
     personal_named_virtues: list[str] = Field(default_factory=list)
 
     @field_validator("peripheral_virtue_mode", "personal_virtue_mode")

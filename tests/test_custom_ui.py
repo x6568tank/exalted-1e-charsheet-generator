@@ -131,7 +131,7 @@ async def test_export_downloads_every_charm_on_disk(user: User) -> None:
 async def test_export_and_the_json_pane_follow_the_kind_tab(user: User) -> None:
     """After a switch to Rituals, the export gives the ritual and the pane shows a
     ritual row. ⚠ A button or a pane that reads the kind at build time still gives
-    Charms here. The pane did give a SPELL row for a ritual until 2026-09-12."""
+    Charms here. The pane did give a SPELL row for a ritual until."""
     from nicegui import ui as _ui
 
     await user.open('/custom-content')
@@ -183,7 +183,7 @@ async def test_the_sheet_badges_custom_content_and_flags_a_missing_row(user: Use
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_ritual_library_lists_and_forms(user: User) -> None:
-    """The Rituals kind (2026-08-28). ⚠ Its fields are TEXT, not numbers — a ritual
+    """The Rituals kind. ⚠ Its fields are TEXT, not numbers — a ritual
     prints no stat block, so a cost reads "1 mote or one Willpower" (p.148-150).
 
     ⚠ This is also the guard for the LIBRARY refresh on a kind switch. The list

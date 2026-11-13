@@ -310,8 +310,8 @@ def _index(items: list[M], key: str, kind: str, problems: list[str]) -> dict:
 
 # The Essence gate on Path rating (PG p.177 "Maximum Intelligence and Path Level"):
 # dot 1 needs Essence 1, dots 2-3 Essence 2, dots 4-5 Essence 3, dot 6 Essence 6.
-# Mirrors ChargenBudgets.path_max_by_essence; this table is what the VIRTUAL Charm
-# rows carry so the Combo/sheet display agrees with the rated-track gate.
+# The VIRTUAL Charm rows carry it. ChargenBudgets.path_max_by_essence holds the same
+# gate for the rated track.
 _PATH_DOT_ESSENCE_GATE = {1: 1, 2: 2, 3: 2, 4: 3, 5: 3, 6: 6}
 
 
@@ -442,16 +442,11 @@ def _check_merits_flaws(merits: dict, problems: list[str]) -> None:
 def _check_thaumaturgy(arts, sciences, formulas, problems: list[str]) -> None:
     """Referential and structural checks for thaumaturgy.
 
-    Aspect ids must be globally unique because the character stores an ArtSpecialty
-    by (art_id, free-text name) and the UI resolves aspects by id across Arts.
+    Aspect ids must be globally unique: the character stores an ArtSpecialty by
+    (art_id, free-text name), and the UI resolves aspects by id across Arts.
 
-    A formula must belong to a real Science and must not require a rating that
-    Science cannot reach. NOTE that a formula may legitimately sit at a rating with NO
-    printed ScienceLevel, so a missing rung is never an error — that tolerance was
-    written for Alchemy, whose printed ladder skipped five while two of its formulas
-    required it. That anomaly is gone (the printed 6 was a typo for 5, human
-    2026-07-30), but the tolerance stays: it costs nothing and the next book may do the
-    same thing."""
+    A formula must belong to a real Science and must not require a rating that the
+    Science cannot reach. A rating with no printed ScienceLevel is not an error."""
     seen_aspects: dict[str, str] = {}
     for art in arts.values():
         for aspect in art.aspects:
@@ -624,24 +619,17 @@ def _load_custom_layer(
 ) -> list[str]:
     """Merge the user's custom library over the book data, in place.
 
-    Returns the problems found, which are deliberately NOT fatal: a bad row is
-    dropped and reported, and the app loads anyway. The book's own data has already
-    been link-checked and raised on by the time this runs, so anything wrong here is
-    the user's homebrew and theirs alone to fix.
+    Returns the problems found. Not fatal (decision 0012): a bad row is dropped and
+    reported. The book data is checked before this runs.
 
     Three rules, in order:
-      * the book always wins an id collision — a printed Charm must never be
-        silently replaced by homebrew that happens to reuse its id;
+      * the book always wins an id collision;
       * a custom Charm whose prerequisite group has NO satisfiable member is
-        dropped, iterated to a fixpoint because dropping one row can orphan
-        another that required it;
-      * a custom spell whose circle no Charm grants is dropped, the same check the
-        book data gets — such a spell could never legally be learned.
+        dropped, repeated to a fixpoint: one drop can orphan a different row;
+      * a custom spell whose circle no Charm grants is dropped.
 
-    Rituals (2026-08-28) need only the first of those: the sole purchase gate is
-    Occult ≥ level (p.148), which `validate.thaum_ritual_locked_reason` applies to
-    book and library rows alike, and the model already bounds the level at 1-5. There
-    is no link to dangle, so there is nothing to drop.
+    Rituals need only the first rule: the gate is Occult ≥ level (p.148,
+    `validate.thaum_ritual_locked_reason`), and the model bounds the level at 1-5.
     """
     problems: list[str] = []
 
@@ -912,11 +900,8 @@ def reload_custom_layers(ruleset: RuleSet, custom_dirs: list[str | Path]) -> lis
     for rid in [rid for rid, r in ruleset.thaum_rituals.items() if r.custom]:
         del ruleset.thaum_rituals[rid]
 
-    # ⚠ The GEAR half was missing here until 2026-08-27, while `load_ruleset` merged it
-    # from the start — so a library weapon appeared in Buy only after an app RESTART,
-    # and anything reading the catalogues after a reload saw the row as unloaded. The
-    # gap was invisible because `library_gear` had exactly one caller (the loader);
-    # nothing surfaced the list until the Custom tab grew one.
+    # ⚠ Merge the GEAR half here too, as `load_ruleset` does. Else a library weapon
+    # appears in Buy only after a restart.
     #
     # ⚠ Custom gear is identified by its TAG, not a `custom` field: `WeaponType` and
     # friends are frozen and shared with the book data (`_merge_custom_gear`).

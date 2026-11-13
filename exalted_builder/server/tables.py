@@ -73,9 +73,8 @@ CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 CODE_LENGTH = 6
 _CODE_TRIES = 20
 
-# The largest number of campaigns that one account runs (human's ruling,
-# 2026-10-10). ⚠ Each campaign folder has its own quota. Without the cap, one
-# account fills the disk.
+# The largest number of campaigns that one account runs (human's ruling). ⚠ Each
+# campaign folder has its own quota. Without the cap, one account fills the disk.
 MAX_CAMPAIGNS = 20
 
 STORYTELLER = "storyteller"

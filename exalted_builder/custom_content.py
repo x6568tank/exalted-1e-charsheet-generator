@@ -51,25 +51,16 @@ ID_PREFIX = "custom."
 CHARMS_FILE = "charms/custom-charms.json"
 SPELLS_FILE = "spells.json"
 
-# Thaumaturgic rituals (2026-08-28). The chapter prints five and says outright that
-# more should be written (p.148), so the catalogue is a seed like the gear one.
+# Thaumaturgic rituals. The chapter prints five and asks for more (p.148).
 #
-# ⚠ This is the SECOND way to author a ritual, not a replacement for the first: a
-# ritual invented for one character stays an inline `RitualEntry` bought from the
-# Thaumaturgy picker (both entry points stay — the human's ruling for custom gear,
-# 2026-08-27, applied again here). A library row is the reusable one: it enters the
-# RuleSet catalogue, is bought by id, and can be edited or deleted afterwards.
+# ⚠ The SECOND way to author a ritual: a ritual for one character stays an inline
+# `RitualEntry` from the Thaumaturgy picker (human's ruling: both entry points stay).
+# A library row enters the RuleSet catalogue, is bought by id, and can be edited or
+# deleted.
 RITUALS_FILE = "rituals.json"
 
-# The gear library (2026-08-13). Same shapes as the shipped `data/` files, so a row
-# copied out of one is a valid row here — and the same non-fatal treatment: a typo in
-# homebrew must never brick the builder.
-#
-# Gear got this late because "custom" for equipment used to mean free text on ONE
-# character: you invented a homebrew daiklave, and it existed on that sheet alone, to be
-# retyped for the next character with no way to fix a mistake everywhere. Charms and
-# spells have had the library since decision 0012; this is the same answer for the same
-# problem.
+# The gear library. The shapes of the `data/` files, thus a row copied from one is
+# valid here. Errors are not fatal (decision 0012).
 GEAR_FILES = {
     "weapons": "weapons.json",
     "armor": "armor.json",
@@ -357,16 +348,10 @@ def delete_ritual(ritual_id: str, *, custom_dir: str | Path | None = None) -> bo
 
 def delete_gear(kind: str, row_id: str, *,
                 custom_dir: str | Path | None = None) -> bool:
-    """Remove one gear row from the library. False if it was not there.
+    """Remove one gear row from the library. Return False if it was not there.
 
-    ⚠ Written well after `save_gear_row` (2026-08-27), and its absence is why the gear
-    half of the library was WRITE-ONLY: a row saved with a typo could be neither seen
-    nor removed except by hand-editing the JSON. `library_gear` had exactly one caller
-    — the loader — so nothing surfaced the list either.
-
-    A character that already owns the item is NOT rewritten, for the same reason as
-    `delete_charm`: saves carry inline COPIES of gear (decision 0007), so an owned
-    weapon keeps working and only the shop's offer goes away.
+    ⚠ A character that owns the item is NOT changed: saves carry inline COPIES of gear
+    (decision 0007). Only the shop offer goes away.
     """
     if kind not in GEAR_FILES:
         raise CustomContentError(f"unknown gear kind {kind!r}")

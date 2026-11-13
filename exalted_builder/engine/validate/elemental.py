@@ -78,10 +78,9 @@ def elemental_power_shortfalls(ruleset: RuleSet, character: Character, power) ->
 
 def elemental_power_issues(ruleset: RuleSet, character: Character,
                            power_ids: list[str]) -> list[Issue]:
-    """Legality of the character's elemental powers (PG p.68): an unknown id, an
-    origin that bars them, Essence below minimum, or a missing required Merit.
-    Mirrors merit_issues — structural only, and what a power DOES is descriptive
-    text, not modelled mechanics (decision 0008)."""
+    """Check the elemental powers (PG p.68): an unknown id, an origin that bars them,
+    Essence below minimum, or a missing required Merit. Structural only: the effect of
+    a power is text (decision 0008)."""
     issues: list[Issue] = []
     for pid in power_ids:
         power = ruleset.elemental_powers.get(pid)

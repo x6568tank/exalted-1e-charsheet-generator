@@ -682,7 +682,7 @@ async def test_enter_in_the_text_box_sends(create_user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_enter_sends_the_text_that_the_key_event_carries(create_user) -> None:
-    """🐞 2026-09-25: Enter can reach the server before the last value update of the
+    """🐞: Enter can reach the server before the last value update of the
     box. The key event carries `e.target.value`, and the page posts that."""
     _, _, table, players = await _campaign(create_user, "Ashes of Dawn")
     (player, _, _), = players
@@ -886,7 +886,7 @@ async def test_a_grant_reaches_the_object_that_the_players_page_holds(create_use
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_an_unticked_character_gets_no_xp(create_user) -> None:
-    """Human, 2026-09-22: each character is ticked at the start, and the ST unticks
+    """Human: each character is ticked at the start, and the ST unticks
     whoever is left out — an absent player, or the ST's own character."""
     st, _, table, players = await _campaign(create_user, "Ashes of Dawn", "Gearheart",
                                             "Third")
@@ -1077,7 +1077,7 @@ async def test_delete_names_the_member_count_and_deletes(create_user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_storyteller_unlocks_a_copy_after_a_warning(create_user) -> None:
-    """Q6: on a campaign copy, unlocking is up to the Storyteller. Ruled 2026-09-12:
+    """Q6: on a campaign copy, unlocking is up to the Storyteller. Ruled:
     an Unlock after XP is allowed, with a warning."""
     from exalted_builder.models.character import XpEntry
 
@@ -1273,7 +1273,7 @@ async def test_the_storyteller_sees_a_draft_and_grants_it_a_permission(create_us
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_storytellers_own_character_joins_at_once(create_user) -> None:
-    """Human, 2026-09-22: the Storyteller does not approve their own request."""
+    """Human: the Storyteller does not approve their own request."""
     st, st_id, table, _ = await _campaign(create_user)
     base = _base(st_id, "Gamemaster's Own")
     await st.open(chrome.table_url(table.id))
@@ -1292,7 +1292,7 @@ async def test_the_storytellers_own_character_joins_at_once(create_user) -> None
 
 
 # --------------------------------------------------------------------------- #
-# The Storyteller's own characters are NPCs (human, 2026-09-22)
+# The Storyteller's own characters are NPCs (human's ruling)
 # --------------------------------------------------------------------------- #
 
 
@@ -1364,7 +1364,7 @@ async def test_the_badge_is_keyed_on_the_owner_not_the_name(create_user) -> None
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_a_request_card_warns_of_different_house_rules(create_user) -> None:
-    """Human, 2026-09-22: "ST house rules are different on this character". The
+    """Human: "ST house rules are different on this character". The
     base was priced under the rules frozen at its lock; the table's rules reach
     it only if the Storyteller unlocks the copy."""
     from exalted_builder.models.character import HouseRules
@@ -1448,7 +1448,7 @@ async def test_a_player_sees_an_ally_as_a_name_and_health_and_no_enemy(create_us
     assert "Heretic" not in text
     # The stats of the ally stay with the Storyteller. ⚠ "Larceny 1" is the trait
     # line of the Bandit. A bare "Larceny" is also an option of the Ability select of
-    # the player's own Pools tab (2026-09-25), which is not a leak.
+    # the player's own Pools tab, which is not a leak.
     for stat in ("Init 6", "Short Sword", "buff jacket", "Soak", "Larceny 1"):
         assert stat not in text, stat
     assert not _marked_all(player, f"adv-card-{ally}")
@@ -1587,7 +1587,7 @@ async def test_the_storyteller_files_an_npc_by_side_and_switches_it(create_user)
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_storyteller_picks_the_side_when_adding_an_npc(create_user) -> None:
-    """Human, 2026-09-24: "Switch when adding an NPC." """
+    """Human: "Switch when adding an NPC." """
     st, st_id, table, _ = await _campaign(create_user, "Ashes of Dawn")
     _base(st_id, "Friendly Sage")
     await st.open(chrome.table_url(table.id))
@@ -1637,14 +1637,14 @@ async def test_notes_are_kept_and_private(create_user) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Step 8 click-through: the Storyteller view, the compact cards (2026-09-24)
+# Step 8: the Storyteller view, the compact cards
 # --------------------------------------------------------------------------- #
 
 
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_storyteller_opens_in_the_storyteller_view(create_user) -> None:
-    """Human, 2026-09-24: "there's no way to 'view as ST'". The first choice of Open
+    """Human: "there's no way to 'view as ST'". The first choice of Open
     as is Storyteller, and it is the default. No NPC is in YOU PLAY."""
     st, table, player, copy, npc = await _with_npc(create_user)
     await st.open(chrome.table_url(table.id))
@@ -1830,7 +1830,7 @@ async def test_an_unticked_character_does_not_roll_and_stays_unticked(create_use
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_an_enemy_npc_is_named_to_a_player_with_no_breakdown(
         create_user) -> None:
-    """Each combatant is named in the turn order (human, 2026-09-25).
+    """Each combatant is named in the turn order (human's ruling).
     ⚠ The walk covers each element of the page of the player, hidden or not."""
     st, st_id, table, players = await _campaign(create_user, "Ashes of Dawn")
     (player, _, _), = players
@@ -1861,7 +1861,7 @@ async def test_an_enemy_npc_is_named_to_a_player_with_no_breakdown(
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_storyteller_types_a_bonus_and_ticks_first_for_one_roll(
         create_user) -> None:
-    """Human, 2026-09-25: a Charm bonus and a "me first" Charm are the Storyteller's,
+    """Human: a Charm bonus and a "me first" Charm are the Storyteller's,
     in the dialog, for this roll only. A player sees "first", not the bonus of an
     enemy."""
     st, _, table, players = await _campaign(create_user, "Ashes of Dawn", "Gearheart")

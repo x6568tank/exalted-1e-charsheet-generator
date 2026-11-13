@@ -1,8 +1,6 @@
-"""engine/gear_actions.py — the equipment mutators both shells drive.
-
-The rules that used to live in `ui/gear.py` and would have been copied into
-`qt/gear.py`: what a catalogue re-pick carries across, what an artifact grants, and
-which acquisition channel stamps a purchase. Framework-free — no widget in sight.
+"""engine/gear_actions.py — the equipment mutators that both shells use: what a
+catalogue re-pick keeps, what an artifact grants, and which acquisition channel a
+purchase gets. No widgets.
 """
 
 from contextlib import contextmanager
@@ -53,11 +51,9 @@ def test_a_repick_keeps_the_from_artifact_link(ruleset):
 
 
 def test_a_repick_keeps_the_acquisition_channel(ruleset):
-    """⚠ The regression this extraction found. `ui/gear.py`'s hand-written copy list
-    carried `from_artifact` because a comment warned about it, and never knew
-    `acquired` existed — so re-picking a cash-bought artifact weapon's own name from
-    its dropdown turned it back into a Background-funded one and charged the budget
-    for something Resources had paid for."""
+    """⚠ A re-pick keeps `acquired` as well as `from_artifact`. Else re-picking the
+    name of a cash-bought artifact weapon makes it Background-funded, and the budget
+    charges it."""
     char = _solar(weapons=[Weapon(name="Daiklave", artifact_rating=3,
                                   acquired=artifactsmod.ACQUIRED_PURCHASED)])
     assert artifactsmod.budgeted_items(char) == []
@@ -67,8 +63,7 @@ def test_a_repick_keeps_the_acquisition_channel(ruleset):
 
 
 def test_the_same_carry_across_applies_to_armour(ruleset):
-    # ⚠ The armour half of this merge had no test until preflight caught it once
-    # before; every test written for it had used a weapon.
+    # ⚠ Test the armor half too, not only a weapon.
     char = _solar(armor=[Armor(name="Buff Jacket", material="moonsilver",
                                from_artifact="artifact:x",
                                acquired=artifactsmod.ACQUIRED_PURCHASED)])
@@ -368,7 +363,7 @@ def test_a_linked_pair_commits_once_and_the_gear_row_wins(ruleset):
     and its weapon stat line is ONE object; `artifact_items` already drops the weapon
     so the p.131 budget charges it once, and the commitment has to follow the same
     rule or the sword costs 5 motes twice. The gear row is authoritative (human's
-    ruling 2026-09-03) — it is the half with the printed stat block."""
+    ruling) — it is the half with the printed stat block."""
     key = artifactsmod.item_key(artifactsmod.SOURCE_ARTIFACT, "Daiklave")
     char = _solar(
         artifacts=[ArtifactEntry(name="Daiklave", rating=3, attunement=99,

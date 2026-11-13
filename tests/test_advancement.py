@@ -576,7 +576,7 @@ def test_refunding_a_craft_removes_it_when_it_goes_back_to_zero():
 
 
 def test_a_craft_reduction_refunds_nothing():
-    """Superseded 2026-07-31: Crafts CAN be reduced now (human — "a misclick can
+    """Superseded: Crafts CAN be reduced now (human — "a misclick can
     always happen"). What stays true is that a reduction is not a refund: the dots go
     and the experience does not come back. `refund_to` is the path that returns XP."""
     rs, c = _ruleset(), _locked(xp=200)
@@ -673,7 +673,7 @@ def _disabled_labels(user) -> set[str]:
 async def test_chargen_choices_are_frozen_once_locked(user) -> None:
     """Re-picking Favoured Abilities in play would silently re-rate every future
     purchase; changing caste, Exalt type or origin would swap the budget row the
-    snapshot was written from. Reported by the human at the browser, 2026-07-31."""
+    snapshot was written from. Reported by the human at the browser."""
     await user.open('/identity-frozen')
     frozen = _disabled_labels(user)
     assert "Favored abilities (pick 5)" in frozen
@@ -682,7 +682,7 @@ async def test_chargen_choices_are_frozen_once_locked(user) -> None:
     assert "Origin" in frozen
     assert "Training camp" in frozen
     assert "Calling" in frozen
-    # Nature joined them 2026-07-31 (human): no XP effect, but it is True Paragon's
+    # Nature joined them (human): no XP effect, but it is True Paragon's
     # prerequisite, so changing it in play invalidates a held Merit after the fact.
     assert "Nature" in frozen
     # ...and the panel says WHY, so a greyed control is not a mystery
@@ -840,7 +840,7 @@ async def test_the_merged_editor_builds_with_off_catalogue_gear_and_nature(user)
     the freeze now wraps several selects — a frozen select still has to build with
     whatever the save happens to hold."""
     await user.open('/editor-locked-odd')
-    # Weapons and armour moved to the Gear tab (2026-08-13); the frozen SELECTS this
+    # Weapons and armour moved to the Gear tab; the frozen SELECTS this
     # test is really about — Nature, caste, origin — stayed on Edit.
     await user.open('/editor-locked-odd-gear')
     await user.should_see("Grandpa's Axe")
@@ -849,7 +849,7 @@ async def test_the_merged_editor_builds_with_off_catalogue_gear_and_nature(user)
     await user.should_see("Not In The Catalog")
 
 
-# ---- Crafts and Colleges can be reduced (human, 2026-07-31) ---------------- #
+# ---- Crafts and Colleges can be reduced (human's ruling) ---------------- #
 # Not a printed rule — a usability one: "a misclick can always happen", and undo is
 # LIFO so it cannot always reach the mistake. These are the escape hatch.
 
@@ -881,7 +881,7 @@ def test_reducing_a_craft_never_touches_a_different_one():
     assert [(cr.focus, cr.rating) for cr in c.crafts] == [("Smithing", 2), ("Tailoring", 1)]
 
 
-# ---- specialties: instances, not ratings (human, 2026-07-31) --------------- #
+# ---- specialties: instances, not ratings (human's ruling) --------------- #
 # "You don't raise specialties, you just take the same one multiple times, and you can
 # only have 3 specialties per ability — you can have Melee 4 with two specialties in
 # swords and one in parrying, but you can't buy two dots of sword specialties."
@@ -966,11 +966,8 @@ async def test_the_specialty_panel_has_no_rating_control(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_retargeting_a_specialty_row_clears_the_stale_cap_error(user) -> None:
-    """The reported bug: three Melee + three Dodge + one Awareness specialty read back
-    as "Melee has 4 specialties". The MODEL was right; the sticky issues column was
-    stale. `add_spec` appends the row on Melee and calls `changed()`, so the transient
-    over-cap error renders — and the row's Ability select used to write the model
-    WITHOUT re-running validation, leaving that error on screen forever."""
+    """Three Melee + three Dodge + one Awareness specialty give no over-cap error. The
+    Ability select of a row must re-run validation, or a transient error stays."""
     from nicegui.elements.select import Select
     await user.open('/specialty-retarget')
     await user.should_see("4 specialties")
@@ -1005,10 +1002,8 @@ async def test_the_virtue_flaw_offers_the_books_samples_for_that_virtue(user) ->
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_changing_the_flawed_virtue_reloads_the_sample_flaws(user) -> None:
-    """Found in the browser: the sample list kept offering the OLD Virtue's Flaws until
-    the player picked one from it — the list was wrong exactly while it was being read.
-    `changed()` redraws only the sticky side column; this dropdown is built from the
-    flawed Virtue and needs the body rebuilt."""
+    """The sample Flaw list follows the flawed Virtue at once. `changed()` redraws
+    only the side column, thus this dropdown needs the body rebuilt."""
     from nicegui.elements.select import Select
     await user.open('/virtue-flaw')
 

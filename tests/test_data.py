@@ -208,19 +208,19 @@ def test_full_melee_chain_is_legal_on_real_data():
 
 def test_spells_load_with_expected_circle_counts():
     rs = rules_db.load_ruleset(DATA_DIR)
-    # 2026-08-14: +2 Terrestrial from Blood and Salt p.125 (Song of the Lintha, Water's
+    #: +2 Terrestrial from Blood and Salt p.125 (Song of the Lintha, Water's
     # Ally) — Group A of the content re-triage, read with `extract_born_digital.py`.
-    # 2026-08-14, Group C: +1 Solar (Transference of the Sanctum, Games of Divinity p.49)
+    #, Group C: +1 Solar (Transference of the Sanctum, Games of Divinity p.49)
     # and +1 Celestial (Gift of Knowledge, The Sidereals p.123 — the entry the gap list
     # filed under the unresolved book code `E:S`, which IS Sidereals: p.123 names all
     # three of that book's spells together).
     # +2 more: the other two Sidereals p.122-123 spells (Open the Spirit Door,
     # Summoning the Heavenly Portal), read off the same rasterised pages.
-    # +4 more on 2026-08-14, finishing Group B: Savage Seas pp.117-118 (Water's Chilling
+    # +4 more, finishing Group B: Savage Seas pp.117-118 (Water's Chilling
     # Grasp Terrestrial; Storm Rider Enchantment, Summon Spirit Boat and Swift Journey
     # Celestial). ⚠ Water's Ally is printed in BOTH Savage Seas p.117 and Blood and Salt
     # p.125 with identical text — one spell, authored once off Blood and Salt.
-    # +2 on 2026-08-14 from the transcribed-book gap scan: The Ravenous Fire
+    # +2 from the transcribed-book gap scan: The Ravenous Fire
     # (Savant and Sorcerer p.113 — a one-spell hole in that book's alphabetical
     # Terrestrial run, p.112 and p.114 both authored) and Oblivion's Avatar
     # (Book of Bone and Ebony p.102, Void).
@@ -234,11 +234,11 @@ def test_spells_load_with_expected_circle_counts():
     # and 15 God-Machine protocols (Autochthonians CH4).
     # Caste Book: Twilight (p.74-77) adds 2 Terrestrial, 3 Celestial and 2 Solar.
     # The Outcaste (p.93-95) adds 4 more Terrestrial, the pirates' sea spells.
-    # 2026-08-11: the delegated spell batch added 151 — Book of Bone and Ebony
+    #: the delegated spell batch added 151 — Book of Bone and Ebony
     # (17 Labyrinth, 32 Shadowlands, 10 Void) and Savant and Sorcerer (51 Terrestrial,
     # 32 Celestial, 9 Solar). Cleansing Solar Flames (B&E p.139, human-ruled attribution)
     # brought Solar to 16 and the total to 244. See docs/status/spell-batch-notes.md.
-    # 2026-08-13: the Book of Three Circles adds 48 — 31 Terrestrial (ch.2), 3 Celestial
+    #: the Book of Three Circles adds 48 — 31 Terrestrial (ch.2), 3 Celestial
     # (ch.3) and 14 Solar (ch.4). ⚠ The fan spell index labels the ch.4 group "Adamant";
     # the BOOK's chapter head reads "THE SOLAR CIRCLE" and the book wins. Read off the
     # scanned pages directly (pdftoppm -r 110; PDF page = book page + 1). Where the two
@@ -317,21 +317,21 @@ def test_weapon_and_armor_catalogs_load():
     # Essence Pulse Grenade, pp.280-282, and the six dual-nature devices — the four
     # crossbows and the flamecaster + pyromantic grenade, p.278 — which carry BOTH
     # `artifact_rating` and `resources_cost` so the player funds them either way).
-    # + 2 from the 2026-08-08 backlog batch: the Hooked Daiklaves of Dual Prowess
+    # + 2 from the backlog batch: the Hooked Daiklaves of Dual Prowess
     # (Night p.81) and the Direlance (core p.342 table; its p.341 description page
     # is not on disk — see the notes field).
     # + 4 ARROWS (core p.330), tagged "ammunition": in 1e the arrow IS the bow's
     # damage ("broadhead arrows do the firing character's Strength + 2"), which is why
     # every bow row in this catalogue carries none. They have no printed Resources cost
-    # and are free unless a specific type states otherwise (human, 2026-08-12).
+    # and are free unless a specific type states otherwise (human's ruling).
     # + The Crimson Bow (Book of Three Circles p.95), the one BOTC artifact printed with
     # a full weapon stat line, so it gets a stat row here as well as a catalogue entry.
-    # + 7 on 2026-08-14 with Group A: the stat lines printed alongside their artifact
+    # + 7 with Group A: the stat lines printed alongside their artifact
     # entries, the same dual-nature pattern the Crimson Bow follows — Sky-Cutter and
     # Cold Wind Knives (Halta pp.95/93), Shining Daiklave of Darkness (Cult p.70),
     # Light Implosion Bow (Blood and Salt p.120), and the Whip of Devouring Serpents,
     # Repeating Maggot-Caster and Vessel of the Pyre (Abyssals pp.261/259/256).
-    # +2 on 2026-08-14 with Group B: the Wavecleaver Daiklaive and the Lightning
+    # +2 with Group B: the Wavecleaver Daiklaive and the Lightning
     # Ballista (Savage Seas pp.126-127), both printed with full stat lines beside their
     # artifact entries.
     assert len(rs.weapon_catalog) == 117
@@ -343,7 +343,7 @@ def test_weapon_and_armor_catalogs_load():
     # + the three p.334-335 HELMS, which are armour rows tagged "helm" and carry no
     # stats at all — the book says all helms are mechanically identical and largely
     # cosmetic. rs.body_armor() excludes both accessories.
-    # +1 on 2026-08-14: the Armor of Aquatic Puissance (Savage Seas p.124), which prints
+    # +1: the Armor of Aquatic Puissance (Savage Seas p.124), which prints
     # a full armour line beside its artifact entry — Soak 10L/12B, Mobility -2, Fatigue
     # 1, Commitment 8. ⚠ Mobility is stored NEGATIVE, matching the printed "-2/0".
     assert len(rs.armor_catalog) == 28
@@ -356,26 +356,26 @@ def test_weapon_and_armor_catalogs_load():
 
 def test_artifact_catalog_loads_the_ten_mountain_folk():
     rs = rules_db.load_ruleset(DATA_DIR)
-    # 2026-08-11: the 141-entry delegation batch (B&E 71, Outcaste 26, Rathess 15,
+    #: the 141-entry delegation batch (B&E 71, Outcaste 26, Rathess 15,
     # Autochthonians 15, Player's Guide 14) grew the catalogue from 40 to 181 — see
     # docs/status/artifact-batch-notes.md for the 8 worklist entries skipped/merged.
-    # 2026-08-11 (batch 2): +15 from Exalted Core (8), Savant and Sorcerer (5) and
+    # (batch 2): +15 from Exalted Core (8), Savant and Sorcerer (5) and
     # Book of Bone and Ebony p.114 (2) — 8 worklist rows skipped/dup — see
     # docs/status/artifact-batch-2-notes.md.
-    # 2026-08-12: +26 from the corebook Wonders chapter, unblocked when the display
+    #: +26 from the corebook Wonders chapter, unblocked when the display
     # face that draws its entry NAMES was decoded (tools/glyph_maps/exalted-core.json)
     # — the ten Hearthstones (pp.338-340) and sixteen Greater Wonders (pp.340-346).
-    # 2026-08-13: +12 from the Book of Three Circles — 3 from ch.1 (pp.24-27) and 9 from
+    #: +12 from the Book of Three Circles — 3 from ch.1 (pp.24-27) and 9 from
     # ch.5 "New Wonders" (pp.92-96), whose ratings come from LEVEL N section headings
     # rather than per-entry dot strings. +2 the same day: the Mantle of Brigid (p.25)
     # and the Sword of Ice (p.27), which print "(ARTIFACT N/A)" because they are plot
-    # devices — the human ruled 2026-08-13 that they cost the Legendary Artifact 10-pt
+    # devices — the human ruled that they cost the Legendary Artifact 10-pt
     # Merit instead, which `requires_merit` carries. Their `rating` of 5 is a placeholder
     # the model's 1-5 bound requires and nothing charges: `rating_notes` says N/A, and
     # `purchasable_with_artifact` keeps them off every Artifact-dot surface.
-    # +1 more: the Insidious Ebon Xoanon (B&E p.104), unauthorable since the 2026-08-11
-    # sweep for exactly that reason and ruled the same way by the human on 2026-08-13.
-    # 2026-08-14: +28 from the five Dragon-Blooded Aspect Books (Group A of the content
+    # +1 more: the Insidious Ebon Xoanon (B&E p.104), unauthorable since the
+    # sweep for exactly that reason and ruled the same way by the human.
+    #: +28 from the five Dragon-Blooded Aspect Books (Group A of the content
     # re-triage), each printing its artifacts in the same three-page slot: Air 13
     # (pp.75-78, 81), Earth 6 (pp.79-81), Wood 4 (pp.79-81), Water 3 (pp.80-81), Fire 2
     # (p.79). Read with `extract_born_digital.py`, which is all Group A needed. One
@@ -389,14 +389,14 @@ def test_artifact_catalog_loads_the_ten_mountain_folk():
     # against "Medium Implosion Bow", "Masks that Command Animals" against "Mask" — so
     # Group A was 68 entries, not 63. Same trap the retriage itself documents.
     # Halta's fifth, the Iron Puzzle Box, prints "(ARTIFACT N/A)"; the human ruled it a
-    # Legendary Artifact plot device on 2026-08-14, the same as the other three, so it
+    # Legendary Artifact plot device, the same as the other three, so it
     # is authored with `requires_merit` and charged to no budget.
-    # +3 on 2026-08-14: Ruins of Rathess p.86 (Ring of Images ••, Crystal of Protection
+    # +3: Ruins of Rathess p.86 (Ring of Images ••, Crystal of Protection
     # •••, Ring of Disguise •••). Two batches had skipped these behind a
     # `COLUMN SPLIT FAILED` marker; the book landed in `sources/` and the page was read
     # directly off `pdftoppm -r 110`, so nothing here rests on the reassembly — though
     # both independent reassemblies turned out to be exactly right.
-    # +24 on 2026-08-14, closing Group B — the last of the content gap that needed a
+    # +24, closing Group B — the last of the content gap that needed a
     # page read. Storyteller's Companion 6 (pp.77-80), Time of Tumult 11 (pp.15-95),
     # Savage Seas 4 (pp.123-127) and The Sidereals 3 (pp.24, 39). All four books are
     # PURE SCANS, so `extract_born_digital` was inapplicable and every page was
@@ -413,7 +413,7 @@ def test_artifact_catalog_loads_the_ten_mountain_folk():
 
 
 def test_artifact_catalog_loads_the_castebook_artifacts():
-    """The 2026-08-08 backlog batch: ten non-gear artifacts from the Solar castebooks
+    """The backlog batch: ten non-gear artifacts from the Solar castebooks
     (Dawn pp.78/81, Night pp.79-81, Zenith pp.80-81) were authorable now and are in
     the catalogue. Ratings and sources come from the pages; the two rating disputes
     are pinned here so a "correction" toward the guide (which is 2e-derived and never
@@ -429,7 +429,7 @@ def test_artifact_catalog_loads_the_castebook_artifacts():
     assert cat["artifact.castebook-night.circlet-of-spirits"].rating == 3
     assert cat["artifact.castebook-zenith.death-shield-ring"].rating == 3
     # Both pin a rating the guide misprints: the Hooked Daiklaves is •••• per the
-    # heading (human ruling 2026-08-08; the page's own table misprints ••••• — the
+    # heading (human's ruling; the page's own table misprints ••••• — the
     # weapon row follows the same ruling), and Ring of the Deliberative is •••• (the
     # guide's ••••• is 2e; page as authority).
     assert cat["artifact.castebook-night.hooked-daiklaves-of-dual-prowess"].rating == 4
@@ -440,14 +440,14 @@ def test_artifact_catalog_loads_the_castebook_artifacts():
 
 
 def test_artifact_catalog_loads_the_twilight_and_eclipse_backlog():
-    """The 2026-08-08 VLM-sync batch: the 12 Caste Book: Twilight + 8 Caste Book:
+    """The VLM-sync batch: the 12 Caste Book: Twilight + 8 Caste Book:
     Eclipse artifacts from pp.79-81 (VLM-transcribed, human-vetted — the .md pages
     are `images/Solars/Castebooks/{Twilight,Eclipse}/`). Ratings and sources come from
     the pages. Two things are pinned so nothing silent can slip:
     - Bracer of the Hawk is •• (the page prints two dots; the guide lists • — human
-      confirmed 2026-08-08, page as authority).
+      confirmed, page as authority).
     - Audient Brush is NOT in the catalogue — the guide's cb_e row is a phantom (no
-      such text in the Eclipse book; full 98-page word-sweep, 2026-08-08)."""
+      such text in the Eclipse book; full 98-page word-sweep)."""
     rs = rules_db.load_ruleset(DATA_DIR)
     cat = rs.artifact_catalog
     # Twilight p.79 — Bracer pins the page-vs-guide dispute.
@@ -490,7 +490,7 @@ def test_artifact_catalog_loads_the_twilight_and_eclipse_backlog():
 
 def test_the_gear_artifact_rows_from_the_backlog_batch():
     """The two stat-blocked new artifacts also carry equipment rows. The Hooked
-    Daiklaves' row is rated •••• (human ruling 2026-08-08: the heading is canonical;
+    Daiklaves' row is rated •••• (human's ruling: the heading is canonical;
     the table's Artifact column misprints ••••• — the row follows the heading like
     the catalogue entry); the Direlance's row follows the p.342 Daiklave Table, with
     the lance-mode stats in notes."""
@@ -503,14 +503,14 @@ def test_the_gear_artifact_rows_from_the_backlog_batch():
     assert hooks.min_strength == 2 and hooks.min_dexterity == 3 and hooks.min_martial_arts == 3
     lance = rs.weapon_catalog["weapon.melee.direlance"]
     # ⚠ The 5 is NOT off a page. No page on disk prints the Direlance's attunement, and
-    # the human ruled 2026-09-07 that it takes the daiklave family's cost, as the
+    # the human ruled that it takes the daiklave family's cost, as the
     # Wavecleaver Daiklaive does. This assertion held 0 until then, so it was a negative
     # control that has gone positive — it now pins the ruling instead of the absence.
     assert lance.artifact_rating == 2 and lance.attunement == 5
     assert lance.speed == 6 and lance.accuracy == 2 and lance.damage == 5 and lance.defense == 0
     assert lance.min_strength == 1
     # The Direlance has NO standalone catalogue entry — and that is now a finding, not
-    # a gap: core p.341 was decoded 2026-08-11 and carries only weapon-class prose plus
+    # a gap: core p.341 was decoded and carries only weapon-class prose plus
     # the p.342 stat table, so the entry does not exist to author. The rated weapon row
     # above is the whole of it.
     assert "artifact.core.direlance" not in rs.artifact_catalog
@@ -522,7 +522,7 @@ def test_the_gear_artifact_rows_from_the_backlog_batch():
 def test_the_alchemical_goods_catalogue_does_not_exist():
     """Godstrike Oil / Pyromantic Gel / Synthetic Leather (MF pp.275-277) were authored
     as a `GoodType` catalogue, shown in the browser, and removed the same day on the
-    human's ruling (2026-08-08): a goods catalogue feeds no mechanical read site, and
+    human's ruling: a goods catalogue feeds no mechanical read site, and
     the precedent would open the "why not firedust, lanterns, rations?" flood. This
     pins the ruling in code — re-adding goods must be a deliberate reversal, not an
     accidental one. The full page transcription is preserved in
@@ -708,7 +708,7 @@ def test_ranged_weapons_carry_range_and_bows_max_strength():
 
 def test_virtue_flaw_is_splat_gated():
     """The Dragon-Blooded, Sidereals and Alchemicals have no Virtue Flaw (human,
-    rules authority, 2026-07-30). Independent of the Limit track: the Sidereal still
+    rules authority). Independent of the Limit track: the Sidereal still
     has Paradox, it just has no flawed Virtue naming it.
 
     Ghosts join the list from the page rather than by ruling — E:Ab p.148: ghosts "are
@@ -825,7 +825,7 @@ def test_the_sample_virtue_flaws_load_keyed_to_their_virtue():
 # `source.book` is a zero-read-site field: nothing in the app consumes it, so a
 # wrong or drifting value survives indefinitely and every other test passes.
 # It rotted into 51 distinct strings for 31 books ("Aspect Book: Air" alongside
-# "Exalted 1e Aspect Book: Air") before the 2026-08-15 normalisation onto the
+# "Exalted 1e Aspect Book: Air") before the normalisation onto the
 # bare form. This is the guard that keeps it normalised — see
 # docs/source-attribution.md, which is the canonical list.
 CANONICAL_BOOKS = {
@@ -906,9 +906,9 @@ def test_no_necromancy_spell_claims_the_corebook():
     *The Abyssals*, whose necromancy chapter is pp.224-229.
 
     ⚠ This is the same misattribution `docs/source-attribution.md` records for
-    2026-08-10, when all 233 Abyssal Charms carried `Core` with Abyssals page numbers.
+   , when all 233 Abyssal Charms carried `Core` with Abyssals page numbers.
     That fix moved the CHARMS and missed the 23 necromancy SPELLS, which sat wrong for
-    another five days until the phase-2 book census surfaced them (2026-08-15).
+    another five days until the phase-2 book census surfaced them.
     **When a misattribution is found, sweep every record type in that book, not the one
     that reported it.**
     """

@@ -1,6 +1,6 @@
 """The login rate limit: `server/throttle.py`.
 
-The human's ruling of 2026-09-11: limit by username. Five attempts are free; then
+human's ruling: limit by username. Five attempts are free; then
 each failure doubles a cooldown, to a cap. A success clears the name.
 
 ⚠ An attempt counts as a failure when it STARTS, and a success clears it. A count

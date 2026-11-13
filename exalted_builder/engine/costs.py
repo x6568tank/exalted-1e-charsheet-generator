@@ -497,9 +497,8 @@ def thaum_orientation_xp(ruleset: RuleSet, character: Character) -> int:
 def thaum_science_step_bp(ruleset: RuleSet, character: Character, from_rating: int) -> int:
     """BP to raise a Science by ONE dot from `from_rating`: 5 for the first, 7 after.
 
-    Provenance: the published cost tables omit Sciences entirely — a printing error,
-    clarified by Grabowski afterwards and supplied by the rules authority (human,
-    2026-07-29). See models.rules.BonusPointCosts.thaum_science_first_dot.
+    ⚠ Human's ruling: no page gives these costs. See
+    models.rules.BonusPointCosts.thaum_science_first_dot.
     """
     costs = ruleset.bonus_costs_for(character.exalt_type, character.origin,
                                     character.upbringing)

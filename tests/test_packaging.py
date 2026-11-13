@@ -1,6 +1,6 @@
 """The declared package data must cover every data file on disk.
 
-⚠ This test exists because of a real defect, found 2026-09-11. `package-data` listed
+⚠ This test exists because of a real defect, found. `package-data` listed
 `data/*.json` and `data/charms/*.json` by name. `data/thaumaturgy/` was added later
 and was not added here, thus a pip-installed wheel had 189 of the 193 data files and
 no thaumaturgy at all.
@@ -67,9 +67,8 @@ def test_the_vendored_javascript_is_declared_as_package_data() -> None:
 
 
 def test_the_thaumaturgy_directory_is_covered() -> None:
-    """The specific regression. ⚠ Keep it next to the general test above: the general
-    one fails if it is pointed at the incorrect directory and then covers nothing,
-    and this one names the directory that was actually lost."""
+    """The specific directory. ⚠ Keep it next to the general test above: the general
+    one covers nothing if it points at an incorrect directory."""
     thaum = {p.relative_to(_PKG) for p in (_PKG / "data" / "thaumaturgy").rglob("*.json")}
     assert len(thaum) == 4, f"Expected 4 thaumaturgy data files, found {len(thaum)}."
     assert thaum <= _covered(), "The thaumaturgy data is not declared as package data."

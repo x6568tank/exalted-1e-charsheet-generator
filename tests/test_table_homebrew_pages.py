@@ -1,7 +1,7 @@
 """The pages of the homebrew of a campaign: the request card, the Homebrew page
 `/table/<id>/custom`, the proposals in the ST tab, and the Gear tab of a copy.
 
-Step 7 of `docs/plans/p3-tables.md` section 14 (ruled 2026-09-23).
+Step 7 of `docs/plans/p3-tables.md` section 14 (human's ruling).
 
 PRODUCTION wiring: `tests/_auth_main.py` runs `server/main.build_server` and the
 login gate.
@@ -114,7 +114,7 @@ async def test_the_request_card_names_what_the_approval_adds(create_user) -> Non
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_storyteller_views_the_requested_character(create_user) -> None:
-    """The human, 2026-09-24: the Storyteller sees the character before approving."""
+    """The human: the Storyteller sees the character before approving."""
     st, _, table, _, player_id = await _campaign(create_user)
     request = _tables().bring(player_id, table.id,
                               _base(player_id, "Ashes", concept="Wandering Sword").id)
@@ -186,7 +186,7 @@ async def test_the_storyteller_gets_the_editor(create_user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_the_editor_is_not_in_a_narrow_column(create_user) -> None:
-    """🐞 Click-through, 2026-09-24. The editor is one row that does not wrap: two
+    """🐞 Click-through. The editor is one row that does not wrap: two
     cards of 24 and 26 rem and the form. A 64 rem column left the form about
     13 rem. `/home` gives the editor the full width; this page must too."""
     st, _, table, _, _ = await _campaign(create_user)
@@ -217,7 +217,7 @@ async def test_a_member_reads_the_homebrew_of_the_campaign(create_user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_a_member_writes_to_their_library_and_then_proposes(create_user) -> None:
-    """The human, 2026-09-24: a player writes a new row on this page. The row goes
+    """The human: a player writes a new row on this page. The row goes
     to the library of the player, not to the campaign. It is then offered for a
     proposal, with no return to `/home`."""
     _, _, table, player, player_id = await _campaign(create_user)

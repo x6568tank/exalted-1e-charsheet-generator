@@ -326,10 +326,9 @@ def test_the_charms_tab_wires_the_sub_tab_with_on_change(ruleset, qtbot):
 
 
 def test_the_shared_detail_pane_is_hidden_on_the_combos_sub_tab(ruleset, qtbot):
-    """⚠ This is the ONE sub-tab that brings its own detail pane. Every other one is a
-    content pane that FEEDS the shared `QTextBrowser`, so leaving it up put TWO detail
-    panes on screen — the real one, and an empty column saying "Select an entry to see
-    details." Found by rendering, invisible to every other test."""
+    """⚠ This is the ONE sub-tab with its own detail pane. The other sub-tabs feed the
+    shared `QTextBrowser`, thus it must hide the shared pane: else two detail panes
+    show."""
     page = CharmsPage(ruleset, {"char": _load("ashes-of-dawn")})
     qtbot.addWidget(page)
     combos = next(i for i in range(page.tabs.count())

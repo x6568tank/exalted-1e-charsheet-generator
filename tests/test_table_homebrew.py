@@ -1,6 +1,6 @@
 """The homebrew of a campaign: the store half.
 
-Step 7 of `docs/plans/p3-tables.md` section 14 (ruled 2026-09-23):
+Step 7 of `docs/plans/p3-tables.md` section 14 (human's ruling):
 
   * A campaign copy sees the book and the homebrew of the campaign. Not the library
     of its owner (Q1).
@@ -9,7 +9,7 @@ Step 7 of `docs/plans/p3-tables.md` section 14 (ruled 2026-09-23):
     library and the Storyteller approves it; the Storyteller writes a row.
   * The campaign wins an id clash.
 
-⚠ The side door (found 2026-09-23): each save of a copy took its carried rows from
+⚠ The side door (found): each save of a copy took its carried rows from
 the library of the owner. Thus an edit at home changed the copy with no
 Storyteller.
 """
@@ -112,8 +112,8 @@ def test_approval_adds_the_carried_homebrew(tables, store, table) -> None:
 
 
 def test_a_failed_approval_adds_no_homebrew(tables, store, table) -> None:
-    """Server review finding 9: the player unlocks the base after the request. The
-    copy is refused, and the campaign must not keep the carried rows."""
+    """The player unlocks the base after the request. The approval refuses the copy,
+    and the campaign keeps none of the carried rows."""
     _author(store.custom_dir(ALICE), _charm("custom.fang"))
     base = _base(store, ALICE, "custom.fang")
     request = tables.bring(ALICE, table.id, base)

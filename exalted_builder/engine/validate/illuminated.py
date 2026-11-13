@@ -13,8 +13,8 @@ Dragon-Blooded did.
 ID, not name. A name matches both the Cult's copy and the corebook's, and the
 displacement rule then hands the wrong splat the reworked one.
 
-⚠ Cult Abyssals are deferred indefinitely (human, 2026-08-14) — 56 Charms would need
-human-approved mappings. Not a gap; do not propose it.
+⚠ Cult Abyssals are deferred permanently (CLAUDE.md §10). Not a gap. Do not propose
+them.
 """
 
 from __future__ import annotations

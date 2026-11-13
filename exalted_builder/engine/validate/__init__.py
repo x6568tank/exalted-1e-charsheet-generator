@@ -45,11 +45,9 @@ from __future__ import annotations
 from ...models.character import Character
 from ...models.rules import RuleSet
 
-# Re-exported, not defined here. `validate.X` is the ONE public path to every name
-# in this package (the human's call, 2026-08-17) — 1,465 call sites across
-# `engine/`, `ui/` and `tests/` reach these through `validate.`, and a domain module
-# is an implementation detail, not a second front door. When a rule moves out of
-# this file, it gains a line here and every caller keeps working unchanged.
+# Re-exported, not defined here. `validate.X` is the ONE public path to each name in
+# this package (human's ruling). A domain module is not a second public path. A name
+# that moves to a domain module gets a line here.
 from ._base import (           # noqa: F401 — re-exported for callers
     ATTRIBUTE_CATEGORIES,
     Issue,
@@ -318,21 +316,16 @@ def validate(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues += check_fetters_and_passions(ruleset, character)
     issues += check_artifacts(ruleset, character)
     issues += check_hearthstones(ruleset, character)
-    # The Background rules that bind on BOTH sides of the lock — `bind_post_lock` in
-    # the data, exactly the Sidereal Celestial Manse ≤3 and Mountain Folk Artifact ≤10
-    # (2026-08-12 rulings). Chargen-only caps stay in `validate_chargen`; Backgrounds
-    # change through the story, so a locked Unenlightened Mountain Folk may be given
-    # Backing 4 and nothing may object, and a locked Sidereal must still be held to
-    # Manse ••• unless the ST lifts it. Reads the LIVE backgrounds, which are the
-    # truth post-lock — the snapshot is for the XP audit, and Backgrounds have no XP.
+    # The Background rules with `bind_post_lock` (human's rulings). The other caps are
+    # in `validate_chargen`: the story changes Backgrounds. Reads the LIVE
+    # Backgrounds: Backgrounds have no XP, thus the snapshot does not apply.
     if character.chargen_locked:
         issues += background_issues(effective_budgets(ruleset, character),
                                     character.backgrounds, character, post_lock=True)
         # The Merit gates that measure something the story can change after the
         # purchase — an artifact lost, a Background dropped, a trait cursed down.
-        # Warnings, not errors: the character holds a benefit they no longer qualify
-        # for, but the state is one the story may legitimately have created (human's
-        # ruling 2026-08-17). The frozen-choice gates stay chargen-only.
+        # Warnings, not errors: the story can make this state (human's ruling). The
+        # frozen-choice gates stay chargen-only.
         issues += merit_issues(ruleset, character, post_lock=True)
     # Elemental Powers legality runs on BOTH sides of the lock, like every other
     # trait check here — the powers are bought in play as well as at creation, and a

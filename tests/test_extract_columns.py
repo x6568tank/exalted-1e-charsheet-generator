@@ -57,14 +57,13 @@ def test_text_in_one_half_is_not_a_gutter():
 
 
 def test_diagram_straddling_the_gutter_does_not_defeat_the_split():
-    """⚠ The regression this file exists for.
+    """⚠ A Charm-tree diagram at the top of a page (core pp.154-292) must not hide the
+    gutter.
 
-    Core pp.154-292 put a Charm-tree diagram at the top of ~37 pages. Its node labels
-    sit at arbitrary x and straddle the gutter a dozen times, which lifts the
-    whole-page projection profile's floor past its threshold — so no gutter is found,
-    one column is returned, and the two-column BODY BELOW the diagram interleaves.
-    It is silent: `looks_two_column` reads the same scattered label edges and also
-    says no, so no COLUMN SPLIT FAILED marker fires either.
+    Its node labels cross the gutter many times and raise the floor of the
+    whole-page projection profile. Then no gutter is found, and the two-column BODY
+    below the diagram interleaves. `looks_two_column` also says no, thus no COLUMN
+    SPLIT FAILED marker shows.
     """
     diagram = [
         _word(271, 339, 132), _word(281, 329, 140), _word(285, 324, 172),

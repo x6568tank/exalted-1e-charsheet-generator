@@ -1,19 +1,15 @@
 """Tests for the Dragon-Kings splat — Player's Guide CH4, pp.154-195.
 
-The ninth splat, the fourth non-Exalt, and the first with a RATED subsystem (the ten
-Paths of Prehuman Mastery) that is not Charms: a first-class rating 1-6 per Path with
-its own chargen pool, BP/XP tables and an Essence gate. The distinctive numbers are
-asserted one per keyed-table row, because a keyed row that does not exist falls back
-silently at another splat's prices — `adding-a-splat.md` trap #2.
+The first splat with a RATED subsystem that is not Charms: the ten Paths of
+Prehuman Mastery, rated 1-6, with their own pool, BP/XP tables and Essence gate.
+The numbers are asserted one per keyed-table row: a missing keyed row falls back to
+the prices of a different splat with no error (`adding-a-splat.md` trap #2).
 
-Human rulings baked in (2026-08-05): each breed auto-favours its two element Paths
-plus one player-chosen Path from the other eight; DK Combos work (the virtual-Charm
-bridge); the Intelligence cap by Essence IS modelled; Essence 6 raises Abilities (via
-elder.trait_ceiling) and Virtues (DK-only table) to 6. **2026-08-06:** breed attribute
-modifiers stack ON TOP of a stored 5, but each EFFECTIVE dot above 5 is bought with
-bonus points at the attribute rate (the earlier "free past 5" reading was a
-misunderstanding and is reversed); the stored-5 ceiling is the whole stored-value
-rule.
+Human's rulings: each breed favours its two element Paths plus one chosen Path; DK
+Combos work (the virtual-Charm bridge); the Intelligence cap by Essence is modelled;
+Essence 6 raises Abilities (elder.trait_ceiling) and Virtues (DK-only table) to 6;
+breed attribute modifiers add to a stored 5, and each EFFECTIVE dot above 5 costs
+bonus points at the attribute rate.
 """
 
 from pathlib import Path
@@ -379,7 +375,7 @@ def test_the_favoured_path_must_not_be_a_breed_path(rs) -> None:
 def test_a_breed_bonus_stacks_on_top_but_the_effective_excess_costs_bp(rs) -> None:
     """p.175: the breed modifier stacks ON TOP of the stored value — a Pterok's
     stored Dexterity 5 reads as an effective 7 — but each effective dot above 5 is
-    bought with bonus points at the attribute rate. (The 2026-08-06 "free past 5"
+    bought with bonus points at the attribute rate. (The "free past 5"
     reading was a misunderstanding and is reversed: effective 7 costs 2 × 4 = 8 BP.)"""
     c = _dk()                                # Pterok: +2 Dexterity
     c.attributes[AttributeName.DEXTERITY] = 5
@@ -498,7 +494,7 @@ def test_the_dragon_king_sorcery_initiation_has_the_printed_gate_and_cost(rs) ->
 
 def test_the_dragon_king_artifact_background_buys_double_dots(rs) -> None:
     """p.176: "the Artifact Background of the Dragon Kings provides twice as many dots
-    worth of artifacts as normal." Human ruling 2026-08-05 (via a 1e-experienced
+    worth of artifacts as normal." human's ruling (via a 1e-experienced
     source): "you get (Rating x 2) artifact dots to spread around, with no one
     artifact having a rating higher than (Background rating)". So Artifact • buys a
     2-dot budget with no single artifact above •; a 3-dot artifact with Artifact • is
@@ -521,7 +517,7 @@ def test_the_dragon_king_artifact_background_buys_double_dots(rs) -> None:
     assert "artifact-over-background-dots" not in codes  # 3 <= 4
     assert "artifact-item-over-background" not in codes  # each <= 2
     # Two artifacts rated AT the Background rating is two flagships — invalid (human
-    # correction 2026-08-05). One flagship plus smaller artifacts is the intended shape.
+    # correction). One flagship plus smaller artifacts is the intended shape.
     two_full = _dk()
     two_full.backgrounds.append(BackgroundEntry(name="Artifact", rating=5))
     two_full.artifacts.append(ArtifactEntry(name="First", rating=5))
@@ -558,9 +554,8 @@ def test_highest_magic_circle_is_unchanged_by_the_initiation(rs) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_dragon_king_sheet_renders_paths(user) -> None:
-    """The sheet's Paths panel and sectioned charm panels render (they were entirely
-    absent before this splat). The Pterok's breed innate weapons also render —
-    `BreedTraits.innate_weapons` was authored but dead (no read site) until now."""
+    """The sheet's Paths panel and sectioned charm panels render. The Pterok's innate
+    weapons render too: `BreedTraits.innate_weapons` needs a read site."""
     await user.open('/dksheet')
     await user.should_see("PATHS OF PREHUMAN MASTERY")   # _heading upper-cases
     await user.should_see("Celestial Air")
@@ -592,7 +587,7 @@ async def test_the_dragon_king_sheet_shows_a_breed_attribute_above_five(user) ->
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_artifact_rating_round_trip_keeps_the_two_flagships_warning(user) -> None:
-    """Browser re-verify repro (2026-08-05): editing an artifact rating 5→4→5 must
+    """Browser re-verify repro: editing an artifact rating 5→4→5 must
     leave the `artifact-two-flagships` warning live. The engine rebuilt fresh on
     every tab-switch, so a warning that vanished after the round trip meant the
     rating input's on_change was rebuilding the whole body, destroying the widget

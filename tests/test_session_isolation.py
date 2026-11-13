@@ -1,6 +1,6 @@
 """Two browser sessions must not share one Character.
 
-✅ **These tests are LIVE as of 2026-09-11.** They were written first, they failed
+✅ **These tests are LIVE.** They were written first, they failed
 on the tree of that day, and they carried `xfail(strict=True)` until
 `register_pages` resolved one context for each session. The XPASS was the gate,
 and the markers are deleted.
@@ -8,7 +8,7 @@ and the markers are deleted.
 ⚠ Do not "fix" a failure here by changing an assertion. These tests describe the
 contract. A failure means two browsers share a Character again.
 
-⚠ The negative control, run on 2026-09-11: make `session_key` return a constant.
+⚠ The negative control, run: make `session_key` return a constant.
 Both tests go red again. Use that mutation, and not a reading of the code, to
 confirm that these tests still see the property they name. The copy rule they
 depend on has its own file, `tests/test_session_context_factory.py`.

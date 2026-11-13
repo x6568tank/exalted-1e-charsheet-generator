@@ -194,25 +194,14 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
             return f"{base.replace('_', ' ').title()}: {name}"
         return cat.replace("_", " ").title()
 
-    # A toggle splits the picker into three pages: the ability Charm trees, the
-    # martial-arts trees, and the spell list. Every `martial_arts:*` category goes
-    # on the Martial Arts page — including the enlightenment tree
-    # ('martial_arts:enlightenment'), which is the Dragon-Path initiation rather
-    # than a style, but is martial arts and is looked for among them.
-    # The ghost Arcanoi paths get their own page, like Thaumaturgy's — they are not
-    # Abilities and grouping them there would put "Shifting Ghost-Clay Path" in a
-    # dropdown of Ability names (human, 2026-08-01).
+    # A toggle splits the picker into pages: the ability Charm trees, the
+    # martial-arts trees (each `martial_arts:*` category, enlightenment included),
+    # and the spell list. The ghost Arcanoi have their own page (human's ruling).
     #
-    # ⚠ Identified by `min_virtue`, never by a hardcoded list of category strings:
-    # being Virtue-keyed is what MAKES a Charm an Arcanos, so a new path (or another
-    # Virtue-keyed splat) needs no edit here.
+    # ⚠ An Arcanos is identified by `min_virtue`, never by a list of categories.
     #
-    # ...except the spirit Charms. The God/Demon-Blooded catalogue is ALSO
-    # Virtue-keyed (same `min_virtue` axis as the Arcanoi) but is a different Charm
-    # class — spirit Charms, not Arcanoi. Without the exalt_type exclusion the
-    # God/Demon-Blooded picker's whole catalogue would sit under an "Arcanoi" page
-    # and the sheet would label each held spirit Charm "Arcanoi". The Arcanoi are
-    # authored for Ghost/God-Blooded; the spirit Charms carry exalt_type "Spirit".
+    # ⚠ Except the spirit Charms (exalt_type "Spirit"): they are Virtue-keyed too but
+    # are not Arcanoi. The exalt_type exclusion keeps them off the Arcanoi page.
     _arcanoi_categories = {c.category for c in ruleset.charms.values()
                            if c.min_virtue and c.exalt_type != "Spirit"}
 
@@ -306,18 +295,11 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
     # taking the whole picker down with it (adding-a-splat.md trap #3).
     GROUPS: dict[str, str] = {}
     if _has_abilities:
-        # Labelled "Charms", not "Abilities" (human, 2026-08-01) — so the tab bar reads
-        # Charms > Charms, the default page taking the section's name while its
-        # siblings are named for what makes them special.
+        # Labelled "Charms" (human's ruling): the page holds the main Charm trees of
+        # the splat, which can be Attribute-keyed (Lunar).
         #
-        # The old label was not merely redundant, it was WRONG for two splats: this
-        # page holds the splat's own main Charm trees whatever they are keyed to, and
-        # Lunar's are Attribute-keyed while Alchemical's are mixed. A Lunar player
-        # clicking "Abilities" got twelve Attribute-keyed trees.
-        #
-        # The GROUP KEY stays "abilities" — it is an identifier that `_group_of`,
-        # `_GRAPH_GROUPS` and the page state all key off, and renaming it would touch
-        # game-facing logic to change a caption.
+        # The GROUP KEY stays "abilities": `_group_of`, `_GRAPH_GROUPS` and the page
+        # state use it.
         GROUPS["abilities"] = "Charms"
     if _has_styles:
         GROUPS["styles"] = "Martial Arts"
@@ -606,10 +588,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                               add_submodule(c, k)).props("dense flat size=sm color=positive")
 
     def _charm_buy_button(d) -> None:
-        """The in-play detail-card action: buy at the engine's price. A known Charm
-        offers no Remove — undo lives in the XP ledger, which owns the log — but a
-        generic repeatable one under its cap offers ANOTHER copy (CH6 pp.245-246),
-        which is the one purchase "Known." used to hide."""
+        """The in-play detail-card action: buy at the engine price. A known Charm has
+        no Remove (undo is in the XP ledger). A repeatable Charm under its cap offers
+        ANOTHER copy (CH6 pp.245-246)."""
         charm = ruleset.charms.get(d.id)
         if charm is None:
             return
@@ -1366,10 +1347,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                                 .props(f"dense color={pal.button}").tooltip(
                                 "Further limit this aspect (e.g. 'War Gods') for half "
                                 "cost, noted on the sheet (p.127).")
-                        # ⚠ The price on the button follows the narrow checkbox.
-                        # Ticking it halved what was CHARGED (p.127) and left the
-                        # button saying the full price — the two disagreed until
-                        # `narrowed_price` existed (2026-08-28).
+                        # ⚠ The button price follows the narrow checkbox (p.127,
+                        # `narrowed_price`).
                         will_narrow = bool(state["thaum_narrow"].get(
                             f"{spec.art_id}:{spec.name}")) and not spec.owned
                         _thaum_buy_button(
@@ -2047,10 +2026,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                         ).props(f"no-caps dense unelevated toggle-color={pal.button}")
                     if _foreign_caste:
                         # Eclipse/Moonshadow only (CasteDefinition.foreign_charms).
-                        # The Storyteller permission itself now lives on the ST Options
-                        # tab with the other table toggles (human's call, 2026-07-29);
-                        # what stays here is the Splat dropdown it unlocks, plus a
-                        # pointer for the player who wonders why the dropdown is empty.
+                        # The Storyteller permission is on the ST Options tab. This
+                        # shows the Splat dropdown, and a pointer if it is empty.
                         if not in_play() and not _foreign_open():
                             ui.label("ST permission needed — see the ST Options tab") \
                                 .classes("text-xs italic").style(f"color:{pal.accent}") \

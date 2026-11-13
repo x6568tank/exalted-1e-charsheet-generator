@@ -136,7 +136,7 @@ def test_no_test_patches_by_dotted_string() -> None:
 
     ⚠ The failure is ORDERING-DEPENDENT, thus it is invisible. It appears only
     when a main-file test sorts before the patching file. It cost a red full suite
-    on 2026-09-11: the one violation had sorted after every main-file test for
+   : the one violation had sorted after every main-file test for
     months, until a new test file landed at 'h'.
 
     Import the module and patch the object. See `tests/test_qt_shell.py`.

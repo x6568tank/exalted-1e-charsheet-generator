@@ -19,13 +19,10 @@ from .play_state import build_party_card_view
 # --------------------------------------------------------------------------- #
 # Adversary card presentation
 #
-# Moved verbatim out of `ui/adversaries.py` 2026-08-10 (the engine module was
-# aliased `adv` there and is `advmod` here — the only edit). Display composition,
-# not rules: every number comes from `engine.adversaries`, this just words it.
+# Display composition, not rules: each number comes from `engine.adversaries`.
 #
-# Their siblings `trait_line` / `attack_line` did NOT come here despite also being
-# model-to-text: those are half of a round-tripped edit-field codec and live with
-# their parsers in `engine/adversaries.py`. See the note above them there.
+# `trait_line` / `attack_line` are in `engine/adversaries.py`: they are half of an
+# edit-field codec, with their parsers.
 # --------------------------------------------------------------------------- #
 
 def summary_line(ruleset: RuleSet, a: Adversary) -> str:
@@ -221,39 +218,25 @@ def picker_names(rows: Sequence[tuple[str, str, str, Optional[str]]]) -> dict[st
 
 
 def merit_requirement_line(ruleset: RuleSet, definition, effects=None) -> str:
-    """What a Merit or Flaw REQUIRES, as one line, or "" when it requires nothing.
+    """Return what a Merit or Flaw REQUIRES, as one line, or "" if nothing.
 
     Input: the rule set (to resolve prerequisite ids to printed names) and a
     `MeritFlawDefinition`. Output: "Requires: …" content — the trait minimums, the
-    repeat cap, the printed note, and the entries that must already be held — joined
-    with "; ". Mechanism: each source contributes its own phrase; an OR group inside
-    `trait_prerequisites` is joined with " or ".
+    repeat cap, the printed note, and the required entries (`prerequisites`) —
+    joined with "; ". An OR group of `trait_prerequisites` is joined with " or ".
+    Both shells use this function.
 
-    The point of it is that a player sees the gate BEFORE the issues panel tells them
-    they failed it.
+    ⚠ Include `definition.prerequisites`. Else the player sees the gate only when the
+    validator refuses the build.
 
-    ⚠ `definition.prerequisites` — the OTHER entries an entry requires — used to be
-    missing from this line in BOTH shells, which is why the line is now built here
-    instead of twice. 32 entries carry one, and every one of them stated no gate at
-    all: The Flow of Essence requires Essence Awareness specifically, and a
-    God-Blooded holding Awakened Essence was told nothing until the validator
-    refused the build (human, 2026-09-02). The field had exactly one read site,
-    `engine/validate/merit_checks.py` — the dead-field shape, one read short of
-    dead.
+    ⚠ Tier-keyed groups are shown WHOLE (Innocuous).
 
-    ⚠ Tier-keyed groups are shown WHOLE. Which tier needs what is the point of
-    Innocuous, and hiding the other tier's line would hide it.
+    `effects` is an optional `MeritEffects` of the character. A prerequisite that it
+    reports as satisfied is marked, not dropped. With no `effects`, the line is the
+    catalogue statement.
 
-    `effects` is an optional `MeritEffects` for the character being looked at. A
-    prerequisite it reports as already satisfied is marked so rather than dropped —
-    a God-Blooded holding Awakened Essence needs no Essence Awareness, and is barred
-    from buying it, so a bare "Requires: Essence Awareness" would name something they
-    cannot get and do not need. Passing nothing gives the catalogue's own statement,
-    which is what a splat-independent caller wants.
-
-    ⚠ No Merit id is named here, and none may be. Which entries substitute for which
-    is `engine.merits`' business; this asks the effects object whether the id in hand
-    is in its set (`prerequisites_satisfied`) and says so.
+    ⚠ No Merit id is named here, and none may be. Ask the effects object
+    (`prerequisites_satisfied`).
     """
     wants = [" or ".join(f"{r.trait} {r.rating}" for r in group)
              for groups in definition.trait_prerequisites.values()

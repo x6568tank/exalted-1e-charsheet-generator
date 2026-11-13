@@ -332,18 +332,14 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
     _downtime = {"years": 10, "age": 0}
 
     def _downtime_dialog() -> None:
-        """The p.259 downtime calculator: years of skipped time → the experience it
-        awards and the 4:3:2:1 split it must be spent across.
+        """The p.259 downtime calculator: skipped years → the XP and its 4:3:2:1
+        split.
 
-        A CALCULATOR that grants, never an enforcement — the split prints as advice and
-        nothing downstream polices it (see engine.elder). Post-lock only, because it
-        sits with the other XP controls.
+        A CALCULATOR, not an enforcement (see engine.elder). Post-lock only.
 
-        The chart's rate depends on years of Exalted existence, so the calculator takes
-        an AGE INPUT — a pure calculator field, not a character trait (human ruling
-        2026-08-06: `Character.age` is gone and age gates nothing). Granting advances
-        that local age so a later grant is priced from where the last one ended; the
-        character itself only receives the XP.
+        It takes an AGE INPUT: a calculator field, not a character trait (human's
+        ruling). A grant advances that local age, thus a later grant starts where the
+        last one ended. The character gets the XP only.
         """
         with ui.dialog() as dialog, ui.card().classes("w-[28rem] gap-2"):
             ui.label("Downtime").classes("text-lg font-bold")
@@ -505,12 +501,9 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         # sells free dots for bonus points, and the tally must count against what the
         # engine actually charges or the sheet contradicts its own validation.
         b = validate.effective_budgets(ruleset, character)
-        # Only dots WITHIN the pre-bonus cap draw on the free pool. A dot above it is
-        # bought with bonus points and never consumes one of the 25 (human's ruling,
-        # 2026-07-31), which is exactly how the engine already prices them — see the
-        # `within_by_tier` / `above_by_tier` split in validate.bonus_point_breakdown.
-        # Summing raw ratings here made a character with one Ability at 4 read 25/25
-        # while the engine still had a free dot unspent.
+        # Only dots WITHIN the pre-bonus cap use the free pool (human's ruling), as in
+        # the `within_by_tier` / `above_by_tier` split of
+        # validate.bonus_point_breakdown. Do not sum the raw ratings.
         cap = b.ability_cap_pre_bp
         if b.ability_favored_dots:
             # two-pool (Mountain Folk): ask the engine — the same single read site
@@ -775,15 +768,11 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                                  on_change=lambda e: (setattr(character, "name", e.value), changed())).classes("flex-1")
                         ui.input("Concept", value=character.concept,
                                  on_change=lambda e: setattr(character, "concept", e.value)).classes("flex-1")
-                        # ⚠ NO Exalted-years box here. Age lives in the Downtime dialog
-                        # (human's call, 2026-08-01): age and the maturation experience
-                        # of PG p.259 are the same passage of time, and two controls for
-                        # it drift — a player ages a century in Identity and collects
-                        # the century's experience again from Downtime. One post-lock
-                        # control does both.
-                    # Wraps (no `no-wrap`) so the identity controls flow onto a second
-                    # line rather than squashing to truncated labels ("C…"); each gets
-                    # a min width so its label always shows in full.
+                        # ⚠ NO Exalted-years box here. Age is in the Downtime dialog
+                        # (human's ruling): one control for age and the PG p.259 XP.
+                        # Two controls would pay the XP two times.
+                    # Wraps (no `no-wrap`), thus the controls flow onto a second line
+                    # and not to truncated labels. Each has a min width.
                     _field = "flex-1 min-w-[10rem]"
                     with ui.row().classes("w-full gap-3 items-end"):
                         exalt_opts = {ex.id: ex.label for ex in ruleset.exalts.values()}
@@ -824,10 +813,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                                           else next(iter(ups)),
                                           on_change=lambda e: set_upbringing(e.value)).classes(_field))
                         nature_names = [n.name for n in ruleset.nature_catalog.values()]
-                        # Frozen with the other chargen choices (human, rules authority,
-                        # 2026-07-31). It has no XP effect, but it IS True Paragon's
-                        # prerequisite, and a Nature changed in play would invalidate a
-                        # held Merit after the fact.
+                        # Frozen with the other chargen choices (human's ruling). It is
+                        # the prerequisite of True Paragon.
                         _frozen(ui.select(_opts_with(nature_names, character.nature), label="Nature",
                                   value=character.nature or None,
                                   with_input=True, new_value_mode="add-unique",
@@ -1128,11 +1115,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 ui.button("Add college", icon="add", on_click=add_college).props("flat dense")
 
         # specialties
-        # A specialty is an INSTANCE, not a rated trait (human, rules authority,
-        # 2026-07-31): "you don't raise specialties, you just take the same one
-        # multiple times, and you can only have 3 specialties per ability". So there is
-        # no dot track here at all — taking Swords twice means two rows — and the cap
-        # counts rows per Ability, which the header shows live.
+        # A specialty is an INSTANCE, not a rated trait (human's ruling). No dot
+        # track: Swords two times is two rows. The cap of 3 counts rows per Ability.
         with panel("Specialties (max 3 per Ability; take one twice to stack it)"):
             # Post-lock a specialty is a PURCHASE, so it is named and priced up front
             # rather than appended blank and edited in place — an empty row would

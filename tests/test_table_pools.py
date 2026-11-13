@@ -1,6 +1,6 @@
 """The Pools tab of the table view: `server/table_view.py`.
 
-The human asked on 2026-09-25 for the base dice pools at the table, as a third tab
+The human asked for the base dice pools at the table, as a third tab
 beside Log and Notes, and ruled the same day which characters the Storyteller picks
 from: the Storyteller's full-sheet NPCs and each player's character. A player sees the
 pools of the copy that they open as, and nothing of any other character.

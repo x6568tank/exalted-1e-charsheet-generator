@@ -234,7 +234,7 @@ def test_essence_mastery_opens_terrestrial_martial_arts(rs):
 
 def test_spirit_walking_stays_barred_even_with_mastery(rs):
     """It is what grants CELESTIAL Martial Arts, which a mortal can never reach
-    (human, rules authority, 2026-07-30 — "it is just the one Charm").
+    (human, rules authority — "it is just the one Charm").
 
     Note the existing tier machinery does NOT catch this on its own: Spirit Walking
     is `open_to_all`, so without the explicit bar it would come free with the style.
@@ -258,16 +258,14 @@ def test_mastery_does_not_open_ordinary_charms(rs):
 
 def test_mastery_grants_terrestrial_sorcery_only(rs):
     """A mortal holds no Charms, so a Merit-granted circle is their only route to
-    sorcery — and it stops at Terrestrial (human, 2026-07-30)."""
+    sorcery — and it stops at Terrestrial (human's ruling)."""
     assert validate.accessible_circles(rs, _mortal()) == set()
     assert validate.accessible_circles(rs, _unlocked()) == {SpellCircle.TERRESTRIAL}
 
 
 # --- magic access: the BUY paths -------------------------------------------- #
-# Both bugs below were found by a player, not by the suite, because every test above
-# stops at the effect (charm_matches_splat, accessible_circles) and never asks the
-# gate that actually spends the points. That is the dead-effect-field trap wearing a
-# different hat: the grant existed and nothing downstream read it.
+# Test the gate that spends the points, not only the effect (charm_matches_splat,
+# accessible_circles).
 
 MA_CHARM = "solar.martial-arts.living-shield-technique"
 
@@ -476,7 +474,7 @@ def test_merits_freeze_into_the_chargen_snapshot(rs):
 
 
 def test_immaculate_martial_arts_stays_barred_from_mortals(rs):
-    """Human, rules authority, 2026-07-30. The five elemental Dragon styles are the
+    """Human, rules authority. The five elemental Dragon styles are the
     Immaculate Dragon Paths — exactly what Spirit Walking exists to unlock — so they
     are closed to mortals even though Essence Mastery opens Terrestrial MA generally.
 
@@ -710,10 +708,8 @@ def test_debt_clears_itself_as_experience_is_earned(rs):
 
 
 def test_debt_never_destroys_experience(rs):
-    """THE regression test for this mechanic. An earlier cut STORED the balance and
-    paid it down inside add_xp, while logging only the affordable part of the cost —
-    so the remainder was never counted as spent and 6 XP silently vanished. Debt is
-    derived from (earned - spent) precisely so that cannot happen."""
+    """⚠ The debt is derived from (earned - spent). The full cost is logged, thus no
+    XP is lost."""
     c = _locked(xp=10)
     advancement.buy_merit(rs, c, AWARENESS)          # 6
     advancement.buy_merit(rs, c, MASTERY)            # 10  -> 16 total
@@ -810,14 +806,10 @@ def test_a_variable_cost_merit_prices_from_the_purchase(rs):
 
 
 def test_the_whole_general_chapter_is_authored(rs):
-    """88 entries across pp.16-41 — 43 Merits and 45 Flaws, in five categories.
-
-    Was 87 until 2026-07-30: Dying (p.31) had been missed entirely when the chapter
-    was pasted, and its tail had been glued onto a truncated Amputee. Both were found
-    by diffing every description against the source .md rather than by reading — see
-    docs/status/merits-flaws-triage.md.
+    """88 entries across pp.16-41 — 43 Merits and 45 Flaws, in five categories,
+    including Dying (p.31) and Amputee. See docs/status/merits-flaws-triage.md.
     """
-    # Scoped by PAGE, not by the "mf." prefix: Fighter in Life (2026-08-01) shares
+    # Scoped by PAGE, not by the "mf." prefix: Fighter in Life shares
     # the prefix but comes from PG p.234, outside this chapter entirely. Counting by
     # prefix silently folded it into the chapter's total.
     general = [m for m in rs.merits_flaws.values()
@@ -834,28 +826,20 @@ def test_the_whole_general_chapter_is_authored(rs):
 
 
 def test_no_description_carries_extraction_debris(rs):
-    """Transcription debris, caught by SHAPE — which is why this one survives.
+    """Transcription debris, found by SHAPE, not by length.
 
-    ⚠ It once had a companion, `test_every_description_matches_the_source_text`, which
-    failed a description below 92% of its pasted source's length. **Deleted 2026-09-09**
-    (human): it read gitignored source, so its outcome varied by machine, and it went
-    green by DEFERRING entries whose chapter was absent rather than by checking them.
-    A script that diffs content against source and reports differences is the better
-    shape if that check is ever wanted again; it is not a suite invariant.
+    ⚠ Do not compare descriptions with the gitignored source in the suite: the result
+    changes by machine. Use a script for that check.
 
-    That test could not have caught what this one does, either. Both defects the
-    2026-07-31 click-through found make a description LONGER, and by so little that
-    every length ratio stayed within 1.5% of 1.0. Structure, not length, separates them
-    from prose:
+    Two shapes:
 
       * a multi-line printed cost note, whose second line the extractor left at the
         head of the description ("DRAGON KINGS OR GOD-BLOODED) The character excels
-        at..."). Five entries;
-      * the next section's markdown headers glued on the end ("... called Legacy of
-        Hesiesh. ## FLAWS ### PHYSICAL"). One entry.
+        at...");
+      * the markdown headers of the next section at the end ("... called Legacy of
+        Hesiesh. ## FLAWS ### PHYSICAL").
 
-    Spotting two of these by eye is what found the other four — so this asserts the
-    shape rather than an allowlist of the six then known.
+    The test asserts the shape, not a list of known entries.
     """
     import re
     for m in rs.merits_flaws.values():
@@ -915,7 +899,7 @@ def test_restricted_entries_record_their_splats(rs):
         "Solar", "Lunar", "Sidereal", "Abyssal"}
 
 
-# --- the four qualifier rulings (human, 2026-07-30) ------------------------- #
+# --- the four qualifier rulings (human's ruling) ------------------------- #
 
 def test_brigids_heir_prices_by_caste(rs):
     """"(5-PT. MERIT, 4-PT. FOR TWILIGHT CASTE)" — the only price in 87 entries that
@@ -978,7 +962,7 @@ def test_an_unchosen_side_is_reported_not_silently_defaulted(rs):
 
 
 def test_splat_restrictions_are_now_enforced(rs):
-    """`exalt_types` was authored but inert until this check."""
+    """`exalt_types` is checked."""
     lunar_only = MP(merit_id="mf.chimera")
     assert _codes(validate.merit_issues(rs, _mortal(lunar_only)), "merit-wrong-splat")
     lunar = Character(id="l", exalt_type="Lunar", caste="full-moon",
@@ -1017,7 +1001,7 @@ def test_the_granted_merit_is_reported_for_display(rs):
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_advantages_tab_offers_merit_gain_and_loss_in_play(user) -> None:
     """The post-lock M&F controls, which moved from the XP tab to Advantages on
-    2026-07-31 along with their chargen counterpart."""
+    along with their chargen counterpart."""
     await user.open('/mf-xp')
     await user.should_see("Merits & Flaws")
     await user.should_see("Gain")
@@ -1056,7 +1040,7 @@ async def test_sheet_lists_merits_alongside_backgrounds(user) -> None:
 
 def test_sheet_rows_carry_the_rules_text_for_the_tooltip(rs):
     """The sheet panel shares a row with four others, so the text cannot be printed
-    inline — it rides on a hover tooltip instead. Reported 2026-07-30: the block was
+    inline — it rides on a hover tooltip instead. Reported: the block was
     there but showed only a name and a number, which is not usable at the table."""
     c = _mortal(MP(merit_id=MASTERY), MP(merit_id="mf.brigid-s-heir"))
     rows = {r[0]: r for r in view.merit_rows(rs, c)}
@@ -1075,7 +1059,7 @@ def test_an_unresolvable_row_explains_itself_in_the_tooltip(rs):
 
 # --- the trait-forfeit Flaws (PG pp.35-36) ---------------------------------- #
 # Four Flaws pay bonus points for free chargen dots GIVEN UP rather than for a
-# disadvantage suffered. The human's ruling (2026-07-30): this is a budget delta and
+# disadvantage suffered. The human's ruling: this is a budget delta and
 # nothing more — sell two Virtue dots and the Virtue budget is 3 instead of 5, after
 # which every existing over-spend check does the real work unchanged.
 
@@ -1466,8 +1450,8 @@ def test_weak_essence_does_not_block_raising_essence_in_play(rs):
 
 
 def test_weak_willed_uses_the_forfeited_willpower_at_its_xp_ceiling(rs):
-    """Regression from A1: raise_willpower measured against the UN-forfeited value, so
-    a Weak-Willed character was capped as though they still had the dots they sold."""
+    """raise_willpower measures against the forfeited value: a Weak-Willed character is
+    capped without the sold dots."""
     c = _solar(MP(merit_id=WEAK_WILLED, points=3),
                virtues={V.COMPASSION: 5, V.CONVICTION: 5, V.TEMPERANCE: 1, V.VALOR: 1})
     c.willpower_purchased = 0
@@ -1492,7 +1476,7 @@ def test_a_flaw_ceiling_below_the_chargen_floor_reads_sensibly(rs):
 # --- Weak Essence's withheld Charms (PG p.41) ------------------------------- #
 # "the player may choose to withhold up to five Charms in reserve ... Withheld Charms
 # waive their experience cost." Read as banked PICKS, not Charms named at creation
-# (human, rules authority, 2026-07-30). NOTHING new is stored: what was withheld is the
+# (human's ruling). NOTHING new is stored: what was withheld is the
 # unspent remainder of the chargen Charm budget, and redemptions are counted off the
 # append-only XP log.
 
@@ -1688,7 +1672,7 @@ def test_prodigy_is_barred_per_HALF_not_as_a_whole_entry(rs):
     Exalted may not take this Merit at all" (p.20) bars the half that GRANTS a Favored
     Ability. Its +2 "increased aptitude" half is explicitly "paid separately for
     characters who innately gain Favored Abilities as part of character creation" —
-    which is exactly those four splats. Ruled 2026-07-31: the aptitude half escapes the
+    which is exactly those four splats. Ruled: the aptitude half escapes the
     bar, so the restriction is per-option, not per-entry."""
     d = rs.merits_flaws[PRODIGY]
     assert set(d.tier_barred_exalt_types["favored"]) == BARRED_FROM_FAVORED
@@ -1923,7 +1907,7 @@ def test_innocuous_caps_the_socially_dependent_backgrounds(rs):
     socially dependent Backgrounds" (p.22). The FOUR-point version only — the two-point
     one is dice and is out of scope.
 
-    The open-ended half is a RULING (human, 2026-07-31), read off each Background's own
+    The open-ended half is a RULING (human's ruling), read off each Background's own
     description: Backing, Connections, Retainers, Renown and Liege join the three the
     page names."""
     e = merits.merits_and_flaws_calc(rs, _solar(MP(merit_id=INNOCUOUS, tier="4")))
@@ -1956,7 +1940,7 @@ def test_innocuous_bars_the_backgrounds_that_need_to_be_known(rs):
     """"Veiled characters may not have Followers, Henchman, a Cult, any form of Command
     or other Backgrounds contingent on being widely known" (p.22).
 
-    The open-ended half is a RULING (human, 2026-07-31): Reputation ("how widely your
+    The open-ended half is a RULING (human's ruling): Reputation ("how widely your
     exploits are known") and Influence ("your pull and status in society") contradict the
     Merit outright and are barred. Renown was considered and CAPPED instead — standing
     within the Silver Pact is known to a faction, not to the world."""
@@ -1998,11 +1982,9 @@ def test_damaged_artifact_needs_one_more_dot_than_it_is_worth(rs):
 
 
 def test_two_artifacts_are_two_artifacts_not_one_big_one(rs):
-    """Found in the browser, 2026-07-31. `background_rating` SUMS duplicate rows, which
-    is right for a rating held once and wrong for a Background held per possession: two
-    2-dot artifacts read as Artifact 4 and satisfied a 3-point Damaged Artifact. The
-    printed rule measures "the rating of the artifact it modifies" (p.37), singular, so
-    the point limit reads the highest single instance."""
+    """`background_rating` SUMS duplicate rows. Damaged Artifact (p.37) measures "the
+    rating of the artifact it modifies", singular: the point limit reads the highest
+    row. Two 2-dot artifacts do not meet a 3-point Damaged Artifact."""
     split = _solar(MP(merit_id=DAMAGED_ARTIFACT, tier="3"),
                    backgrounds=[BackgroundEntry(name="Artifact", rating=2),
                                 BackgroundEntry(name="Artifact", rating=2)])
@@ -2235,10 +2217,8 @@ def test_the_sidereal_price_is_capped_at_three_points(rs):
 
 
 def test_a_sidereal_is_never_offered_the_options_it_cannot_price(rs):
-    """Found in the browser, 2026-07-31. The tier dropdown filtered on
-    `tier_barred_exalt_types` but built its menu from the generic `cost_options`, so a
-    Sidereal was offered Lucky at 4 and 5 — options `merit_points` prices at 0. The
-    per-splat MENU and the per-splat FILTER are now the same resolution order."""
+    """The tier dropdown menu and its filter use the same per-splat resolution. A
+    Sidereal is not offered Lucky at 4 and 5, which `merit_points` prices at 0."""
     d = rs.merits_flaws[LUCKY]
     assert validate.merit_tiers_available(d, "Sidereal") == ("1", "2", "3")
     assert validate.merit_tiers_available(d, "Solar") == ("1", "2", "3", "4", "5")
@@ -2341,7 +2321,7 @@ async def test_play_tracker_shows_the_shortened_renamed_resonance_track(user) ->
     shortening the track, Death's Taint's permanent counter capped at Essence 3, and
     both luck pools.
 
-    The maximum takes BOTH reductions (ruled 2026-07-31): 3 points of Greater Curse and
+    The maximum takes BOTH reductions (human's ruling): 3 points of Greater Curse and
     2 of permanent Resonance, which occupies the track rather than riding alongside it.
     """
     await user.open('/merits-play')
@@ -2356,7 +2336,7 @@ async def test_play_tracker_shows_the_shortened_renamed_resonance_track(user) ->
 
 
 def test_permanent_resonance_occupies_the_track_rather_than_riding_alongside(rs):
-    """Ruled 2026-07-31 by the human, rules authority. "Permanent Resonance is
+    """Ruled by the human, rules authority. "Permanent Resonance is
     cumulative with temporary Resonance" (p.41) reads as HEADROOM: 2 permanent means the
     temporary track tops out at 8 and the Break arrives two points sooner — the same
     shape a permanent Limit would take on a Solar. It had been implemented as a separate
@@ -2377,10 +2357,8 @@ def test_the_two_reductions_stack_and_floor_at_zero(rs):
 
 
 def test_deaths_taint_seeds_its_starting_resonance_at_lock(rs):
-    """Found in the browser, 2026-07-31. `permanent_limit_start` was DERIVED and read by
-    nothing — the price above the base four points bought a starting permanent Resonance
-    that never reached the character, who always began play at 0. Lock is where a chargen
-    value becomes the character's own, so it is seeded there."""
+    """The lock seeds `permanent_limit_start` into the character: the price above the
+    base four points buys starting permanent Resonance."""
     c = _abyssal(MP(merit_id=DEATH_TAINT, points=6), essence_rating=3)
     assert c.limit_permanent == 0
     lifecycle.lock_chargen(c, rs)
@@ -2417,7 +2395,7 @@ def test_a_re_lock_never_undoes_a_harrowing(rs):
     assert c.limit_permanent == 1, "the ledger owns the track once it has moved it"
 
 
-# --- the Advantages tab (2026-07-31) ---------------------------------------- #
+# --- the Advantages tab ---------------------------------------- #
 #
 # Backgrounds and M&F moved off the Edit⇄XP split onto one both-sides tab. The value of
 # the move is DELETION — two implementations of each became one — so the tests that
@@ -2431,12 +2409,9 @@ def test_backgrounds_and_merits_have_exactly_one_implementation():
     import inspect
     from exalted_builder.ui import advantages, editor
     adv = inspect.getsource(advantages)
-    # The Background catalogue is reached through `validate.background_catalogue_for`,
-    # the single read site for the Storyteller's open-the-catalogue toggle — so the
-    # sentinel is that call, not the RuleSet method it wraps. A module calling
-    # `backgrounds_for` DIRECTLY is the regression: it would silently ignore the
-    # toggle, which is this project's recurring shape (a rule wired into one of the
-    # places that needs it).
+    # `validate.background_catalogue_for` is the one read site of the Storyteller
+    # toggle, thus the sentinel is that call. ⚠ A module that calls `backgrounds_for`
+    # DIRECTLY ignores the toggle.
     for module in (editor,):
         src = inspect.getsource(module)
         assert "merits_flaws" not in src, (
@@ -2507,11 +2482,9 @@ async def test_the_two_tabs_agree_about_the_bonus_points(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_an_off_list_structured_detail_does_not_blank_the_tab(user) -> None:
-    """Found by preflight, 2026-07-31. `ui.select` raises at BUILD time when its value
-    is not among its options, and the raise takes every sibling with it — the crash
-    class that blanked two picker tabs. A stored detail can legitimately be off-list:
-    validate compares `detail.strip().title()`, so "strength" passes validation and
-    never matches the title-cased option. The row keeps it as its own option instead."""
+    """`ui.select` raises at BUILD time if its value is not in its options. A stored
+    detail can be off-list: validate compares `detail.strip().title()`, thus
+    "strength" passes. The row keeps it as its own option."""
     await user.open('/advantages-odd-detail')
     await user.should_see("Merits & Flaws")          # the tab built at all
     await user.should_see("Applies to")              # the select that would have raised
@@ -2557,10 +2530,8 @@ async def test_the_advantages_tab_switches_regime_at_the_lock(user) -> None:
 
 # --- Permanent Resonance on the XP ledger ----------------------------------- #
 #
-# Corrected 2026-07-30: this was first written onto PlayState alongside the temporary
-# track, which was wrong. Decision 0006's own last bullet routes permanent trait
-# movement to the XP ledger — "permanent trait *reductions* (curses) are a different
-# thing and live on the XP ledger, not here". Only the TEMPORARY half is play-state.
+# Decision 0006: permanent trait movement goes on the XP ledger. Only the TEMPORARY
+# half is play state.
 
 def _locked_abyssal(*purchases, xp=0, essence=3, permanent=0) -> Character:
     c = _abyssal(*purchases, essence_rating=essence)
@@ -2573,7 +2544,7 @@ def _locked_abyssal(*purchases, xp=0, essence=3, permanent=0) -> Character:
 # --- two-sided entries: making the choice, not just flagging it -------------- #
 # "Merit OR Flaw" entries (Mutation, Favor, Eternal Vow) carry `taken_as` on the
 # PURCHASE. Validation has always flagged an unrecorded side (`merit-side-unchosen`);
-# until 2026-07-31 nothing could actually SET it, and the XP path rejected every
+# until nothing could actually SET it, and the XP path rejected every
 # two-sided entry outright because `buy_merit` demanded `kind == "merit"`.
 
 VOW = "mf.eternal-vow"
@@ -2704,7 +2675,7 @@ def test_merit_available_to_reads_the_three_printed_restrictions(rs):
     assert not validate.merit_available_to(chimera, "Solar")
 
     # `barred_exalt_types` is unused by the catalogue since Prodigy's bar became
-    # per-option (2026-07-31), so the whole-entry case is exercised on a constructed
+    # per-option, so the whole-entry case is exercised on a constructed
     # definition rather than by pinning whichever entry happens to use it.
     barred = rs.merits_flaws["mf.large-size"].model_copy(
         update={"barred_exalt_types": ["Solar"]})
@@ -2762,7 +2733,7 @@ async def test_editor_merit_dropdown_filters_by_splat_and_caste(user) -> None:
     options = {o for sel in user.find(ui.select).elements for o in (sel.options or {})}
     assert "mf.chimera" not in options          # LUNARS ONLY
     assert "mf.eternal-vow" in options          # open to this Solar
-    # Prodigy IS offered to a Solar: its aptitude half escapes the bar (2026-07-31),
+    # Prodigy IS offered to a Solar: its aptitude half escapes the bar,
     # and an entry is only hidden when every option of its menu is closed.
     assert "mf.prodigy" in options
 
@@ -2770,17 +2741,14 @@ async def test_editor_merit_dropdown_filters_by_splat_and_caste(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_xp_tab_asks_for_a_side_before_gaining_a_two_sided_entry(user) -> None:
-    """The XP tab used to route every either-entry into the Merit branch, which then
-    raised — so they could not be gained in play at all."""
+    """The XP tab can gain an either-entry in play."""
     await user.open('/mf-side-xp')
     await user.should_see("Merits & Flaws")
     await user.should_see("Gain")
 
 
-# --- 2026-07-31 browser click-through: three bugs 1,370 tests missed --------- #
-# All three are the same species — a rule that WAS implemented, in a place that does
-# not run when it matters. None was catchable by the existing suite, which is why the
-# click-through earned its keep for the second time.
+# --- rules that must run where they matter ---------------------------------- #
+# Each test below checks a rule in the phase where it applies (the house bug).
 
 def test_callous_willpower_keeps_tracking_the_virtues_after_the_lock(rs):
     """THE A1 headline claim, and it did not work. `willpower_virtue_margin` was only
@@ -2831,7 +2799,7 @@ def test_an_attribute_capped_below_one_has_no_free_starting_dot(rs):
 
 
 def test_ability_dots_above_the_cap_do_not_consume_the_free_pool(rs):
-    """The human's ruling 2026-07-31: dots above the pre-bonus cap are BP-only and
+    """human's ruling: dots above the pre-bonus cap are BP-only and
     never draw on the 25. The ENGINE always had this right — the editor's tally was
     summing raw ratings, so one Ability at 4 read 25/25 with a free dot still unspent.
     Pinned here against the engine so the two cannot drift apart again."""
@@ -2866,11 +2834,10 @@ def test_willpower_re_pins_when_callous_expires(rs):
     assert derive.willpower(c, rs) == pinned
 
 
-# --- variable-cost entries were inert at chargen (2026-07-31 click-through) --- #
-# The editor had NO handling of `variable_cost` at all, so `MeritFlawPurchase.points`
-# stayed 0 for all 11 such entries: no bonus points granted, no effect computed. Three
-# of the four trait-forfeit Flaws are variable-cost, which is why Diminished Attributes
-# "did nothing" while Callous — the one with a printed tier menu — worked.
+# --- variable-cost entries at chargen ------------------------------------------ #
+# `MeritFlawPurchase.points` must carry the value of a `variable_cost` entry: bonus
+# points and effects follow from it. Three of the four forfeit Flaws are
+# variable-cost.
 
 DIMINISHED = "mf.diminished-attributes"
 
@@ -2891,7 +2858,7 @@ def test_every_variable_cost_entry_is_inert_at_zero_points(rs):
 
 
 def test_the_forfeit_rate_accessor_converts_dots_to_points(rs):
-    """The editor collects DOTS and multiplies (human's ruling 2026-07-31). This is the
+    """The editor collects DOTS and multiplies (human's ruling). This is the
     accessor that lets it do so without naming a Merit id — decision 0011 holds."""
     assert merits.forfeit_rate(rs.merits_flaws[DIMINISHED]) == 3
     assert merits.forfeit_rate(rs.merits_flaws[CALLOUS]) == 2
@@ -2937,9 +2904,7 @@ def test_a_structured_detail_is_a_closed_set_not_free_text(rs):
 
 
 def test_an_unchosen_structured_detail_is_reported(rs):
-    """It used to fail SILENTLY — Legendary Attribute with no Attribute named granted
-    no cap and said nothing. `_attribute_forfeits`' docstring claimed validate flagged
-    the omission; no such check existed until now."""
+    """Legendary Attribute with no Attribute named is reported."""
     for mid in (LEGENDARY_ATTR, DIMINISHED):
         blank = _codes(validate.validate_chargen(rs, _solar(MP(merit_id=mid))),
                        "merit-detail-unchosen")
@@ -2963,7 +2928,7 @@ def test_arena_belongs_only_to_the_entry_with_the_stacking_rule(rs):
 async def test_xp_tab_collects_values_through_the_same_controls_as_the_editor(user) -> None:
     """The XP tab priced every entry through ONE free-text input doing double duty — a
     tier key for a menu-priced entry, a point value for a variable-cost one. The editor
-    grew proper tier / dots / points / structured-detail controls on 2026-07-31, which
+    grew proper tier / dots / points / structured-detail controls, which
     left the two halves of the app collecting the same rules through different widgets:
     exactly the shape that produced the splat-filter bug. The free-text box is gone."""
     await user.open('/mf-side-xp')
@@ -2983,10 +2948,8 @@ async def test_xp_tab_collects_values_through_the_same_controls_as_the_editor(us
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_editor_says_how_many_flaw_points_the_cap_swallowed(user) -> None:
-    """`flaw_points_raw` was computed for this line and read by nothing, so the panel
-    printed the CAPPED grant alone: a player who took 14 points of Flaws saw "+10" and
-    could not tell the p.17 ceiling from an arithmetic bug. Found by the preflight
-    read-site audit, not by a test — one asserted the field directly and passed."""
+    """The panel shows `flaw_points_raw` with the capped grant: 14 points of Flaws show
+    the p.17 ceiling, not only "+10". ⚠ Assert on the panel, not on the field."""
     await user.open('/mf-capped')
     await user.should_see("+10 from Flaws")
     await user.should_see("14 points of Flaws taken, 10 granted")
@@ -3033,13 +2996,13 @@ def test_the_xp_and_chargen_paths_price_a_purchase_identically(rs):
             == expected, mid
 
 
-# --- trait prerequisites, generalised (2026-07-31) -------------------------- #
+# --- trait prerequisites, generalised -------------------------- #
 # A prerequisite on a TRAIT rather than on another Merit. `MeritFlaw.prerequisites`
 # holds Merit ids only, so these had nowhere to live and went unchecked. Now catalogue
 # data evaluated generically — which REMOVED Legendary Breeding's id from engine/merits
 # rather than adding one, because a restriction is as inert as a cost.
 
-# --- the optional-`ruleset` audit (2026-07-31) ------------------------------ #
+# --- the optional-`ruleset` audit ------------------------------ #
 # `derive.soak`, `derive.willpower` and `derive.health_track` take an OPTIONAL RuleSet
 # because without one there is no way to know a Flaw is held. That shape is deliberate,
 # but it makes every omission a silent bug rather than a TypeError — `raise_willpower`
@@ -3084,7 +3047,7 @@ def test_lowering_willpower_sees_a_flaw_that_moved_it(rs):
 
 
 def test_weak_essence_is_closed_to_a_splat_that_already_starts_at_essence_one(rs):
-    """A live exploit until 2026-07-31, not a theoretical one. Weak Essence is a 6-point
+    """A live exploit until, not a theoretical one. Weak Essence is a 6-point
     Flaw whose ENTIRE cost is "reduces the character's starting Essence rating to 1" — so
     on a Mortal, pinned at Essence 1 already, it cost nothing and paid 6 bonus points
     against a 21-point budget. It also handed 5 withheld-Charm credits to a splat with no
@@ -3191,7 +3154,7 @@ def test_prodigy_s_dragon_king_and_god_blooded_rate_is_2_and_4(rs):
 
 
 def test_the_naive_tier_default_would_have_been_illegal_for_a_solar(rs):
-    """The bug reported 2026-07-31: a fresh Prodigy row on a Solar opened on `favored`
+    """The bug reported: a fresh Prodigy row on a Solar opened on `favored`
     and flagged itself immediately, because the editor defaulted to the first AUTHORED
     option rather than the first this splat may choose. Pinned as the shape of the
     mistake, so re-introducing it fails here rather than in a browser."""
@@ -3222,7 +3185,7 @@ def test_every_menu_priced_entry_has_a_legal_default_for_every_splat(rs, exalt_t
         assert not validate.exalt_type_barred_from_tier(m, exalt_type, tiers[0]), m.id
 
 
-# --- the XP tab's trait ceilings (player report, 2026-07-31) ----------------- #
+# --- the XP tab's trait ceilings (player report) ----------------- #
 # The engine honoured both Merit-raised caps and the chargen editor displayed them;
 # only the XP tab hardcoded 5, so the buy was unreachable exactly where it mattered.
 # Engine-level tests could not see it — they call raise_attribute directly, which
@@ -3257,15 +3220,15 @@ def test_the_engine_allows_both_ceilings_the_xp_tab_was_hiding(rs):
     assert advancement.raise_virtue(rs, c, V.VALOR).to_rating == 6
 
 
-# --- the M&F filter bar (2026-08-01) ---------------------------------------- #
+# --- the M&F filter bar ---------------------------------------- #
 # 99 entries in one flat dropdown was the last standing usability complaint. Both
 # regimes get ONE filter (`_mf_matches`), so these tests drive both routes; a filter
 # that works on chargen and not in play is exactly the drift this module exists to
 # prevent.
 
 def _mf_search_box(user):
-    """The filter bar's search input. Found by placeholder, because the Backgrounds
-    panel on the same tab also renders `ui.input`s."""
+    """The filter bar's search input, found by placeholder: the Backgrounds panel on
+    the same tab also renders `ui.input`s."""
     boxes = [el for el in user.find(ui.input).elements
              if "search" in (el.props.get("placeholder") or "")]
     assert boxes, "no M&F search box rendered"
@@ -3350,7 +3313,7 @@ async def test_the_side_filter_keeps_two_sided_entries(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_play_gain_catalogue_dialog_offers_the_filtered_set(user) -> None:
-    """The play gain is a catalogue dialog (2026-08-10), not the old dropdown. The
+    """The play gain is a catalogue dialog, not the old dropdown. The
     filter bar narrows what the dialog offers; picking sets the pending selection, and
     the pending selection survives a narrower filter (the dialog's own text search is
     the narrowing here, so the picked entry must still be offerable)."""
@@ -3386,11 +3349,9 @@ async def test_picking_in_the_play_gain_catalogue_sets_the_pending_selection(use
     await user.should_see("Merit OR Flaw — choose a side before gaining it")
 
 
-# --- Custom Merit / Flaw rows (2026-08-10, human ruling: display-only, no effect) -- #
-# A player-authored "Custom" entry from the catalogue dialogs. It exists in NO
-# catalogue: renders by name, validates clean, has no mechanical effect, and drops
-# freely. These pin each read site so a custom row is never mistaken for a
-# missing-data error.
+# --- Custom Merit / Flaw rows (human's ruling: display-only, no effect) ------- #
+# A player-authored "Custom" entry is in NO catalogue: it renders by name, validates
+# clean, has no effect, and drops freely. One test for each read site.
 
 def test_a_custom_merit_validates_clean_and_has_no_mechanical_effect(rs):
     c = _solar(MP(merit_id="", custom_name="Bloodline trait"))
@@ -3418,7 +3379,7 @@ def test_dropping_a_custom_merit_is_a_plain_removal_not_a_transaction(rs):
     assert c.xp_earned == xp_before, "dropping a custom row must not spend XP"
     # NOT logged: there is no XP to refund, and undo_last has no merits branch, so a
     # cost-0 row would burn the player's next Undo on a no-op. A plain removal with no
-    # undoable side effect records nothing (review finding, re-review 2026-08-10).
+    # undoable side effect records nothing (review finding, re-review).
     assert c.xp_log == [], "a custom-row drop must not append a no-op ledger entry"
 
 
@@ -3514,7 +3475,7 @@ def test_the_sheet_renders_a_custom_merit_by_name(rs):
 # and appeared on no screen in either shell. 32 entries carry one, and each stated no
 # gate at all: The Flow of Essence requires Essence Awareness specifically, and a
 # God-Blooded holding Awakened Essence learned that only when the build was refused
-# (human, 2026-09-02). One read short of the dead-field bug.
+# (human's ruling). One read short of the dead-field bug.
 # --------------------------------------------------------------------------- #
 
 def test_the_requires_line_names_a_prerequisite_entry(rs):
@@ -3530,9 +3491,8 @@ def test_the_requires_line_names_every_prerequisite_when_there_are_several(rs):
 
 
 def test_every_entry_with_a_prerequisite_states_one(rs):
-    """The regression guard. A gate the engine enforces and no screen mentions is the
-    shape this whole section exists for — so assert on the POPULATION, not on the one
-    entry that was reported."""
+    """A gate that the engine enforces must show on a screen. Assert on the whole
+    POPULATION, not on one entry."""
     from exalted_builder.ui import view
     silent = [m.name for m in rs.merits_flaws.values()
               if m.prerequisites and not view.merit_requirement_line(rs, m)]
@@ -3576,7 +3536,7 @@ async def test_the_webapp_states_a_prerequisite_entry_too(user) -> None:
 # --------------------------------------------------------------------------- #
 # Awakened Essence stands in for the two mortal Essence-unlock Merits
 #
-# Human ruling, 2026-09-02. Essence Awareness's whole mechanical content is a
+# human's ruling. Essence Awareness's whole mechanical content is a
 # RESTRICTION (a third of the pool freely, the rest on a Willpower roll, 1 mote/day —
 # PG p.120) and Essence Mastery's is removing it (p.121). A God-Blooded's Awakened
 # Essence (p.66) already gives an unrestricted pool with respiration-based regen, so
@@ -3633,10 +3593,10 @@ def test_the_superseded_entries_are_barred_to_god_blooded_and_kept_for_mortals(r
 
 def test_the_god_blooded_attunement_merit_needs_the_pool_it_uses(rs):
     """The 4-pt God-Blooded Magical Attunement replaces BOTH mortal Attunement Merits
-    and requires Awakened Essence (human, rules authority, 2026-09-02 — the
+    and requires Awakened Essence (human, rules authority — the
     transcribed p.66 text does not carry the requirement, and that description measured
     only 87% of its printed source, so the clause may simply have been lost in
-    transcription — the length check that measured it was deleted 2026-09-09)."""
+    transcription — the length check that measured it was deleted)."""
     definition = rs.merits_flaws["mf.magical-attunement"]
     assert definition.prerequisites == ["mf.awakened-essence"]
     assert definition.cost == 4

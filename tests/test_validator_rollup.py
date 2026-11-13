@@ -22,7 +22,7 @@ condition that is never true. Reachability is not execution. The three roots are
 the entry points, not a claim that every branch runs.
 
 The second guard here is the FACADE's completeness. `validate.X` is the one public
-path to every name in the package (the human's call, 2026-08-17), which is what let
+path to every name in the package (human's ruling), which is what let
 the split leave 1,465 call sites untouched — but only while the re-export list in
 `__init__.py` stays exhaustive. Forget one line there and the failure surfaces in
 whichever unrelated caller happens to use that name, or in no test at all if the
@@ -352,7 +352,7 @@ def _loads(fn, skip) -> list[tuple[str, int]]:
 def test_no_engine_function_reads_a_name_it_never_binds():
     """A per-FUNCTION undefined-name check over all of `engine/`.
 
-    Both bugs the 2026-08-17 `validate_chargen` decomposition hit were this one
+    Both bugs the `validate_chargen` decomposition hit were this one
     shape: a section boundary swallowed an assignment (`mf_caps`, then `wp_total`)
     into the extracted helper while the parent still read it. A whole-FILE check
     cannot see either — the name IS defined in the file, just not in the function

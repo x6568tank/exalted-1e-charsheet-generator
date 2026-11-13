@@ -1,10 +1,10 @@
 """Which RuleSet each character of the hosted server sees: `server/rulesets.py`.
 
-Step 7 of `docs/plans/p3-tables.md` section 14 (ruled 2026-09-23):
+Step 7 of `docs/plans/p3-tables.md` section 14 (human's ruling):
 
   * A solo character: the book and the library of its owner.
   * A campaign copy: the book and the homebrew of the campaign. NOT the library of
-    its owner (Q1, 2026-09-12).
+    its owner (Q1).
   * A draft for a campaign: the book, the homebrew of the campaign, then the library
     of its owner.
 
@@ -113,7 +113,7 @@ def test_a_draft_for_a_campaign_sees_both(rulesets, store, tables, table) -> Non
 
 
 def test_the_campaign_wins_a_clash_on_a_draft(rulesets, store, tables, table) -> None:
-    """Ruled 2026-09-23: the campaign's version wins an id clash."""
+    """Ruled: the campaign's version wins an id clash."""
     custom_content.save_charm(_charm("custom.oath") | {"name": "Campaign Oath"},
                               custom_dir=tables.homebrew_dir(table.id))
     custom_content.save_charm(_charm("custom.oath") | {"name": "My Oath"},

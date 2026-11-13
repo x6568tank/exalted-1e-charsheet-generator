@@ -168,7 +168,7 @@ def test_another_accounts_base_cannot_be_copied(store: CharacterStore) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Delete (ruled 2026-09-12: with a confirm, and the copies survive)
+# Delete ruled: with a confirm, and the copies survive)
 # --------------------------------------------------------------------------- #
 
 

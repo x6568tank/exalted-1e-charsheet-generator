@@ -5,7 +5,7 @@ Speed, to which the table adds 1d10 each turn. Decision 0019 lifted this out of
 0016's exclusion on the express condition that it is NOT authored as a row in
 `data/dice_pools.json`, and one test here asserts that absence.
 
-The modifiers are the human's ruling of 2026-09-08 with their citations: Speed
+The modifiers are human's ruling with their citations: Speed
 adjusted by magical material (p.341) and by the weapon's unmet minimums; armour
 mobility and encumbrance excluded; fatigue left to the Storyteller; wound
 penalties Power-Combat-only and therefore out.
@@ -124,7 +124,7 @@ def test_moonsilver_grants_no_speed_bonus(app_ruleset):
     assert initiative.initiative(app_ruleset, lunar, weapon=weapon).total == 9
 
 
-# --- what does NOT reach the rating (human's ruling, 2026-09-08) ----------
+# --- what does NOT reach the rating (human's ruling) ----------
 
 def test_armour_mobility_does_not_slow_the_wearer(app_ruleset):
     """p.332 scopes mobility to rolls needing agility — dodge and Athletics. A
@@ -203,7 +203,7 @@ def test_jade_does_add_its_speed_for_a_dragon_blooded(app_ruleset):
 
 # --- the turn order of a table (P3 step 9) --------------------------------
 #
-# Human, 2026-09-24: ties break on the higher Dexterity + Wits (p.227) when each
+# Human: ties break on the higher Dexterity + Wits (p.227) when each
 # tied entry has it; a tie that remains is marked "tied" and the table rolls off.
 
 def _roll(key, rating, d10, dex_wits=None):
@@ -254,7 +254,7 @@ def test_only_the_equal_dexterity_plus_wits_stay_tied_inside_a_tie():
     assert [p.tied for p in placed] == [False, True, True]
 
 
-# --- the Storyteller's adjustments (human, 2026-09-25) ---------------------
+# --- the Storyteller's adjustments (human's ruling) ---------------------
 #
 # Charms that change initiative are not modelled. The Storyteller types a bonus
 # for one roll, and ticks "first" for a Charm that acts before everyone. Two or

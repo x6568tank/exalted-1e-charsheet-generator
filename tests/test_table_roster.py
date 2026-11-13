@@ -2,7 +2,7 @@
 
 Step 8 of the build order in `docs/plans/p3-tables.md` section 15.4:
 `server/table_roster.py` (R4, R6, R7, R8), the sides of the NPCs in
-`server/tables.py` (human, 2026-09-24: the Storyteller picks the side when the NPC
+`server/tables.py` (human: the Storyteller picks the side when the NPC
 is added), and `server/table_notes.py` (Q8, Q9).
 """
 
@@ -168,7 +168,7 @@ def test_a_deleted_table_forgets_the_live_roster(tables, table, roster: TableRos
 
 
 # --------------------------------------------------------------------------- #
-# The sides of the NPCs (human, 2026-09-24)
+# The sides of the NPCs (human's ruling)
 # --------------------------------------------------------------------------- #
 
 

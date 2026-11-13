@@ -10,11 +10,9 @@
       by 1 until it is increased through roleplaying";
     * cost GREATER — "too expensive for her, and she cannot afford to buy it".
 
-⚠ The human's ruling, 2026-08-12: this informs a PURCHASE and must never become a
-validation of what a character OWNS, and the printed drop-by-one is NOT applied
-automatically. The rule contradicts an ownership invariant in its own middle clause —
-buying at cost EQUAL leaves the character holding an item that now costs more than she
-has — and gear arrives as loot and gifts besides.
+⚠ human's ruling: this informs a PURCHASE and must never become a validation of what a
+character OWNS. The drop-by-one is NOT applied. The EQUAL clause itself gives an
+item above the rating, and loot and gifts do too.
 """
 
 from pathlib import Path
@@ -62,7 +60,7 @@ def test_gear_with_no_printed_cost_says_nothing(rs):
 
 def test_the_three_bows_are_the_worked_example(rs):
     """The human verified Self/Long/Composite Bow at Resources 1/2/3 against the p.330
-    table (2026-08-12). Against Resources 2 they are exactly the three printed cases,
+    table. Against Resources 2 they are exactly the three printed cases,
     which makes this the one test that would catch the values drifting."""
     costs = {w.name: w.resources_cost for w in rs.weapon_catalog.values()}
     assert (costs["Self Bow"], costs["Long Bow"], costs["Composite Bow"]) == (1, 2, 3)
@@ -106,7 +104,7 @@ async def test_the_weapon_dialog_prices_each_row_against_this_character(user) ->
     of choosing. Asserted on the summary labels rather than the page text, so a note
     that never reached a row cannot pass."""
     await user.open('/gear-resources')
-    # The Buy surface — the per-panel weapon dialog was folded into it on 2026-08-13.
+    # The Buy surface — the per-panel weapon dialog was folded into it.
     user.find(marker="buy-button").click()
     await user.should_see("Buy")
     texts = [el.text or "" for el in user.find(ui.label).elements]
@@ -146,10 +144,8 @@ def test_mountain_folk_resources_are_worth_their_dots_plus_two(rs, origin, floor
     Background + 2, but cannot have more than three actual dots." So the richest
     Jadeborn stores 3 and is worth 5.
 
-    ⚠ Found in the browser 2026-08-13: `gear_affordability` read the stored row, so a
-    Mountain Folk capped at 3 could not buy anything costing more than •••. The rule
-    was authored — `max_rating: 3` was already in the data — and the half that made the
-    cap fair was not. A cap with its compensation missing is worse than neither.
+    ⚠ `gear_affordability` must read the EFFECTIVE rating. The stored row caps a
+    Mountain Folk at •••.
     """
     def _mf(rating: int) -> Character:
         c = Character(id="mf", name="Jadeborn", exalt_type="Mountain-Folk",

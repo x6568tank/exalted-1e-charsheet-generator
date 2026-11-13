@@ -205,9 +205,8 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
     `builder_path` is the route of the builder. The two ways back to the builder
     go there.
 
-    The party page is DESKTOP only. The hosted server has no `/gm` until P3, when
-    the table view replaces it (docs/plans/vtt.md 9.3a, ruled 2026-09-12). Its
-    server-side save branch was removed then; git history has it."""
+    The party page is DESKTOP only. The hosted server has no `/gm`: the table view
+    replaces it (docs/plans/vtt.md 9.3a)."""
 
     def party() -> Party:
         return ctx["party"]
@@ -425,7 +424,7 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
             ui.upload(label="Choose a .party.json file", auto_upload=True,
                       on_upload=lambda e: _on_party_upload(e, dialog)).classes("w-96")
             # ⚠ Desktop only. A path from a browser on a server is a path on the
-            # SERVER (closed 2026-09-12, beda3ec). This page is not on the server.
+            # SERVER. This page is not on the server.
             ui.label("…or load by path:").classes("text-xs text-gray-600 mt-2")
             path_input = ui.input("Path to .party.json",
                                   value=str(ctx["party_path"] or "")) \
@@ -609,10 +608,8 @@ def build_gm(ruleset: RuleSet, ctx: dict, *, with_header: bool = True,
                                            body.refresh)
 
             # --- The Great Geas (Mountain Folk, CH6 p.235) ---------------- #
-            # Divergence triggers as a reference panel: the Geas is Storyteller-
-            # adjudicated and never engine-enforced (it is an ST call whether an
-            # oath was broken, an Exalt slain, etc.), so the 9-clause table lives
-            # here as the sheet's copy of the page — the human's ruling, 2026-08-07.
+            # A reference panel: the Storyteller decides the Geas. The engine never
+            # enforces it (human's ruling).
             if derive.limit_label(ruleset, character) == "Divergence":
                 with ui.expansion("The Great Geas — Divergence triggers").classes(
                         "w-full"):

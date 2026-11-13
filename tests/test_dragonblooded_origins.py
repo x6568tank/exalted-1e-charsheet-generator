@@ -198,8 +198,7 @@ def test_upbringing_alone_does_nothing_without_an_origin(rs):
 
 
 def test_the_new_axis_leaves_every_existing_splat_untouched(rs):
-    """The regression guard for adding a third key: no character anywhere has an
-    upbringing yet, so every previously-authored row must still be what resolves."""
+    """With no upbringing set, each origin row still resolves as before the third key."""
     for splat in ("Solar", "Abyssal", "Lunar", "Sidereal", "Alchemical", DB):
         assert rs.budgets_for(splat, "", "") is rs.budgets_for(splat)
         assert rs.bonus_costs_for(splat, "", "") is rs.bonus_costs_for(splat)
@@ -441,7 +440,7 @@ def test_every_offered_upbringing_resolves_to_an_authored_row(rs):
     deliberately has NO ':<upbringing>' row and falls back).
 
     Reads the SPLAT out of each key rather than assuming Dragon-Blooded. The Outcaste
-    book was the only source of upbringings until the ghosts arrived (2026-08-01) with
+    book was the only source of upbringings until the ghosts arrived with
     their ancestor-worship/Immaculate axis, and a hardcoded splat here silently checked
     the ghosts' rows against Dragon-Blooded's budgets."""
     from exalted_builder.ui import editor
@@ -489,7 +488,7 @@ def test_the_outcaste_backgrounds_are_in_the_autofill_catalog(rs):
     # Cult and Henchmen are NOT in this list: the Lookshy chargen summary (p.66)
     # enumerates its own fifteen and neither is among them. Cult is Games of Divinity
     # content and Henchmen is in E:DB's new-Backgrounds section, which Lookshy's
-    # summary does not restate (human, rules authority, 2026-08-11).
+    # summary does not restate (human's ruling).
     for name in ("Arsenal", "Command", "Breeding", "Sorcery",
                  "Retainers", "Reputation", "Manse", "Artifact"):
         assert name in names, name

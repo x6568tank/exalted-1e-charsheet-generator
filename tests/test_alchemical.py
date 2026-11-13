@@ -463,7 +463,7 @@ def test_every_attribute_keyed_charm_carries_its_minimum_rating(rs):
     N lives in min_ability — min_attribute only NAMES the trait. A missing rating is
     silently invisible twice over: the Charm gates on nothing, and Arrays built from
     it price at 0 XP (their cost IS the sum of these ratings, p.89). Every one of the
-    120 Attribute-keyed Charms shipped with min_ability 0 until 2026-07-23."""
+    120 Attribute-keyed Charms shipped with min_ability 0 until."""
     alch = [c for c in rs.charms.values() if c.exalt_type == "Alchemical"]
     missing = [c.id for c in alch if c.min_attribute and c.min_ability <= 0]
     assert not missing, missing

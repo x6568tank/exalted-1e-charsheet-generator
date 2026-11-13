@@ -242,7 +242,7 @@ def test_an_artifact_with_a_stat_line_is_one_row_with_both_editors(ruleset, qtbo
     assert len(char.artifacts) == 1 and len(char.weapons) == 1
     page = _page(ruleset, char)
     qtbot.addWidget(page)
-    # ONE row, not two peers (human, 2026-08-14: two rows for one Crimson Bow "feels
+    # ONE row, not two peers (human: two rows for one Crimson Bow "feels
     # odd, and a little obtuse").
     assert _names(page) == ["Daiklave"]
     _select(page, "Daiklave")
@@ -254,7 +254,7 @@ def test_an_artifact_with_a_stat_line_is_one_row_with_both_editors(ruleset, qtbo
 
 
 def test_the_merged_row_still_answers_the_weapon_filter(ruleset, qtbot):
-    # Merging two rows must not cost the object a filter it used to appear under.
+    # The merged row keeps each filter of the object.
     page = _page(ruleset, _daiklave_owner(ruleset))
     qtbot.addWidget(page)
     _set_filter(page, "weapon")
@@ -279,7 +279,7 @@ def test_a_type_chip_hides_the_other_kinds(ruleset, qtbot):
     dialog = page._build_shop_dialog()
     qtbot.addWidget(dialog)
     dialog._set_group("Armour")
-    # ⚠ `_group_of` holds a LIST per key since 2026-08-27 (a row may sit in several
+    # ⚠ `_group_of` holds a LIST per key since (a row may sit in several
     # groups — an adversary is filed under all of its categories). Gear passes one group
     # per row, so the flattened set is still a single kind.
     shown = {group for i, (key, *_rest) in enumerate(dialog._entries)

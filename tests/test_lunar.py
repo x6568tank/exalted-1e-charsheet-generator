@@ -434,8 +434,7 @@ def test_unarmed_combat_iii_tentacle_branch_resolves(rs):
 
 
 def test_lunar_ox_body_cap_reads_stamina_not_endurance_ability(rs):
-    # Regression: Endurance (the Ability) sits unused at 0 for a Lunar; the cap
-    # must come from Stamina, not silently resolve to 0 via the wrong trait.
+    # Endurance (the Ability) is 0 for a Lunar. The cap must come from Stamina.
     c = _lunar()
     c.abilities[A.ENDURANCE] = 0
     c.attributes[AT.STAMINA] = 3
@@ -486,9 +485,8 @@ def test_grappling_and_armor_defeating_chains_resolve(rs):
 
 
 def test_throat_baring_hold_and_hyena_jaw_have_distinct_descriptions(rs):
-    # Regression: an earlier draft accidentally duplicated Hyena Jaw Technique's
-    # description onto Throat-Baring Hold (the source page prints Hyena Jaw's
-    # body text above both headers, an unusual layout that's easy to misattribute).
+    # Hyena Jaw Technique and Throat-Baring Hold have different descriptions. The
+    # page prints the Hyena Jaw text above both headers.
     tbh = rs.charms["lunar.unarmed-combat.throat-baring-hold"]
     hjt = rs.charms["lunar.unarmed-combat.hyena-jaw-technique"]
     assert tbh.description != hjt.description
@@ -551,10 +549,8 @@ def test_melee_cascade_prerequisite_chain_resolves(rs):
 
 
 def test_melee_category_gates_on_attribute_not_melee_ability(rs):
-    # Regression: "melee" is coincidentally also a valid AbilityName, so
-    # min_attribute must take priority over the category-derived Ability check
-    # — a Lunar Melee Charm gates on Dexterity/Strength/etc., never on the
-    # character's Melee Ability rating, even though the two share a spelling.
+    # "melee" is also an AbilityName, thus min_attribute must take priority over the
+    # category Ability. A Lunar Melee Charm gates on an Attribute, never on Melee.
     charm = rs.charms["lunar.melee.sensing-the-deadly-flow"]
     assert charm.min_attribute == "dexterity" and charm.min_ability == 2
     c = _lunar(caste="full-moon")
@@ -1033,7 +1029,7 @@ def test_gift_charm_shape(rs):
     assert charm.repeatable_cap_ability == "essence"
     assert charm.variant_picks_first_purchase == 2
     assert charm.variant_picks_per_purchase == 1
-    # 19 from Lunars pp.124-127; 22 since 2026-08-11, when the Player's Guide p.207
+    # 19 from Lunars pp.124-127; 22 since, when the Player's Guide p.207
     # gifts (Aspect of the Gillman, Soaring Pinions, Fluttering Wings) were added.
     assert len(charm.variants) == 22
     assert validate.gift_charm_id(rs, _lunar()) == charm.id
@@ -1062,7 +1058,7 @@ def test_gift_prerequisite_chain(rs):
     assert by_key["deadly-breath"] == [["poison-bite"]]
     assert by_key["ghost-sight"] == [["enhanced-senses"]]
     assert by_key["savage-moonsilver-talons"] == [["terrible-beast-claws"]]
-    # Player's Guide p.207 (added 2026-08-11): "Prerequisite Gifts: Fluttering Wings"
+    # Player's Guide p.207 (added): "Prerequisite Gifts: Fluttering Wings"
     # on Soaring Pinions, "None" on the other two.
     assert by_key["soaring-pinions"] == [["fluttering-wings"]]
     roots = {k for k, p in by_key.items() if not p}
@@ -1173,11 +1169,9 @@ def test_check_beastman_gifts_flags_wrong_pick_count(rs):
 
 
 def test_lunar_attribute_charm_gets_favored_caste_xp_discount(rs):
-    # Regression for the costs.charm_cost bug found while wiring Gifts: it only
-    # checked category-as-Ability, so every Lunar Charm was always charged the
-    # full (non-favored) rate. A Full Moon's Caste Attributes are Physical, and
-    # lunar.melee.sensing-the-deadly-flow gates on Dexterity (Physical) -> should
-    # get the favored-caste discount.
+    # costs.charm_cost gives the favored-caste discount by Caste Attribute. A Full Moon's
+    # Caste Attributes are Physical, and lunar.melee.sensing-the-deadly-flow gates on
+    # Dexterity (Physical).
     from exalted_builder.engine import costs
     c = _locked_lunar(caste="full-moon")
     charm = rs.charms["lunar.melee.sensing-the-deadly-flow"]
@@ -1353,10 +1347,8 @@ def test_sheet_view_exposes_the_form_library(rs):
 
 
 def test_sheet_lists_beastman_gift_purchases_as_charm_rows(rs):
-    # Regression: Deadly Beastman Transformation lives on character.beastman_gifts,
-    # not character.charms, so the sheet's `for cid in character.charms` loop skipped
-    # it entirely — a bought DBT simply did not appear. Ox-Body already had this
-    # special case; the Gift Charm needs the identical one.
+    # Deadly Beastman Transformation is on character.beastman_gifts, not
+    # character.charms. The sheet must show it, as it shows Ox-Body.
     c = _lunar(caste="full-moon")
     c.attributes[AT.CHARISMA] = 2
     c.charms = ["lunar.shapeshifting.finding-the-spirits-shape"]
@@ -1385,10 +1377,9 @@ def test_xp_log_labels_a_gift_purchase_by_its_gifts(rs):
 
 
 def test_ox_body_cap_trait_label_follows_the_splat_not_a_literal(rs):
-    # Rendering regression: the picker hardcoded "Endurance" in its Ox-Body copy, but
-    # repeatable_cap_ability is per-splat DATA — Lunar Ox-Body caps on Stamina
-    # (The Lunars p.132), and Deadly Beastman Transformation on Essence (p.124).
-    # The cap CALCULATION was always right; only the label lied.
+    # The picker label of the cap trait comes from data (repeatable_cap_ability): Lunar
+    # Ox-Body caps on Stamina (The Lunars p.132), Deadly Beastman Transformation on
+    # Essence (p.124).
     assert view.repeatable_cap_trait(rs.charms["solar.endurance.ox-body-technique"]) == ("Endurance", "dot")
     assert view.repeatable_cap_trait(rs.charms["lunar.endurance.ox-body-technique"]) == ("Stamina", "dot")
     assert view.repeatable_cap_trait(

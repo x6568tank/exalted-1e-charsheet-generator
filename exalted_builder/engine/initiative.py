@@ -24,8 +24,7 @@ Grand Daiklave -3, Sledge -6 — so no caller flips it.
 * the weapon's unmet minimums, one off Speed per dot short, via
   `pools.weapon_minimum_shortfall`, which owns that citation.
 
-**What does NOT reach the rating** — the human's ruling, 2026-09-08, with their
-citations. Each is on `EXCLUDES` so the surface states it:
+**What does NOT reach the rating** (human's ruling). Each is on `EXCLUDES` so the surface states it:
 
 * **Charms.** Nothing is modelled; Speardancer Concentration (PG) adding Essence
   to Initiative for the turn is the example of what a player must add themselves.

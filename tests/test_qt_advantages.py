@@ -65,7 +65,7 @@ def _locked_with_xp(ruleset, character, amount=100):
 
 def _widgets(page, kind):
     """Widgets in the DETAIL PANE — where every editor lives since the tab became
-    tables + a detail pane (shape B, human 2026-08-21). Select a row first."""
+    tables + a detail pane (shape B, human). Select a row first."""
     return page._detail_body.findChildren(kind)
 
 
@@ -136,7 +136,7 @@ def _select(dialog, key: str) -> None:
 def test_page_builds_for_a_fresh_character(qtbot, ruleset):
     page = _page(ruleset, _solar())
     qtbot.addWidget(page)
-    # Shape B: a sub-tab per category, not stacked panels (human, 2026-08-21).
+    # Shape B: a sub-tab per category, not stacked panels (human's ruling).
     assert _tab_labels(page) == ["Backgrounds", "Merits & Flaws"]
 
 
@@ -373,7 +373,7 @@ def test_a_dialog_chip_narrows_the_offer_to_that_category(qtbot, ruleset):
     dialog = page._build_mf_dialog(page._available_merits())
     qtbot.addWidget(dialog)
     dialog._set_group("Physical")
-    # ⚠ `_group_of` holds a LIST per key since 2026-08-27; M&F pass one group per row.
+    # ⚠ `_group_of` holds a LIST per key since; M&F pass one group per row.
     shown = {group
              for i, (key, *_rest) in enumerate(dialog._entries)
              if not dialog.list.item(i).isHidden()
@@ -386,7 +386,7 @@ def test_a_merits_rules_text_is_printed_WHOLE_in_the_detail_pane(qtbot, ruleset)
     TOOLTIP — a leftover from when this was a card in a stack with no room. It is now
     the scrolling half of a splitter, and the Backgrounds pane beside it has always
     printed its blurb in full, so a long Merit read as truncated for no reason
-    (human, 2026-08-30). Picks the LONGEST description in the rule set so the test
+    (human's ruling). Picks the LONGEST description in the rule set so the test
     cannot rot into probing a short one."""
     longest = max(ruleset.merits_flaws.values(),
                   key=lambda m: len(m.description or ""))
@@ -594,7 +594,7 @@ def test_confirming_the_gain_dialog_buys_the_configured_entry(qtbot, ruleset):
 
 
 def test_a_variable_cost_entry_opens_at_one_point_not_zero(qtbot, ruleset):
-    """Human's ruling, 2026-08-21. At zero a variable-cost entry prices to nothing, so
+    """human's ruling. At zero a variable-cost entry prices to nothing, so
     confirming it adds a row that neither costs nor pays — a purchase that looks made
     and did nothing. ⚠ The value must be seeded into the STATE, not just the spinner:
     the confirm button prices the state."""
@@ -734,7 +734,7 @@ def test_catalogue_dialog_custom_picks_none(qtbot, ruleset):
 
 def test_selecting_a_second_entry_detaches_the_first_ones_controls(qtbot, ruleset):
     """⚠ The previous entry's widgets painted ON TOP of the next one's
-    (human, 2026-08-21). The cause was a widget-only sweep: the caller builds its
+    (human's ruling). The cause was a widget-only sweep: the caller builds its
     controls as nested rows, and a layout answers `item.widget() is None`, so nothing
     inside one was ever detached. Counting the LIVE descendants is what catches it —
     a stale row is still a child of the extras box."""
@@ -757,7 +757,7 @@ def test_selecting_a_second_entry_detaches_the_first_ones_controls(qtbot, rulese
 
 def test_the_dialog_does_not_reprint_the_description_the_detail_pane_shows(qtbot, ruleset):
     """Once scrollable in the detail pane and once truncated underneath reads as a bug
-    (human, 2026-08-21). The cost/restriction/requires lines are NOT in the pane, so
+    (human's ruling). The cost/restriction/requires lines are NOT in the pane, so
     those stay."""
     char = _locked_with_xp(ruleset, _solar())
     page = _page(ruleset, char)
@@ -773,7 +773,7 @@ def test_the_dialog_does_not_reprint_the_description_the_detail_pane_shows(qtbot
 
 def test_a_long_summary_is_cut_to_a_few_words_in_the_list(qtbot, ruleset):
     """A whole printed paragraph on every row scrolled the list off the screen
-    (human, 2026-08-21). The full text still reaches the detail pane."""
+    (human's ruling). The full text still reaches the detail pane."""
     paragraph = " ".join(f"word{i}" for i in range(60))
     dialog = CatalogueDialog(theme.palette("Solar"), "Things",
                              [("a", "Alpha", paragraph, None)], lambda _k: None)
@@ -915,7 +915,7 @@ def test_the_pane_names_the_entry_a_held_merit_requires(qtbot, ruleset):
     """⚠ `prerequisites` reached NO screen in either shell — 32 entries carry one and
     every one of them showed no gate. A mortal was told nothing about The Flow of
     Essence needing Essence Awareness until the validator refused the build (human,
-    2026-09-02)."""
+   )."""
     char = Character(id="m", name="Thaumaturge", exalt_type="Mortal")
     char.merits_flaws = [MeritFlawPurchase(merit_id="thaum.essence-awareness"),
                          MeritFlawPurchase(merit_id="thaum.flow-of-essence",

@@ -78,7 +78,7 @@ def test_r1_connections_capped_by_the_attribute_sum(rs):
     b = rs.budgets_for("Sidereal")
     attr_sum = sum(c.attributes.values())
     # The cap is a TOTAL, so it is exercised with ROWS — each within the universal 5,
-    # which is the per-row ceiling (human's ruling 2026-08-12). A single row carrying
+    # which is the per-row ceiling (human's ruling). A single row carrying
     # the whole allowance was the original fixture here and stopped being expressible
     # when the row was held to 5; it also conflated the two ceilings.
     def rows(total):
@@ -199,7 +199,7 @@ def test_r3_mortal_toggle_lifts_through_validate_chargen(rs):
 def test_r4_mountain_folk_artifact_reaches_ten_and_is_refused_at_eleven(rs):
     """R4. CH6 p.234-235: "The greatest Enlightened heroes of the Mountain Folk can
     possess this Background above a rating of 5." The ceiling is 10 — the human's
-    ruling 2026-08-12, since the book prints no upper bound — and it binds on BOTH
+    ruling, since the book prints no upper bound — and it binds on BOTH
     sides: a character who leaves chargen at 6 still holds 6, and can reach 7 when the
     story grants one. Both Mountain Folk origins carry the lift."""
     for origin in ("enlightened", "unenlightened"):
@@ -340,17 +340,11 @@ def test_universal_cap_holds_every_background_on_both_sides(rs):
 
 
 def test_a_rule_may_raise_the_universal_cap_but_never_remove_it(rs):
-    """The third round of one root cause, and the narrowest opening it left.
-
-    The universal 5 used to be a structural invariant on `BackgroundEntry.rating`;
-    every fix since has re-derived it from `BackgroundRule`, which was never meant to
-    carry it. The version before this one skipped the check whenever a rule merely
-    EXISTED — so the three rules that state no maximum at all lost the cap at chargen
-    while keeping it post-lock, which is the "correct in the case you tested" shape.
+    """A rule may raise the universal cap of 5. It may never remove it.
 
     Alchemical Class states `min_rating`, Alchemical Backing states `requires`, and
-    Illuminated Illumination states `min_rating`. None of them says anything about a
-    ceiling, so all three are held to 5."""
+    Illuminated Illumination states `min_rating`. None of them gives a ceiling, thus
+    all three are held to 5, before and after the lock."""
     for exalt, caste, origin, rows in (
             ("Alchemical", "orichalcum", "", [("Class", 10)]),
             ("Alchemical", "orichalcum", "", [("Class", 3), ("Backing", 10)]),
@@ -379,7 +373,7 @@ def test_connections_caps_the_row_at_five_and_the_total_at_the_attribute_sum(rs)
     sharing the name — the printed rule caps the TOTAL ("the total number of dots in
     Connections may not exceed" the sum, Sidereals pp.106-108). It therefore says
     nothing about a single row, which keeps the universal 5 like every other Background
-    (human's ruling 2026-08-12; a row briefly shipped at 10 and was reverted — 27 or
+    (human's ruling; a row briefly shipped at 10 and was reverted — 27 or
     even 10 pips in one row looks unlike anything else on the sheet)."""
     b = rs.budgets_for("Sidereal")
     c = _sidereal()
@@ -448,16 +442,12 @@ async def test_a_locked_row_above_its_post_lock_ceiling_still_renders(user) -> N
 
 
 def test_the_mortal_toggle_moves_the_OFFER_list_not_only_the_bar(rs):
-    """Found in the browser, 2026-08-12: a mortal with Storyteller permission still
-    could not find Artifact or Manse in the catalogue.
+    """A mortal with Storyteller permission finds Artifact and Manse in the catalogue.
 
-    The bar and the offer are SEPARATE mechanisms — `BackgroundRule.barred` decides
-    legality, `catalogue_backgrounds` decides what the dropdown lists — and the toggle
-    moved only the first. Lifting a prohibition the player cannot then act on is worse
-    than not offering the toggle. `background_catalogue_for` now hides a barred
-    Background until its toggle lifts it, the same treatment `banned_backgrounds`
-    already gets, and both mortal rows list Artifact and Manse so there is something
-    for the permission to reveal."""
+    The bar and the offer are SEPARATE mechanisms: `BackgroundRule.barred` decides
+    legality, `catalogue_backgrounds` decides the dropdown. The toggle must move both.
+    `background_catalogue_for` hides a barred Background until its toggle lifts it,
+    and both mortal rows list Artifact and Manse."""
     from exalted_builder.models.character import HouseRules
     for origin in ("heroic", "ordinary"):
         c = Character(id="mcat", exalt_type="Mortal", caste="", origin=origin,

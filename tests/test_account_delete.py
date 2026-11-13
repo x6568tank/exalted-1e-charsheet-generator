@@ -1,6 +1,6 @@
 """The delete of an account: `server/accounts.py`. `docs/plans/account-management.md`.
 
-Rulings of 2026-09-26: the campaigns that the account runs are deleted, and each
+Rulings of: the campaigns that the account runs are deleted, and each
 other player keeps a solo copy; the username is freed; the id is never reused.
 """
 

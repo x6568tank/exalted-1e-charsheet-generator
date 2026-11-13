@@ -247,7 +247,7 @@ def test_a_rename_needs_the_password(store: Path) -> None:
 
 
 def test_a_change_of_case_is_a_rename(store: Path) -> None:
-    """Usernames are case-sensitive (the human, 2026-09-11)."""
+    """Usernames are case-sensitive (human's ruling)."""
     user_id = db.create_user(store, "harmonious", PASSWORD)
     db.rename_user(store, user_id, PASSWORD, "Harmonious")
     assert db.username_for(store, user_id) == "Harmonious"

@@ -110,7 +110,7 @@ def test_a_specialty_adds_one_die_per_instance():
     bonus they gain.' Two instances of Swords is +2 dice.
 
     ⚠ The instances must be SUMMED BY NAME. The loader splits a legacy `rating: 2`
-    into two rows of 1 (the 2026-07-31 instance ruling), so offering the raw
+    into two rows of 1 (the instance ruling), so offering the raw
     Specialty rows gives the player two identical entries worth one die each and
     quietly under-counts the pool — which is exactly what the first cut did.
     """
@@ -332,7 +332,7 @@ def test_no_module_in_the_chargen_or_xp_path_imports_pools():
 
     ⚠ `validate` and `advancement` are PACKAGES, so each target expands to every
     module inside it — a check that named only `__init__.py` would go blind to the
-    domain modules the 2026-08-17 and 2026-10-09 splits moved the rules into. The targets are asserted to
+    domain modules the and splits moved the rules into. The targets are asserted to
     exist for the same reason: a missing file must fail, never silently pass.
     """
     import re
@@ -391,11 +391,11 @@ def test_every_shipped_roll_computes(app_ruleset):
 
 
 # --------------------------------------------------------------------------- #
-# Wound penalties: which rolls they touch (human's ruling, 2026-08-12)
+# Wound penalties: which rolls they touch (human's ruling)
 # --------------------------------------------------------------------------- #
 
 def test_wound_penalties_apply_to_a_virtue_check():
-    """Ruled 2026-08-12: p.229's Order of Modifiers lists wound penalties among the
+    """Ruled: p.229's Order of Modifiers lists wound penalties among the
     subtractions for an action, and nothing exempts a Personality-Trait roll."""
     c = _char()
     c.virtues[VirtueName.VALOR] = 3

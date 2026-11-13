@@ -46,10 +46,8 @@ def _ma_char(splat: str, caste: str) -> Character:
 
 
 def test_the_immaculate_dragon_paths_are_celestial(rs):
-    """Corrected 2026-08-01 (human, rules authority): the five Immaculate Dragon Paths
-    are CELESTIAL styles, not the `open_to_all` Terrestrial ones the data claimed. A
-    Solar still reaches them — by tier now rather than by open_to_all — but a splat
-    with Terrestrial-only martial arts no longer does."""
+    """The five Immaculate Dragon Paths are CELESTIAL styles (human's ruling). A
+    Solar reaches them by tier. A splat with Terrestrial-only martial arts does not."""
     for cid in _DRAGON_STYLE:
         assert rs.charms[cid].open_to_all is False
         assert rs.charms[cid].open_to_tiers == ["Celestial"]

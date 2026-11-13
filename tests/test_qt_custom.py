@@ -111,7 +111,7 @@ def test_charms_and_spells_are_separate_sub_tabs(ruleset, tmp_path, qtbot):
 
 
 def test_a_ritual_is_authored_here_and_lands_in_the_catalogue(ruleset, tmp_path, qtbot):
-    """The Rituals library (2026-08-28). p.148 prints five and expects more, so a row
+    """The Rituals library. p.148 prints five and expects more, so a row
     written here joins `ruleset.thaum_rituals` and is bought from the Thaumaturgy
     picker by id, like a printed one."""
     page = _page(ruleset, tmp_path)
@@ -417,9 +417,8 @@ def _gear_page(ruleset, tmp_path, notes=None):
 
 
 def test_the_gear_list_shows_every_kind_with_its_stats(ruleset, tmp_path, qtbot):
-    """⚠ The Detail column is the regression guard for `reload_custom_layer` skipping
-    the gear catalogues: unmerged rows fall back to the bare name, so a stat line here
-    proves the re-merge ran."""
+    """⚠ The Detail column proves that `reload_custom_layer` merges the gear
+    catalogues: an unmerged row shows the bare name only."""
     _seed_gear(tmp_path)
     page = _gear_page(ruleset, tmp_path)
     qtbot.addWidget(page)
@@ -464,7 +463,7 @@ def test_gear_can_be_authored_but_not_imported(ruleset, tmp_path, qtbot):
 ])
 def test_every_gear_kind_can_be_authored_from_the_form(ruleset, tmp_path, qtbot,
                                                         kind, extra, check):
-    """⚠ Reverses the 2026-08-13 ruling, reopened by the human 2026-08-27. The old flow
+    """⚠ Reverses the ruling, reopened by the human. The old flow
     made you give a character an item in order to invent one."""
     page = _gear_page(ruleset, tmp_path)
     qtbot.addWidget(page)

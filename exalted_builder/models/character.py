@@ -1,21 +1,21 @@
 """
 models/character.py — the save file.
 
-Holds a character's *current, canonical* trait values plus the audit structures
-the engine uses to validate them:
+Holds the current trait values of a character, and the audit structures that the
+engine uses to validate them:
 
-  * pre-lock  : current traits are validated against ChargenBudgets.
-  * lock      : freeze the Willpower virtue-component (post-creation Virtue gains
-                must NOT raise Willpower) and snapshot traits as the XP baseline.
-  * post-lock : edits are mirrored by append-only XpEntry rows; the engine checks
-                current state against snapshot + log and that each cost is correct.
+  * pre-lock  : the engine validates the current traits against ChargenBudgets.
+  * lock      : the engine freezes the Virtue component of Willpower and copies the
+                traits into a snapshot. The snapshot is the XP baseline.
+  * post-lock : each edit adds an append-only XpEntry row. The engine checks the
+                current state against snapshot + log, and checks each cost.
 
-Only structural invariants are enforced here (non-negative ratings, valid enums,
-rating <= 5). Game legality lives in engine.validate, which needs the RuleSet —
-deliberately not imported here, so the engine stays the single source of rules.
+This module enforces structural invariants only (non-negative ratings, valid enums,
+rating <= 5). Game legality is in engine.validate, which needs the RuleSet. This
+module does not import the RuleSet.
 
-Note on serialization: enum-keyed dicts (attributes/abilities/virtues) round-trip
-through JSON using the enum *string values* as keys, e.g. {"strength": 3}.
+Enum-keyed dicts (attributes/abilities/virtues) serialize with the enum string values
+as keys, e.g. {"strength": 3}.
 """
 
 from __future__ import annotations
@@ -30,9 +30,7 @@ from .rules import (AbilityName, AttributeName, Damage, Orientation,
                     VirtueName)
 
 
-# Legacy saves stored the caste as its capitalised display name ("Dawn"); the
-# caste is now referenced by its stable lowercase id ("dawn"). Map the old Solar
-# values forward on load so pre-Phase-2 saves keep working.
+# The capitalized Solar caste names of old saves, mapped to the caste ids.
 _LEGACY_CASTE_IDS = {
     "Dawn": "dawn", "Zenith": "zenith", "Twilight": "twilight",
     "Night": "night", "Eclipse": "eclipse",
@@ -50,151 +48,87 @@ class Specialty(BaseModel):
 
 
 class HearthstoneEntry(BaseModel):
-    """One Hearthstone held on a Manse Background row.
+    """One Hearthstone on a Manse Background row.
 
-    A stone is a rated object out of `data/artifacts.json` like any other, but it is
-    NOT bought with Artifact dots — its level is the level of the Manse that grew it
-    (core p.338), which is why `ArtifactType.background` keeps it off both
-    Artifact-spending surfaces and why it lands here rather than in
-    `Character.artifacts`.
+    Its level is the level of the Manse (core p.338), not a cost in Artifact dots.
 
-    ⚠ Stored STRUCTURALLY, with its rating — never as text appended to the row's
-    `note`. `note` is bound to a text input that rewrites it on every keystroke, so
-    parsing stones back out of it would put state that switches a rule on inside a
-    field the player can edit to switch it off, and the S&S p.67 total could not be
-    checked at all.
+    ⚠ Store a stone in this list, with its rating. Do not store it in the `note` of
+    the row: the player can edit `note`, and the S&S p.67 total needs the rating.
 
-    `rating` copies the catalogue entry's rather than referencing it (decision 0007:
-    ids for invariant content, inline copies for variable). A Hearthstone is variable —
-    S&S p.67 says every Manse is unique and the printed stones are examples — so a
-    stone renamed by the table must not keep claiming the printed one's level."""
+    `rating` is an inline copy (decision 0007)."""
     name: str
     rating: int = Field(default=1, ge=0, le=5)
 
 
 class BackgroundEntry(BaseModel):
     name: str                              # open-ended: "Artifact", "Manse", "Resources"...
-    # ⚠ A STRUCTURAL bound only — the highest ceiling the build supports, 10, from the
-    # Mountain Folk Artifact lift: "with each dot beyond 5 costing one bonus point"
-    # (CH6 p.234-235), ceiling by the human's ruling. Every REAL ceiling (the Sidereal
-    # Connections attribute-sum cap, the Celestial Manse ≤3, the MF Backing ≤2…) is
-    # `background_issues` / `background_rating_cap` in the engine, which knows the
-    # data. The model cannot, by design — it has no RuleSet.
+    # ⚠ A structural bound only: 10 is the highest ceiling of any splat (CH6 p.234-235,
+    # human's ruling). The engine (`background_issues`, `background_rating_cap`)
+    # applies the real ceilings.
     rating: int = Field(ge=0, le=10)
     note: str = ""                         # the specific descriptor
-    # Hearthstones held on THIS row. Per-row rather than per-character because the S&S
-    # p.67 cap is per-Manse: a character with two Manse rows has two separate
-    # allowances, and a character-level list could not say which stone came from which.
-    # Empty on every Background that is not a Manse — see
-    # `BackgroundType.hearthstone_tiers` / `hearthstone_per_dot`, which decide whether
-    # a row grows stones at all.
+    # S&S p.67: the cap is per Manse, thus the stones are on the row.
+    # `BackgroundType.hearthstone_tiers` and `hearthstone_per_dot` decide if a row
+    # can have stones.
     hearthstones: list[HearthstoneEntry] = Field(default_factory=list)
-    # This row is a DEMESNE rather than a Manse. Every Manse Background doubles as the
-    # Demesne Background one rung up ("Level 3 Manse or level 4 Demesne"), and the two
-    # differ for exactly one purpose in this build: a Demesne grows no Hearthstones
-    # (human's ruling 2026-08-12 — S&S p.66's Demesne stones are accidental, one level
-    # weaker and decay on removal, and are not worth modelling). Nothing else reads it.
+    # The row is a Demesne, not a Manse. A Demesne has no Hearthstones (S&S p.66,
+    # human's ruling).
     is_demesne: bool = False
 
 
 class ArtifactEntry(BaseModel):
-    """One individually rated artifact the character owns (E:Ab p.131).
+    """One rated artifact that the character owns (E:Ab p.131).
 
-    Exists because the Artifact Background is a BUDGET, not a cost curve: the Abyssal
-    table caps both the COMBINED rating of everything owned and the rating of any
-    SINGLE item, and neither can be checked against a `BackgroundEntry`, which carries
-    one summed number. It is also what Damaged Artifact points at — the Flaw's printed
-    limit is "the rating of the artifact it modifies", per-item, not the total.
+    The Artifact budget limits the total rating and the rating of each item.
+    Damaged Artifact uses the rating of one item.
 
-    ⚠ This list is for artifacts that are NEITHER a weapon NOR armour — the book's own
-    worked example is the tattered wings of the raptor. Weapons and armour already
-    carry `artifact_rating` and are folded in by `engine.artifacts.artifact_items`;
-    re-entering a daiklave here would double-count it against the budget.
+    ⚠ Use this list only for an artifact that is not a weapon and not armor. Weapons
+    and armor carry `artifact_rating`, and `engine.artifacts.artifact_items` adds
+    them. A second entry here counts the item two times.
 
-    `rating` is the artifact's own dots (1-5), not the Background's. N/A artifacts are
-    unrepresentable on purpose: the p.131 table's only universal rule is that an item
-    "cannot be N/A", so there is no rating to record for one."""
+    `rating` is the dots of the artifact (1-5). An N/A artifact cannot be an entry
+    (p.131)."""
     name: str
     rating: int = Field(ge=1, le=5)
-    # Motes this artifact costs to commit, copied from `rules.ArtifactType.attunement`
-    # on a catalogue pick the same way `rating` is, and editable after. 0 means either
-    # "costs nothing" or "nobody has transcribed the number from its page yet" — the
-    # catalogue ships zero-defaulted, so do not read a 0 here as the former.
-    #
+    # Copied from `rules.ArtifactType.attunement`. ⚠ 0 can also mean "not transcribed".
     attunement: int = Field(default=0, ge=0)
-    # See `Weapon.attuned` — same contract, same validate/ bar.
-    #
-    # ⚠ These are IGNORED when this row has a gear stat line pointing at it
-    # (`Weapon.from_artifact`): the pair is one object, and the gear row carries the
-    # authoritative number (human's ruling 2026-09-03). `engine.artifacts.
-    # artifact_items` does the picking, exactly as it already does for `rating`, and
-    # the editors offer no control here when a stat line exists — otherwise one
-    # daiklave commits its motes twice.
+    # See `Weapon.attuned`.
+    # ⚠ Ignored if a gear row has `from_artifact` set to this row. The gear row owns
+    # the commitment (human's ruling). `engine.artifacts.artifact_items` selects the
+    # row. The editors show no control here when a stat line exists.
     attuned: bool = False
     attuned_pool: Literal["personal", "peripheral"] = "peripheral"
     note: str = ""
-    # HOW the character came to own it — `engine.artifacts.ACQUIRED_BACKGROUND` (the
-    # default) or `ACQUIRED_PURCHASED`. The two are different channels, both printed:
-    #
-    #   * the Artifact Background is the PRE-GAME one, and the corebook says so in as
-    #     many words — every gear table defines its Artifact column as "the number of
-    #     dots in the Artifact Background the character must spend TO START THE GAME
-    #     OWNING one of these" (core p.342, repeated for armour on p.345);
-    #   * cash is the IN-PLAY one: Manacle and Coin pp.122-125 prices the same wonders
-    #     in Resources ("Daiklave ••••" where the Background rates it Artifact ••),
-    #     and says outright that its tables "closely follow the Wonders and Equipment
-    #     tables on pp. 324-346 in the main Exalted book".
-    #
-    # A THIRD channel is `ACQUIRED_LEGENDARY`: the plot-device artifacts that print
-    # "(ARTIFACT N/A)" and are paid for with the Legendary Artifact 10-pt Merit instead
-    # of any budget — see `rules.ArtifactType.requires_merit`. The picker sets it from
-    # the catalogue entry, so the player does not choose it.
-    #
-    # Only Background-funded items are charged to the Artifact budget — a bought
-    # daiklave is equipment you paid for. ⚠ Unlike `Weapon.from_artifact` this
-    # discriminator is MEANT to be player-editable, so it is a hole in the budget by
-    # construction; `validate.check_artifacts` closes it at chargen, where the printed
-    # phrase above says purchase does not happen (human's ruling 2026-08-13). The
-    # Merit requirement does NOT rely on it: that check keys on the artifact's NAME
-    # against the catalogue, so editing this field cannot shake the Merit off.
+    # The acquisition channel (decision 0017): `engine.artifacts.ACQUIRED_BACKGROUND`,
+    # `ACQUIRED_PURCHASED` or `ACQUIRED_LEGENDARY`. The Background is the pre-game
+    # channel (core p.342, p.345). Cash is the in-play channel (Manacle and Coin
+    # pp.122-125, which follows core pp. 324-346). The picker sets
+    # `ACQUIRED_LEGENDARY` from `rules.ArtifactType.requires_merit`.
+    # Only Background items count against the Artifact budget.
+    # ⚠ This field is player-editable. `validate.check_artifacts` refuses a purchase
+    # at chargen (human's ruling). The Merit check uses the NAME, not this field.
     acquired: str = "background"
 
 
 class FetterEntry(BaseModel):
-    """One Fetter — a person, place or object anchoring a ghost to the world
-    (Exalted: The Abyssals p.126). Ghosts only; every other splat's list is empty.
+    """One Fetter of a ghost (Exalted: The Abyssals p.126).
 
-    Shaped like `BackgroundEntry` because it behaves like one: an open-ended NAME the
-    player writes, rated 0-5, spent out of a chargen pool and raisable afterwards. It
-    is a separate model rather than a Background because it has its own pool, its own
-    bonus-point and experience rates, and a hard cap no Background has — "A ghost can
-    never have more dots of Fetters than his Willpower + Essence" (p.127, restated in
-    the p.283 footnote)."""
+    A Fetter has its own pool, its own costs, and a cap of Willpower + Essence on the
+    total dots (p.127, p.283)."""
     name: str                              # "my widowed wife", "the sword I died on"
     rating: int = Field(ge=0, le=5)
     note: str = ""
 
 
 class PassionEntry(BaseModel):
-    """One Passion — a driving emotional attachment, each belonging to a VIRTUE
-    (E:Ab p.126: "Choose a number of dots of Passions for each Virtue equal to the
-    number of dots the character has in that Virtue").
+    """One Passion of a ghost. Each Passion belongs to one Virtue (E:Ab p.126).
 
-    ⚠ A Passion is NOT bought, at creation or afterwards. Its dots are DERIVED from
-    the owning Virtue and merely distributed by the player: p.283 — "Ghosts increase
-    their Passions when they increase their Virtues. There is no other way for these
-    Traits to increase." Confirmed by the human (rules authority, 2026-08-01) to hold
-    on BOTH sides of the lock: buy a Virtue dot with experience and one more Passion
-    dot of that Virtue becomes available to distribute.
+    ⚠ A Passion is not bought, before or after the lock (p.283, human's ruling). The
+    Passion dots of a Virtue equal its rating. The player distributes them. Thus no
+    cost table has a `passion` row. Shift Passion (p.283) moves a dot between two
+    Passions of one Virtue.
 
-    So there is no `passion` row in the bonus-point or experience tables, and none in
-    `BonusPointCosts`/`ExperienceCosts` either. The only experience operation is Shift
-    Passion (p.283, 20 XP), which moves a dot BETWEEN Passions of the same Virtue and
-    leaves the total where the Virtues put it.
-
-    `virtue` is which Virtue's pool this Passion draws on — the pools are per-Virtue,
-    not one aggregate, so Compassion 3 buys three dots of Compassion Passions and
-    nothing else."""
+    `virtue` is the Virtue whose pool this Passion uses."""
     name: str                              # "avenge my murder", "see my son crowned"
     virtue: VirtueName
     rating: int = Field(ge=0, le=5)
@@ -202,85 +136,52 @@ class PassionEntry(BaseModel):
 
 
 class MeritFlawPurchase(BaseModel):
-    """One Merit or Flaw the character holds, referencing rules.MeritFlaw by id.
+    """One Merit or Flaw that the character holds. `merit_id` is a rules.MeritFlaw id.
 
-    Deliberately thin. What the Merit DOES is decided in one place —
-    `engine.merits.merits_and_flaws_calc` — never stored here (decision 0011).
+    `engine.merits.merits_and_flaws_calc` gives the effects (decision 0011).
 
-    `tier` names the option for a variable-cost entry (Oathbound Magic: "minor",
-    "moderate", "major", "legendary"); "" for the fixed-cost majority. `detail` is the
-    player's free text — the Attribute group a repeatable Merit was taken for, or the
-    wording of an oath and the Traits it bought, which the page requires be recorded.
-    `arena` groups oaths for the stacking rule ("combat", "sex", "eating"): oaths in
-    one arena past the first lose value, so the calc needs to know which share one.
+    `tier`: the option of a variable-cost entry ("minor", "major"). "" otherwise.
+    `detail`: free text from the player, for example the words of an oath.
+    `arena`: the group of an oath for the stacking rule ("combat", "sex").
     """
     merit_id: str
     tier: str = ""
     detail: str = ""
     arena: str = ""
-    # Agreed point value for a `variable_cost` entry, whose price the page leaves to
-    # the table ("VARIABLE COST MERIT"). Ignored for every printed-cost entry, which
-    # prices from its MeritFlaw row instead — never trust this over the catalogue.
+    # The agreed value of a `variable_cost` entry. Ignored for a printed cost.
     points: int = 0
-    # Which side of a `kind: "either"` entry was taken ("merit" or "flaw"). Ignored
-    # for the single-sided majority; "" on an either-entry defaults to merit and is
-    # flagged by validate, so the choice is never silently made for the player.
+    # "merit" or "flaw", for a `kind: "either"` entry. ⚠ "" is an error, not a default.
     taken_as: str = ""
-    # Major conditions attached to an inheritance — Heir Apparent's "add an extra dot
-    # to the pool of invested Backgrounds for every major stipulation applied to the
-    # Inheritance, up to a maximum of three conditions" (PG p.24). A COUNT, because the
-    # dots follow from the number and the wording is the player's business (`detail`).
-    # Unlike the trait-forfeit Flaws, this cannot be recovered from the point value —
-    # stipulations cost nothing, so they leave no trace in the price. 0 for every other
-    # entry; the printed maximum is clamped in engine.merits, not here, so an old save
-    # with a stray value loads rather than failing.
+    # PG p.24: the number of major stipulations on an Inheritance. engine.merits
+    # applies the maximum.
     stipulations: int = Field(default=0, ge=0)
-    # Which artifact this Flaw modifies, for a `points_limited_by.per_entry` entry —
-    # Damaged Artifact, whose printed limit is "the rating of the artifact it modifies"
-    # rather than the character's summed Artifact Background. The value is an
-    # `engine.artifacts` item KEY ("artifact:tattered wings", "weapon:grand daiklave"),
-    # so it can name a standalone artifact, a weapon or a suit of armour alike.
-    #
-    # "" on every other entry, and on a Damaged Artifact whose owner has not yet chosen
-    # — which validate reports rather than defaulting, because picking the character's
-    # best artifact for them would silently make an illegal purchase legal.
+    # The `engine.artifacts` item KEY ("artifact:tattered wings") that a
+    # `points_limited_by.per_entry` Flaw modifies.
+    # ⚠ "" on Damaged Artifact is an error. Do not select an artifact for the player.
     artifact_key: str = ""
-    # A player-authored Merit/Flaw that exists in NO catalogue: the human's "Custom"
-    # option (2026-08-10). When set, the row is display-only — it renders on the sheet
-    # by THIS name, validate skips it entirely (no `merit-unknown`), and the engine's
-    # `_held` skips it because `merit_id` resolves to nothing, so it has no mechanical
-    # effect. `merit_id` still carries a value (the model requires it) but it is not a
-    # catalogue id and nothing looks it up. "" on every printed entry.
+    # The name of a player-authored entry that is in no catalogue. Display only: the
+    # engine and validate skip the row. `merit_id` is then not a catalogue id.
     custom_name: str = ""
 
 
 class CraftRating(BaseModel):
-    """One Craft Ability instance. In 1e (core p.136) Craft is taken per focus —
-    "characters who wish to master multiple crafts must take this Ability multiple
-    times" — so each craft (Smithing, Genesis, ...) is its own independently rated
-    Ability, NOT a specialty. The single AbilityName.CRAFT dot in `abilities` is
-    unused; the engine reads craft ratings from this list."""
+    """One Craft Ability (core p.136). Each focus is a separate rated Ability, not a
+    specialty. The engine reads Craft from this list, not from AbilityName.CRAFT."""
     focus: str                             # the specific craft, e.g. "Smithing"
     rating: int = Field(ge=0, le=5)
 
 
 class CollegeRating(BaseModel):
-    """One Astrological College instance on a character (Sidereal, p.98). `college_id`
-    references a RuleSet College by id; `rating` is its dots. Colleges are a rated
-    Advantage with their own chargen pool, so — like backgrounds and per-focus crafts
-    — they live as a list rather than a single dot on a fixed trait."""
+    """One Astrological College of a character (Sidereal, p.98). `college_id` is a
+    RuleSet College id."""
     college_id: str
     rating: int = Field(ge=0, le=5)
 
 
 class PathRating(BaseModel):
-    """One Dragon-King Path instance on a character (PG pp.175-177). `path_id`
-    references a RuleSet Path by id; `rating` is its dots (1-6). A Path is a rated
-    Advantage with its own chargen pool and an Essence gate (max rating 1/3/5/6 at
-    Essence 1/2/3-5/6, p.177), so it lives as a list exactly like CollegeRating.
-    The dot-level POWERS the rating grants are display data on the Path; the engine
-    also projects them into the charm catalogue as virtual rows so Combos can name
-    them (see rules_db.load_ruleset) — the rating here is the truth."""
+    """One Dragon-King Path of a character (PG pp.175-177). `path_id` is a RuleSet
+    Path id. The Essence gate is in the budget (p.177). `rules_db.load_ruleset` adds the Path powers to the Charm catalogue as
+    virtual rows, for Combos. The rating here is the source value."""
     path_id: str
     rating: int = Field(ge=0, le=6)
 
@@ -291,51 +192,35 @@ class PathRating(BaseModel):
 # --------------------------------------------------------------------------- #
 
 class ArtSpecialty(BaseModel):
-    """+1 die in a narrow corner of an Art; at most two apply to any one roll.
+    """+1 die in a part of an Art. Two at most apply to one roll.
 
-    `art_id` may name an Art the character does NOT own — this is explicitly legal
-    and stated three times in the source ("You do not have to buy the relevant Art
-    in order to buy a specialty in that Art", p.116). Do not add a prerequisite.
+    ⚠ `art_id` can name an Art that the character does not have (p.116). Do not add
+    a prerequisite.
 
-    `name` is free text: the book invites player-invented specialties, so the
-    catalogue's `specialties` list is an autofill source, never a hard reference —
-    the same call already made for Backgrounds.
+    `name` is free text. The catalogue `specialties` list is for autofill only.
 
-    `narrowed` is Summoning's special rule (p.127): "a thaumaturge may choose to
-    further limit one or more of their summoning aspects … This halves the cost of
-    the aspect and should be noted on the character sheet." It is a player choice
-    made about a purchase, not a separate purchase and not inferable from the name,
-    so it is stored — the book asks for it on the sheet explicitly. The engine
-    refuses it on Arts whose `aspect_narrowing` is False, which is all but
-    Summoning."""
+    `narrowed` (p.127): the player limits a Summoning aspect, and its cost is half.
+    The engine refuses it on an Art whose `aspect_narrowing` is False."""
     art_id: str
     name: str
     narrowed: bool = False
 
 
 class ScienceRating(BaseModel):
-    """One Science at a rating. Not bounded here: the per-Science ceiling is
-    `ThaumaturgicScience.max_rating`, enforced in engine.validate, which has the
-    RuleSet. Every Science currently stops at 5 — Alchemy's printed six-dot rung was a
-    typo for five (human, 2026-07-30) — but the ceiling stays per-Science data rather
-    than a constant, so a future Science may differ without a model change."""
+    """One Science at a rating. engine.validate applies the ceiling
+    `ThaumaturgicScience.max_rating`."""
     science_id: str
     rating: int = Field(ge=0)
 
 
 class RitualEntry(BaseModel):
-    """A ritual the character knows, in one or more regional versions.
+    """A ritual that the character knows, in one or more regional versions.
 
-    Catalogue + custom: `ritual_id` references a RuleSet ritual, OR is empty and
-    the inline `name`/`level`/`description` describe a user-authored one (the
-    editable-custom-weapons precedent — the book expects STs to write more).
+    `ritual_id` is a RuleSet ritual id. If it is "", the inline fields describe a
+    custom ritual.
 
-    `orientations` is the crux and the reason this is not a bare id list. Each
-    extra regional version costs a flat 1 point on top of the ritual's own cost
-    (p.124), so ownership is (id, {orientations}) and the cost function needs the
-    set. Retrofitting this later would leave the append-only XP log ambiguous:
-    "bought ritual X" could mean the ritual or a further orientation of it, at
-    different prices, with no way to re-price history."""
+    `orientations`: each extra regional version costs 1 point (p.124). ⚠ The cost
+    function needs the set, and the XP log must tell a ritual from an orientation."""
     ritual_id: str = ""                    # "" => custom, described inline below
     name: str = ""                         # custom only; catalogue entries read the RuleSet
     level: int = Field(default=1, ge=1, le=5)   # custom only
@@ -345,19 +230,17 @@ class RitualEntry(BaseModel):
     @field_validator("orientations")
     @classmethod
     def _at_least_one_orientation(cls, v: list[Orientation]) -> list[Orientation]:
-        # Every ritual has an orientation; knowing none is not a state that exists.
-        # De-duplicate, since paying twice for the same region is meaningless.
+        # An empty list gives [REALM]. Duplicates are removed.
         if not v:
             return [Orientation.REALM]
         return list(dict.fromkeys(v))
 
 
 class FormulaEntry(BaseModel):
-    """A formula or procedure the character knows. Same orientation rule as
-    RitualEntry; formulas are the cheapest purchasable in thaumaturgy (1 point).
+    """A formula or procedure that the character knows. The orientation rule of
+    RitualEntry applies.
 
-    `level` is unbounded above for the same reason as ScienceRating: the ceiling is
-    per-Science rules data, not a model constant."""
+    `level` has no upper bound here. The ceiling is rules data for each Science."""
     formula_id: str = ""                   # "" => custom, described inline below
     name: str = ""                         # custom only
     science_id: str = ""                   # custom only
@@ -374,13 +257,9 @@ class FormulaEntry(BaseModel):
 
 
 class ThaumaturgyState(BaseModel):
-    """Everything a character knows of thaumaturgy. Optional on Character, so old
-    saves load with it None — the PlayState precedent.
+    """All the thaumaturgy that a character knows. Not keyed to a splat (p.114).
 
-    Deliberately NOT keyed to a splat: thaumaturgy is a cross-splat capability
-    layer (p.114). Whether a character may USE what it holds is a property of the
-    splat, read from ExaltDefinition.thaumaturgy_usable — the dead keep their Arts
-    and may still teach, but may never cast."""
+    ExaltDefinition.thaumaturgy_usable decides if the character can use it."""
     arts: list[str] = Field(default_factory=list)              # trained Art ids: +2 dice
     art_specialties: list[ArtSpecialty] = Field(default_factory=list)
     sciences: list[ScienceRating] = Field(default_factory=list)
@@ -395,24 +274,20 @@ class Combo(BaseModel):
 
 
 class Array(BaseModel):
-    """An Alchemical Array (p.89) — the Chosen of Autochthon's analogue of a Combo.
-    Links Attribute-based Charms into a permanent pattern. Cost: 1 bonus point per
-    Charm at chargen, or experience equal to the sum of the Charms' minimum Attribute
-    ratings. Unlike a Combo, ANY Attribute-based Charms may be linked (the instant-
-    duration / one-Simple / one-Extra-Action limits constrain the *integrated
-    Combos* an Array grants, not the Array itself); supernatural martial arts
-    (Ability-based) may NOT join. An Array reduces its Charms' combined installation
-    cost to three-fourths, rounded up (engine.validate applies this), and it grants
-    every legal integrated Combo of its member Charms for 1 Willpower. Only splats
-    that use the Charm Slot system build Arrays (Eclipse/Moonshadow may not, p.90)."""
+    """An Alchemical Array (p.89). It links Attribute-based Charms.
+
+    Cost: 1 bonus point per Charm at chargen. XP: the sum of the minimum Attribute
+    ratings of the Charms. Ability-based martial arts Charms cannot join. The Array
+    reduces the installation cost of its Charms to 3/4, rounded up (engine.validate).
+    It grants each legal integrated Combo of its Charms for 1 Willpower. Only Charm
+    Slot splats build Arrays (p.90)."""
     name: str
     charm_ids: list[str] = Field(default_factory=list)
     willpower_cost: int = Field(default=1, ge=0)
 
 
 class Weapon(BaseModel):
-    """Inline copy of a weapon the character owns. Mirrors rules.WeaponType so the
-    catalog can autofill it; artifact/ranged fields default to mundane-melee."""
+    """Inline copy of a weapon that the character owns (rules.WeaponType)."""
     name: str
     speed: int = 0
     accuracy: int = 0
@@ -425,58 +300,42 @@ class Weapon(BaseModel):
     min_strength: int = Field(default=0, ge=0)
     min_dexterity: int = Field(default=0, ge=0)
     min_martial_arts: int = Field(default=0, ge=0)
-    # ⚠ A dual-nature device's catalogue row carries BOTH minima (e.g. a Mountain Folk
-    # crossbow: "Resources •• / Artifact ••"); the player sets the one that was paid and
-    # zeroes the other — Artifact 0 is the mundane default, so a Resources-funded
-    # crossbow is not an artifact. Human's ruling 2026-08-08.
+    # ⚠ A catalogue row can have a Resources cost and an Artifact rating. The player
+    # sets 0 for the one not paid (human's ruling). 0 = mundane.
     artifact_rating: int = Field(default=0, ge=0)
     attunement: int = Field(default=0, ge=0)
-    # Whether the character is CURRENTLY committing those motes, and which pool they
-    # come out of. `attunement` is what the item costs; these two are the player's
-    # statement that they are paying it — you can own an artifact without being
-    # attuned to it (human, 2026-09-02), so nothing may set `attuned` on purchase, on
-    # equipping or on load. The pool is the player's to choose, exactly as it is for a
-    # Charm ("characters can freely mix Personal and Peripheral Essence", core
-    # pp.147-148, which core p.344 ties artifact commitment to explicitly); it is
-    # meaningful only while `attuned` is set, and ignored on a merged-pool character.
+    # The character commits `attunement` motes now, from `attuned_pool`. Ownership
+    # does not imply attunement: nothing sets `attuned` on purchase, equip or load
+    # (human's ruling). The player selects the pool (core pp.147-148, p.344).
+    # `attuned_pool` is ignored on a merged pool.
     #
-    # ⚠ Unlike `from_artifact` below, this is a discriminator the screen is MEANT to
-    # write — player-editable is the entire point. Do not "fix" it to match that one.
+    # ⚠ This field is player-editable by design. Do not make it like `from_artifact`.
     #
-    # ⚠ No module under `engine/validate/` may read either field (decision 0006): what
-    # you are attuned to must never change what you may legally buy. A test greps.
+    # ⚠ No module under `engine/validate/` may read either field (decision 0006). A
+    # test finds violations.
     attuned: bool = False
     attuned_pool: Literal["personal", "peripheral"] = "peripheral"
     resources_cost: int = Field(default=0, ge=0)
-    # Magical material (rules.MagicalMaterial id; "" = mundane). Its stat bonus is
-    # applied by engine.derive only when the wielder's Exalt type matches.
+    # rules.MagicalMaterial id; "" = mundane. engine.derive applies the bonus only if
+    # the Exalt type matches.
     material: str = ""
     notes: str = ""
-    # How many the character carries; 1 for anything wielded. It exists for AMMUNITION,
-    # which players hold in quantity (human, 2026-08-12). ⚠ A count, never a multiplier:
-    # nothing in the engine reads it, because nothing derives an attack (decision 0008)
-    # and a stack of twenty arrows is still one Strength + 2 shot.
+    # For ammunition (human's ruling). ⚠ A count, not a multiplier. The engine does not
+    # read it (decision 0008).
     quantity: int = Field(default=1, ge=1)
-    # The standalone artifact this row is the STAT LINE of — `engine.artifacts.item_key`
-    # of an entry in `Character.artifacts`, or "" for ordinary gear.
+    # `engine.artifacts.item_key` of the `Character.artifacts` entry whose stat line
+    # this row is. "" = ordinary gear. Without the link, one item counts two times
+    # against the p.131 budget.
     #
-    # Some names live in both the artifact catalogue and the gear catalogues (Daiklave,
-    # Grand Daiklave, Myrmidon Carapace…), and the artifact row carries no stats — so
-    # owning a daiklave as an artifact AND adding a weapon row to swing it is the normal
-    # case. Without this link the one item counts twice against the p.131 budget.
-    #
-    # ⚠ Set ONCE, when the artifact grants the row, and editable by nothing on screen —
-    # this is a discriminator, and the catalogue dialogs' own scar is a discriminator a
-    # widget could write (see docs/status/catalogue-dialogs.md). It is a SOFT reference
-    # in the Backgrounds mould: `artifact_items` counts this row unless the key still
-    # resolves, so renaming or deleting the artifact makes the gear stand on its own
-    # again rather than becoming an artifact nothing counts.
+    # ⚠ Set once, when the artifact grants the row. No screen control can edit it: it
+    # is a discriminator. A soft reference: if the key does not resolve,
+    # `artifact_items` counts this row as its own item.
     from_artifact: str = ""
     acquired: str = "background"           # see ArtifactEntry.acquired
 
 
 class Armor(BaseModel):
-    """Inline copy of armour the character owns. Mirrors rules.ArmorType."""
+    """Inline copy of armor that the character owns (rules.ArmorType)."""
     name: str
     soak_lethal: int = 0                   # soak is computed per damage type in engine.derive
     soak_bashing: int = 0
@@ -493,16 +352,11 @@ class Armor(BaseModel):
 
 
 class GearEntry(BaseModel):
-    """One piece of mundane goods the character owns (M&C p.123).
+    """One item of mundane goods that the character owns (M&C p.123). An inline copy
+    (decision 0007).
 
-    An inline copy like every other possession (decision 0007): the player may rename a
-    "Fine camel/horse" to "Dust, my roan mare" and the row must not keep claiming to be
-    the catalogue entry. `resources_cost` rides along so the sheet can say what it was
-    worth without a RuleSet.
-
-    ⚠ Only `goods` land here. The price tables' `service` rows — upkeep, feasts,
-    commissions, rentals — are a reference price list and are never owned (human's
-    ruling 2026-08-13); see `rules.GearType`.
+    ⚠ Only `goods` rows go here. A `service` row is never owned (human's ruling).
+    See `rules.GearType`.
     """
     name: str
     resources_cost: int = Field(default=0, ge=0)
@@ -516,246 +370,140 @@ class VirtueFlaw(BaseModel):
 
 
 class OxBodyPurchase(BaseModel):
-    """One purchase of the repeatable Ox-Body Technique. `variant` is the chosen
-    package's key (rules.CharmVariant.key); `health_levels` is that package's wound
-    levels copied inline (like equipment) so engine.derive needs no RuleSet."""
+    """One purchase of Ox-Body Technique. `variant` is a rules.CharmVariant.key.
+    `health_levels` is an inline copy of its levels, thus engine.derive needs no
+    RuleSet."""
     variant: str
     health_levels: list[int] = Field(default_factory=list)
 
 
 class VariantPurchase(BaseModel):
-    """One purchase of a repeatable variant-menu Charm OTHER than Ox-Body and Deadly
-    Beastman Transformation, which predate this and keep their own lists.
+    """One purchase of a repeatable variant-menu Charm. Ox-Body and Deadly Beastman
+    Transformation have their own lists.
 
-    `charm_id` names the Charm, so ONE list serves any number of such Charms — a new
-    one needs data and nothing else. `variants` are the `rules.CharmVariant.key`s
-    chosen with this purchase (one for every Charm of this shape today; the list shape
-    matches Deadly Beastman's, which takes two on its first purchase).
-
-    Today's only member is Environmental Hazard-Resisting Meditation (Caste Book:
-    Zenith p.72-73): four named resistances, at most one purchase per Resistance dot,
-    and each resistance only once — see `rules.Charm.variants_unique`.
+    `charm_id` names the Charm. `variants` are the `rules.CharmVariant.key`s of this
+    purchase. Example: Environmental Hazard-Resisting Meditation (Caste Book: Zenith
+    p.72-73). See `rules.Charm.variants_unique`.
     """
     charm_id: str
     variants: list[str] = Field(default_factory=list)
 
 
 class BeastmanGiftPurchase(BaseModel):
-    """One purchase of the repeatable Deadly Beastman Transformation Charm
-    (Lunar, p.124-127). `gifts` are the Gift variant keys (rules.CharmVariant.key
-    on that Charm) chosen with this purchase — 2 on the first purchase, 1 on each
-    purchase after (rules.Charm.variant_picks_first_purchase/
-    variant_picks_per_purchase). ⚠ The +Attribute points each purchase also grants are
-    NOT tracked: they apply only while the Lunar is in hybrid form, which is
-    play-time-only territory this engine does not model."""
+    """One purchase of Deadly Beastman Transformation (Lunar, p.124-127).
+
+    `gifts` are the Gift variant keys of this purchase (rules.Charm.
+    variant_picks_first_purchase / variant_picks_per_purchase).
+    ⚠ The Attribute bonus of each purchase is not tracked: it applies only in hybrid
+    form, which is play state."""
     gifts: list[str] = Field(default_factory=list)
 
 
 class SubmodulePurchase(BaseModel):
-    """One purchased Alchemical submodule (p.89) — the `key` of a rules.Submodule on
-    the Charm named by `charm_id`. Bought with bonus points at chargen or experience
-    post-lock; the parent Charm must be known. There is no rating — a submodule is
-    owned or not."""
+    """One Alchemical submodule (p.89): the `key` of a rules.Submodule on the Charm
+    `charm_id`. The character must know the Charm. A submodule has no rating."""
     charm_id: str
     key: str
 
 
 class AnimalForm(BaseModel):
-    """One shape in a Lunar's Form Library — an animal whose heart's blood they have
-    taken and can wear. FREE-FORM and unvalidated: a narrative record, not a rated
-    trait. No catalogue to reference, no cost, no cap, and it never enters chargen
-    validation or the XP audit — the same isolation as the play-state tracker."""
+    """One shape in the Form Library of a Lunar. Free text. Not validated, not priced,
+    and not in the XP audit."""
     name: str = ""
     notes: str = ""       # habitat, stats the ST assigned, when/where it was taken
 
 
 class HealthLevel(BaseModel):
-    """An adjustment to the health track. Normally a *bonus* level granted by a
-    Charm (e.g. Ox-Body Technique); with `removed=True` it instead *removes* a
-    level of that penalty (e.g. a curse that leaves a character less hale than
-    normal). The base -0/-1/-1/-2/-2/-4/Incap track is a rules constant, derived
-    not stored. Marked damage is play-state and intentionally out of scope."""
+    """An adjustment to the health track. Usually a bonus level from a Charm. With
+    `removed=True` it removes a level of that penalty (a curse). The base track is a
+    rules constant. Damage is play state."""
     penalty: int                           # 0, -1, -2, -4 ...
     source_charm: str = ""
     removed: bool = False                  # True = a curse removing a level of this penalty
 
 
 class XpEntry(BaseModel):
-    """One post-lock purchase. The engine verifies `cost` against the XP table and
-    that the implied delta is reflected in current state."""
+    """One post-lock purchase. The engine checks `cost` against the XP table, and
+    checks that the current state shows the change."""
     target: str                            # "abilities.melee", "essence", "charms", ...
     detail: str = ""                       # charm/spell id for 'new' purchases
     from_rating: Optional[int] = None
     to_rating: Optional[int] = None
     cost: int
     training_complete: bool = True         # dormant hook for the parked training-time rule
-    # The purchase a Merit/Flaw DROP removed, so `undo_last` can re-add it exactly —
-    # its tier/taken_as/points/arena/detail are not recoverable from the id alone.
-    # Set only on `drop_merit` rows (whose `detail` is "-<merit_id>"); None on buys,
-    # gains and every other row type. A snapshot: `drop_merit` deep-copies, so the
-    # re-added purchase never aliases a live object.
+    # On a `drop_merit` row only: a deep copy of the removed purchase. `undo_last`
+    # adds it again.
     removed_purchase: Optional[MeritFlawPurchase] = None
 
 
 class HouseRules(BaseModel):
-    """Optional rules the table has switched on — ST choices, not character traits
-    and not rulebook data.
+    """Optional rules that the Storyteller switches on. Stored on the Character, thus
+    they travel with the save.
 
-    They live on the Character, not the RuleSet, because the RuleSet is the rulebook —
-    static, shared and read-only — while a table's choices must travel with the save
-    for its accounting to add up on another machine. Old saves load with `house_rules`
-    None, the `Character.play` shape.
+    ⚠ A field that changes chargen accounting must also freeze into the
+    ChargenSnapshot. Else a change after the lock re-prices the character.
 
-    ⚠ Anything here that changes chargen ACCOUNTING must ALSO be frozen into the
-    ChargenSnapshot, or flipping it post-lock retroactively re-prices a locked
-    character.
-
-    ⚠ Each field is marked TABLE-WIDE or PER-CHARACTER, in comments only. A TABLE-WIDE
-    rule is one the ST turned on for the whole series; a PER-CHARACTER one is
-    permission granted to this character alone. **A party-wide "apply to all" control
-    may only touch the TABLE-WIDE fields.** Nothing enforces this — it is a note for
-    whoever builds that control.
+    ⚠ Each field is TABLE-WIDE or PER-CHARACTER. A control that applies a value to
+    all characters can change TABLE-WIDE fields only. `TABLE_WIDE_HOUSE_RULES` lists
+    them.
     """
-    # TABLE-WIDE. "Magic for Everyone" (Player's Guide p.115): every starting
-    # character begins with one ritual, formula or printed aspect per two dots of
-    # Occult, free. Optional but recommended, and if used the book is explicit that
-    # it applies to ALL starting characters — hence table-wide.
+    # TABLE-WIDE. Player's Guide p.115: one free ritual, formula or aspect per two dots
+    # of Occult.
     magic_for_everyone: bool = False
 
-    # TABLE-WIDE. The two chargen restrictions of Player's Guide p.113: "Storytellers
-    # may choose to restrict starting characters to no more than three-dot rituals
-    # and/or the third level of knowledge in any Science." The "and/or" is why these
-    # are two independent flags rather than one. Both are creation-time only — they
-    # cap what may be bought at chargen, not what may ever be learned.
+    # TABLE-WIDE. Player's Guide p.113: two independent chargen caps ("and/or"). They
+    # do not apply after chargen.
     restrict_chargen_ritual_level: bool = False
     restrict_chargen_science_rating: bool = False
 
-    # PER-CHARACTER. Storyteller permission for THIS character to start play knowing
-    # another splat's Charms — the chargen half of the Eclipse/Moonshadow generalist
-    # rule (core p.127): "Eclipse Caste characters may not start the game knowing the
-    # Charms of other such beings without Storyteller permission." Post-lock the rule
-    # needs only a willing tutor, which is narrative, so this gates chargen picks
-    # only. Meaningless unless the caste sets CasteDefinition.foreign_charms.
+    # PER-CHARACTER. Core p.127: the character can start with Charms of other splats.
+    # Chargen only. Has no effect unless the caste sets CasteDefinition.foreign_charms.
     st_foreign_charms: bool = False
 
-    # PER-CHARACTER. The optional rule of core p.103: "If the Storyteller agrees to
-    # it, heroic mortals may choose one Ability as a Favored Ability, complete with
-    # the discount." Permission for one character, not a series-wide switch, so it is
-    # per-character despite reading like a table rule.
-    #
-    # It is NOT a free discount: the same paragraph attaches a constraint — "the
-    # character can never have any other Ability rated higher than his Favored
-    # Ability. The Favored Ability must be equal to or greater than every other skill
-    # he possesses." That ceiling is the price of the discount and is validated
-    # (mortal-favored-not-highest); the Exalted are exempt, which is flavour here
-    # because only a mortal can turn this flag on in the first place.
+    # PER-CHARACTER. Core p.103: a heroic mortal takes one Favored Ability. No other
+    # Ability can be higher than it (mortal-favored-not-highest).
     mortal_favored_ability: bool = False
 
-    # PER-CHARACTER. Storyteller permission for THIS Sidereal to own a Celestial
-    # Manse above three dots (Sidereals p.106): "Characters cannot buy above Celestial
-    # Manse ••• without special Storyteller permission — more impressive digs are
-    # reserved for higher-ranking individuals." Granted to one character, not the
-    # series. Read through `validate.background_st_permitted` (the Sidereal budget
-    # row's `st_toggle` names this field); no UI module learns the name.
+    # PER-CHARACTER. Sidereals p.106: a Celestial Manse above 3. Read through
+    # `validate.background_st_permitted`.
     st_celestial_manse_over_three: bool = False
 
-    # PER-CHARACTER. Storyteller permission for THIS mortal to hold the Artifact or
-    # Manse Background (core p.103): "Mortals only receive 5 dots for Backgrounds and
-    # may not purchase the Artifacts or Manse Backgrounds without Storyteller
-    # permission; if a mortal has control over one of these, it's a plot device, not an
-    # object for him to use." Chargen-only — there is no post-lock purchase to bar.
-    # Read through `validate.background_st_permitted` (both mortal rows' `st_toggle`
-    # names this field); no UI module learns the name.
+    # PER-CHARACTER. Core p.103: a mortal can hold the Artifact or Manse Background.
+    # Chargen only. Read through `validate.background_st_permitted`.
     st_mortal_artifact_manse: bool = False
 
-    # PER-CHARACTER. Do motes COMMITTED to attuned artifacts shrink the freely-drawable
-    # third that Essence Awareness grants (PG p.120)?
-    #
-    # Unsourced by construction, which is why it is a toggle rather than a ruling. p.120
-    # divides "his Essence pool" into a third drawable normally and two thirds needing a
-    # Willpower roll; commitment is a separate mechanic and NOTHING says which portion
-    # committed motes leave from. OFF (the default) takes the third of the printed pool,
-    # so a 12-mote mortal who commits 6 keeps 4 free. ON takes it of what remains.
-    #
-    # ⚠ Affects the PLAY tracker only, never the sheet — `build_play_view` is the one
-    # place committed motes reduce anything, and the sheet prints permanent capacity.
-    #
-    # ⚠ Meaningless unless `derive.essence_freely_accessible` returns a number, i.e. a
-    # mortal with Essence Awareness and not Essence Mastery. Every Exalt has an
-    # unrestricted native pool and is unaffected either way.
-    #
-    # The human's note on why the app cannot decide this itself (2026-09-03): in play the
-    # mortal rolls Willpower to reach the locked two thirds, THEN rolls again to attune.
-    # Both rolls are the table's (decision 0009), so which pool the motes came from is
-    # knowledge the app never has.
+    # PER-CHARACTER. PG p.120: committed motes reduce the free third of the pool. No
+    # page decides this. OFF: one third of the printed pool. ON: one third of the
+    # remainder.
+    # ⚠ The play tracker only (`build_play_view`). The sheet prints the full pool.
+    # ⚠ Has no effect unless `derive.essence_freely_accessible` returns a number.
     committed_motes_reduce_free_essence: bool = False
 
-    # TABLE-WIDE. Open the WHOLE Background catalogue to every splat, rather than the
-    # Backgrounds that character's own book prints. The books ask for exactly this
-    # switch: the Outcaste's new-Backgrounds heading (p.66) offers Arsenal, Retainers
-    # and Sorcery to Lookshy and adds that "Storytellers may wish to introduce them in
-    # other games where they are appropriate but are under no compulsion to allow
-    # characters to take them unless the game is about Lookshy Dragon-Blooded".
-    #
-    # Off by default: a Background belongs to the book that prints it until a
-    # Storyteller says otherwise. Table-wide because the answer is about which books
-    # are in play.
-    #
-    # ⚠ Read ONLY through `validate.background_catalogue_for`, never by reaching into
-    # HouseRules at a call site: it lifts the splat and origin filters and must NOT
-    # lift `banned_backgrounds`, which are in-fiction prohibitions (the Great Geas
-    # forbids a Mountain Folk a Cult) rather than questions of which book is open.
-    #
-    # NOT frozen into the ChargenSnapshot: it changes only which names the dropdown
-    # OFFERS, never how a dot is priced, so flipping it post-lock re-prices nothing.
+    # TABLE-WIDE. p.66: all Backgrounds are available to all splats.
+    # ⚠ Read only through `validate.background_catalogue_for`. It must not lift
+    # `banned_backgrounds`.
+    # Not frozen into the ChargenSnapshot: it changes the dropdown, not the costs.
     all_backgrounds_available: bool = False
 
-    # TABLE-WIDE. How Merits & Flaws change AFTER character creation (Player's Guide
-    # p.17, "Gaining and Losing Merits and Flaws"). The book gives three methods and
-    # says the Storyteller "may use any of these three methods or a combination":
+    # TABLE-WIDE. Player's Guide p.17: how Merits and Flaws change after chargen.
     #
-    #   "experience" (DEFAULT) — the thorough one. Losing a Merit or gaining a Flaw
-    #       pays the character twice its bonus-point value in XP; gaining a Merit or
-    #       losing a Flaw charges the same. An unpayable charge becomes a DEBT that
-    #       garnishes all further XP until cleared. Flaws past 10 points earn nothing.
-    #   "backgrounds" — M&F "change with the plot and events but do not cost or reward
-    #       players after character creation".
-    #   "swap" — a lost Trait is eventually replaced by another of equal value, and a
-    #       gained one erodes another.
+    #   "experience" (DEFAULT) — a change costs or pays 2x the bonus-point value in XP.
+    #       A charge that the character cannot pay is a debt on later XP. Flaws above
+    #       10 points pay nothing.
+    #   "backgrounds" — changes with the plot. No XP.
+    #   "swap" — a lost Trait is replaced by one of equal value. No XP.
     #
-    # ⚠ The last two are mechanically IDENTICAL to this engine — neither moves any
-    # experience. They stay separate values because they oblige the Storyteller to
-    # different things at the table and the sheet records which was chosen. Do not
-    # "simplify" them into one.
+    # ⚠ "backgrounds" and "swap" are identical in the engine. Do not merge them: the
+    # sheet records which one the table uses.
     mf_change_method: str = "experience"
 
-    # PER-CHARACTER. Storyteller permission for a TERRESTRIAL Exalt to pass the
-    # Essence 7 ceiling of Player's Guide p.258: "Terrestrial Exalts may never raise
-    # their permanent Essence above 7 without resorting to the use of outside energies
-    # such as complex dietary and meditational regimens, powerful Hearthstones and
-    # other, similar effects."
-    #
-    # A flag rather than a derivation because none of those things is on the sheet —
-    # a Hearthstone Background dot does not tell the engine a regimen is in progress,
-    # and the book's "and other, similar effects" is open-ended. So it is the ST
-    # asserting the fiction happened, granted to one character, not the series.
-    #
-    # Post-lock only in effect (nothing can reach Essence 7 at chargen), so unlike the
-    # accounting toggles above it changes no chargen price and is harmless in the
-    # snapshot. Ignored entirely for any splat whose ExaltDefinition.tier is not
-    # "Terrestrial".
+    # PER-CHARACTER. Player's Guide p.258: a Terrestrial can go above Essence 7.
+    # Ignored unless ExaltDefinition.tier is "Terrestrial".
     terrestrial_essence_transcendence: bool = False
 
-    # TABLE-WIDE. How many dots of the God-Blooded Inheritance Background are FREE
-    # (Player's Guide p.61). The same paragraph that lists the bonus points — Thin
-    # blood +6 BP / 10 Flaws up to Divine +30 / 20 — makes the Storyteller the
-    # arbiter: "the Storyteller assigns a consistent rating to set the series' power
-    # level." The ST's pick (1-5) is how many Inheritance dots a God-Blooded is charged
-    # nothing for (no Background-pool dots, no above-cap bonus points). It does NOT set
-    # the rating itself: the character still takes the dots on their sheet and gets the
-    # printed bonus points for THAT rating (human 2026-08-02). When unset (None) the
-    # budget's own `free_rating` governs. An accounting toggle, so it freezes into the
-    # ChargenSnapshot at lock like the rest.
+    # TABLE-WIDE. Player's Guide p.61: the free dots of the Inheritance Background
+    # (1-5). It does not set the rating. The character gets the bonus points of the
+    # rating on the sheet (human's ruling). None = use the budget `free_rating`.
     godblooded_inheritance_rating: Optional[int] = Field(default=None, ge=1, le=5)
 
     @field_validator("mf_change_method")
@@ -767,10 +515,9 @@ class HouseRules(BaseModel):
         return v
 
 
-# The TABLE-WIDE fields of `HouseRules`, as the comments on the fields mark them. A
-# campaign syncs these fields onto each copy (`engine.house_rule_actions.
-# apply_table_rules`). ⚠ `ui.view._HOUSE_RULES` gives each field a scope too. A test
-# asserts that its "table" rows are this set.
+# The TABLE-WIDE fields of `HouseRules`. A campaign copies these fields onto each
+# copy (`engine.house_rule_actions.apply_table_rules`). ⚠ `ui.view._HOUSE_RULES`
+# gives each field a scope too. A test asserts that its "table" rows are this set.
 TABLE_WIDE_HOUSE_RULES = frozenset({
     "magic_for_everyone", "restrict_chargen_ritual_level",
     "restrict_chargen_science_rating", "all_backgrounds_available", "mf_change_method",
@@ -779,7 +526,7 @@ TABLE_WIDE_HOUSE_RULES = frozenset({
 
 
 class ChargenSnapshot(BaseModel):
-    """Frozen at lock; the baseline the XP log is measured against."""
+    """The traits at the lock. The baseline of the XP log."""
     attributes: dict[AttributeName, int]
     abilities: dict[AbilityName, int]
     crafts: list[CraftRating] = Field(default_factory=list)
@@ -789,22 +536,12 @@ class ChargenSnapshot(BaseModel):
     virtues: dict[VirtueName, int]
     specialties: list[Specialty]
     backgrounds: list[BackgroundEntry]
-    # ⚠ Artifacts are deliberately NOT frozen here, for the same reason Passions are
-    # not (below) and weapons and armour never were: the p.131 budget is keyed to the
-    # Artifact Background, which experience can RAISE, so the ceiling moves after the
-    # lock and a snapshot would pin it to what the character started with. It is
-    # checked live on both sides instead — see engine.validate.check_artifacts, which
-    # follows the Fetter-cap precedent.
-    # Fetters are frozen like any other bought trait. Passions are NOT — they are a
-    # live derivation of the Virtues on both sides of the lock (p.283), so freezing
-    # them would be the decision-0005 Willpower treatment applied to a rule that
-    # explicitly does not work that way. Only the DISTRIBUTION is the player's, and
-    # the XP audit re-derives the pool rather than comparing against a snapshot.
+    # ⚠ Artifacts are not frozen: XP can raise the Artifact Background, thus the p.131
+    # budget changes. engine.validate.check_artifacts checks them on both sides.
+    # ⚠ Passions are not frozen: they derive from the Virtues on both sides (p.283).
     fetters: list[FetterEntry] = Field(default_factory=list)
     merits_flaws: list[MeritFlawPurchase] = Field(default_factory=list)
     charms: list[str]
-    # Elemental Powers frozen at lock (same shape as charms — a list of ids). Default
-    # so old locked saves that predate the catalogue still load.
     elemental_powers: list[str] = Field(default_factory=list)
     spells: list[str]
     combos: list[Combo] = Field(default_factory=list)
@@ -812,14 +549,10 @@ class ChargenSnapshot(BaseModel):
     submodules: list[SubmodulePurchase] = Field(default_factory=list)
     ox_body: list[OxBodyPurchase] = Field(default_factory=list)
     beastman_gifts: list[BeastmanGiftPurchase] = Field(default_factory=list)
-    # Every OTHER repeatable variant-menu Charm, keyed by charm_id (see
-    # VariantPurchase). Also NOT in `charms`, for the reason ox_body is not.
     variant_purchases: list[VariantPurchase] = Field(default_factory=list)
-    # Thaumaturgy bought at chargen. None (not an empty state) for a character who
-    # never touched it, so "locked before thaumaturgy existed" and "locked with
-    # none bought" stay distinguishable in the XP audit.
+    # ⚠ None, not an empty state, if the character bought no thaumaturgy. The XP
+    # audit uses the difference.
     thaumaturgy: Optional[ThaumaturgyState] = None
-    # Frozen so a post-lock toggle cannot retroactively re-price a locked chargen.
     house_rules: Optional[HouseRules] = None
     essence_rating: int
     willpower_purchased: int
@@ -827,56 +560,30 @@ class ChargenSnapshot(BaseModel):
 
 
 class PlayState(BaseModel):
-    """Ephemeral *play-state* — current motes/Willpower spent, marked health damage,
-    and Limit. This is a deliberately separate layer from the permanent character:
-    it is NOT read by chargen validation, the XP audit, or the permanent-value
-    derivations (those only flow capacities OUT to here). It is a dumb manual
-    tracker — no auto mote-accounting, no damage-wrapping rules, no auto-healing —
-    so the ST stays in control. Old saves load with `Character.play` None.
+    """Play state: spent motes and Willpower, health damage, and Limit.
 
-    `health` is a list of marks aligned positionally to engine.derive.health_track;
-    it is normalised to the track length at render time (Ox-Body bought later just
-    extends it). Motes are a simple spent count against the derived pool maxima;
-    `willpower_spent` counts spent boxes out of permanent Willpower; `limit` is a
-    bare 0..10 counter (Limit Break at 10).
+    ⚠ Chargen validation, the XP audit and the permanent derivations do not read this
+    layer (decision 0006). It is a manual tracker for the Storyteller.
 
-    `renown` is Lunar-only (p.112-115): four Storyteller-adjudicated 0-100 scores
-    (Succor/Mettle/Cunning/Glory, one per Virtue), gained and lost through GM-called
-    Virtue checks during play — nothing like a dotted/XP-priced trait, so it lives
-    here rather than in chargen/advancement. `face` (0-10, "Urrach-ya" to
-    "Shahan-ya") is likewise entirely Storyteller-adjudicated: total Renown sets a
-    floor, but rank also requires freeform GM-judged feats (p.113) this tracker
-    does not and should not try to check. Both are meaningless (left at their
-    defaults) for non-Lunar characters and for Casteless Lunars, who may not
-    possess Renown (p.108) — this is not enforced here; it's the ST's call."""
+    `health` aligns by position with engine.derive.health_track. The render
+    normalizes its length. `willpower_spent` counts spent boxes. `limit` is 0..10.
+
+    `renown` (Lunar, p.112-115): four 0-100 scores that the Storyteller sets. `face`
+    (0-10): a rank that the Storyteller sets (p.113). Not enforced for a Casteless
+    Lunar (p.108)."""
     health: list[Optional[Damage]] = Field(default_factory=list)
     motes_personal_spent: int = Field(default=0, ge=0)
     motes_peripheral_spent: int = Field(default=0, ge=0)
     willpower_spent: int = Field(default=0, ge=0)
     limit: int = Field(default=0, ge=0, le=10)
-    # Alchemical-only (CH2 p.69-71): the TEMPORARY half of Clarity, the Alchemical
-    # replacement for Limit. Storyteller-adjudicated exactly as Limit is — gained by
-    # suppressing Virtues or going without human contact, shed by Compassion rolls and
-    # channelled Virtues — so it is tracked, not computed. The PERMANENT half is
-    # derived (Essence above 5 + installed Charms) and deliberately NOT stored here;
-    # see engine.derive.clarity. Unlike Limit, Clarity never "breaks" or resets at 10.
+    # Alchemical (CH2 p.69-71): temporary Clarity. engine.derive.clarity gives the
+    # permanent value.
     clarity_temporary: int = Field(default=0, ge=0, le=10)
-    # Accumulated armour fatigue (core p.332). A character wearing armour rolls
-    # Stamina + Endurance at a difficulty equal to the armour's fatigue value; "if a
-    # player fails the roll, his character takes a -1 penalty to all actions due to
-    # soreness and fatigue. This penalty continues to accumulate as the character
-    # continues to fail Endurance rolls. Accumulated penalties dissipate at the rate
-    # of one point of penalty per eight hours of rest outside the armor."
-    #
-    # It lives HERE, and is a manual counter, for the same reason Limit is: it is a
-    # roll OUTCOME, not a derivation. The app does not roll (decision 0009) and does
-    # not track the passage of in-game time, so it can neither add a point nor
-    # dissipate one — the ST does both. It carries no printed maximum, so the model
-    # imposes none; it is stored as a positive point count and SUBTRACTS from a pool.
+    # Core p.332: the armor fatigue penalty. A manual counter: it is a roll result
+    # (decision 0009). Stored positive. It subtracts from a pool.
     fatigue: int = Field(default=0, ge=0)
-    # The name of the weapon in hand, "" for unarmed. The player sets it on the
-    # table view (P3 step 9). The initiative roll of the table reads it through
-    # `view.wielded_index`. A name that no weapon has now gives unarmed.
+    # The name of the weapon in hand. "" = unarmed. Read through `view.wielded_index`.
+    # A name that no weapon has gives unarmed.
     in_hand: str = ""
     renown: dict[str, int] = Field(
         default_factory=lambda: {"succor": 0, "mettle": 0, "cunning": 0, "glory": 0})
@@ -896,14 +603,10 @@ class PlayState(BaseModel):
 # --------------------------------------------------------------------------- #
 
 def new_character_id() -> str:
-    """A fresh, unique character id.
+    """Return a new unique character id.
 
-    ⚠ Every app path that made a blank character used to hand it the literal
-    `"char.new"`, so two characters added to one party carried ONE id. Anything
-    keyed by `character.id` then silently merged them: the Storyteller's batch
-    roller gave both rows the same dice, because the second row's count
-    overwrote the first's under the shared key. The id is the only thing telling
-    two unnamed characters apart, so it cannot be a constant.
+    ⚠ Do not use a constant id. Data keyed by `character.id` merges two characters
+    that share an id.
     """
     return f"char.{uuid.uuid4().hex[:12]}"
 
@@ -916,44 +619,25 @@ class Character(BaseModel):
     edition: str = "1e"
     exalt_type: str = "Solar"
     caste: str = "dawn"                     # CasteDefinition.id into ruleset.castes
-    # Intra-splat origin variant, when a splat's chargen budget depends on more than
-    # its Exalt type. Dragon-Blooded: "dynastic" (Realm-raised: 35 ability dots + the
-    # schooling minimums) vs "outcaste" (25 dots, no minimums), p.150-151. "" = the
-    # splat's default budget (Solar ignores this). Lunar: "casteless" is a coupled
-    # pair with `caste` (see engine.validate.check_lunar_casteless_consistency) —
-    # unlike Dragon-Blooded, it's one condition on two fields, not an independent axis.
+    # The origin variant of the splat, which selects the chargen budget
+    # (Dragon-Blooded p.150-151). "" = the default budget. Lunar "casteless" must
+    # agree with `caste` (engine.validate.check_lunar_casteless_consistency).
     origin: str = ""
-    # A FOURTH axis, under `origin`: how the character was RAISED. The Outcaste book's
-    # four Dragon-Blooded origins each print two or three upbringings whose Ability
-    # budgets and required minimums differ while everything else about the origin
-    # holds — a Lookshy Terrestrial not raised in Lookshy gets 25 Ability dots
-    # instead of 35 (p.68), a patrician-born Lost Egg 30 instead of 25 (p.159), a
-    # Forest Witch raised by Oreithyia cheaper Virtues and Essence (p.133). It is a
-    # separate axis and not more origins because the origin still decides Backgrounds,
-    # Charms, Virtues and the Charm grants. "" = the origin's default upbringing, which
-    # is every origin's own home-raised case and every splat that has no variants.
+    # The upbringing under `origin`. It changes the budget only (p.68, p.159, p.133).
+    # "" = the default upbringing of the origin.
     upbringing: str = ""
-    # Cult of the Illuminated (Solar, p.89-93). A THIRD axis beyond splat and caste:
-    # `camp` is a rules.TrainingCamp id (which Ability floors and free Charms apply),
-    # `calling` is a rules.Calling id (which Abilities/Charms are discounted). Both ""
-    # for every character whose origin does not require them — see
-    # ChargenBudgets.requires_camp / .requires_calling, which is what the engine
-    # keys off, so nothing here names a splat.
+    # Cult of the Illuminated (Solar, p.89-93). `camp`: a rules.TrainingCamp id.
+    # `calling`: a rules.Calling id. "" unless ChargenBudgets.requires_camp or
+    # .requires_calling is set.
     camp: str = ""
     calling: str = ""
-    # Charms received FREE from the camp's package (p.90), resolved: the camp's fixed
-    # grants plus whatever the player chose for each GrantedCharmChoice. Kept OUT of
-    # `charms` for the same reason ox_body and beastman_gifts are — anything that
-    # enumerates picks must not count these against the Charm pool or the Caste/
-    # Favored minimum, because they are granted rather than picked.
+    # p.90: the free Charms of the camp, resolved.
+    # ⚠ Not in `charms`: they do not count against the Charm pool or the minimum.
     granted_charms: list[str] = Field(default_factory=list)
     concept: str = ""
     nature: str = ""
     anima: str = ""
-    # --- biography: free-fill flavour fields (human 2026-08-21). All default "" so
-    # every existing save loads unchanged; a missing key is pydantic's default. They
-    # are the Qt Identity tab's bio block and (eventually) the web app's. Not rules —
-    # nothing in the engine reads them.
+    # --- biography: free text. The engine does not read these fields. ---
     sex: str = ""
     age: str = ""
     eye_color: str = ""
@@ -964,28 +648,16 @@ class Character(BaseModel):
     description: str = ""
     backstory: str = ""
     notes: str = ""
-    # Lunar Form Library (the "Totem" field on the 1e Lunar sheet). Narrative only —
-    # see AnimalForm. Empty/unused for every other splat; old saves load with both
-    # at their defaults.
+    # Lunar Form Library. Free text. See AnimalForm.
     totem: str = ""
     animal_forms: list[AnimalForm] = Field(default_factory=list)
 
     # --- current, canonical traits ---
     essence_rating: int = Field(default=2, ge=1)
-    # PERMANENT Resonance — the Abyssal Curse's lasting half, which exists only for a
-    # character holding Death's Taint (PG p.41): "Whenever the character's Resonance
-    # pool exceeds a rating of 10, her pool resets to zero, and she gains a point of
-    # permanent Resonance."
-    #
-    # This is a PERMANENT trait, not play-state, and it lives here for the reason
-    # decision 0006 gives in its own last bullet: "permanent trait *reductions* (curses)
-    # are a different thing and live on the XP ledger, not here". It is bought at
-    # chargen (out of the Flaw's price), gained in play as a story event, shed for five
-    # experience points, and capped at Essence — only the second of those is play-state.
-    # Its TEMPORARY counterpart is PlayState.limit, which is correctly ephemeral.
-    #
-    # Post-lock movement in either direction goes through engine.advancement so the
-    # ledger records it, exactly as a curse does. 0 for every character without the Flaw.
+    # PG p.41: permanent Resonance of a character with Death's Taint. A permanent
+    # trait, not play state (decision 0006). The temporary value is PlayState.limit.
+    # ⚠ After the lock, change it through engine.advancement only, thus the ledger
+    # records it.
     limit_permanent: int = Field(default=0, ge=0)
     attributes: dict[AttributeName, int] = Field(
         default_factory=lambda: {a: 1 for a in AttributeName}
@@ -993,26 +665,16 @@ class Character(BaseModel):
     abilities: dict[AbilityName, int] = Field(
         default_factory=lambda: {a: 0 for a in AbilityName}
     )
-    # Craft is per-focus (core p.136): each entry is its own rated Ability. The
-    # AbilityName.CRAFT key in `abilities` is unused — read craft from here.
+    # Core p.136. ⚠ The AbilityName.CRAFT key in `abilities` is unused.
     crafts: list[CraftRating] = Field(default_factory=list)
-    # Astrological Colleges (Sidereal, p.98): a rated Advantage with its own chargen
-    # pool; each entry references a RuleSet College by id. Empty for non-Sidereals.
+    # Sidereal p.98.
     colleges: list[CollegeRating] = Field(default_factory=list)
-    # Dragon-King Paths (PG p.175-177): a rated Advantage with its own chargen pool,
-    # exactly the College shape. Each entry references a RuleSet Path by id. Empty
-    # for non-Dragon-Kings. The ONE player-chosen Favoured Path rides beside them —
-    # the two Breed Paths are auto-favoured by `Path.element == breed element`, and
-    # this is the third (any of the other eight Paths, human ruling 2026-08-05).
+    # PG p.175-177. `favored_path`: the one Favored Path that the player selects
+    # (human's ruling). The two Breed Paths are Favored by element.
     paths: list[PathRating] = Field(default_factory=list)
     favored_path: str = ""
     favored_abilities: list[AbilityName] = Field(default_factory=list)
-    # The player-chosen Favored ATTRIBUTES — used only by splats whose attribute
-    # budget is partitioned by caste/favored attribute set rather than by category
-    # (Alchemical, p.60: 3 Favored Attributes drawing on the 6-dot secondary pool,
-    # distinct from the caste's Caste Attributes). Empty for every category-budget
-    # splat (Solar, Dragon-Blooded, Abyssal, Lunar), whose attributes are budgeted
-    # by prioritized category and never read this field.
+    # Alchemical p.60: the Favored Attributes. Read only by a `caste_favored` splat.
     favored_attributes: list[AttributeName] = Field(default_factory=list)
     specialties: list[Specialty] = Field(default_factory=list)
 
@@ -1021,76 +683,48 @@ class Character(BaseModel):
     )
     virtue_flaw: Optional[VirtueFlaw] = None
 
-    # Purchased Willpower dots, net of permanent penalties. Non-negative in normal
-    # play, but may go negative post-lock when a curse reduces permanent Willpower
-    # below the pinned Virtue component (permanent WP = component + purchased; see
-    # engine.advancement.lower_willpower). The engine floors permanent WP at 1.
+    # Purchased Willpower dots, net of permanent penalties. Permanent WP = component +
+    # purchased. ⚠ A curse can make it negative after the lock
+    # (engine.advancement.lower_willpower). The engine floors permanent WP at 1.
     willpower_purchased: int = 0
-    # Frozen at lock so post-creation Virtue gains can't raise Willpower; None pre-lock.
+    # Frozen at lock (decision 0005). None before the lock.
     wp_virtue_component: Optional[int] = None
 
     backgrounds: list[BackgroundEntry] = Field(default_factory=list)
-    # Individually rated artifacts that are neither weapon nor armour (E:Ab p.131).
-    # Bought with the Artifact Background rather than out of a pool of their own, so
-    # there is no BP or XP row for them — what they cost is the Background dots, which
-    # the existing rows already price. See ArtifactEntry.
+    # E:Ab p.131. Paid with Artifact Background dots. See ArtifactEntry.
     artifacts: list[ArtifactEntry] = Field(default_factory=list)
-    # Mundane goods bought with cash (M&C p.123). Its own list rather than more rows
-    # on `weapons`/`armor` because a bolt of silk has no stats — and its own list
-    # rather than one unified inventory because the three carry genuinely different
-    # fields. The INVENTORY is a view over all of them (`view.inventory_rows`), not a
-    # storage shape; see GearEntry.
+    # M&C p.123. `view.inventory_rows` shows this list with the weapons and armor.
     gear: list[GearEntry] = Field(default_factory=list)
-    # Ghosts only (E:Ab p.126-127). Fetters are bought out of their own chargen pool
-    # and with their own BP/XP rates; Passions are DERIVED from the Virtues and only
-    # distributed here — see PassionEntry for why neither cost table has a row for
-    # them. Empty for every other splat, which is what keeps the panels off their
-    # sheets.
+    # Ghosts (E:Ab p.126-127). See FetterEntry and PassionEntry.
     fetters: list[FetterEntry] = Field(default_factory=list)
     passions: list[PassionEntry] = Field(default_factory=list)
-    # Merits & Flaws (decision 0011). Effects are computed in engine.merits from these
-    # ids and never stored; an empty list is every character who has bought none.
+    # Decision 0011. engine.merits calculates the effects.
     merits_flaws: list[MeritFlawPurchase] = Field(default_factory=list)
     charms: list[str] = Field(default_factory=list)           # Charm ids into the RuleSet
-    # Elemental Powers (Core p.296 + GoD p.56, PG p.68) — the learnable Charm-like
-    # catalogue for Elemental-origin God-Blooded. Bought at bp_cost bonus points
-    # chargen or bp_cost * 2 XP post-lock. Empty for every other origin/splat, which
-    # is what keeps the picker panel off their sheets.
+    # Core p.296, GoD p.56, PG p.68: Elemental God-Blooded. Cost: bp_cost bonus
+    # points, or bp_cost * 2 XP.
     elemental_powers: list[str] = Field(default_factory=list)
-    # Alchemical Panoply (p.89): Charms the character OWNS but has NOT installed in a
-    # Charm Slot — bought post-lock for the flat "New Charm" XP cost, or via the Vats
-    # Background. They occupy no Slot and are not installed; a Vat refit swaps them in
-    # and out (refit itself is play-time, not modelled). Empty for every non-slot
-    # splat. Kept OUT of `charms` (which is the installed set the Slot rules count).
+    # Alchemical Panoply (p.89): owned Charms that are not in a Slot.
+    # ⚠ Not in `charms`, which is the installed set that the Slot rules count.
     retainer_charms: list[str] = Field(default_factory=list)
     combos: list[Combo] = Field(default_factory=list)
-    # Alchemical Arrays (p.89) — see the Array model. Empty for every other splat.
+    # Alchemical (p.89). See Array.
     arrays: list[Array] = Field(default_factory=list)
-    # Alchemical submodules (p.89) — per-Charm upgrades. Empty for every other splat.
+    # Alchemical (p.89).
     submodules: list[SubmodulePurchase] = Field(default_factory=list)
     spells: list[str] = Field(default_factory=list)           # Spell ids into the RuleSet
-    # Repeatable Ox-Body Technique: one record per purchase (it is therefore NOT in
-    # `charms`). Each carries the chosen variant + its inline health levels.
+    # One record per purchase. ⚠ Not in `charms`.
     ox_body: list[OxBodyPurchase] = Field(default_factory=list)
-    # Alchemical Charm Slots (p.88-89): the character's TOTAL General / Dedicated
-    # slot counts, base free slots plus any bought with BP/XP (each bought slot
-    # comes with a free Charm). None = uninitialised, treated as the splat's free
-    # base from ChargenBudgets — so an untouched Alchemical has the base 4/4 and a
-    # non-slot splat simply never reads these. Dedicated slots may hold only a
-    # Charm keyed to a Caste or Favored Attribute; General slots hold any.
+    # Alchemical (p.88-89): the total Slots, free and bought. None = the free base
+    # from ChargenBudgets.
     general_charm_slots: Optional[int] = None
     dedicated_charm_slots: Optional[int] = None
-    # Repeatable Deadly Beastman Transformation (Lunar only, p.124-127): one record
-    # per purchase, each carrying the Gift(s) chosen with that purchase. Also NOT
-    # in `charms`, same reasoning as ox_body.
+    # Lunar p.124-127. One record per purchase. ⚠ Not in `charms`.
     beastman_gifts: list[BeastmanGiftPurchase] = Field(default_factory=list)
-    # Every other repeatable variant-menu Charm (see VariantPurchase). NOT in
-    # `charms`, same reasoning as ox_body.
+    # See VariantPurchase. ⚠ Not in `charms`.
     variant_purchases: list[VariantPurchase] = Field(default_factory=list)
 
-    # Thaumaturgy (Player's Guide CH3) — a cross-splat capability layer, available
-    # to every splat, keyed to none. None on a character that has never taken any,
-    # so old saves load unchanged (the PlayState precedent).
+    # Player's Guide CH3. Not keyed to a splat.
     thaumaturgy: Optional[ThaumaturgyState] = None
 
     weapons: list[Weapon] = Field(default_factory=list)
@@ -1110,34 +744,25 @@ class Character(BaseModel):
     play: Optional[PlayState] = None
 
     # --- homebrew this character depends on (see custom_content.py) ------------
-    # Definitions of the CUSTOM Charms/spells this character references, carried
-    # inside the save so it survives being handed to someone whose machine has no
-    # copy of the author's library. Keyed "charms"/"spells"/"rituals" — every custom
-    # kind a character references BY ID. ⚠ Gear is deliberately not among them: a save
-    # carries its own inline copy of every weapon, armour and item (decision 0007), so
-    # there is no id to resolve against someone else's library.
+    # Copies of the custom definitions that the character uses by id, keyed
+    # "charms"/"spells"/"rituals" (decision 0012). Gear needs no entry: the save has
+    # inline copies (decision 0007).
     #
-    # ⚠ OPAQUE dicts, not Charm/Spell models: those are rules data, and this module
-    # must not grow a dependency on the rules catalogue (see the module docstring).
-    # They are parsed and validated at the edge — custom_content writes them and
-    # rules_db loads them — so a save carrying a malformed row still loads as a
-    # Character, and the row is reported rather than fatal.
+    # ⚠ Opaque dicts, not Charm/Spell models: this module does not import the rules
+    # catalogue. custom_content writes them and rules_db loads them. A bad row is
+    # reported, not fatal.
     #
-    # Populated on save and absorbed into the library on load; nothing in the engine
-    # reads it, and an id that is in here but not in the RuleSet is still an
-    # `unknown-charm` error like any other.
+    # The engine does not read this field. An id that is here but not in the RuleSet
+    # is an `unknown-charm` error.
     custom_definitions: dict[str, list[dict]] = Field(default_factory=dict)
 
     @model_validator(mode="before")
     @classmethod
     def _migrate_legacy_st_foreign_charms(cls, data: object) -> object:
-        """Lift a pre-HouseRules top-level `st_foreign_charms` into `house_rules`.
+        """Move a top-level `st_foreign_charms` into `house_rules`.
 
-        Takes the raw payload; returns it with the legacy key popped and its value
-        set on `house_rules` unless that document already carries one — an explicit
-        `house_rules` wins, so a new save is authoritative over a legacy key. Without
-        this a saved Eclipse or Moonshadow silently loses its permission on load and
-        its foreign Charms start failing validation.
+        Input: the raw payload. Output: the payload without the top-level key. The
+        value goes into `house_rules` unless `house_rules` already has the key.
         """
         if not isinstance(data, dict) or "st_foreign_charms" not in data:
             return data
@@ -1156,6 +781,6 @@ class Character(BaseModel):
     @field_validator("caste", mode="before")
     @classmethod
     def _migrate_legacy_caste(cls, v: object) -> object:
-        """Map a pre-Phase-2 capitalised Solar caste ("Dawn") to its id ("dawn").
-        Any other value passes through untouched."""
+        """Map a capitalized Solar caste ("Dawn") to its id ("dawn"). Return any
+        other value unchanged."""
         return _LEGACY_CASTE_IDS.get(v, v) if isinstance(v, str) else v

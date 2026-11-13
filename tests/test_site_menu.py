@@ -124,7 +124,7 @@ def _quick_links(html: str) -> list[str]:
 
 
 def test_the_top_bar_holds_only_the_account_controls(campaigns) -> None:
-    """The human, 2026-09-26: the menu holds the places; the top bar holds only the
+    """The human: the menu holds the places; the top bar holds only the
     login name and Log out (a visitor: Log in and Sign up). Nothing twice."""
     assert _quick_links(site.header_bar("wiki", "gil")) == ["/logout"]
     assert _quick_links(site.header_bar("wiki", None)) == ["/login", "/signup"]

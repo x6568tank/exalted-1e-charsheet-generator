@@ -17,7 +17,7 @@ The distinctive numbers are asserted one per keyed-table row, because a keyed ro
 that does not exist falls back silently at another splat's prices —
 `adding-a-splat.md` trap #2.
 
-Rulings (human, 2026-08-07): the chargen "three of these dots" cap binds the 25
+Rulings (human's ruling): the chargen "three of these dots" cap binds the 25
 free dots only, not the 10 favored dots; the Enlightened "no Attribute below 3" is
 a spend-to floor; the Artisan College "•• divided among Craft Abilities" is a
 group-sum floor; the Great Geas clause list is a reference panel, not engine

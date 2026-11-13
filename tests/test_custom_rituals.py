@@ -1,18 +1,14 @@
-"""Thaumaturgic rituals as LIBRARY content (2026-08-28).
-
-The chapter prints five rituals and says outright that more should be written
-(p.148), so the catalogue is a seed — the same argument the gear library was built on
-a day earlier, and the same three contracts:
+"""Thaumaturgic rituals as LIBRARY content (p.148). The three contracts of the gear
+library:
 
   * **the book always wins an id collision**;
   * **a bad row is reported and dropped, never fatal**;
-  * **a delete does not rewrite characters** — an unresolvable id is a case the rest
-    of the build already handles.
+  * **a delete does not rewrite characters**.
 
 ⚠ **A ritual has TWO custom shapes and they are not interchangeable.** A library row
 is a `ThaumaturgicRitual` in the RuleSet, bought by id by anyone. A ritual invented
 for one character is an inline `RitualEntry` with an empty `ritual_id`, on that sheet
-alone. Both entry points stay (the human's ruling, 2026-08-28); these tests cover the
+alone. Both entry points stay (human's ruling); these tests cover the
 first and `test_qt_charms.py` covers the second.
 """
 

@@ -58,7 +58,7 @@ def test_the_password_is_not_stored(store: Path) -> None:
 
 
 def test_usernames_are_case_sensitive(store: Path) -> None:
-    """The human's ruling, 2026-09-11. "Gil" and "gil" are two accounts, and a
+    """human's ruling. "Gil" and "gil" are two accounts, and a
     login must give the case of the signup."""
     upper = db.create_user(store, "Harmonious", PASSWORD)
     lower = db.create_user(store, "harmonious", "another password")
@@ -138,7 +138,7 @@ def test_init_is_repeatable(store: Path) -> None:
 
 
 def test_a_password_needs_no_character_types(store: Path) -> None:
-    """The human's ruling, 2026-09-11: eight characters, no complexity rule."""
+    """human's ruling: eight characters, no complexity rule."""
     assert db.create_user(store, "Harmonious", "aaaaaaaa")
 
 

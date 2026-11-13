@@ -98,7 +98,7 @@ def test_a_campaign_needs_a_name(store: TableStore) -> None:
 
 def test_an_account_runs_at_most_the_campaign_cap(store: TableStore) -> None:
     """⚠ Each campaign folder has its own 50 MB quota. Without a cap, one account
-    fills the disk with campaigns. The human set the cap on 2026-10-10."""
+    fills the disk with campaigns. The human set the cap."""
     for number in range(tables.MAX_CAMPAIGNS):
         store.create(ST, f"Campaign {number}")
 
@@ -307,7 +307,7 @@ def test_a_member_can_bring_another_character(store: TableStore, characters) -> 
 
 
 def test_the_storyteller_can_bring_a_character(store: TableStore, characters) -> None:
-    """Q4, answered 2026-09-12: allow it. It needs nothing of its own."""
+    """Q4, answered: allow it. It needs nothing of its own."""
     table = store.create(ST, "GMPC")
     base = _base(characters, ST)
 
@@ -410,7 +410,7 @@ def test_approval_of_a_watch_request_makes_no_copy(store: TableStore) -> None:
 def test_a_join_request_writes_nothing_to_the_table(store: TableStore,
                                                    characters) -> None:
     """Nothing reaches the table layer before the Storyteller approves. The approval
-    adds the carried homebrew (ruled 2026-09-23; tests/test_table_homebrew.py)."""
+    adds the carried homebrew ruled; tests/test_table_homebrew.py)."""
     from exalted_builder import custom_content
 
     custom_content.save_charm(
@@ -642,7 +642,7 @@ def test_the_storyteller_cannot_remove_themselves(store: TableStore) -> None:
 
 
 def test_delete_makes_every_copy_solo(store: TableStore, characters) -> None:
-    """Q3, answered 2026-09-12: yes, the same rule as leaving."""
+    """Q3, answered: yes, the same rule as leaving."""
     table = store.create(ST, "End")
     copies = [_member(store, table, user, _base(characters, user).id)
               for user in (PLAYER, OTHER, ST)]

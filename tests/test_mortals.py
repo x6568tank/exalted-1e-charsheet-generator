@@ -314,9 +314,8 @@ async def test_mortal_sheet_renders(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_mortal_picker_offers_no_charm_pages_and_still_renders(user) -> None:
-    """Regression, reported 2026-07-30: a mortal has no Charm categories, so the
-    Category dropdown was built with an empty option list and raised at build time —
-    blanking the Abilities page AND the Thaumaturgy sub-tabs beside it."""
+    """A mortal has no Charm categories. The Category dropdown with no options must not
+    raise at build time and blank the Abilities page and the Thaumaturgy sub-tabs."""
     await user.open('/mortalpicker')
     # It lands on the Thaumaturgy page, whose content really renders. (The page
     # TOGGLE is hidden: with no Charm pages, Thaumaturgy is the only group left, so
@@ -329,9 +328,9 @@ async def test_mortal_picker_offers_no_charm_pages_and_still_renders(user) -> No
 
 
 def test_optional_favored_ability_is_heroic_only(rs):
-    """Reported 2026-07-30: the ST toggle was letting an ORDINARY mortal take one.
-    Core p.103 offers it to "heroic mortals"; it varies by origin, so it is a budget
-    flag and both halves (origin allows + ST switches on) must hold."""
+    """The ST toggle does not give an ORDINARY mortal a Favored Ability. Core p.103
+    offers it to "heroic mortals": the origin must allow it AND the ST must switch it
+    on."""
     assert rs.budgets_for("Mortal", "heroic", "").optional_favored_ability is True
     assert rs.budgets_for("Mortal", "ordinary", "").optional_favored_ability is False
     on = HouseRules(mortal_favored_ability=True)

@@ -45,7 +45,7 @@ async def test_equipment_is_editable_after_the_lock(user: User) -> None:
     # it is the dot track's downward dialog (decision 0013), covered in
     # test_advancement. What this route still usefully proves is that equipment, which
     # is free on BOTH sides of the lock, survived the XP tab's deletion.
-    # The three per-kind panels were folded into the inventory rows on 2026-08-13, so
+    # The three per-kind panels were folded into the inventory rows, so
     # what proves equipment survived the lock is the INVENTORY listing it and the row
     # carrying an editor.
     # CHAR_XP owns nothing, so there are no rows to expand — what proves the point is

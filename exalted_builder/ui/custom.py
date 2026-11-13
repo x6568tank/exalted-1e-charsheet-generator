@@ -97,12 +97,8 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
         _set_form(viewmod.CUSTOM_KINDS[state["kind"]].form())
 
     def _switch_kind(kind: str) -> None:
-        """⚠ The LIBRARY has to be refreshed as well as the form. It filters on
-        `state["kind"]` at render time, so without this the left column kept the rows
-        of the kind you switched AWAY from — the Spells tab listing Charms under a
-        heading that said so. Found 2026-08-28 by the first test to switch tabs and
-        then look at the list; the form alone had always repainted, which is what hid
-        it."""
+        """⚠ Refresh the LIBRARY as well as the form. It filters on `state["kind"]` at
+        render time, thus without this it shows rows of the previous kind."""
         state["kind"] = kind
         _new()
         library.refresh()

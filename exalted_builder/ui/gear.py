@@ -1,21 +1,16 @@
 """
 ui/gear.py — the Gear tab: everything the character OWNS, in one place.
 
-One tab for weapons, armour, goods, artifacts and the price list (human's call,
-2026-08-13). ⚠ Keep them together: splitting an artifact daiklave's STATS onto Edit and
-its BUDGET onto Advantages is what lets the same object be entered twice and charged
-twice (see `docs/status/rated-artifacts.md`).
+One tab for weapons, armor, goods, artifacts and the price list (human's ruling).
+⚠ Keep them together: the STATS of an artifact daiklave on Edit and its BUDGET on
+Advantages let one object be entered and charged two times (see
+`docs/status/rated-artifacts.md`).
 
-⚠ Why a TOP-LEVEL tab rather than a sub-tab of Advantages, which was the first proposal:
-"Advantages" is a 1e game term meaning Backgrounds plus Merits & Flaws, and equipment is
-not one. Filing goods under it would read as wrong to anyone who knows the book, and
-this build matches the book's vocabulary deliberately elsewhere (`charm_noun`, "Arrays"
-for Alchemicals). Nesting would also cost a click on a surface used during play.
+⚠ A TOP-LEVEL tab: "Advantages" is the 1e term for Backgrounds plus Merits & Flaws, and
+equipment is not one.
 
-The Artifact Background link is stated in BOTH places: the budget line sits in this
-tab's readout (it is about what you own), and the Artifact Background row on Advantages
-carries a one-line note saying what it buys. Two surfaces stating one rule is
-deliberate — one surface owning it silently is what produced the double-charge above.
+The budget line of the Artifact Background is on this tab. The Artifact row on
+Advantages has a one-line note of what it buys.
 
 Presentation only. Every derived list comes from `ui/view/` and every rule from
 `engine/` — see the `ui → engine → models` rule in docs/ARCHITECTURE.md.
@@ -64,9 +59,7 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         changed()
 
     # ---- mutators — thin refresh wrappers over `engine.gear_actions` -------- #
-    # ⚠ The rules moved OUT of this file on 2026-08-21 (the Qt port's milestone-4 prep):
-    # what a re-pick carries across, what an artifact grants, and which channel stamps a
-    # purchase are decisions two shells now make, so they live in one place.
+    # ⚠ The rules are in the engine: both shells use them.
     def add_item(field: str) -> None:
         gear_actions.add_row(character, field)
         body.refresh(); changed()
@@ -93,12 +86,10 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
 
 
     # ⚠ These helpers are at build_gear scope, NOT inside body(). The row editors
-    # below are called FROM body but DEFINED here, so a helper local to body is a
-    # NameError at call time — and NiceGUI swallows that into an empty panel
-    # rather than a crash, which is how it presented (2026-08-13).
-    # equipment — inline copies; the catalog autofills, then every stat is
-    # editable per item (custom or tweaked artifact/masterwork). Each item's
-    # numbers live behind an "Edit stats" expander; the summary updates live.
+    # below are called FROM body but DEFINED here. A helper local to body is a
+    # NameError at call time, which NiceGUI shows as an empty panel.
+    # Equipment: inline copies. The catalogue autofills, then each stat is editable.
+    # The numbers are in an "Edit stats" expander. The summary updates live.
     armor_names = [a.name for a in ruleset.armor_catalog.values()]
     weapon_names = [w.name for w in ruleset.weapon_catalog.values()]
     # "" = mundane; material bonuses apply only for the matching Exalt (p.341).
@@ -179,11 +170,9 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
     def artifact_attune_controls(art) -> None:
         """The commitment cost and toggle for a STANDALONE artifact.
 
-        ⚠ When the artifact has a gear stat line (`Weapon.from_artifact`), the pair is
-        one object and the gear row owns the commitment (human, 2026-09-03) — so this
-        offers a pointer at that row instead of a second set of controls. Two editable
-        attunements for one daiklave is the double-count bug that `from_artifact`
-        exists to prevent, in motes rather than dots.
+        ⚠ If the artifact has a gear stat line (`Weapon.from_artifact`), the gear row
+        owns the commitment (human's ruling). Show a pointer to that row, not a second
+        set of controls.
         """
         stat_line = artifactsmod.stat_line_row(
             character,
@@ -396,8 +385,7 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
             ui.notify(str(ex), type="warning")
             return
         extra = " (armour weight defaults to Light)" if kind == "armor" else ""
-        # ⚠ Re-merge NOW — see the same comment in qt/gear.py. The restart this used to
-        # ask for was `reload_custom_layer` skipping the gear catalogues.
+        # ⚠ Re-merge NOW — see the same comment in qt/gear.py.
         if reload_library is not None:
             reload_library()
         else:
@@ -526,10 +514,8 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                           setattr(it, "quantity", max(1, int(e.value or 1))),
                           _inventory.refresh(), changed())
                       ).props("dense").classes("w-16")
-            # LABELLED. A bare "•••" beside an item is unreadable — the
-            # browser asked what it meant (2026-08-13), and every other dot
-            # column on the sheet is a rated trait, which this is not: it
-            # is what the thing COST.
+            # LABELLED: a bare "•••" is not readable, and it is a cost, not a
+            # rated trait.
             ui.label(f"Res {'•' * item.resources_cost}"
                      if item.resources_cost else "Res —"
                      ).classes("text-xs opacity-70 w-20 shrink-0").tooltip(
@@ -545,12 +531,8 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
     @ui.refreshable
     def body() -> None:
         # ---- INVENTORY: everything owned, in one filterable list ---------------- #
-        # The human's model (2026-08-13): "your inventory, which is Everything, but you
-        # can filter it down to certain types of goods, some of which would overlap."
-        # A VIEW over the four typed lists, never a storage shape — see
-        # `view.inventory_rows`. The per-type editors below stay: this answers "what do
-        # I have", they answer "change its stats", and merging those two jobs into one
-        # widget is how the equipment surface got unreadable in the first place.
+        # A VIEW over the four typed lists (human's ruling), not a storage shape. See
+        # `view.inventory_rows`.
         inv_filter = {"kind": "all"}
 
         @ui.refreshable
@@ -579,15 +561,10 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 # overlaps — an artifact daiklave is both a weapon and an artifact —
                 # and that is correct. The filters are not a partition.
                 shown = viewmod.filter_inventory(rows, inv_filter["kind"])
-                # ⚠ Each row carries its OWN editor, in an expansion. There are NO
-                # per-type panels below this list (human's call, 2026-08-13): an
-                # inventory beside three panels editing the same objects is four
-                # surfaces for one job, and the list is the only one that can show a
-                # daiklave as both weapon and artifact.
+                # ⚠ Each row has its OWN editor, in an expansion. There are NO per-type
+                # panels (human's ruling).
                 #
-                # `row.list_name` / `row.index` are what make it possible — the view
-                # records where each row came FROM, so a display row can hand back the
-                # object it describes.
+                # `row.list_name` / `row.index` give the source object of each row.
                 editors = {"armor": _armor_editor, "weapons": _weapon_editor,
                            "gear": _goods_editor, "artifacts": _artifact_editor}
                 for row in shown:
@@ -627,14 +604,11 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                                     row.linked_index, linked[row.linked_index])
 
         # ---- BUY: one shop over every catalogue ------------------------------- #
-        # The human's unification (2026-08-13): "Add weapon" / "Add armor" / "Add goods"
-        # opened the same dialog against three catalogues, which is three shops. This is
-        # one, and the kind rides in the KEY so the pick knows which list to append to.
+        # One dialog (human's ruling). The KEY carries the kind, thus the pick knows
+        # the list.
         #
-        # ⚠ It has no Custom row (`allow_custom=False`): "custom" needs a type, and a
-        # dialog spanning three catalogues cannot know whether a blank row is a weapon,
-        # a suit of armour or a bolt of silk. The per-panel Add buttons keep that job —
-        # they are the typed affordance, this is the priced one.
+        # ⚠ No Custom row (`allow_custom=False`): this dialog cannot know the type of a
+        # blank row. The typed Add buttons do that.
         def _open_shop() -> None:
             # The rows, their groups and their prices come from `view.shop_rows`; the
             # ICONS stay here, because they are Material Icon names and the Qt shell

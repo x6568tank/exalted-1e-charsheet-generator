@@ -34,7 +34,7 @@ def _rich_character() -> Character:
     c.virtues[VirtueName.CONVICTION] = 3
     c.favored_abilities = [AbilityName.OCCULT, AbilityName.LORE]
     # Two rows rather than one at rating 2: a specialty is an instance, not a rated
-    # trait (human, 2026-07-31), and taking the same one twice is how it stacks. A
+    # trait (human's ruling), and taking the same one twice is how it stacks. A
     # legacy rating-2 save no longer round-trips unchanged BY DESIGN — the loader
     # splits it — which `test_a_legacy_rated_specialty_is_split_into_instances_on_load`
     # covers in test_advancement.

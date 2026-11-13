@@ -86,15 +86,10 @@ PERMANENT_RESONANCE_TARGET = "limit_permanent"
 
 
 def heritage_origin_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """A heritage that keys off the origin axis must actually choose one of its
-    options, and the value must BE one of them. Two heritages key off it: the
-    Half-Caste's parent Exalt type (p.47: "learn the Charms of their parents") and
-    the Fae-Blooded's Noble/Commoner (the nobility axis the powers on pp.73-79 gate
-    on, human 2026-08-02). Without one the heritage is half-formed — a Half-Caste
-    with no parent learns nothing, a Fae-Blooded with no nobility cannot be gated.
-    A value from ANOTHER heritage is just as broken (a Fae-Blooded carrying a
-    "Solar" parent), and is reported distinctly so the stale choice is visible
-    rather than merely fatal in the editor."""
+    """Check the origin of a heritage that uses the origin axis: a value must be
+    selected, and it must be one of the options of the heritage. The Half-Caste
+    parent (p.47) and the Fae-Blooded nobility (pp.73-79, human's ruling) use it. A
+    value of a different heritage has its own issue code."""
     caste = ruleset.castes.get(character.caste)
     if caste is None or caste.heritage_traits is None \
             or not caste.heritage_traits.origin_options:
@@ -238,14 +233,11 @@ def check_splat_consistency(ruleset: RuleSet, character: Character) -> list[Issu
 
 
 def check_specialties(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """A specialty is an instance, not a rated trait (human, rules authority,
-    2026-07-31): "you don't raise specialties, you just take the same one multiple
-    times, and you can only have 3 specialties per ability".
+    """Check the specialties. A specialty is an instance, not a rated trait, and an
+    Ability has at most 3 (human's ruling).
 
-    Both halves need checking HERE and not only in `advancement.add_specialty`,
-    because chargen writes the list directly from the editor — an advancement guard
-    alone would leave the whole pre-lock path unchecked, which is the mis-placed-rule
-    shape this project keeps hitting.
+    ⚠ Check HERE too, not only in `advancement.add_specialty`: chargen writes the
+    list directly (the house bug, type 1).
     """
     from collections import Counter
     from .. import advancement as adv

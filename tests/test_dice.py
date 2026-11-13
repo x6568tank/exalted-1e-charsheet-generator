@@ -42,8 +42,8 @@ def test_a_ten_counts_as_two_successes():
 
 
 def test_plain_counting_is_not_what_ships():
-    """⚠ The regression this file exists for: `len([d for d in f if d >= tn])`
-    agrees with the rule on every roll that contains no 10."""
+    """⚠ `len([d for d in f if d >= tn])` agrees with the rule on each roll with no
+    10. Test a roll with a 10."""
     result = _roll([10, 10, 6])
     assert len([d for d in result.faces if d >= 7]) == 2
     assert result.successes == 4

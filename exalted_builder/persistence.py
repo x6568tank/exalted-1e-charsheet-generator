@@ -77,17 +77,12 @@ def character_to_json(character: Character) -> str:
 
 
 def _split_rated_specialties(character: Character) -> None:
-    """Migrate a legacy rated specialty into instances, in place.
+    """Convert a rated specialty into instances, in place.
 
-    A specialty is not a rated trait (human, rules authority, 2026-07-31): "you don't
-    raise specialties, you just take the same one multiple times". A saved
-    `Daiklaves 3` therefore becomes three `Daiklaves` rows — mechanically identical
-    (it was always three dice) and it means the cap, the bonus-point sum and the buy
-    path all see ONE shape instead of two.
+    A specialty is not a rated trait (human's ruling): a saved `Daiklaves 3` becomes
+    three `Daiklaves` rows, with the same dice.
 
-    Migrating rather than rejecting: these saves are legal history, not corruption.
-    `validate.check_specialties` still reports any rating > 1 that reaches it by
-    another route (a hand-edit, a Character built in code).
+    `validate.check_specialties` reports a rating > 1 from any other route.
     """
     if not any(s.rating > 1 for s in character.specialties):
         return
@@ -220,9 +215,9 @@ def suggested_party_filename(party: Party) -> str:
 
 
 def normalize_party_filename(text: str, party: Party) -> str:
-    """The party filename to use given free-text user input. Mirrors
-    normalize_save_filename: blank falls back to the party-derived name, an
-    explicit '.json' is kept verbatim, anything else is a bare stem to slugify."""
+    """Return the party filename for free-text user input. Blank gives the
+    party-derived name. An explicit '.json' is kept as typed. Else the input is a bare
+    stem to slugify."""
     text = (text or "").strip()
     if not text:
         return suggested_party_filename(party)

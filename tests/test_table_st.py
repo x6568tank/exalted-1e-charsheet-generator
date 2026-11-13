@@ -342,7 +342,7 @@ def test_an_unlocked_copy_is_not_unlocked_again(st, tables, store, table) -> Non
 
 
 def test_an_unlock_after_xp_keeps_the_xp_log(st, tables, store, table) -> None:
-    """Ruled 2026-09-12: an Unlock after XP is allowed. The table view warns first."""
+    """Ruled: an Unlock after XP is allowed. The table view warns first."""
     row = _copies(tables, table)["Ashes"]
     character = store.load(row)
     character.xp_log.append(XpEntry(target="essence", from_rating=2, to_rating=3, cost=16))

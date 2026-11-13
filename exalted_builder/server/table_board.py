@@ -65,7 +65,7 @@ MAX_BACKGROUND_BYTES = 2 * 1024 * 1024
 MAX_SIDE = 4096
 MAX_INPUT_PIXELS = 40_000_000
 # Each member can upload a token image, thus its limit is lower. 16 MP takes a
-# phone photograph. A decode of 40 MP took ~310 MB.
+# phone photograph.
 MAX_TOKEN_INPUT_PIXELS = 16_000_000
 # One decode at a time in the process. Parallel uploads then cannot each hold a
 # decoded image. ⚠ Do not take this lock on the event loop: call from a thread.

@@ -472,8 +472,8 @@ def test_illumination_first_dot_costs_no_pool_dots(rs):
 
 
 def test_alchemical_class_dots_are_still_paid_for(rs):
-    """Regression guard: free_rating defaults to 0, so the Alchemical Class ••• grant
-    (mandatory but paid out of the pool) keeps costing three dots."""
+    """free_rating defaults to 0, thus the Alchemical Class ••• grant (mandatory, paid
+    from the pool) still costs three dots."""
     rule = rs.budgets_for("Alchemical").background_rules["class"]
     assert validate.background_pool_dots(rule, 3) == 3
 
@@ -508,7 +508,7 @@ def test_calling_ability_bp_rate_is_one_per_dot(rs):
 
 def test_calling_and_caste_ability_dots_cost_one_bp_per_two_rounding_up(rs):
     """p.93: "1 for 2 if both a Calling Ability and a Favored or Caste Ability".
-    Rounds UP (rules-authority call, 2026-07-24). Melee is both a Dawn Caste Ability
+    Rounds UP (human's ruling). Melee is both a Dawn Caste Ability
     and a Deacon Calling Ability, so its dots are the fractional tier."""
     bp = rs.bonus_costs_for("Solar")
     assert bp.calling_ability == 1
@@ -531,8 +531,8 @@ def test_calling_and_caste_ability_dots_cost_one_bp_per_two_rounding_up(rs):
 
 
 def test_a_non_calling_non_caste_ability_still_costs_the_full_rate(rs):
-    """Regression: Sail is neither Dawn Caste nor a Deacon Calling Ability, so its
-    above-cap dots cost the undiscounted 2 BP each."""
+    """Sail is not Dawn Caste and not a Deacon Calling Ability, thus its above-cap dots
+    cost the full 2 BP each."""
     c = _illuminated(rs, abilities={AB.SAIL: 5}, favored_abilities=[])
     line = next(l for l in validate.bonus_point_breakdown(rs, c).lines
                 if l.domain == "Abilities")
@@ -608,8 +608,8 @@ def test_calling_charm_xp_discount_stacks_with_caste_favored(rs):
 
 
 def test_a_standard_solar_gets_no_calling_discounts(rs):
-    """Regression: the discount fires only for a character WITH a Calling, so every
-    existing Solar is priced exactly as before."""
+    """The discount applies only to a character WITH a Calling. Other Solars are
+    priced as before."""
     std = Character(id="s", name="Std", exalt_type="Solar", caste="dawn")
     assert validate.calling_abilities(rs, std) == set()
     # Melee is a Dawn Caste Ability, so the Caste discount alone gives 5; Sail gets
@@ -712,7 +712,7 @@ def test_extra_min_abilities_is_empty_for_every_other_charm(rs):
         # Time of Tumult p.96 — the page prints "Minimum Craft: 5 / Minimum OFFULT: 3".
         # "Offult" is a typo in the book, confirmed at 300 dpi rather than assumed (the
         # "ff" ligature is unmistakable, so it is not a rasterisation artifact), and the
-        # human ruled it Occult on 2026-08-14. Craft is primary — it is the category and
+        # human ruled it Occult. Craft is primary — it is the category and
         # what pricing keys off. The printed spelling is preserved in the Charm's own
         # description so the book's text survives the correction.
         "solar.craft.world-within-a-picture-style",
@@ -1009,17 +1009,14 @@ def test_camp_view_marks_the_taken_pair_as_chosen(rs):
 
 
 def test_camp_view_lists_all_four_styles_with_readable_labels(rs):
-    """A closed ui.select never puts its options in the DOM, so the option LABELS are
-    asserted here rather than in a render test. All four styles are authored: Snake
-    (core), Tiger (Caste Book: Dawn p.73-74), Praying Mantis (Caste Book: Eclipse
-    p.73-75) and Ebon Shadow (Caste Book: Night p.67-70).
+    """A closed ui.select never puts its options in the DOM, thus the option LABELS are
+    asserted here. All four styles are authored: Snake (core), Tiger (Caste Book: Dawn
+    p.73-74), Praying Mantis (Caste Book: Eclipse p.73-75) and Ebon Shadow (Caste Book:
+    Night p.67-70).
 
-    ⚠ The middle one reads **"Mantis Style"**, not "Praying Mantis Style". The
-    category slug is `martial_arts:praying-mantis` and the label used to be derived
-    from it, but the page prints "Mantis Style" (Caste Book: Eclipse p.73) and
-    `view._style_label` now prefers the authored name over the slug
-    (docs/status/martial-arts-styles.md). The slug is unchanged and must stay —
-    `camps.json` keys on it."""
+    ⚠ The middle one reads **"Mantis Style"**, as printed (Caste Book: Eclipse p.73).
+    `view._style_label` prefers the authored name over the slug. The slug
+    `martial_arts:praying-mantis` must stay: `camps.json` keys on it."""
     from exalted_builder.ui import view
     tab = _illuminated(rs, camp="sequestered-tabernacle", calling="exemplar",
                        granted_charms=rs.camps["sequestered-tabernacle"].granted_charms)
@@ -1093,9 +1090,8 @@ def test_every_origin_offered_by_the_editor_resolves_to_a_budget(rs):
 
 
 def test_switching_splat_clears_a_stale_camp(rs):
-    """Regression: switching away from an Illuminated Solar used to leave `camp` set,
-    which then reported camp-not-supported. Asserted through the engine because the
-    editor setter is a closure."""
+    """A switch away from an Illuminated Solar clears `camp`. Asserted through the
+    engine: the editor setter is a closure."""
     c = _illuminated(rs)
     assert _codes(validate.check_camp_and_calling(rs, c)) == set()
     moved = c.model_copy(update={"exalt_type": "Lunar", "caste": "full-moon", "origin": ""})
@@ -1105,13 +1101,8 @@ def test_switching_splat_clears_a_stale_camp(rs):
 
 
 def test_picking_the_illuminated_origin_seeds_a_legal_character(rs):
-    """The bug the user hit was reachability: the engine was complete and the origin
-    unselectable. The other half is that selecting it must leave the character LEGAL,
-    not merely leave three more dropdowns to fill in — so the defaulting rule lives in
-    the engine and is asserted here.
-
-    (This replaced a UI click-through test that passed alone and failed in-suite; the
-    behaviour it claimed to prove is verified deterministically instead.)"""
+    """Selecting the origin leaves the character LEGAL, not with three more dropdowns
+    to fill. The defaulting rule is in the engine and is asserted here."""
     fresh = Character(id="f", name="Fresh", exalt_type="Solar", caste="dawn",
                       origin="illuminated", essence_rating=3)
     camp, calling, granted = validate.default_camp_and_calling(rs, fresh)
@@ -1246,9 +1237,8 @@ def test_choosing_a_style_opens_a_second_control_for_which_charms(rs):
 
 
 def test_a_style_stays_chosen_while_only_one_of_its_charms_is_held(rs):
-    """Regression: `chosen_key` used to require `pick` Charms already held, so emptying
-    the sub-select to one Charm made the style look unchosen — which removed the
-    sub-select and stranded the player with no way to add the second."""
+    """`chosen_key` does not need `pick` Charms held. With one Charm in the
+    sub-select, the style stays chosen and the player can add the second."""
     from exalted_builder.ui import view
     camp = rs.camps["sequestered-tabernacle"]
     tab = _tabernacle(rs, granted=list(camp.granted_charms) + [
@@ -1447,7 +1437,7 @@ def test_a_cult_dragonblooded_sorcery_stops_below_the_celestial_rungs(rs):
     Illuminated Exalt training in the camps can learn sorcery" (p.98), but its •••• and
     ••••• rungs grant "four/five spells from either the Terrestrial or the Celestial
     Circles" — which a Terrestrial cannot cast. Capped at ••• , the highest rung that
-    grants Terrestrial spells only (human, rules authority, 2026-08-12).
+    grants Terrestrial spells only (human's ruling).
 
     Solars keep the full ladder: the cap is on the ORIGIN row, not the Background."""
     db = rs.budgets_for("Dragon-Blooded", "illuminated")

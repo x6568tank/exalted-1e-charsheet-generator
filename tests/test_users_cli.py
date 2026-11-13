@@ -1,6 +1,6 @@
 """The operator command: `python -m exalted_builder.server.users`.
 
-The human's ruling of 2026-09-11: a player with a forgotten password writes to the
+human's ruling: a player with a forgotten password writes to the
 admin address, and the operator resets it. There is no reset by email.
 """
 
@@ -87,7 +87,7 @@ def test_a_missing_database_is_reported_not_made(tmp_path: Path, monkeypatch, ca
     assert not path.exists()
 
 
-# ---- the email (docs/plans/account-management.md, 2026-09-26) ---------------- #
+# ---- the email (docs/plans/account-management.md) ---------------- #
 
 
 def test_list_prints_the_email(store: Path, capsys) -> None:

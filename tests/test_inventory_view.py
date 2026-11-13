@@ -1,6 +1,6 @@
 """The inventory — one filterable view over everything owned.
 
-The human's model, 2026-08-13: "you have your inventory, which is Everything, but you
+human's ruling: "you have your inventory, which is Everything, but you
 can filter it down to certain types of goods, some of which would overlap."
 
 ⚠ The two load-bearing facts, and both are easy to break later:
@@ -91,14 +91,11 @@ def _linked_daiklave() -> tuple[Character, str]:
 
 
 def test_a_granted_stat_line_is_ONE_row_with_its_artifact(rs):
-    """An artifact and the stat line `grant_gear` stamped for it are ONE OBJECT, and the
-    inventory shows one row (the human, 2026-08-13 click-through: two peer rows for one
-    daiklave "feels odd, and a little obtuse").
+    """An artifact and its `grant_gear` stat line are ONE OBJECT and get one row
+    (human's ruling).
 
-    The merge is display-only — `character.weapons` still holds the stat line, so the
-    dice-pool sidebar's positional indices and the typed lists are untouched. What
-    changes is that the row answers to BOTH filters instead of the pair splitting one
-    object across two lines.
+    Display-only: `character.weapons` still holds the stat line. The row matches
+    BOTH filters.
     """
     c, _ = _linked_daiklave()
     rows = viewmod.inventory_rows(rs, c)
@@ -206,7 +203,7 @@ async def test_a_filter_narrows_the_list(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_gear_tab_holds_every_owned_thing_in_one_place(user) -> None:
-    """The point of the 2026-08-13 split: one tab for possessions. Weapons, armour and
+    """The point of the split: one tab for possessions. Weapons, armour and
     goods came off the Edit tab and artifacts off Advantages, because an artifact whose
     STATS lived on one tab and whose BUDGET lived on another is what let a daiklave be
     entered and charged twice.
@@ -235,13 +232,8 @@ async def test_the_edit_tab_no_longer_carries_equipment(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_each_row_carries_its_OWN_editor(user) -> None:
-    """The three per-kind panels are gone (2026-08-13, the human's call: "the worst part
-    of the three extra panels — the three extra panels"). An inventory that lists
-    everything, beside panels that edit the same objects, is four surfaces for one job —
-    and only the list could show a daiklave as both weapon and artifact.
-
-    Each row now expands to the editor for ITS kind, reached through `row.list_name` /
-    `row.index`, which is what those fields on the view exist for.
+    """There are no per-kind panels (human's ruling). Each row expands to the editor
+    of ITS kind, through `row.list_name` / `row.index`.
     """
     from nicegui import ui as _ui
     await user.open('/inventory')
@@ -250,10 +242,8 @@ async def test_each_row_carries_its_OWN_editor(user) -> None:
     labels = {e.text for e in user.client.elements.values() if isinstance(e, _ui.label)}
     assert any("Soak" in t for t in labels), "no armour editor in the inventory"
     assert any("Acc" in t for t in labels), "no weapon editor in the inventory"
-    # …and the panels that used to hold them are not also on the page. Probed with the
-    # armour panel's full title: "Goods" and "Weapons" survive as a row TAG and a filter
-    # chip, so a bare word cannot tell a deleted panel from live UI — the negative
-    # control has to name something only the panel said.
+    # ...and no per-kind panel is on the page. Probe with the armor panel's full
+    # title: "Goods" and "Weapons" are also a row TAG and a filter chip.
     assert "Armor (sets soak)" not in labels
 
 
@@ -287,13 +277,11 @@ def test_the_ARMOUR_side_of_the_merge_works_too(rs):
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_a_merged_row_carries_BOTH_editors(user) -> None:
-    """The binding test for the merge, and the reason it needs one: the stat line no
-    longer has a row of its own, so if the merged row does not render the linked editor
-    the weapon's stats become UNEDITABLE — a regression the pure view tests cannot see,
-    because the view is right and the panel is what dropped it.
+    """The merged row renders the linked editor. The stat line has no row of its own,
+    thus without the editor the weapon's stats cannot be edited.
 
-    Names the surface the merge produces, not the helper: `inventory_rows` returning a
-    good `linked_index` proves nothing about whether `build_gear` reads it.
+    ⚠ Test the surface, not the helper: a correct `linked_index` does not prove that
+    `build_gear` reads it.
     """
     from nicegui import ui as _ui
     await user.open('/inventory-merged')

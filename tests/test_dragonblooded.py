@@ -73,9 +73,8 @@ def test_db_calls_its_caste_slot_aspect(rs):
 
 
 def test_db_may_learn_terrestrial_spells_at_chargen(rs):
-    # Terrestrial is the DB's only circle, so nothing is barred at creation: a DB who
-    # takes the Terrestrial Circle Sorcery initiation Charm CAN learn its spells at
-    # chargen. (Regression: the old "bar the top circle" default barred their only one.)
+    # Terrestrial is the DB's only circle, thus nothing is barred at creation: a DB with
+    # the Terrestrial Circle Sorcery initiation Charm CAN learn its spells at chargen.
     c = _db_fire()
     c.charms = ["dragonblooded.occult.terrestrial-circle-sorcery"]
     assert validate.chargen_barred_circle(rs, c) is None
@@ -372,9 +371,8 @@ def test_shipped_db_air_ability_charm_counts(rs):
            if c.exalt_type == "Dragon-Blooded" and c.element == "Air" and not c.immaculate]
     assert Counter(c.category for c in air) == Counter(
         # Aspect Book: Air (Miracles of Mela) CH6 added the second wave.
-        # +1 linguistics on 2026-08-14: Subtle Comprehension Technique (The Outcaste
-        # p.150), found by the transcribed-book gap scan. Element follows the ABILITY,
-        # so a Linguistics Charm is Air even though the Outcaste book has no aspect.
+        # +1 linguistics: Subtle Comprehension Technique (The Outcaste p.150). The
+        # element follows the ABILITY, thus a Linguistics Charm is Air.
         {"linguistics": 12, "lore": 11, "occult": 10, "stealth": 11, "thrown": 12})
     # all ability charms carry element but are not Immaculate MA
     for c in air:
@@ -410,7 +408,7 @@ def test_shipped_db_water_ability_charm_counts(rs):
     assert Counter(c.category for c in water) == Counter(
         # Aspect Book: Water (Miracles of Daana'd) CH6 added the second wave; Sail
         # also gained 5 from The Outcaste p.93-94 (pirates): 5 -> 10 -> 13.
-        # 2026-08-11: Investigation 10 -> 12 (two Outcaste p.130 Charms) and
+        #: Investigation 10 -> 12 (two Outcaste p.130 Charms) and
         # Bureaucracy 11 -> 12 (Wise Commander's Gift, Player's Guide p.123 — a Water
         # Ability, so it counts here despite not coming from an Aspect Book).
         # See docs/status/charms-closeout-notes.md.
@@ -427,7 +425,7 @@ def test_shipped_db_wood_ability_charm_counts(rs):
         # Aspect Book: Wood (Miracles of Sextes Jylis) CH6 added the second wave.
         # Medicine also gained Spark Kindling Rescue Technique, PRINTED in the Fire
         # book but keyed to Medicine, a Wood Ability.
-        # 2026-08-11: Performance 7 -> 10, the three Outcaste pp.44-45 Charms
+        #: Performance 7 -> 10, the three Outcaste pp.44-45 Charms
         # (docs/status/charms-closeout-notes.md).
         {"archery": 9, "medicine": 11, "performance": 10, "ride": 8, "survival": 8})
     for c in wood:
@@ -445,7 +443,7 @@ def test_shipped_db_terrestrial_sorcery_grants_circle(rs):
 # --- Style-wide access restrictions printed in a style's own text (PG pp.246, 249) ---
 # These live here beside the enlightenment gate because they are the same class of rule:
 # a martial-arts style whose prose names who may learn it. Both were authored as data
-# 2026-08-11 with read sites in charm_matches_splat / meets_charm_requirements.
+# with read sites in charm_matches_splat / meets_charm_requirements.
 
 def _solar():
     return Character(id="s", exalt_type="Solar", caste="dawn",

@@ -1,4 +1,4 @@
-"""Helper 'main file' for the NiceGUI User-simulation regression test."""
+"""Helper 'main file' for the NiceGUI User-simulation tests."""
 import json
 import tempfile
 from pathlib import Path
@@ -74,7 +74,7 @@ def page_custom_gear():
 def page_blank():
     editor.build_editor(RS, CHAR_BLANK, _no_save, with_header=False)
 
-# The same character's GEAR tab. Equipment moved off Edit on 2026-08-13, so a test
+# The same character's GEAR tab. Equipment moved off Edit, so a test
 # about weapons, armour or goods opens this route and one about traits opens the other.
 @ui.page('/blank-gear')
 def page_blank_gear():
@@ -744,7 +744,7 @@ CUSTOM_DIR = Path(tempfile.mkdtemp(prefix="exalted-ui-custom-"))
     {"id": "custom.orphan", "name": "Orphan Charm", "category": "melee",
      "type": "Supplemental", "prerequisites": [["no-such-charm"]]},
 ]))
-# One library ritual too (2026-08-28): the Rituals sub-tab has a row to list, and the
+# One library ritual too: the Rituals sub-tab has a row to list, and the
 # Thaumaturgy picker has a custom entry to offer.
 (CUSTOM_DIR / "rituals.json").write_text(json.dumps([
     {"id": "custom.salt-road-whisper", "name": "Salt Road Whisper", "level": 2,
@@ -779,11 +779,8 @@ def page_mortal():
 def page_mortal_sheet():
     sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_MORTAL))
 
-# A mortal's Charm picker: they have NO Charms, so the Abilities/Martial Arts pages
-# must not be offered at all. Building the Category dropdown with an empty option
-# list raises at BUILD time and takes every sibling tab down with it — this page is
-# the regression guard for that (reported 2026-07-30: Abilities AND Thaumaturgy both
-# rendered blank).
+# A mortal's Charm picker: no Charms, thus no Abilities/Martial Arts pages. A Category
+# dropdown with no options raises at BUILD time and blanks each sibling tab.
 @ui.page('/mortalpicker')
 def page_mortalpicker():
     picker.build_picker(RS, CHAR_MORTAL, _no_save, with_header=False)
@@ -805,11 +802,10 @@ CHAR_MERITS.merits_flaws = [
 def page_merits():
     advantages.build_advantages(RS, CHAR_MERITS, _no_save, with_header=False)
 
-# The Essence dot row's Merit-override pips (2026-08-06 regression fix): post-lock the
-# row is capped by the splat ceiling UNLESS the calc's essence_cap_override lifts it —
-# Essence Mastery on a mortal (p.114), Awakened Essence on a God-Blooded. Three shapes:
-# a mortal with the Merit (3 pips), a God-Blooded with it (3 pips), and a plain locked
-# mortal (still 1 pip, so the override is not leaking into the ordinary case).
+# The Merit-override pips of the Essence dot row: after the lock the row is capped by
+# the splat ceiling UNLESS essence_cap_override lifts it (p.114). Three shapes: a
+# mortal with the Merit (3 pips), a God-Blooded with it (3 pips), and a plain locked
+# mortal (1 pip: the override does not apply in the ordinary case).
 CHAR_MORTAL_ESS = Character(id="me", name="Seer", exalt_type="Mortal", caste="",
                             origin="heroic", essence_rating=1)
 CHAR_MORTAL_ESS.merits_flaws = [MeritFlawPurchase(merit_id="thaum.essence-mastery")]
@@ -843,7 +839,7 @@ def page_essence_cap_plain():
 # The OTHER mortal picker shape: a mortal whose Merits reopen part of the Charm bar.
 # `/mortalpicker` proves the pages vanish when there is nothing to show; these two
 # prove they come BACK — Martial Arts and Spells both, unlocked and locked. The
-# locked one is the shape a player reported broken (2026-07-31): buying with XP asked
+# locked one is the shape a player reported broken: buying with XP asked
 # the splat's flat charms_available flag and never asked the Merit.
 def _mastery_mortal(cid: str, name: str) -> Character:
     c = Character(id=cid, name=name, exalt_type="Mortal", caste="", origin="heroic",
@@ -887,9 +883,9 @@ CHAR_MASTERY_EDITOR = _mastery_mortal("mm3", "Unbound Below")
 def page_editor_mastery_mortal():
     editor.build_editor(RS, CHAR_MASTERY_EDITOR, _no_save, with_header=False)
 
-# The wrong-field regression: Awareness-only, pool unlocked but no cap override, its
-# free-setter dot track clicked to 3 pre-lock. The god-transition clause must NOT
-# blame itself — the real ceiling here is 1, and the +1 would be refused at 1.
+# Awareness only: the pool is unlocked, with no cap override, and the free-setter dot
+# track is clicked to 3 before the lock. The god-transition clause must NOT take the
+# blame: the ceiling here is 1.
 CHAR_AWARENESS_ONLY = Character(id="maw", name="Glimmering", exalt_type="Mortal",
                                 caste="", origin="heroic", essence_rating=3)
 CHAR_AWARENESS_ONLY.merits_flaws = [MeritFlawPurchase(merit_id="thaum.essence-awareness")]
@@ -1058,7 +1054,7 @@ def page_mf_side_xp():
     advantages.build_advantages(RS, CHAR_MF_SIDE_XP, _no_save, with_header=False)
 
 
-# A LOCKED character holding a player-authored "Custom" M&F row (2026-08-10). The
+# A LOCKED character holding a player-authored "Custom" M&F row. The
 # play surface's "Held" dropdown must offer the custom row by name — a custom
 # purchase has an empty `merit_id`, so the built options must come from `custom_name`
 # or the select crashes on a value it does not offer.
@@ -1099,7 +1095,7 @@ def page_mf_capped_xp():
 
 
 # The XP tab's trait rows against Merit-RAISED ceilings. Reported by a player
-# 2026-07-31: the rows hardcoded a cap of 5, so Legendary Attribute (Strength 6) and
+#: the rows hardcoded a cap of 5, so Legendary Attribute (Strength 6) and
 # True Paragon (Virtues 6) both showed "max" with the Raise button disabled, while the
 # engine would have allowed the buy. Both traits sit AT 5 here, which is precisely the
 # rating the old constant refused and the new cap must permit.
@@ -1446,9 +1442,8 @@ def page_ghost_advantages_empty():
 def page_ghost_sheet_empty():
     sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_GHOST_EMPTY))
 
-# The whole builder for a ghost — the tab bar is only assembled here, so neither the
-# missing Arcanoi canvas nor the stray Combos tab was reachable from the per-tab
-# routes above. Both were found in the browser (2026-08-01) with 1,684 tests passing.
+# The whole builder for a ghost. The tab bar is built only here, thus the Arcanoi
+# canvas and the absence of a Combos tab are tested here.
 CHAR_GHOST_APP = _ghost("gha", "Tab Test")
 
 @ui.page('/ghost-app')
@@ -1500,7 +1495,7 @@ CHAR_ARTIFACTS_XP.xp_earned = 20
 def page_artifacts_advantages_xp():
     gear.build_gear(RS, CHAR_ARTIFACTS_XP, _no_save, with_header=False)
 
-# The merit-gated plot devices (human's ruling 2026-08-13). Two shapes, because the
+# The merit-gated plot devices (human's ruling). Two shapes, because the
 # whole mechanism is "the offer moves with the permission": WITH the Legendary Artifact
 # Merit the Mantle is ownable and the readout is clean, WITHOUT it the same row is an
 # Issue. Both routes are Gear, which is where artifacts live.
@@ -1840,9 +1835,8 @@ def page_godblooded_elemental_picker_empty():
     picker.build_picker(RS, CHAR_ELEMENTAL_EMPTY, _no_save, with_header=False,
                         initial_group="elemental")
 
-# The Sheet's Charms & Sorcery band must head an Elemental Powers section for a
-# character who owns any — the click-through found the picker had them but the sheet
-# did not.
+# The Sheet's Charms & Sorcery band shows an Elemental Powers section for a character
+# who owns any.
 @ui.page('/godblooded-elemental-sheet')
 def page_godblooded_elemental_sheet():
     sheet_app.render_sheet(view.build_sheet_view(RS, CHAR_ELEMENTAL_GODBLOODED))
@@ -1860,7 +1854,7 @@ CHAR_DK_2FLAG.artifacts.append(ArtifactEntry(name="Wyld-Cutting Blade", rating=5
 
 @ui.page('/dk-artifacts-2flag-advantages')
 def page_dk_artifacts_2flag_advantages():
-    # The artifacts panel and its readout moved to Gear on 2026-08-13; the route name
+    # The artifacts panel and its readout moved to Gear; the route name
     # is kept so the test's history stays greppable.
     gear.build_gear(RS, CHAR_DK_2FLAG, _no_save, with_header=False)
 

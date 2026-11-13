@@ -1,14 +1,11 @@
 """The Qt theme (exalted_builder/qt/theme.py) — the rules a stylesheet must carry.
 
-⚠ **A QSS rule is invisible to every other test in the suite.** The port shipped with no
-`QPushButton:disabled` rule, so every unmet-prerequisite "Add" across the whole app
-looked clickable while 2,837 tests were green; the same hole for `QCheckBox` made the ST
-Options tab's read-only lock indistinguishable from a live one. Both were found by
-rendering the widget and LOOKING.
+⚠ **A QSS rule is invisible to each other test in the suite.** Without a
+`QPushButton:disabled` rule a disabled "Add" looks clickable. Without the `QCheckBox`
+rule a read-only lock looks live.
 
-These tests render instead of grepping the stylesheet: they compare the actual pixels of
-an enabled control against a disabled one. A rule that exists but does not bite (wrong
-selector, overridden by a later rule) fails here; a reworded stylesheet does not.
+These tests compare the pixels of an enabled control with a disabled one. A rule that
+does not apply (wrong selector, overridden) fails here.
 
 ⚠ Checked-disabled must differ from unchecked-disabled too. Styling
 `QCheckBox::indicator:disabled` alone replaces the tick with nothing, and a locked rule
@@ -30,10 +27,8 @@ from exalted_builder.ui import theme
 
 # The checkbox INDICATOR only — the little box, not its caption.
 #
-# ⚠ Comparing whole checkboxes proves nothing. Qt dims the disabled TEXT on its own, so
-# "enabled" and "disabled" images differ whether or not the indicator was fixed: this
-# test passed against the very defect it is named for until it was cropped. The
-# indicator is what a player looks at to see whether a control is live.
+# ⚠ Do not compare whole checkboxes. Qt dims the disabled TEXT itself, thus the images
+# differ whether or not the indicator rule applies. Crop to the indicator.
 _INDICATOR = QRect(0, 0, 18, 18)
 
 
@@ -123,7 +118,7 @@ def _document_pages(ruleset):
 
 def test_no_document_surface_is_a_white_page_on_the_dark_app(qtbot, ruleset):
     """The Sheet and Reference tabs shipped as light "paper" while every other surface
-    was dark, which reads as a flashbang between tabs (human, 2026-08-28).
+    was dark, which reads as a flashbang between tabs (human's ruling).
 
     ⚠ Measures the RENDERED page, not the stylesheet string: the shell QSS hands every
     QTextBrowser the card shade, so a document that sets only its own text colours looks

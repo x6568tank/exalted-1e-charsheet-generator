@@ -363,17 +363,12 @@ def test_sidereal_book_martial_arts_styles_are_celestial_open(rs):
     Exalts — the three secret styles (source preamble: 'treat Sidereal Martial Arts
     as Solar Charms') and Violet Bier of Sorrows.
 
-    ⚠ **Violet Bier was widened on 2026-08-14** (human's ruling: the four styles that
-    printed no `Type:` line are all Celestial). This test used to assert it carried
-    NO `open_to_tiers` — a conservative default from when the splat was authored, not
-    a printed exclusivity. Sidereals p.184 positions it as the lesser style Sidereals
-    learn *before* the secret arts, which makes it Celestial rather than Sidereal.
+    ⚠ **Violet Bier is Celestial** (human's ruling: the four styles with no printed
+    `Type:` line are Celestial; Sidereals p.184).
 
-    **The distinction that actually matters did not move**, and is asserted below:
-    Violet Bier is not a Sidereal Martial Arts FORM, so it never counts against the
-    p.101 chargen cap. That is now `ma_tier`, not `open_to_tiers` — the two were
-    conflated, which is the bug `test_a_celestial_style_is_not_a_sidereal_martial_
-    arts_form` exists for.
+    It is not a Sidereal Martial Arts FORM, thus it never counts against the p.101
+    chargen cap. That is `ma_tier`, not `open_to_tiers` (see
+    `test_a_celestial_style_is_not_a_sidereal_martial_arts_form`).
     """
     for c in _sid_charms(rs):
         if c.category.startswith("martial_arts:"):
@@ -502,7 +497,7 @@ def test_sidereal_ronin_may_take_no_martial_arts_forms(rs):
 
 
 def test_a_celestial_style_is_not_a_sidereal_martial_arts_form(rs):
-    """⚠ REGRESSION, 2026-08-14. The p.101 cap identified a "Sidereal Martial Arts
+    """⚠ REGRESSION. The p.101 cap identified a "Sidereal Martial Arts
     form" as any martial-arts Charm with a non-empty `open_to_tiers`. That is a
     proxy for "Celestial-open", not for "Sidereal", and it matched 140 Charms across
     TWELVE styles when only 41 across three are Sidereal MA — the five Immaculate

@@ -1,21 +1,19 @@
 """
 engine/validate/budgets.py — chargen point accounting: pools, bonus points, `validate_chargen`.
 
-The other half of the package. Where the domain modules ask "may this character hold
-this trait", this module asks "was it PAID for" — and `validate_chargen` is the
-roll-up that answers it for a whole sheet.
+This module asks if each trait was PAID for. `validate_chargen` gives the answer for
+a whole sheet.
 
   * `attribute_pool_assignment` / `effective_attribute_pools` — the 8/6/4 pools.
-    Which category receives which pool is the player's priority and is INFERRED
-    from the spend, never stored.
+    The engine INFERS the category of each pool from the spend. It is not stored.
   * `two_pool_ability_accounting` — the Mountain Folk two-pool Ability budget.
-  * `bonus_point_breakdown` — what each domain's bonus points went on.
-  * `unspent_budget_issues` — free dots left on the table, reported as warnings.
-  * `validate_chargen` — every chargen predicate, and the roll-up test's second root.
+  * `bonus_point_breakdown` — the bonus points of each domain.
+  * `unspent_budget_issues` — unallocated free dots, as warnings.
+  * `validate_chargen` — all chargen predicates.
 
 ⚠ Chargen accounting reads `_base._chargen_source`, NOT the live traits: once locked,
-the frozen snapshot is the truth (decision 0004). Reading a live trait here makes an
-XP purchase look like a chargen overspend.
+the snapshot is the source (decision 0004). A live trait here makes an XP purchase
+look like a chargen overspend.
 
 ⚠ Willpower's Virtue component is PINNED at the lock (decision 0005). Raising a
 Virtue after creation does not raise Willpower.
@@ -92,10 +90,8 @@ from .traits import heritage_origin_issues
 
 
 def _ability_slots(abilities: dict, crafts: list):
-    """Yield (ability, rating) pairs for chargen ability accounting. The single
-    AbilityName.CRAFT key is dropped and each Craft instance contributes its own
-    slot (keyed to CRAFT), so per-focus crafts are budgeted, capped and discounted
-    independently like the separate Abilities they are."""
+    """Yield (ability, rating) pairs for chargen accounting. The AbilityName.CRAFT key
+    is dropped. Each Craft instance gives its own slot, keyed to CRAFT."""
     for ab, rating in abilities.items():
         if ab == AbilityName.CRAFT:
             continue
@@ -105,24 +101,21 @@ def _ability_slots(abilities: dict, crafts: list):
 
 
 def two_pool_ability_accounting(b, character, abilities, crafts, bp_costs=None):
-    """The Mountain Folk two-pool Ability accounting (CH6 p.230).
+    """Return the Mountain Folk two-pool Ability accounting (CH6 p.230).
 
-    The free pool (`ability_dots`) funds ANY Ability up to `ability_cap_pre_bp` (3); the
-    favored pool (`ability_favored_dots`) funds FAVORED Abilities above that up to the
-    chargen ceiling of 5. Dots neither pool covers are bonus points at the ordinary or
-    favored tier rate.
+    The free pool (`ability_dots`) pays for ANY Ability up to `ability_cap_pre_bp` (3).
+    The favored pool (`ability_favored_dots`) pays for FAVORED Abilities above that,
+    up to 5. Other dots cost bonus points at the ordinary or favored rate.
 
-    Allocation between the pools is the player's and is not recorded, so this computes
-    the cheapest legal assignment: spend the free pool first, ride a Favored Ability's
-    remaining dots on the favored pool, and overflow the favored pool (1 BP/dot) rather
-    than the free one (2 BP/dot).
+    The player's allocation is not recorded, thus this calculates the cheapest legal
+    one: the free pool first, then the favored pool for Favored dots, and overflow on
+    the favored pool (1 BP/dot) before the free pool (2 BP/dot).
 
-    Returns `(within, ability_bp)` — pool dots spent against the combined budget, and
-    the bonus-point charge. `ability_bp` is 0 when `bp_costs` is None.
+    Returns `(within, ability_bp)`: pool dots spent, and the bonus-point charge.
+    `ability_bp` is 0 if `bp_costs` is None.
 
-    ⚠ The ONE read site for this rule. `bonus_point_breakdown`, the unspent warning and
-    the editor's "N / M dots spent" readout all call it; a second implementation drifts
-    from the others silently.
+    ⚠ The ONE read site for this rule. `bonus_point_breakdown`, the unspent warning
+    and the editor readout all call it.
     """
     cap = b.ability_cap_pre_bp
     ceiling = merits.DOT_MAX          # 5 — the chargen ability ceiling (p.230)
@@ -151,10 +144,9 @@ def two_pool_ability_accounting(b, character, abilities, crafts, bp_costs=None):
 
 def _attr_bp_caste_favored(ruleset: RuleSet, character: Character, b, bp_costs,
                             attributes: dict) -> int:
-    """Bonus points spent on Attributes under caste_favored mode: the three pools
-    are assigned in FIXED order to the caste / favored / remaining sets, over-spend
-    on the caste and favored sets is charged the discounted
-    `attribute_caste_favored` rate, and the remaining set the flat `attribute` rate."""
+    """Return the Attribute bonus points in caste_favored mode. The pools go in order
+    to the caste, favored and other sets. Overspend on the caste and favored sets
+    costs `attribute_caste_favored`. The other set costs `attribute`."""
     caste, favored, remaining = _caste_favored_attribute_sets(ruleset, character)
     pools = list(effective_attribute_pools(ruleset, character))
 
@@ -168,19 +160,16 @@ def _attr_bp_caste_favored(ruleset: RuleSet, character: Character, b, bp_costs,
 
 
 def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """Free chargen dots the character has NOT allocated, as non-blocking warnings.
+    """Return the unallocated free chargen dots, as warnings.
 
-    Covers Attributes, Abilities, Virtues and Backgrounds. Reads the frozen snapshot
-    once locked, like the rest of the chargen accounting.
+    Covers Attributes, Abilities, Virtues and Backgrounds. Reads the snapshot once
+    locked.
 
-    ⚠ WARNINGS, never errors (human's ruling): an unfinished sheet is incomplete, not
-    illegal, and the UI treats severity="warning" as non-blocking. The rest of the
-    engine's budget arithmetic is one-sided — every domain charges `max(0, spend -
-    budget)` to bonus points and never notices a character who spent too LITTLE, which
-    is why a blank sheet read "✓ Legal" without this.
+    ⚠ WARNINGS, never errors (human's ruling): an unfinished sheet is not illegal.
+    The budget arithmetic charges `max(0, spend - budget)` and does not see an
+    underspend.
 
-    ⚠ Bonus points are deliberately EXCLUDED: unspent BP are not an omission, and a
-    concept may legitimately not want them.
+    ⚠ Bonus points are EXCLUDED: unspent BP are not an omission.
     """
     b = effective_budgets(ruleset, character)
     (attributes, abilities, crafts, virtues, backgrounds, _specialties,
@@ -194,9 +183,7 @@ def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]
                 message=f"{left} of {total} free {domain} dots are unspent.",
             ))
 
-    # Attributes: pools are per-GROUP, so leftovers are counted per pool and summed —
-    # spending all 13 in one category leaves the other two pools unspent, and both
-    # that and the resulting overspend are worth saying.
+    # Attributes: the pools are per GROUP. Count and sum the leftovers of each pool.
     if b.attribute_mode == "caste_favored":
         groups = _caste_favored_attribute_sets(ruleset, character)   # caste/favored/rest
         spends = [sum(attributes.get(a, b.attribute_base) - b.attribute_base for a in g)
@@ -208,11 +195,9 @@ def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]
         pools = [pool for _cat, _spend, pool in assignment]
     warn("Attribute", sum(max(0, p - s) for s, p in zip(spends, pools)), sum(pools))
 
-    # Abilities/Virtues/Backgrounds: one flat pool each, and only dots at or below the
-    # pre-BP cap count toward it — the same `within` arithmetic bonus_point_breakdown
-    # uses, so the two can never disagree about what "spent from the pool" means. The
-    # two-pool Mountain Folk shape (CH6 p.230) asks two_pool_ability_accounting, the
-    # single read site, so the warning and the billing cannot drift.
+    # Abilities/Virtues/Backgrounds: one pool each. Only dots at or below the pre-BP
+    # cap count, as in bonus_point_breakdown. The Mountain Folk shape (CH6 p.230)
+    # uses two_pool_ability_accounting.
     if b.ability_favored_dots:
         ability_within, _bp = two_pool_ability_accounting(b, character, abilities, crafts)
         _total = b.ability_dots + b.ability_favored_dots
@@ -230,19 +215,17 @@ def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]
     warn("Background", background_dots_budget(b, character) - bg_within,
          background_dots_budget(b, character))
 
-    # Fetters, for the splats that have them. Same arithmetic as the pools above.
+    # Fetters: the same arithmetic.
     if b.fetter_dots:
         fetter_within = sum(min(f.rating, b.fetter_cap_pre_bp)
                             for f in character.fetters)
         warn("Fetter", b.fetter_dots - fetter_within, b.fetter_dots)
 
-    # Charms — the one chargen pool counted in PICKS rather than dots, so it does not
-    # go through `warn`. The pool is shared with Spells (p.100) and the Immaculate path
-    # swaps its size (DB p.151).
+    # Charms: a pool of PICKS, not dots. Spells share the pool (p.100). The
+    # Immaculate path changes its size (DB p.151).
     #
-    # ⚠ Both expressions must match `bonus_point_breakdown`'s, or the warning and the
-    # billing drift. Skipped for the slot economy: an Alchemical buys Slots, not picks.
-    # `charm_noun` makes the message say Arcanoi to a ghost.
+    # ⚠ Both expressions must match `bonus_point_breakdown`. Skipped for the Slot
+    # economy. `charm_noun` gives "Arcanoi" for a ghost.
     if b.charm_count and not uses_charm_slots(ruleset, character):
         pool = (b.immaculate_charm_count
                 if _immaculate_path(ruleset, charms, character.exalt_type)
@@ -261,38 +244,27 @@ def unspent_budget_issues(ruleset: RuleSet, character: Character) -> list[Issue]
 
 
 def optional_favored_ability_open(ruleset: RuleSet, character: Character) -> bool:
-    """Whether core p.103's optional Favoured Ability is actually in play: the ORIGIN
-    must allow it and the Storyteller must have switched it on. Both halves matter —
-    the page offers it to "heroic mortals" only, so an ordinary mortal does not get one
-    however the table's toggle is set, and an Exalt's origin never allows it at all.
-
-    Reads the house rules through `chargen_house_rules`, so a locked sheet keeps the
-    answer it was built with even if the table later changes its mind."""
+    """Return True if the optional Favoured Ability of core p.103 applies: the ORIGIN
+    allows it and the Storyteller switched it on. Reads `chargen_house_rules`, thus a
+    locked sheet keeps its answer."""
     b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
     return (b.optional_favored_ability
             and chargen_house_rules(character).mortal_favored_ability)
 
 
 def favored_ability_count(ruleset: RuleSet, character: Character) -> int:
-    """How many Favoured Abilities this character must pick — the budget's count, plus
-    the one core p.103's optional rule grants a heroic mortal when it is in play."""
+    """Return the Favoured Ability count: the budget count, plus one if the core
+    p.103 option applies."""
     b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
     total = b.favored_count + (1 if optional_favored_ability_open(ruleset, character) else 0)
-    # Prodigy grants "one additional Favored Ability for every time this Merit is
-    # purchased", but "characters may not have more than five Favored Abilities in
-    # total" (p.21) — which is exactly why the Merit is closed to the splats already at
-    # that limit.
+    # Prodigy: one more per purchase, five maximum (p.21).
     extra = merits.merits_and_flaws_calc(ruleset, character).extra_favored_abilities
     return min(merits.PRODIGY_FAVORED_CAP, total + extra) if extra else total
 
 
 def mortal_favored_ability_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """The price of p.103's optional Favoured Ability: "the character can never have
-    any other Ability rated higher than his Favored Ability. The Favored Ability must
-    be equal to or greater than every other skill he possesses."
-
-    Only meaningful while the rule is actually in play — an Exalt's Favoured Abilities
-    carry no such ceiling ("Exalted do not suffer from this restriction")."""
+    """Check the condition of the p.103 option: no Ability can be higher than the
+    Favored Ability. Only while the option applies. Exalts have no such ceiling."""
     if not optional_favored_ability_open(ruleset, character):
         return []
     favored = list(character.favored_abilities)
@@ -312,15 +284,14 @@ def mortal_favored_ability_issues(ruleset: RuleSet, character: Character) -> lis
 
 
 class BonusPointLine(BaseModel):
-    """One domain's bonus-point spend, for the chargen BP-spend log."""
+    """The bonus points of one domain, for the chargen BP log."""
     domain: str
     points: int
 
 
 class BonusPointBreakdown(BaseModel):
-    """Per-domain bonus-point accounting for the creation allocation. `lines` are
-    in display order (every domain present, even at 0); `total` is their sum;
-    `available` is the budget (15 by default)."""
+    """The bonus points of each domain. `lines` are in display order, each domain
+    present at 0 too. `total` is the sum. `available` is the budget."""
     lines: list[BonusPointLine]
     total: int
     available: int
@@ -331,15 +302,12 @@ class BonusPointBreakdown(BaseModel):
 
 
 def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointBreakdown:
-    """Compute the bonus points spent in each chargen domain (Exalted 1e pp.104-105).
+    """Return the bonus points spent in each chargen domain (Exalted 1e pp.104-105).
 
-    The engine computes the accounting; the player does not tag dots. For each
-    domain, dots beyond the free budget — or above the pre-bonus cap of 3 — are
-    paid from the 15 bonus points at the rates in RuleSet.bonus_costs. Where a
-    domain mixes cheap (Caste/Favoured) and dear dots, the *free* dots are assigned
-    to the dearest first, the player-favourable minimum. This is the single source
-    of the BP totals; validate_chargen consumes it for the ceiling check, and the
-    editor renders it as a spend log.
+    For each domain, dots above the free budget or the pre-bonus cap of 3 cost bonus
+    points at the RuleSet.bonus_costs rates. The free dots go to the most expensive
+    dots first. The one source of the BP totals: validate_chargen checks the ceiling
+    with it, and the editor shows it as a log.
     """
     b = effective_budgets(ruleset, character)
     bp_costs = ruleset.bonus_costs_for(character.exalt_type, character.origin, character.upbringing)
@@ -354,18 +322,13 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     picks = chargen_charm_picks(ruleset, character)
 
     # --- Attributes ----------------------------------------------------------- #
-    # caste_favored mode (Alchemical, p.60): pools go to the caste / favored /
-    # remaining Attribute SETS, not to categories — see _attr_bp_caste_favored.
+    # caste_favored mode (Alchemical, p.60). See _attr_bp_caste_favored.
     if b.attribute_mode == "caste_favored":
         attr_bp = _attr_bp_caste_favored(ruleset, character, b, bp_costs, attributes)
     else:
-        # category mode (every other splat): three category spends matched to the
-        # 8/6/4 pools. The pool assignment (which category gets which of the sorted
-        # pools) is by spend alone; the per-category RATE additionally depends on
-        # whether that category is the caste's favored one (Lunar Caste Attributes,
-        # p.93 — "4, 3 if a Caste Attribute"). Ability-caste splats have no favored
-        # category (caste_attr_category is None), so every category costs the same
-        # flat `attribute` rate.
+        # category mode: three category spends matched to the 8/6/4 pools by spend.
+        # The rate of a category depends on whether it is the caste's favored one
+        # (Lunar, p.93). Ability-caste splats use the flat `attribute` rate.
         attr_bp = sum(
             max(0, spend - pool) * (bp_costs.attribute_caste_favored if cat == caste_attr_category
                                      else bp_costs.attribute)
@@ -373,14 +336,9 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
                                                               attributes)
         )
 
-    # Dragon-King breed attribute bonuses (PG pp.167-174): the breed's free dots
-    # stack ON TOP of the stored value, but each EFFECTIVE dot above 5 must be
-    # bought with bonus points at the attribute rate (p.175: "Even after these
-    # modifiers are applied, Dragon Kings cannot have any Attributes higher than 5
-    # without spending bonus or experience points"). The 2026-08-06 "free past 5"
-    # reading was a misunderstanding and is reversed; this charge plus the stored-5
-    # range check in validate_chargen is the whole attribute rule. A Pterok's
-    # stored Dexterity 5 reads as an effective 7 that costs (7 − 5) × 4 = 8 BP.
+    # Dragon-King breed bonuses (PG pp.167-174) add to the stored value. Each
+    # EFFECTIVE dot above 5 costs bonus points at the attribute rate (p.175).
+    # Example: stored Dexterity 5 on a Pterok is effective 7: (7 − 5) × 4 = 8 BP.
     caste_def = ruleset.castes.get(character.caste)
     breed_bonuses = (caste_def.breed_traits.attribute_bonuses
                      if caste_def and caste_def.breed_traits else {})
@@ -391,13 +349,11 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
                 attr_bp += (effective - 5) * bp_costs.attribute
 
     # --- Abilities: 25 free dots, pre-BP cap 3 -------------------------------- #
-    # Four rate tiers, because a Calling (Cult of the Illuminated, p.90) STACKS with
-    # Caste/Favoured rather than replacing it:
+    # Four rate tiers. A Calling (p.90) STACKS with Caste/Favoured:
     #   both      1 BP per `calling_ability_favored_caste_dots_per_point` dots (0.5/dot)
     #   cf only   bp_costs.ability_favored_caste                              (1/dot)
     #   calling   bp_costs.calling_ability                                    (1/dot)
     #   neither   bp_costs.ability                                            (2/dot)
-    # With no Calling the two Calling tiers stay empty, reducing to two-tier pricing.
     cap = b.ability_cap_pre_bp
     call_set = calling_abilities(ruleset, character)
     per_point = max(1, bp_costs.calling_ability_favored_caste_dots_per_point)
@@ -407,10 +363,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
         return "both" if (cf and call) else "cf" if cf else "calling" if call else "neither"
 
     if b.ability_favored_dots:
-        # TWO-POOL (Mountain Folk, CH6 p.230): the favored pool funds a Favored
-        # Ability's dots beyond the free-pool cap, allocated player-favourably — see
-        # two_pool_ability_accounting, the ONE read site this, the unspent warning and
-        # the editor readout all share.
+        # TWO-POOL (Mountain Folk, CH6 p.230). See two_pool_ability_accounting.
         _within, ability_bp = two_pool_ability_accounting(
             b, character, abilities, crafts, bp_costs)
     else:
@@ -421,8 +374,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
             within_by_tier[tier] += min(rating, cap)
             above_by_tier[tier] += max(0, rating - cap)
 
-        # Overflow past the free pool is paid cheapest-first (player-favourable), by
-        # EFFECTIVE per-dot rate, so the fractional 'both' tier is spent first.
+        # Overflow is paid cheapest first, by effective rate per dot.
         flat_rate = {"cf": bp_costs.ability_favored_caste,
                      "calling": bp_costs.calling_ability,
                      "neither": bp_costs.ability}
@@ -439,15 +391,13 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
             if not remaining:
                 break
 
-        # The 'both' tier is charged in bulk and rounds UP, matching how specialties
-        # already handle a dots-per-point rate (rules-authority call: the page does
-        # not say how an odd dot rounds).
+        # The 'both' tier rounds UP (human's ruling).
         ability_bp = ((paid["both"] + per_point - 1) // per_point
                       + sum(paid[t] * flat_rate[t] for t in order))
 
     # --- Backgrounds: N free dots, pre-BP cap 3 (above-3 dot costs 2) --------- #
-    # `background_rules` (empty for every splat but the Alchemical) can exempt a
-    # Background from the cap and make its upper dots cost more than one pool dot each.
+    # `background_rules` can exempt a Background from the cap and make its upper
+    # dots cost more.
     bg_within, above_rates = background_pool_spend(ruleset, character, b, backgrounds,
                                                    bp_costs)
     bg_above_bp = sum(above_rates)
@@ -455,11 +405,8 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     bg_bp = bg_above_bp + bg_overflow * bp_costs.background
 
     # --- Virtues: 5 free dots over base 1, pre-BP cap 3 ----------------------- #
-    # A Fae-Blooded's ATTUNED Virtue (Virtue Attunement, PG p.74) is priced at two
-    # bonus points per dot instead of the splat's three. Attuned dots draw on the free
-    # pool LAST (the player-favourable reading), so the discount lands on as many of
-    # their priced dots as possible: the pool absorbs the non-attuned dots first, and
-    # every attuned dot it cannot then hide is priced at the discounted rate.
+    # PG p.74: an ATTUNED Virtue costs 2 BP per dot. Attuned dots use the free pool
+    # LAST, thus the discount applies to the most dots.
     favored = merits.merits_and_flaws_calc(ruleset, character).favored_virtues
     v_within = v_above = attuned_within = attuned_above = 0
     for v, rating in virtues.items():
@@ -471,34 +418,26 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
             attuned_within += within
             attuned_above += above
     v_overflow = max(0, v_within - b.virtue_dots)
-    # The free pool goes to the NON-attuned within-cap dots first; whatever is left
-    # then hides attuned dots, and the remaining attuned ones are priced (and get
-    # the discount): min(attuned_within, v_overflow) of the attuned within-cap dots.
-    # The free_left bookkeeping keeps that exact when the non-attuned dots do not
-    # themselves fill the pool.
+    # The free pool takes the NON-attuned within-cap dots first. The remainder takes
+    # attuned dots. The other attuned dots are priced at the discount.
     free_left = max(0, b.virtue_dots - (v_within - attuned_within))
     attuned_paid = attuned_above + max(0, attuned_within - free_left)
     virtue_bp = (v_above + v_overflow) * bp_costs.virtue - attuned_paid
 
     # --- Charms & Spells ------------------------------------------------------ #
     if uses_charm_slots(ruleset, character):
-        # Slot economy (Alchemical, p.88-89): you buy SLOTS, not Charm picks — each
-        # Slot comes with a free Charm. BP is the cost of slots beyond the free base:
-        # extra General slots at bp_costs.charm (6), extra Dedicated at
-        # charm_favored_caste (5). The Charms themselves are free.
+        # Slot economy (Alchemical, p.88-89): the character buys SLOTS. BP: extra
+        # General Slots at bp_costs.charm, extra Dedicated at charm_favored_caste.
         g, d, bg, bd = charm_slot_counts(ruleset, character)
         charm_bp = (max(0, g - bg) * bp_costs.charm
                     + max(0, d - bd) * bp_costs.charm_favored_caste)
     else:
-        # Per-pick economy (every other splat): one shared Charm/Spell pool (p.100).
-        # The Immaculate martial-arts path (DB, p.151) swaps the free pool size and
-        # the per-Charm BP row: 5 Immaculate Charms free (vs charm_count), each
-        # Immaculate Charm priced from the Immaculate BP row (10/7).
+        # Per-pick economy: one Charm/Spell pool (p.100). The Immaculate path (DB,
+        # p.151) changes the pool size and the BP row.
         immaculate = _immaculate_path(ruleset, charms, character.exalt_type)
         free_charm_pool = b.immaculate_charm_count if immaculate else b.charm_count
         occult_cf = AbilityName.OCCULT in cf_set
-        # One ladder for every pick, whichever list it lives on — see
-        # `charm_pick_bp_costs`. Spells share the pool but are not Charms.
+        # See `charm_pick_bp_costs`. Spells share the pool.
         pick_costs = charm_pick_bp_costs(ruleset, character, picks)
         for sid in spells:
             if ruleset.spells.get(sid) is None:
@@ -527,9 +466,8 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
     spec_bp = other_spec_dots * bp_costs.specialty + (cf_spec_dots + per_point - 1) // per_point
 
     # --- Astrological Colleges (Sidereal): own pool, pre-BP cap 3 ------------- #
-    # Same shape as Abilities: own-Maiden Colleges are the cheap dots (6), other
-    # houses the dear (8); the free pool absorbs the dearest first, so overflow is
-    # paid cheapest-first (player-favourable). Above-cap dots always cost BP.
+    # Own-Maiden Colleges are the cheap dots. The free pool takes the most expensive
+    # dots first. Above-cap dots always cost BP.
     college_cap = b.college_cap_pre_bp
     col_cheap_within = col_dear_within = col_above_bp = 0
     for cr in colleges:
@@ -549,17 +487,12 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
                   + (col_overflow - col_overflow_cheap) * bp_costs.college)
 
     # --- Dragon-King Paths (PG p.176): own pool, favoured discount, above-3 ---- #
-    # The same within/above/overflow shape as Colleges, with two DK differences: the
-    # cheap/dear split is per-dot FAVOURED (a Path is favoured by breed element or by
-    # `favored_path`, not by house), and the above-3 rate is DOUBLED ("Path | 5 (10
-    # if the Path is being raised above 3)", "Breed Path | 4 (8 if raised above 3)").
-    # Unused for every splat with `path_dots` 0, which is every non-Dragon-King.
+    # The College shape, with two changes: the cheap dots are FAVOURED Paths (breed
+    # element or `favored_path`), and the above-3 rate is DOUBLED.
     path_cap = b.path_cap_pre_bp
     path_cheap_within = path_dear_within = path_above_bp = 0
     for pr in paths:
-        # The snapshot's favoured Path, not the live character's: once locked, the
-        # snapshot is the chargen accounting source (decision 0003), and the choice
-        # must not re-price creation if `character.favored_path` ever drifts.
+        # The snapshot value of `favored_path` (decision 0003).
         fav = paths_mod.path_is_favored(ruleset, character, pr.path_id,
                                         favored_path=favored_path)
         within = min(pr.rating, path_cap)
@@ -576,23 +509,15 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
                + (path_overflow - path_overflow_cheap) * bp_costs.path)
 
     # --- Thaumaturgy: every purchase priced individually, no free pool -------- #
-    # Unlike every domain above, thaumaturgy has no chargen allowance: "Thaumaturges
-    # may spend their bonus points on any combination of these without limitation"
-    # (p.113). So the total is simply the sum of the purchase prices — the free-pool
-    # arithmetic that shapes the other domains has nothing to absorb here. Sciences
-    # price at 0 because the source gives no rate; see ThaumPurchase.priced.
+    # No free pool (p.113): the sum of the purchase prices. Sciences price at 0 here.
+    # See ThaumPurchase.priced.
     thaum_purchases_cg = _thaum_purchases_from(ruleset, thaumaturgy)
     thaum_bp = sum(thaum_purchase_bp_costs(
         ruleset, character, thaum_purchases_cg,
         free_picks=magic_for_everyone_grant(ruleset, character)))
 
     # --- Fetters (ghosts only, E:Ab p.126-127) -------------------------------- #
-    # Same `within`/`above` shape as Backgrounds: dots at or below the pre-BP cap come
-    # from the pool, dots above it and any pool overflow are bonus points. 0 for every
-    # other splat, whose fetter list and `fetter_dots` budget are both empty.
-    #
-    # There is deliberately no Passion line. Passions are derived from the Virtues and
-    # cost nothing at any point (p.283) — see models.character.PassionEntry.
+    # The Background shape. No Passion line: Passions cost nothing (p.283).
     f_within = sum(min(f.rating, b.fetter_cap_pre_bp) for f in character.fetters)
     f_above = sum(max(0, f.rating - b.fetter_cap_pre_bp) for f in character.fetters)
     f_overflow = max(0, f_within - b.fetter_dots)
@@ -600,9 +525,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
 
     # --- Willpower / Essence -------------------------------------------------- #
     wp_bp = wp_purchased * bp_costs.willpower
-    # Essence is usually linear (dot × rate); a splat whose BP table prices it by
-    # DESTINATION instead (God-Blooded, p.50: Essence 2* = 5, Essence 3** = 15) sets
-    # `essence_by_rating` and the exact-rating price wins.
+    # God-Blooded p.50: `essence_by_rating` prices by the target rating.
     if bp_costs.essence_by_rating and essence in bp_costs.essence_by_rating:
         essence_bp = bp_costs.essence_by_rating[essence]
     else:
@@ -616,9 +539,7 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
         BonusPointLine(domain="Charms & Spells", points=charm_bp),
         BonusPointLine(domain="Combos", points=combo_bp),
     ]
-    # Arrays are an Alchemical-only domain (p.89); show the line only for splats
-    # that build them, so every other splat's breakdown is unchanged. array_bp is 0
-    # whenever the line is omitted (no arrays), so the total is unaffected either way.
+    # Arrays: only for splats that build them (p.89).
     if array_bp or submodule_bp or uses_charm_slots(ruleset, character):
         lines.append(BonusPointLine(domain="Arrays", points=array_bp))
         lines.append(BonusPointLine(domain="Submodules", points=submodule_bp))
@@ -627,43 +548,34 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
         BonusPointLine(domain="Willpower", points=wp_bp),
         BonusPointLine(domain="Essence", points=essence_bp),
     ]
-    # Colleges only exist for splats that ship them (Sidereal) — omit the line
-    # entirely otherwise so every other splat's breakdown is unchanged.
+    # Colleges: only for splats that have them.
     if b.college_dots > 0 or colleges:
         lines.insert(3, BonusPointLine(domain="Colleges", points=college_bp))
-    # Paths, on the same terms: only for splats that have them (Dragon-Kings).
+    # Paths: only for splats that have them.
     if b.path_dots > 0 or paths:
         lines.insert(3, BonusPointLine(domain="Paths", points=path_bp))
-    # Fetters, on the same terms: only for splats that have them (ghosts), so every
-    # other breakdown is byte-identical to before.
+    # Fetters: only for splats that have them.
     if b.fetter_dots > 0 or character.fetters:
         lines.insert(3, BonusPointLine(domain="Fetters", points=fetter_bp))
-    # Thaumaturgy is cross-splat but optional for every splat, so the line appears
-    # only once a character has bought something — a Solar who never touches it sees
-    # the same breakdown as before. thaum_bp is 0 whenever the line is omitted.
+    # Thaumaturgy: only after the first purchase.
     if thaumaturgy.arts or thaumaturgy.art_specialties or thaumaturgy.sciences \
             or thaumaturgy.rituals or thaumaturgy.formulas:
         lines.append(BonusPointLine(domain="Thaumaturgy", points=thaum_bp))
-    # Elemental Powers (PG p.68), on the same terms: one flat line once held, and
-    # absent entirely for every other origin/splat so their breakdowns are unchanged.
+    # Elemental Powers (PG p.68): only when held.
     elemental_bp = sum(
         ruleset.elemental_powers[pid].bp_cost
         for pid in elemental_powers if pid in ruleset.elemental_powers)
     if elemental_powers:
         lines.append(BonusPointLine(domain="Elemental Powers", points=elemental_bp))
-    # Merits & Flaws. A MERIT is a spend at its printed point value; a FLAW is a
-    # GRANT that raises the allowance rather than reducing the spend, which is why it
-    # lands on `available` and not as a negative line — a negative line would let a
-    # Flaw silently pay for an overspend elsewhere in the same total. Oathbound
-    # Magic's grant is already net of its same-arena stacking reduction.
+    # A MERIT is a spend. A FLAW raises `available`. ⚠ Not a negative line: that
+    # would let a Flaw pay for an overspend in a different domain. Oathbound points
+    # are after the stacking reduction.
     merit_bp = merit_bonus_point_cost(ruleset, character)
     granted = merits.merits_and_flaws_calc(ruleset, character).bonus_point_grant
     if character.merits_flaws or merit_bp:
         lines.append(BonusPointLine(domain="Merits", points=merit_bp))
     total = sum(line.points for line in lines)
-    # Inheritance (God-Blooded, p.61): the Background's rating adds bonus points on
-    # top of the budget's flat pool — Thin blood +6 … Divine +30. Indexed by rating,
-    # empty for every other splat (the term is then 0).
+    # Inheritance (God-Blooded, p.61): bonus points added by rating.
     inheritance_bp = 0
     if b.inheritance_bonus_points:
         rating = min(merits.inheritance_rating(character),
@@ -675,20 +587,15 @@ def bonus_point_breakdown(ruleset: RuleSet, character: Character) -> BonusPointB
 
 def attribute_pool_assignment(ruleset: RuleSet, character: Character, b, attributes
                               ) -> list[tuple[str, int, int]]:
-    """[(category, spend, pool)] for category-mode splats — which of the 8/6/4 pools
-    each Attribute category receives, and the dots spent against it.
+    """Return [(category, spend, pool)] for category-mode splats.
 
-    Pools are matched to categories BY SPEND rather than declared: the biggest spend
-    takes the biggest pool.
+    The biggest spend takes the biggest pool.
 
-    ⚠ That is why Diminished Attributes cannot be a budget delta the way Callous and
-    Unskilled are. The forfeit must come off the pool its category ACTUALLY receives,
-    which is only known after matching — so matching runs first, on the real spends,
-    and the forfeit comes off afterwards.
+    ⚠ Thus Diminished Attributes is not a budget delta. The forfeit comes off the
+    pool that the category gets, which is known only after the match.
 
-    ⚠ Accepted consequence (human's ruling): forfeiting dots lowers a category's spend,
-    which can drop it to a smaller pool, and the reshuffle can cost bonus points
-    elsewhere.
+    ⚠ A forfeit can move a category to a smaller pool, and that can cost bonus points
+    in a different category (human's ruling).
     """
     forfeits = merits.merits_and_flaws_calc(ruleset, character).forfeited_attribute_dots
     cat_spends = sorted(
@@ -702,21 +609,15 @@ def attribute_pool_assignment(ruleset: RuleSet, character: Character, b, attribu
 
 
 def _chargen_attribute_range_issues(b, attributes, mf_caps) -> list[Issue]:
-    """Attribute ranges. The ceiling is the origin's, which a Merit or Flaw may move
-    for one named Attribute; the floor follows a Flaw-lowered ceiling down."""
+    """Check the Attribute ranges. A Merit or Flaw can move the ceiling of one
+    Attribute. The floor follows a lower ceiling down."""
     issues: list[Issue] = []
     for name, attr in attributes.items():
-        # The origin's own ceiling (Enlightened Mountain Folk 7, the Unenlightened's
-        # Intelligence 2, CH6 p.230) is the DEFAULT a Merit raises or lowers from; an
-        # absent origin cap is the universal 5.
+        # The origin ceiling (CH6 p.230) is the base. Absent = 5.
         origin_cap = b.attribute_caps.get(name.value, b.attribute_cap or merits.DOT_MAX)
         cap = mf_caps.attribute_caps.get(name.value, origin_cap)
-        # ⚠ The floor must follow the ceiling DOWN. A Flaw's ceiling can sit below the
-        # normal chargen floor (Disfigured at four points is "an Appearance of 0",
-        # taking away the free dot every Attribute starts with), and an origin FLOOR
-        # (Enlightened Mountain Folk's "no Attribute ... lower than three", CH6 p.230)
-        # raises it — so a Disfigured Enlightened Jadeborn would otherwise be given an
-        # unsatisfiable "3-0" range.
+        # ⚠ The floor must follow the ceiling DOWN. Disfigured can set 0. An origin
+        # floor (CH6 p.230) raises the floor. Else the range can be "3-0".
         low = min(b.attribute_min or b.attribute_base, cap)
         if not (low <= attr <= cap):
             span = f"exactly {cap}" if low == cap else f"{low}-{cap}"
@@ -728,13 +629,10 @@ def _chargen_attribute_range_issues(b, attributes, mf_caps) -> list[Issue]:
 
 
 def _chargen_caste_favored_attribute_issues(ruleset: RuleSet, character: Character, b, attributes) -> list[Issue]:
-    """caste_favored-mode Attribute legality (Alchemical, p.60): the Favoured count,
-    the Caste/Favoured disjointness, and the Caste Attribute minimum."""
+    """Check caste_favored Attributes (Alchemical, p.60): the Favoured count, no
+    overlap with Caste, and the Caste Attribute minimum."""
     issues: list[Issue] = []
     # --- caste_favored attribute legality (Alchemical, p.60) ------------------ #
-    # The three attribute pools go to disjoint SETS: 3 Caste Attributes, 3 chosen
-    # Favored Attributes (distinct from Caste), and the rest. Each Caste Attribute
-    # must reach attribute_caste_min ("none may have a rating lower than 2").
     if b.attribute_mode == "caste_favored":
         caste_def = ruleset.castes.get(character.caste)
         caste_attrs = set(caste_def.caste_attributes) if caste_def else set()
@@ -784,20 +682,15 @@ def _chargen_ability_dot_issues(b, abilities, crafts, cf_set) -> list[Issue]:
 
 
 def _chargen_required_ability_issues(ruleset: RuleSet, character: Character, b, abilities, crafts) -> list[Issue]:
-    """The required-minimum Ability floors: the DB Dynastic schooling floor (p.151),
-    the Sidereal per-house floor (p.98), the Illuminated camp regimen (p.89), and
-    the group-sum floors where a rating is divided among a set of Abilities."""
+    """Check the Ability floors: DB p.151, Sidereal p.98, the camp (p.89), and the
+    group-sum floors."""
     issues: list[Issue] = []
-    # Each requirement is satisfied by any ONE of its listed Abilities. The budget's
-    # exalt-type-keyed list is unioned with the caste's own, because the Sidereal
-    # per-house minimums differ per house while the DB floor is aspect-agnostic.
-    # A ronin Sidereal keeps a Caste but "has no minimum required Ability scores"
-    # (p.100), so that origin suppresses the caste half outright.
+    # Any ONE listed Ability meets a requirement. The budget list and the caste list
+    # are combined. A ronin ignores the caste list (p.100).
     caste_def = ruleset.castes.get(character.caste)
     caste_min = ([] if b.ignore_caste_min_abilities
                  else (caste_def.required_min_abilities if caste_def else []))
-    # The training camp's regimen floors (Cult of the Illuminated, p.89) join the
-    # union on the same terms as the caste's.
+    # The camp floors (p.89) join the same union.
     camp_min = [] if b.ignore_caste_min_abilities else camp_min_abilities(ruleset, character)
     for req in list(b.required_min_abilities) + list(caste_min) + list(camp_min):
         best = max((abilities.get(ab, 0) for ab in req.abilities), default=0)
@@ -808,10 +701,7 @@ def _chargen_required_ability_issues(ruleset: RuleSet, character: Character, b, 
                 message=f"This origin requires at least {req.rating} dot(s) in {names}; "
                         f"has {best}.",
             ))
-    # Group-sum floors — the Mountain Folk Artisan's "•• divided among Craft
-    # Abilities" (CH6 p.230), where the SUM over a set of Abilities (each per-focus
-    # Craft counting separately, via _ability_slots) must reach the rating. Distinct
-    # from the per-ability OR floors above.
+    # Group-sum floors (CH6 p.230). Each Craft focus counts separately.
     caste_groups = ([] if b.ignore_caste_min_abilities
                     else (caste_def.required_min_ability_groups if caste_def else []))
     for req in list(b.required_min_ability_groups) + list(caste_groups):
@@ -828,7 +718,7 @@ def _chargen_required_ability_issues(ruleset: RuleSet, character: Character, b, 
 
 
 def _chargen_virtue_range_issues(b, virtues, mf_caps) -> list[Issue]:
-    """Virtue ranges, with the ceiling a Merit or Flaw may move."""
+    """Check the Virtue ranges. A Merit or Flaw can move the ceiling."""
     issues: list[Issue] = []
     virtue_cap = (mf_caps.virtue_cap if mf_caps.virtue_cap is not None
                   else merits.DOT_MAX)
@@ -843,13 +733,10 @@ def _chargen_virtue_range_issues(b, virtues, mf_caps) -> list[Issue]:
 
 
 def _chargen_college_issues(ruleset: RuleSet, character: Character, b, colleges) -> list[Issue]:
-    """Astrological Colleges (Sidereal, p.98): reference integrity, range, and the
-    floor on dots in the character's own Maiden's Colleges."""
+    """Check the Colleges (Sidereal, p.98): references, range, and the own-Maiden
+    floor."""
     issues: list[Issue] = []
-    # --- Astrological Colleges (Sidereal, p.98) ------------------------------- #
-    # Reference integrity + range + the "at least N dots in the Colleges of his
-    # Maiden" floor. Over-budget/over-cap dots are paid from bonus points (see
-    # bonus_point_breakdown), so there is no hard total cap here — same as Backgrounds.
+    # Over-budget dots cost bonus points (bonus_point_breakdown). No hard total cap.
     own_house_dots = 0
     for cr in colleges:
         college = ruleset.colleges.get(cr.college_id)
@@ -876,16 +763,12 @@ def _chargen_college_issues(ruleset: RuleSet, character: Character, b, colleges)
 
 
 def _chargen_path_issues(ruleset: RuleSet, character: Character, b, paths, essence: int) -> list[Issue]:
-    """Dragon-King Paths: reference integrity, range, the Essence gate, the Breed/
-    Favoured dot floor, and the Favoured-Path choice (PG pp.175-177)."""
+    """Check the Dragon-King Paths (PG pp.175-177): references, range, the Essence
+    gate, the Breed/Favoured floor, and the Favoured-Path choice."""
     issues: list[Issue] = []
-    # --- Dragon-King Paths (PG p.175-177): reference, favour, Essence gate ----- #
-    # Paths are a rated Advantage with their own pool. A Dragon King may not start a
-    # Path above the pre-BP cap, must put `path_min_breed_favored` dots in Breed or
-    # Favoured Paths ("at least 3 must be from Favored or Breed Paths"), may not
-    # exceed the Essence gate, and the chosen Favoured Path must not already be one
-    # of the breed's two. The gate resolves against the CHARGEN Essence (snapshot or
-    # live pre-lock), never `essence_start` — a BP-bought Essence raise lifts it.
+    # --- Dragon-King Paths (PG p.175-177) ------------------------------------ #
+    # ⚠ The Essence gate uses the CHARGEN Essence (snapshot, or live before the
+    # lock), never `essence_start`.
     path_max = b.path_max_by_essence.get(essence, 0)
     favored_dots = 0
     for pr in paths:
@@ -932,17 +815,11 @@ def _chargen_path_issues(ruleset: RuleSet, character: Character, b, paths, essen
 
 
 def _chargen_essence_ceiling_issues(b, attributes, virtues, essence: int) -> list[Issue]:
-    """Essence-gated trait ceilings and required Virtue floors (Dragon-Kings,
-    PG p.177). No-op for every splat that authors none of these tables."""
+    """Check the Essence-gated ceilings and the Virtue floors (Dragon-Kings,
+    PG p.177)."""
     issues: list[Issue] = []
-    # --- Essence-gated trait ceilings + required Virtues (Dragon-Kings) ------- #
-    # p.177 "Maximum Intelligence and Path Level": Intelligence caps at 1/3/5/6 by
-    # Essence (binds at chargen: modern Essence 2 → Int ≤ 3), and row 6 lets a Dragon
-    # King raise Abilities, Virtues and Paths to 6. The Ability half is already
-    # delivered post-lock by elder.trait_ceiling and needs no chargen check; Virtue-6 is
-    # a post-lock unlock (row 6 only), and the ≥1-Valor floor ("at least 1 of which
-    # must be put into Valor", p.175) is a required-virtue floor. All no-op for every
-    # splat that authors none of these tables.
+    # p.177: Intelligence by Essence. elder.trait_ceiling gives the Ability ceiling.
+    # Virtue 6 is post-lock only. p.175: the Valor floor.
     int_cap = b.intelligence_max_by_essence.get(essence, 0)
     if int_cap and attributes[AttributeName.INTELLIGENCE] > int_cap:
         issues.append(Issue(
@@ -970,13 +847,9 @@ def _chargen_essence_ceiling_issues(b, attributes, virtues, essence: int) -> lis
 
 
 def _chargen_spell_circle_issues(ruleset: RuleSet, character: Character, spells) -> list[Issue]:
-    """The top spell circle is barred at creation for every splat."""
+    """Check the spell circle that is barred at creation."""
     issues: list[Issue] = []
-    # --- Charms & Spells ------------------------------------------------------ #
-    # The top spell circle is barred at creation for every splat; the Charm legality
-    # then splits by economy — the Alchemical Charm Slot rules (p.88-89) or the
-    # per-pick Caste/Favoured minimum / Immaculate single-tree rule (every other
-    # splat).
+    # --- Spells ---------------------------------------------------------------- #
     barred = chargen_barred_circle(ruleset, character)
     for sid in spells:
         spell = ruleset.spells.get(sid)
@@ -993,15 +866,13 @@ def _chargen_spell_circle_issues(ruleset: RuleSet, character: Character, spells)
 
 def _chargen_charm_issues(ruleset: RuleSet, character: Character, b, charms, spells, ox_body,
                          beastman_gifts, cf_set) -> list[Issue]:
-    """Charm legality at creation, which splits by economy: the Alchemical Charm Slot
-    rules, or the per-pick Caste/Favoured minimum and the Immaculate single-tree
-    rule for every other splat."""
+    """Check the chargen Charms: the Slot rules (Alchemical), or the per-pick
+    Caste/Favoured minimum and the Immaculate one-tree rule."""
     issues: list[Issue] = []
     if uses_charm_slots(ruleset, character):
-        # Alchemical Charm Slots (p.88-89): every installed Charm occupies a Slot.
-        # non-Caste/Favored Charms may only sit in General Slots; the total installed
-        # can't exceed the total Slots; and the committed installation motes can't
-        # exceed the Personal Essence pool (p.62 — the Charms must all fit).
+        # Slots (p.88-89): non-Caste/Favored Charms go in General Slots only. The
+        # installed total cannot exceed the Slots. The installation motes cannot
+        # exceed the Personal pool (p.62).
         g, d, _bg, _bd = charm_slot_counts(ruleset, character)
         installed, noncf, install_motes = charm_slot_usage(ruleset, character)
         if installed > g + d:
@@ -1026,13 +897,10 @@ def _chargen_charm_issues(ruleset: RuleSet, character: Character, b, charms, spe
                         f"{where_from} only {pool}; they will not all fit.",
             ))
     else:
-        # Per-pick path. Standard: >=charm_min_caste_favored of the picks are
-        # Caste/Favoured. Immaculate (DB, p.151, triggered by any Immaculate Order
-        # Charm): all chargen Charms must instead be one elemental tree, minimum waived.
+        # Per pick. Standard: at least charm_min_caste_favored Caste/Favoured picks.
+        # Immaculate (DB, p.151): one element tree, no minimum.
         immaculate = _immaculate_path(ruleset, charms, character.exalt_type)
-        # Lookshy, p.68: an origin may forbid the Immaculate path outright at creation.
-        # Checked before the path itself, so the character gets the "you may not take
-        # these" message rather than the single-elemental-tree one they cannot satisfy.
+        # Lookshy, p.68: check the bar first, for the more useful message.
         if b.bar_immaculate_charms_at_chargen:
             barred = [cid for cid in charms
                       if (c := ruleset.charms.get(cid)) is not None and c.immaculate]
@@ -1045,8 +913,7 @@ def _chargen_charm_issues(ruleset: RuleSet, character: Character, b, charms, spe
                              "play begins (p.68); they may be bought with experience."),
                 ))
         occult_cf = AbilityName.OCCULT in cf_set
-        # Same enumeration the pricing reads, so a repeatable or granted list can never
-        # again be counted by one of the two and missed by the other.
+        # The enumeration of the pricing.
         cf_pick_count = sum(
             1 for p in chargen_charm_picks(ruleset, character)
             if p.counts_toward_pool and p.caste_favored
@@ -1056,13 +923,9 @@ def _chargen_charm_issues(ruleset: RuleSet, character: Character, b, charms, spe
             cf_pick_count += sum(1 for sid in spells if ruleset.spells.get(sid) is not None)
 
         if immaculate:
-            # Every chargen Charm must be an Immaculate Charm of one shared element;
-            # spells, Ox-Body, and ordinary ability Charms are not part of any tree.
-            # The Immaculate "Enlightenment" Charms (Spirit Sight / Spirit Walking) ARE
-            # part of Immaculate martial arts — the required entry to ANY Dragon Path
-            # (DB p241-242) — so they're permitted alongside the single elemental tree.
-            # They are NOT exempt from the budget: each still costs a normal Charm pick
-            # (priced above), only the single-tree check tolerates them.
+            # Each chargen Charm must be an Immaculate Charm of one element. The
+            # enlightenment Charms (DB p241-242) are permitted too. Each still costs a
+            # pick.
             trees: set[str] = set()
             impure = bool(spells) or bool(ox_body) or bool(beastman_gifts)
             for cid in charms:
@@ -1095,17 +958,12 @@ def _chargen_charm_issues(ruleset: RuleSet, character: Character, b, charms, spe
 
 
 def _chargen_mountain_folk_issues(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """Mountain Folk Pattern access: the Artisan/Enlightened coupling and the
-    Enlightened cross-Pattern cap on chargen picks (CH6 pp.230-231, 244)."""
+    """Check Mountain Folk Patterns: Artisan implies Enlightened, and the
+    Enlightened cross-Pattern cap (CH6 pp.230-231, 244)."""
     issues: list[Issue] = []
     # --- Mountain Folk Pattern access (CH6 pp.230-231, 244) ------------------- #
-    # Jadeborn Charms live in five Patterns (Foundation / Worker / Warrior / Artisan /
-    # Enlightened). Unenlightened "can only learn the Charms of their own Caste Pattern
-    # or the Foundation Pattern"; Enlightened receive six Charms "no more than three of
-    # which may come from the Pattern of another caste". An Enlightened character may
-    # learn ANY Pattern (Foundation + Enlightened + own-caste don't count toward the
-    # three); only the two OTHER castes' Patterns do. Also the origin/caste coupling:
-    # "All of the Artisan Caste are Enlightened" — an Unenlightened Artisan is illegal.
+    # Enlightened: no more than three of six chargen Charms from the Patterns of the
+    # two other castes. An Unenlightened Artisan is illegal.
     if ruleset.exalt_for(character.exalt_type).id == "Mountain-Folk":
         if character.caste == "artisan" and character.origin == "unenlightened":
             issues.append(Issue(
@@ -1114,13 +972,8 @@ def _chargen_mountain_folk_issues(ruleset: RuleSet, character: Character) -> lis
                         "character cannot take the Artisan Caste.",
             ))
         own_pattern = character.caste           # worker / warrior / artisan
-        # The Unenlightened bar (own Caste Pattern + Foundation only) is a LIFETIME
-        # rule — p.244 states it as ACCESS, not chargen — so it lives in
-        # charm_matches_splat / meets_charm_requirements, where both phases read it
-        # (an Unenlightened character holding a cross-Pattern Charm is caught as a
-        # charm-wrong-splat at chargen). What stays here is the chargen-only half:
-        # the Enlightened "no more than three of the six" cap, which counts chargen
-        # picks and cannot be expressed as a per-Charm access bar.
+        # The Unenlightened bar is a LIFETIME rule in charm_matches_splat (p.244).
+        # This module checks the chargen-only Enlightened cap.
         cross = 0
         for p in chargen_charm_picks(ruleset, character):
             if not p.counts_toward_pool:
@@ -1142,18 +995,12 @@ def _chargen_mountain_folk_issues(ruleset: RuleSet, character: Character) -> lis
 
 
 def _chargen_martial_arts_form_issues(ruleset: RuleSet, b, charms) -> list[Issue]:
-    """The p.101 cap on chargen Charms drawn from a Sidereal Martial Arts form."""
+    """Check the p.101 cap on chargen Charms from a Sidereal Martial Arts form."""
     issues: list[Issue] = []
-    # --- Sidereal Martial Arts form cap (p.101) ------------------------------ #
-    # "no more than 3 [chargen Charms] may be from a Sidereal Martial Arts form;
-    # ronin ... none". A "form" is one of the three secret Sidereal styles
-    # (Sidereals pp.184-201). No cap on any other splat.
+    # A "form" is one of three Sidereal styles (Sidereals pp.184-201).
     #
-    # ⚠ Keyed on `ma_tier`, NEVER on `open_to_tiers`. The latter means "who may learn
-    # this", and as a proxy it sweeps in every Celestial-open style when only the
-    # three Sidereal ones qualify — Violet Bier, the Immaculate Dragon Paths and
-    # Celestial Monkey all count, and a ronin (cap 0) can then learn no Celestial
-    # Monkey Charm at all.
+    # ⚠ Use `ma_tier`, NEVER `open_to_tiers`, which includes all Celestial-open
+    # styles. A ronin (cap 0) would then have no Celestial Monkey Charm.
     if b.martial_arts_form_charm_cap is not None:
         n_form = sum(
             1 for cid in charms
@@ -1172,8 +1019,8 @@ def _chargen_martial_arts_form_issues(ruleset: RuleSet, b, charms) -> list[Issue
 
 
 def _chargen_willpower_issues(b, virtues, wp_total: int) -> list[Issue]:
-    """The Willpower start-cap and its two-high-Virtues exception, plus any hard
-    origin ceiling that supersedes the exception."""
+    """Check the Willpower start cap with its Virtue exception, and the hard origin
+    ceiling."""
     issues: list[Issue] = []
     if wp_total > b.willpower_start_cap:
         high_virtues = sum(1 for r in virtues.values() if r >= b.willpower_cap_exception_virtue)
@@ -1185,11 +1032,7 @@ def _chargen_willpower_issues(b, virtues, wp_total: int) -> list[Issue]:
                          f"{b.willpower_cap_exception_count} Virtues are "
                          f">= {b.willpower_cap_exception_virtue}."),
             ))
-    # A HARD ceiling binds even when the exception clause would let it go higher —
-    # Unenlightened Mountain Folk "can never have a permanent Willpower above 6"
-    # (CH6 p.230), whatever their Virtues. The exception clause above is superseded:
-    # with two Virtues at 4+ an Unenlightened sheet would read 8 and the start-cap
-    # check would pass, but the hard cap still binds.
+    # The hard ceiling (CH6 p.230) applies even when the exception applies.
     if b.willpower_hard_cap and wp_total > b.willpower_hard_cap:
         issues.append(Issue(
             code="willpower-hard-cap",
@@ -1200,8 +1043,8 @@ def _chargen_willpower_issues(b, virtues, wp_total: int) -> list[Issue]:
 
 
 def _chargen_merit_trait_issues(character: Character, mf, virtues, wp_forfeited: int) -> list[Issue]:
-    """Willpower ceilings/floors and Nature restrictions imposed by a held Merit or
-    Flaw. Reads MeritEffects fields only — no Merit id is named (decision 0011)."""
+    """Check the Willpower and Nature rules of held Merits and Flaws, from
+    MeritEffects fields (decision 0011)."""
     issues: list[Issue] = []
     if mf.willpower_virtue_margin is not None:
         ceiling = derive.two_highest_virtues(virtues) + mf.willpower_virtue_margin
@@ -1234,13 +1077,11 @@ def _chargen_merit_trait_issues(character: Character, mf, virtues, wp_forfeited:
 
 
 def _chargen_essence_issues(b, mf, essence) -> list[Issue]:
-    """Essence: the origin floor, the Flaw-forced ceiling, and the universal creation
-    cap of 5 (decision 0014 — past 5 is the post-lock XP path)."""
+    """Check Essence: the origin floor, the Flaw ceiling, and the creation cap of 5
+    (decision 0014)."""
     issues: list[Issue] = []
     # --- Essence forced by a Flaw --------------------------------------------- #
-    # Weak Essence "reduces the character's starting Essence rating to 1", which is a
-    # ceiling on creation, not on later advancement — the Flaw exists precisely so the
-    # character can raise Essence in play.
+    # Weak Essence: a chargen ceiling only.
     if mf.essence_start_override is not None and essence > mf.essence_start_override:
         issues.append(Issue(
             code="essence-above-flaw-start",
@@ -1254,12 +1095,10 @@ def _chargen_essence_issues(b, mf, essence) -> list[Issue]:
             code="essence-below-start",
             message=f"Essence {essence} is below the starting {b.essence_start}.",
         ))
-    # The UNIVERSAL creation ceiling: no character leaves creation with Essence above 5,
-    # which is XP-purchasable only after the lock (advancement.raise_essence).
+    # The creation ceiling of 5 for all characters. Above 5 is XP only
+    # (advancement.raise_essence).
     #
-    # ⚠ Distinct from `essence_start_cap` below, a narrower per-origin rule (the
-    # Illuminated Solar starts at 3 and may buy up, but "under no circumstances" begins
-    # at 6+, p.90). This one binds even for a splat that sets no origin ceiling.
+    # ⚠ Not `essence_start_cap` below, which is an origin rule (p.90).
     if essence > elder.DOT_MAX:
         issues.append(Issue(
             code="essence-above-elder-chargen-cap",
@@ -1276,20 +1115,17 @@ def _chargen_essence_issues(b, mf, essence) -> list[Issue]:
 
 
 def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
-    """Every chargen legality predicate, plus the bonus-point ceiling (core pp.104-105).
+    """Return all chargen issues, and the bonus-point ceiling (core pp.104-105).
 
-    Validates the creation allocation — live traits pre-lock, the frozen
-    ChargenSnapshot once locked. Delegates one section per printed domain to the
-    `_chargen_*_issues` helpers above, then reconciles the total against
+    Checks the live traits before the lock and the ChargenSnapshot after it. One
+    `_chargen_*_issues` helper per domain, then the total against
     `bonus_point_breakdown`.
 
-    ⚠ Known simplification, flagged to the rules authority: the "10 of 25 Ability dots
-    / 5 of 10 Charms must be Caste or Favoured" rules are checked as NECESSARY
-    conditions, not jointly optimised with the free-dot assignment. The two interact
-    only in rare over-spent builds.
+    ⚠ Simplification: the Caste/Favoured minimums (10 of 25 dots, 5 of 10 Charms)
+    are checked as NECESSARY conditions, not optimized with the free-dot assignment.
 
-    ⚠ A section that binds on both sides of the lock does NOT belong here — it belongs
-    in its domain module, reached from `validate()`. This function runs at chargen only.
+    ⚠ A check that applies on both sides of the lock goes in its domain module,
+    called from `validate()`. This function runs at chargen only.
     """
     issues: list[Issue] = []
     b = effective_budgets(ruleset, character)
@@ -1298,34 +1134,25 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
      beastman_gifts, arrays, _submodules, colleges, thaumaturgy, paths,
      _favored_path, _elemental_powers, _variant_purchases) = _chargen_source(character)
 
-    # Backgrounds that carry mechanics (Alchemical Class/Backing, CH2 p.65-69). No-op
-    # for every splat whose Backgrounds are purely narrative.
+    # Backgrounds with mechanics (CH2 p.65-69).
     #
-    # ⚠ `character` must be passed. The Attribute-sum cap (Sidereal Connections) and the
-    # per-character ST toggles all read it, and omitting it skips them silently.
+    # ⚠ Pass `character`. Else the Attribute-sum cap and the ST toggles are skipped.
     issues += background_issues(b, backgrounds, character)
 
-    # Thaumaturgy: Occult gates on Arts, aspects and rituals; per-Science ceilings.
-    # No-op for a character who has bought none, which is every character until the
-    # feature is used.
+    # Thaumaturgy: Occult gates and Science ceilings.
     issues += thaumaturgy_issues(ruleset, character, thaumaturgy)
     issues += thaumaturgy_chargen_issues(ruleset, character, thaumaturgy)
 
     cf = _caste_favored(ruleset, character)
     if cf is None:
-        # A splat with NO castes in the RuleSet is casteless BY DESIGN, not
-        # mis-configured: mortals "do not select a caste" (core p.103). Only report a
-        # missing caste for a splat that actually has some to choose from, or every
-        # mortal sheet carries a permanent spurious error.
+        # A splat with no castes (core p.103) does not need a caste.
         if splat_has_castes(ruleset, character.exalt_type):
             issues.append(Issue(
                 code="unknown-caste", where=str(character.caste),
                 message=f"Caste {character.caste} is not in the RuleSet; "
                         "caste/favoured checks skipped.",
             ))
-        # A casteless splat still HAS a Favoured set — normally empty, but core p.103's
-        # optional rule gives a heroic mortal one. Carry it through rather than
-        # discarding it, or the count below can never be checked for them.
+        # A casteless splat still has a Favoured set (core p.103).
         caste_abilities, favored = set(), set(character.favored_abilities)
         expected = favored_ability_count(ruleset, character)
         if len(favored) != expected:
@@ -1334,8 +1161,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                 message=f"Expected {expected} Favoured abilities, found {len(favored)}.",
             ))
         for ab in sorted(favored, key=lambda a: a.value):
-            # Craft is per-focus (core p.136): a character with any Craft focus has
-            # Craft dots, so read through ability_rating, not the flat abilities map.
+            # Craft is per focus (core p.136): read through ability_rating.
             if ability_rating(character, ab) < 1:
                 issues.append(Issue(
                     code="favored-needs-dot", where=ab.value,
@@ -1344,9 +1170,7 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
         issues += mortal_favored_ability_issues(ruleset, character)
     else:
         caste_abilities, favored = cf
-        # Favoured: exactly favored_ability_count, all distinct from Caste, >=1 dot
-        # each. The count is not b.favored_count directly because Prodigy grants extra
-        # Favoured Abilities to the splats not already at the five-Ability limit.
+        # Favoured: exactly favored_ability_count, none a Caste Ability, >=1 dot each.
         expected_favored = favored_ability_count(ruleset, character)
         if len(favored) != expected_favored:
             issues.append(Issue(
@@ -1362,15 +1186,13 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
                         f"{sorted(a.value for a in overlap)}.",
             ))
         for ab in sorted(favored, key=lambda a: a.value):
-            # Craft is per-focus (core p.136): a character with any Craft focus has
-            # Craft dots, so read through ability_rating, not the flat abilities map.
+            # Craft is per focus (core p.136): read through ability_rating.
             if ability_rating(character, ab) < 1:
                 issues.append(Issue(
                     code="favored-needs-dot", where=ab.value,
                     message=f"Favoured ability {ab.value} must have at least 1 dot.",
                 ))
-        # Abilities the origin/splat forces into the Favored set — Lunar Survival
-        # (p.90); empty for splats with no such rule.
+        # Abilities that must be Favored (Lunar, p.90).
         for ab in b.required_favored:
             if ab not in favored:
                 issues.append(Issue(
@@ -1381,21 +1203,15 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     cf_set = caste_abilities | favored
 
     # --- Range checks --------------------------------------------------------- #
-    # The universal ceiling is 5; a Merit or Flaw may move it for one named Attribute
-    # (Legendary Attribute raises, Disfigured lowers Appearance). Read from
-    # MeritEffects rather than branching on an entry, per decision 0011. Shared by the
-    # Attribute and Virtue range checks below.
+    # A Merit or Flaw can move the ceiling of 5 for one Attribute, from MeritEffects
+    # (decision 0011).
     mf_caps = merits.merits_and_flaws_calc(ruleset, character)
     issues += _chargen_attribute_range_issues(b, attributes, mf_caps)
 
-    # Dragon-King breed attribute bonuses (PG pp.167-174) are free dots ON TOP of the
-    # stored value: they consume no pool, and the EFFECTIVE total may pass 5 (a Pterok's
-    # stored Dexterity 5 reads as 7).
+    # Dragon-King breed bonuses (PG pp.167-174) add to the stored value.
     #
-    # ⚠ Effective dots above 5 are NOT free — each is BP-bought at the attribute rate,
-    # charged in `bonus_point_breakdown`, per p.175's "cannot have any Attributes higher
-    # than 5 without spending bonus or experience points". The STORED ceiling is the
-    # separate thing the range check above enforces.
+    # ⚠ Effective dots above 5 cost bonus points (p.175), in `bonus_point_breakdown`.
+    # The range check above applies to the STORED value.
     #
     issues += _chargen_caste_favored_attribute_issues(ruleset, character, b, attributes)
     issues += _chargen_ability_dot_issues(b, abilities, crafts, cf_set)
@@ -1418,31 +1234,25 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
     issues += _chargen_martial_arts_form_issues(ruleset, b, charms)
 
     # --- Willpower start-cap -------------------------------------------------- #
-    # Bound here rather than in the helper: the Flaw-imposed Willpower rules below
-    # measure against the same total.
+    # The Flaw rules below use the same total.
     wp_total = derive.two_highest_virtues(virtues) + wp_purchased
     issues += _chargen_willpower_issues(b, virtues, wp_total)
 
     # --- Willpower rules imposed by a held Flaw ------------------------------- #
-    # Callous ceilings Willpower just above the Virtues it let the player sell off, and
-    # Weak-Willed floors what its own forfeit may reach. Both read MeritEffects fields
-    # rather than naming a Flaw (decision 0011). The Callous ceiling is the sanctioned
-    # exception to decision 0005 — the human ruled that Willpower moves with the Virtues
-    # for a Callous character, and stays pinned at lock for everyone else.
+    # Callous (ceiling) and Weak-Willed (floor), from MeritEffects (decision 0011).
+    # Callous is the exception to decision 0005 (human's ruling).
     mf = merits.merits_and_flaws_calc(ruleset, character)
     wp_forfeited = max(0, wp_total - mf.forfeited_willpower_dots)
     issues += _chargen_merit_trait_issues(character, mf, virtues, wp_forfeited)
 
     issues += _chargen_essence_issues(b, mf, essence)
 
-    # A Merit-gated splat's magical purchases require the pool unlocked (God-Blooded
-    # + Awakened Essence); otherwise Charms, spells and Essence above start are all
-    # illegal together, and each reports on its own domain.
+    # A splat that needs a Merit for its pool (God-Blooded): without it, Charms,
+    # spells and Essence above the start are illegal.
     issues += magic_gate_issues(ruleset, character)
     issues += heritage_origin_issues(ruleset, character)
 
-    # Unallocated free dots — warnings, so they never block, but "✓ Legal" no longer
-    # claims a blank sheet is finished.
+    # Unallocated free dots, as warnings.
     issues.extend(unspent_budget_issues(ruleset, character))
     issues.extend(merit_issues(ruleset, character))
 
@@ -1464,11 +1274,9 @@ def validate_chargen(ruleset: RuleSet, character: Character) -> list[Issue]:
 
 
 def effective_attribute_pools(ruleset: RuleSet, character: Character) -> tuple[int, int, int]:
-    """The character's attribute pools — the budget's, unless the heritage overrides
-    them. The Half-Caste heritage sets `attribute_pools` to (6, 5, 4) (PG p.47 prose;
-    the p.50 summary's 6/5/3 is a printing error), where every other heritage keeps
-    the God-Blooded 6/4/3. One read site so a heritage override cannot land in some
-    of the six attribute-pool readers and not the rest."""
+    """Return the attribute pools: the budget pools, or the heritage override
+    (Half-Caste (6, 5, 4), PG p.47; the p.50 summary is a printing error). The one
+    read site."""
     caste = ruleset.castes.get(character.caste)
     heritage = caste.heritage_traits if caste is not None else None
     if heritage is not None and heritage.attribute_pools is not None:

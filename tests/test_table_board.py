@@ -1,7 +1,7 @@
 """The board of a campaign: `server/table_board.py`.
 
 Step 1 of the build order in `docs/plans/p4-board.md` section 6. The rulings are
-section 5 (2026-09-25): each player and the Storyteller change any object, only the
+section 5: each player and the Storyteller change any object, only the
 Storyteller clears the board and sets the background, a spectator watches, one board
 for each campaign, and no hidden layer. Decision 0020 fixes the scope.
 """
@@ -364,7 +364,7 @@ def test_an_image_with_too_many_pixels_is_refused_before_it_is_decoded(
 
 def test_a_token_image_has_a_lower_pixel_limit_than_a_background(
         board: TableBoard, table, monkeypatch) -> None:
-    """Server review finding 4: each member can upload a token image."""
+    """A token image has a lower pixel limit than a background."""
     assert table_board.MAX_TOKEN_INPUT_PIXELS == 16_000_000 < table_board.MAX_INPUT_PIXELS
     monkeypatch.setattr(table_board, "MAX_TOKEN_INPUT_PIXELS", 100)
 
@@ -374,7 +374,7 @@ def test_a_token_image_has_a_lower_pixel_limit_than_a_background(
 
 
 def test_one_image_is_decoded_at_a_time(board: TableBoard, table, monkeypatch) -> None:
-    """Server review finding 4: parallel uploads must not each hold a decoded image."""
+    """Parallel uploads decode one image at a time."""
     import threading
 
     inside, peak, gate = [0], [0], threading.Lock()
@@ -454,7 +454,7 @@ def test_the_file_holds_only_the_permitted_fields(board: TableBoard, table) -> N
 
 
 # --------------------------------------------------------------------------- #
-# Several objects at once (multiselect, the human 2026-09-25)
+# Several objects at once (multiselect, the human)
 # --------------------------------------------------------------------------- #
 
 
@@ -523,7 +523,7 @@ def test_a_spectator_cannot_change_several(board: TableBoard, table) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Token images (the human, 2026-09-25)
+# Token images (human's ruling)
 # --------------------------------------------------------------------------- #
 
 

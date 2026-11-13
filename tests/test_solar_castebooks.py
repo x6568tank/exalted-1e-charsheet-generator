@@ -113,11 +113,7 @@ def test_the_castebook_styles_are_celestial(rs):
     """Tiger, Mantis and Ebon Shadow are Celestial styles — open to the Celestial
     Exalted, and to Dragon-Blooded who hold an initiation pair (PG pp.235-236).
 
-    ⚠ **This test used to assert the opposite** — that all three were Solar-only,
-    with the docstring "Do not widen them without a page that says so." That guard
-    did its job: widening Tiger failed it, which is how the widening got reviewed
-    rather than slipping through. Its escape clause was then met, and the human ruled
-    on 2026-08-14:
+    ⚠ Do not narrow them without a ruling. The human's ruling cites:
       * PG p.236's Celestial-initiation `Examples:` names Tiger Style;
       * Sidereals p.195 has a Sidereal invoking "Tiger Form and Ebon Shadow Form or
         Snake Form and Charcoal March of Spiders Form";

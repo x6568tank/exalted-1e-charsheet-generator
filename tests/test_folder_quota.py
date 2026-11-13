@@ -1,7 +1,7 @@
 """The 10 MB limit of each account folder, and the 50 MB limit of each campaign
 folder: `server/quota.py`.
 
-The human set the limit on 2026-09-11.
+The human set the limit.
 
 ⚠ The subject is the CHOKE POINT, not the check. The last two sections write
 through `persistence.save_character` and `save_party`, which each hosted write site
@@ -75,7 +75,7 @@ def test_a_campaign_folder_is_named_as_a_campaign(root: Path) -> None:
 
 
 def test_a_campaign_folder_has_its_own_limit(root: Path) -> None:
-    """The human, 2026-09-25: 50 MB for a campaign, for the maps of the board. An
+    """The human: 50 MB for a campaign, for the maps of the board. An
     account keeps 10 MB."""
     quota = FolderQuota(root, limit=LIMIT, table_limit=3 * LIMIT)
     _fill(root / "table-0123456789ab" / "board" / "background.img", 2 * LIMIT)
@@ -156,7 +156,7 @@ def test_a_party_save_past_the_limit_is_refused(root: Path, guard) -> None:
 
 def test_a_homebrew_row_past_the_limit_is_refused(root: Path, guard) -> None:
     """The library of an account is `<account folder>/custom` (section 5.3), thus
-    the quota of the account covers it. Before 2026-09-12 the library was one
+    the quota of the account covers it. Before the library was one
     folder for the process, outside the root, with no limit."""
     _fill(root / "user-1" / "old.json", LIMIT - 10)
 
@@ -178,7 +178,7 @@ def _disk_free(monkeypatch, free: int) -> None:
 def test_a_write_that_leaves_too_little_free_disk_is_refused(root: Path, monkeypatch) -> None:
     """⚠ The quota is per folder, and signups and campaigns are many. The session
     root is a bind mount, thus a full disk is the disk of the host. The floor is
-    the last limit. The human asked for it on 2026-10-10."""
+    the last limit. The human asked for it."""
     _disk_free(monkeypatch, 1000)
 
     with pytest.raises(QuotaExceeded, match="server is out of space"):

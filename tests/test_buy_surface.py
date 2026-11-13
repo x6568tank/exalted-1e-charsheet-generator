@@ -1,11 +1,11 @@
 """The Buy surface — one shop over every priced catalogue.
 
-The human's unification of 2026-08-13: "Add weapon" / "Add armor" / "Add goods" opened
+human's ruling: "Add weapon" / "Add armor" / "Add goods" opened
 the same dialog against three catalogues, which is three shops. This is one.
 
 Two rules it must not break, both of them decisions:
 
-  * **services are never bought** (ruling 2026-08-13) — the price tables' upkeep,
+  * **services are never bought** (human's ruling) — the price tables' upkeep,
     events, commissions and rentals are a reference list, not inventory;
   * **artifacts are sold only in play** (decision 0017) — the Artifact Background is the
     pre-game channel, "the number of dots… the character must spend TO START THE GAME

@@ -222,7 +222,7 @@ def test_quantity_never_multiplies_the_commitment():
 
 def test_a_non_user_of_the_material_pays_double():
     """Jade for a non-Terrestrial. The general rule behind the Hearthstone Compass's
-    printed exception (human's ruling 2026-09-03)."""
+    printed exception (human's ruling)."""
     from exalted_builder.engine import derive
     from exalted_builder.models.character import Weapon
     rs = _attune_rs()
@@ -526,7 +526,7 @@ def test_a_commitment_never_vanishes_into_a_pool_the_character_lacks(ruleset):
 
 
 # --------------------------------------------------------------------------- #
-# artifact attunement — the SHEET marks it (phase 3, 2026-09-07)
+# artifact attunement — the SHEET marks it (phase 3)
 # --------------------------------------------------------------------------- #
 
 def _attuned_solar(ruleset, **kw):

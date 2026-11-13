@@ -1,14 +1,13 @@
 """Initiative for the whole table: `server/table_initiative.py` (P3 step 9).
 
-The gate of P3 (`docs/plans/p3-tables.md` sections 9 and 15.4). Rulings, human,
-2026-09-24:
+The gate of P3 (`docs/plans/p3-tables.md` sections 9 and 15.4). Human's rulings:
 
   * The player sets the weapon in hand on YOU PLAY. It is saved on the copy
     (`PlayState.in_hand`). The rating reads it. The default is unarmed.
   * The Storyteller rolls from a checklist of each player copy, each NPC and each
     roster entry, all ticked.
   * The result goes to the Log. Each combatant is named there, an enemy NPC too
-    (human, 2026-09-25).
+    (human's ruling).
   * Ties break on Dexterity + Wits, else "tied". A roster entry with no Base
     initiative cannot roll.
 
@@ -256,7 +255,7 @@ def test_an_unticked_combatant_does_not_roll(init, table):
 
 
 def test_each_combatant_is_named_in_the_log(init, tables, store, table, roster):
-    """Human, 2026-09-25: an enemy NPC is named to the players in the turn order.
+    """Human: an enemy NPC is named to the players in the turn order.
     This replaces the step-8 "Enemy" name for initiative only."""
     _npc(tables, store, table, "Bandit Lord", ENEMY)
     _npc(tables, store, table, "Assassin", ENEMY)
@@ -341,7 +340,7 @@ def test_the_initiative_entry_reads_back_from_the_file(init, table, the_log):
 
 
 # --------------------------------------------------------------------------- #
-# The Storyteller's adjustments (human, 2026-09-25)
+# The Storyteller's adjustments (human's ruling)
 #
 # Charms that change initiative are not modelled (decision 0008). The Storyteller
 # types a bonus for one roll in the dialog, and ticks "first" for a Charm that

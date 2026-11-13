@@ -384,9 +384,9 @@ def test_no_committed_note_when_nothing_is_attuned(ruleset, make_page):
 
 
 def test_the_tracker_explains_the_shortened_pool(ruleset, make_page):
-    """⚠ The maxima are ALREADY reduced by the time the tracker sees them, so without
-    this line a Peripheral track that used to read 27 and now reads 19 looks like a bug
-    rather than a daiklave. Same reasoning that put `single_pool` on the view."""
+    """⚠ The maxima are ALREADY reduced when the tracker gets them. Without this line a
+    shorter Peripheral track looks like a defect, not a daiklave. The reason for
+    `single_pool` on the view is the same."""
     from exalted_builder.models.character import Weapon
     char = _solar(weapons=[Weapon(name="Daiklave", artifact_rating=3, attunement=5,
                                   attuned=True, attuned_pool="peripheral")])
@@ -490,8 +490,8 @@ def test_a_health_click_leaves_the_roller_and_its_transcript_alone(make_page):
 
 
 def test_no_pool_row_grows_a_roll_button(make_page):
-    """⚠ The regression 0019 names: a Roll button beside a NAMED pool binds the
-    definition to the result, and 'now add the Charm dice' is the next ask."""
+    """⚠ Decision 0019: no Roll button beside a NAMED pool. It binds the definition to
+    the result."""
     page = make_page(_solar())
     rolls = [b for b in page.findChildren(QPushButton) if b.text() == "Roll"]
     assert len(rolls) == 1

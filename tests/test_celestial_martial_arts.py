@@ -1,18 +1,11 @@
 """Tier-gated cross-splat Martial Arts.
 
-Two styles are open wider than their authoring splat, but NOT to everyone:
+**Hungry Ghost Style** (Abyssal): any *Celestial* Exalt can learn it, but not the
+Terrestrial Dragon-Blooded. Five-Dragon Style is TERRESTRIAL (human's ruling), thus it
+is `open_to_all`. The five Immaculate Dragon Paths are Celestial.
 
-* **Hungry Ghost Style** (Abyssal) — any *Celestial* Exalt may learn it (Solar,
-  Abyssal, and later Lunar/Sidereal), but not the Terrestrial Dragon-Blooded.
-* ~~**Five-Dragon Style**~~ — **corrected 2026-08-01**: Five-Dragon Style is
-  TERRESTRIAL (human, rules authority), so it is `open_to_all` and belongs with the
-  cross-splat styles, not here. The five Immaculate Dragon Paths are the Celestial
-  ones, and the data had both backwards.
-
-This is the middle ground between `Charm.exalt_type` (one splat) and
-`Charm.open_to_all` (every splat): `Charm.open_to_tiers` names Exalt *tiers*, and
-`ExaltDefinition.tier` says which tier a splat sits in. Adding Lunars/Sidereals as
-`tier: "Celestial"` grants them these styles with no code change.
+`Charm.open_to_tiers` names Exalt *tiers*, between `Charm.exalt_type` (one splat) and
+`Charm.open_to_all` (every splat). `ExaltDefinition.tier` gives the tier of a splat.
 """
 
 from pathlib import Path
@@ -48,7 +41,7 @@ def _char(splat: str, caste: str) -> Character:
 
 def test_exalt_tiers_authored(rs):
     """The hierarchy, low to high: Terrestrial < Celestial < Solar (human, rules
-    authority, 2026-08-11). Terrestrial is the Dragon-Blooded alone; Celestial holds
+    authority). Terrestrial is the Dragon-Blooded alone; Celestial holds
     Lunars, Sidereals, Abyssals and Alchemicals; the Solar Exalted stand above all.
 
     Solar was previously authored `Celestial` — not a taxonomy but a workaround, since
@@ -80,7 +73,7 @@ def test_a_splat_reaches_its_own_tier_and_every_tier_below(rs):
 
 def test_an_alchemical_reaches_no_martial_arts_at_all_without_the_matrix(rs):
     """CH3 p.100 — the tier says what she COULD reach, PLM says whether she may, and
-    it gates EVERY tier: no Terrestrial style either (human, 2026-08-11).
+    it gates EVERY tier: no Terrestrial style either (human's ruling).
 
     The bar has to sit above `open_to_all`, because the Terrestrial styles are
     open_to_all and would otherwise be granted before any tier reasoning ran. Testing
@@ -115,13 +108,9 @@ def test_styles_flagged_celestial(rs):
 
 
 def test_five_dragon_style_is_terrestrial_not_celestial(rs):
-    """Corrected 2026-08-01 (human, rules authority). The data had the two Dragon-
-    Blooded style families exactly backwards: Five-Dragon was tagged Celestial-only and
-    the five Immaculate Dragon Paths were tagged `open_to_all` (i.e. Terrestrial).
-
-    It is the wrong way round in BOTH directions, so it cost twice: splats with
-    Terrestrial-only martial arts (mortals via Essence Mastery, ghosts via PG p.234)
-    were denied Five-Dragon and offered the Immaculate Paths."""
+    """Five-Dragon is Terrestrial and the five Immaculate Dragon Paths are Celestial
+    (human's ruling). Thus splats with Terrestrial-only martial arts (mortals through
+    Essence Mastery, ghosts through PG p.234) reach Five-Dragon and not the Paths."""
     style = [c for c in rs.charms.values() if c.category == "martial_arts:five-dragon"]
     assert style
     assert all(c.open_to_all is True for c in style)

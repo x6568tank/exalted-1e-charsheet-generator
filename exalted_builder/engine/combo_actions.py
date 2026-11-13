@@ -13,14 +13,9 @@ that builds neither has no surface at all — the dead may never learn Combos (E
 p.234). `view.uses_arrays` is the one place that decides which, and `view.has_combos_tab`
 whether there is one; nothing here re-derives it from a splat name.
 
-⚠ **Module-level, never closures inside a widget builder.** These were closures in
-`ui/combos.py` until 2026-08-27, which is why the native shell could not reach them —
-the same reason `thaum_actions` and `house_rule_actions` exist. They mutate a save, so
-they must be reachable from tests without driving a browser.
-
-This is game logic and imports no `nicegui`, so it does not belong in the UI layer
-(CLAUDE.md: "don't leak game logic into the UI"). `ui/combos.py` re-exports every
-public name.
+⚠ **Module-level functions, never closures in a widget builder.** Both shells and the
+tests must reach them. This module imports no `nicegui`. `ui/combos.py` re-exports
+each public name.
 """
 
 from __future__ import annotations
@@ -45,9 +40,8 @@ def _locked(character: Character, noun: str) -> None:
 # ---- Combos (core pp.213-214) -------------------------------------------- #
 
 def add_combo(character: Character, name: str = "") -> str:
-    """Start an empty Combo at chargen. ⚠ Empty is a legal WORKING state and priced at
-    zero — `validate.combo_issues` reports the too-few-Charms problem, so the builder
-    does not need to refuse the first click."""
+    """Start an empty Combo at chargen. ⚠ Empty is a legal working state, priced at 0.
+    `validate.combo_issues` reports too few Charms."""
     if character.chargen_locked:
         _refuse("In play a Combo is bought whole — compose it and buy it in one go.")
     label = name.strip() or f"Combo {len(character.combos) + 1}"
@@ -66,9 +60,7 @@ def remove_combo(character: Character, index: int) -> str:
 
 
 def add_combo_member(character: Character, index: int, charm_id: str) -> str:
-    """Put one Charm in a Combo. Legality is NOT decided here: `validate.combo_issues`
-    reports an illegal set (two Simples, a non-instant duration) as an issue on the row,
-    so a half-built Combo can be looked at rather than refused mid-assembly."""
+    """Add one Charm to a Combo. `validate.combo_issues` reports an illegal set."""
     if character.chargen_locked:
         _locked(character, "Combo")
     if not (charm_id and 0 <= index < len(character.combos)):
@@ -91,9 +83,8 @@ def remove_combo_member(character: Character, index: int, charm_id: str) -> str:
 
 
 def rename_combo(character: Character, index: int, name: str) -> None:
-    """Rename in place. No message and no lock check by design — a rename fires on every
-    keystroke, so a refusal here would notify per character typed; the caller does not
-    offer the control post-lock."""
+    """Rename in place. No message and no lock check: it runs on each keystroke. The
+    caller hides the control after the lock."""
     if 0 <= index < len(character.combos):
         character.combos[index].name = name
 

@@ -46,19 +46,14 @@ def armor_stat_line(armor, *, material: str = "") -> str:
 
 @dataclass
 class InventoryRow:
-    """One thing the character owns, whatever list it is stored in.
+    """One owned thing, from any list.
 
-    The INVENTORY is a VIEW, not a storage shape (human's model, 2026-08-13: "your
-    inventory, which is Everything, but you can filter it down to certain types of
-    goods, some of which would overlap"). The three lists stay typed and separate —
-    a weapon carries accuracy and rate, armour carries soak and fatigue, goods carry
-    neither, and collapsing them would mean a save migration plus rewriting every index
-    into `character.weapons` (the dice-pool sidebar's, for one) to buy nothing.
+    The INVENTORY is a VIEW, not a storage shape (human's ruling). The three typed
+    lists stay separate: indices into `character.weapons` (the dice-pool sidebar)
+    must not change.
 
-    `kinds` is a SET because the categories genuinely overlap: an artifact daiklave is a
-    weapon AND an artifact, a shield is armour, an arrow is a weapon and ammunition. A
-    filter picks rows whose kinds INTERSECT what it asks for, so the same row can appear
-    under two filters and be one object underneath.
+    `kinds` is a SET: an artifact daiklave is a weapon AND an artifact. A filter
+    selects rows whose kinds INTERSECT it.
     """
     name: str
     kinds: tuple[str, ...]                 # "weapon" / "armor" / "artifact" / "goods" …
@@ -69,11 +64,9 @@ class InventoryRow:
     acquired: str = ""                     # only meaningful for artifacts
     index: int = 0                         # position in its OWN list
     list_name: str = ""                    # which list that is — the edit route back
-    # An artifact and the gear row `grant_gear` stamped for it are ONE OBJECT and get
-    # ONE row (the human, 2026-08-13: two peer rows for one daiklave "feels odd, and a
-    # little obtuse"). The artifact owns the row; its stat line rides in `detail` and
-    # its editor is reached through this SECOND route back. Empty for every unmerged
-    # row, which is the large majority.
+    # An artifact and its `grant_gear` row are ONE OBJECT and get ONE row (human's
+    # ruling). The artifact owns the row. `detail` holds the stat line, and the editor
+    # of the stat line. Empty for an unmerged row.
     #
     # ⚠ Display-only. The typed lists are untouched, so `character.weapons` keeps its
     # positional indices — the dice-pool sidebar reads them.
@@ -155,11 +148,8 @@ def inventory_rows(ruleset: RuleSet, character: Character) -> list[InventoryRow]
         if idx in merged:
             list_name, gear_idx = merged[idx]
             gear = getattr(character, list_name)[gear_idx]
-            # The STAT LINE is what the merged row shows, because that is the half a
-            # player is looking for on a weapon they own — the artifact's own note is
-            # prose and lives in its editor. `kinds` gains the gear's kind so the row
-            # still answers to the Weapons/Armor filter: merging two rows must not cost
-            # the object a filter it used to appear under.
+            # The merged row shows the STAT LINE. `kinds` includes the gear kind, thus
+            # the row still matches the Weapons/Armor filter.
             kinds.append("weapon" if list_name == "weapons" else "armor")
             detail = (weapon_stat_line(gear) if list_name == "weapons"
                       else armor_stat_line(gear))
@@ -254,15 +244,11 @@ def artifacts_header(ruleset: RuleSet, character: Character) -> str:
     rating = sum(bg.rating for bg in character.backgrounds
                  if bg.name.strip().lower() == artifactsmod.ARTIFACT_BACKGROUND)
     if artifactsmod.uses_corebook_rule(rule):
-        # The corebook rule (ruling 2026-08-13) governs most splats, and until it was
-        # enforced this header said the bare word "Artifacts" — so the first a player
-        # heard of the one-artifact limit was a validation error after they had picked
-        # two. The line states the rule whether or not they are over it.
+        # The line states the core rule (human's ruling) whether or not the character
+        # is over it.
         #
-        # ONE PER ROW: a character may hold the Artifact Background more than once, and
-        # two Artifact •• rows are two artifacts (`validate.background_rows`). The
-        # header counts ROWS, not their sum — printing "/1" beside two rows is what made
-        # the browser read the validator's error as arbitrary.
+        # ONE PER ROW: two Artifact •• rows are two artifacts
+        # (`validate.background_rows`). The header counts ROWS, not their sum.
         rows = sorted((r for r in validate.background_rows(
             character.backgrounds, artifactsmod.ARTIFACT_BACKGROUND) if r > 0),
             reverse=True)
@@ -367,14 +353,12 @@ class ShopRow:
 
 
 def shop_rows(ruleset: RuleSet, character: Character) -> list[ShopRow]:
-    """Everything a book prices for this character, plus their own library.
+    """Return all priced entries for this character, plus the custom library.
 
-    ⚠ Services are NEVER offered — they are a reference price list, not inventory
-    (human's ruling 2026-08-13), and the ruling holds at the OFFER, not just in the data.
+    ⚠ Services are NEVER offered (human's ruling).
 
-    ⚠ Artifacts appear only POST-LOCK (decision 0017): the Artifact Background is the
-    pre-game channel ("to start the game owning", core p.342) and cash is the in-play
-    one. A shop that offered them at chargen would be the hole that decision closes.
+    ⚠ Artifacts appear only POST-LOCK (decision 0017): before the lock the Artifact
+    Background is the channel (core p.342).
     """
     rows: list[ShopRow] = []
 

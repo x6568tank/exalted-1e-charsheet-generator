@@ -49,7 +49,7 @@ def test_unlock_reverts_the_lock_and_relives_willpower():
 
 
 # --------------------------------------------------------------------------- #
-# Unlock after XP — ruled 2026-09-12: allowed, with a warning
+# Unlock after XP — ruled: allowed, with a warning
 # --------------------------------------------------------------------------- #
 
 def test_no_warning_when_no_xp_is_spent():

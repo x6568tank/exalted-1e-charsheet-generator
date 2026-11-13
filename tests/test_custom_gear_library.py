@@ -1,18 +1,11 @@
-"""Custom gear as LIBRARY content — the same treatment Charms and spells got in
-decision 0012, extended to equipment on 2026-08-13.
+"""Custom gear as LIBRARY content, as Charms and spells (decision 0012).
 
-Before this, "custom" gear meant free text on ONE character: you invented a homebrew
-daiklave and it existed on that sheet alone, retyped for the next character, with no way
-to fix a mistake everywhere. The machinery already existed; equipment simply never got
-it.
-
-Three contracts, all inherited from the Charm layer and all load-bearing:
+Three contracts:
 
   * **the book always wins an id collision** — a printed weapon must never be silently
     replaced by homebrew reusing its id;
-  * **a bad row is reported and dropped, never fatal** — a Storyteller must not be able
-    to brick the builder with a typo in their homebrew;
-  * **saves carry copies**, so a character does not break when the library moves.
+  * **a bad row is reported and dropped, never fatal**;
+  * **saves carry copies**, thus a character does not break when the library changes.
 """
 
 import json

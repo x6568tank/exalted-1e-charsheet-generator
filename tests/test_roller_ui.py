@@ -80,10 +80,8 @@ async def test_the_transcript_says_it_is_not_saved(user: User) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_no_pool_row_grows_a_roll_button(user: User) -> None:
-    """⚠ The regression 0019 names: a Roll button beside a named pool binds the
-    roll definition to the result, and 'now add the Charm dice' is the next ask.
-    The pools page has the full catalogue rendered, so one button per row would
-    be dozens — this asserts there is exactly the one the player types into."""
+    """⚠ Decision 0019: no Roll button beside a named pool. The pools page shows the
+    full catalogue: this asserts exactly one button, the one the player types into."""
     await user.open('/pools')
     buttons = [e for e in user.client.elements.values()
                if isinstance(e, Button) and (e.text or "").strip() == "Roll"]

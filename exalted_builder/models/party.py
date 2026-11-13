@@ -1,14 +1,10 @@
 """
 models/party.py — a Storyteller's party bundle.
 
-Character-data domain, like character.py: a `Party` holds a full copy of each
-player's Character, the GM's notes, and the adversaries being run against them.
-It carries no rules and no derived values — legality lives in engine.validate,
-which never looks at a Party, and the cards that render one read capacities from
-the engine the way the Play tab does.
+A `Party` holds a copy of each player's Character, the GM's notes, and the
+adversaries. It has no rules and no derived values.
 
-⚠ Members are COPIES, not references to .character.json files. The GM's copy is
-the table copy and may drift from the player's own.
+⚠ Members are COPIES, not references to .character.json files.
 """
 
 from __future__ import annotations
@@ -28,8 +24,7 @@ class PartyMember(BaseModel):
 
 class Party(BaseModel):
     """A named group of characters, the GM's session notes, and the extras,
-    beasts and NPCs being run against them. `adversaries` defaults empty, so
-    bundles written before it existed still load."""
+    beasts and NPCs being run against them."""
     id: str
     name: str = ""
     session_notes: str = ""

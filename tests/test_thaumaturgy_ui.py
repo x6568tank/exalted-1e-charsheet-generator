@@ -39,7 +39,7 @@ def _character(**kwargs) -> Character:
 # The scope table must not drift from the model
 #
 # HouseRules marks TABLE-WIDE vs PER-CHARACTER in comments only — a deliberate
-# choice (human, 2026-07-29) to keep the model one flat document. The machine
+# choice (human's ruling) to keep the model one flat document. The machine
 # readable copy the ST tab renders from therefore lives in the presenter, which
 # means the two CAN drift: add a field, update the comment, forget the table, and
 # the toggle silently renders under the wrong heading or not at all.
@@ -134,8 +134,8 @@ def test_set_rule_stores_the_inheritance_rating() -> None:
 
 
 def test_set_rule_keeps_the_mf_method_string() -> None:
-    """set_rule used to bool() every value, silently turning a selected M&F method
-    ("backgrounds") into True. A multiple-choice rule must store its string."""
+    """set_rule stores the string of a multiple-choice rule ("backgrounds"), not
+    bool()."""
     char = _character()
     storytellermod.set_rule(char, "mf_change_method", "backgrounds")
     assert char.house_rules.mf_change_method == "backgrounds"
@@ -154,7 +154,7 @@ def test_inheritance_rating_row_offers_the_granting_rating(ruleset) -> None:
     row = rows["godblooded_inheritance_rating"]
     assert row.value == "4"                    # the select's option key
     # The ST's pick is how many Inheritance dots are FREE, not the rating (human
-    # 2026-08-02) — the bonus points still follow the sheet background.
+    #) — the bonus points still follow the sheet background.
     assert "first 4 dot(s) of Inheritance free" in row.note
 
 
@@ -205,9 +205,7 @@ def test_a_held_custom_specialty_is_listed_and_ungated(ruleset) -> None:
 
 
 def test_the_alchemy_ladder_has_no_gap(ruleset) -> None:
-    """The picker used to render an EMPTY fifth rung, because the book prints
-    • •• ••• •••• then ••••••. The printed 6 is a typo for 5 (human, 2026-07-30), so
-    every rung now carries text and the ladder matches the other three Sciences."""
+    """Each Alchemy rung has text. The printed 6 is a typo for 5 (human's ruling)."""
     v = viewmod.build_thaum_picker(ruleset, _thaum_char(3))
     alchemy = next(s for s in v.sciences if s.name == "Alchemy")
     assert alchemy.max_rating == 5
@@ -530,8 +528,7 @@ def test_raising_a_science_walks_its_ladder(ruleset) -> None:
 
 
 def test_every_science_now_stops_at_five(ruleset) -> None:
-    """Alchemy used to be the exception, reaching six. `max_rating` stays per-Science —
-    the machinery is still right, it simply has nothing exceptional to express now."""
+    """`max_rating` stays per Science, though no Science now goes above 5."""
     char = _thaum_char(5)
     for _ in range(5):
         pickermod.raise_thaum_science(ruleset, char, "science.alchemy")

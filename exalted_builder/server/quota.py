@@ -33,8 +33,7 @@ QUOTA_BYTES = 10 * 1024 * 1024
 # docs/plans/p4-board.md).
 TABLE_QUOTA_BYTES = 50 * 1024 * 1024
 
-# The free space that each write leaves on the disk of the root (human's ruling,
-# 2026-10-11).
+# The free space that each write leaves on the disk of the root (human's ruling).
 MIN_FREE_BYTES = 1024 ** 3
 
 # The name of a table folder starts with this. `TableStore.table_dir` makes it.

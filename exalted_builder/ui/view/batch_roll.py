@@ -63,26 +63,15 @@ def new_batch_state() -> dict:
 
 
 def batch_roster(party) -> list[tuple[str, str]]:
-    """The party page's rows as (key, display name): every member, then every
-    adversary. ONE builder so the two shells cannot disagree about who is in a
-    batch.
+    """Return the party rows as (key, display name): each member, then each
+    adversary. Both shells use it.
 
-    ⚠ Keyed by the record's own id, never by position — the roster renumbers when
-    a member is removed, and a positional key moves one character's typed dice
-    onto another's row. Adversaries are in because a batch rolls a NUMBER: an
-    `Adversary` is not a `Character` and never may be, but a dice count does not
-    care which it came from.
+    ⚠ Keyed by the record id, never by position: the roster renumbers on a remove.
+    A batch rolls a NUMBER only, thus an Adversary row is permitted.
 
-    ⚠ A DUPLICATE id gets a `#n` suffix so the keys stay unique. Every app path
-    that made a blank character once handed it the literal `"char.new"`, so two
-    of them in one party shared a key and the second row's dice silently
-    overwrote the first's — both rows then rolled the same count (human, found at
-    the browser 2026-09-09). `new_character_id` fixes new characters; parties
-    already SAVED with the duplicate cannot be migrated (there are no save
-    migrations here), so the key derivation has to be total on its own. The
-    suffix is positional and therefore carries the renumbering trap above — but
-    only among records that were already indistinguishable, where there is
-    nothing better to key on.
+    ⚠ A DUPLICATE id gets a `#n` suffix, thus the keys stay unique. Saved parties can
+    hold duplicate ids, and there are no migrations. The suffix is positional, but
+    only among records that cannot be told apart.
     """
     rows: list[tuple[str, str]] = []
     seen: dict[str, int] = {}

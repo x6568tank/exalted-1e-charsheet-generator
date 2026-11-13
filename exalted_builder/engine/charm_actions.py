@@ -90,12 +90,9 @@ def learn_charm(ruleset: RuleSet, character: Character, charm_id: str) -> str:
         _refuse(reason)
     cap = validate._repeatable_purchase_cap(charm, character)
     if character.chargen_locked:
-        # ⚠ The cap is consulted on BOTH sides of the lock. This guard used to be a
-        # bare `charm_id in character.charms`, which refused every second copy after
-        # the lock — and `advancement.learn_charm` below it has supported exactly that
-        # purchase, cap check and page citation included (CH6 pp.245-246), since it was
-        # written. A dispatcher guard written for ordinary Charms caught repeatables in
-        # its net and made the deliberate support unreachable from either shell.
+        # ⚠ The cap applies on BOTH sides of the lock. Do not test only
+        # `charm_id in character.charms`: that refuses a second copy of a repeatable
+        # Charm, which `advancement.learn_charm` supports (CH6 pp.245-246).
         if charm_id in character.charms and not cap:
             _refuse(f"{charm.name} is already known — undo the purchase on the "
                     "Edit tab to give it back.")

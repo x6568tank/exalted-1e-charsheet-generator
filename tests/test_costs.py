@@ -181,7 +181,7 @@ def test_the_splats_that_deliberately_keep_the_solar_rates(ruleset):
     ⚠ A ruled fallback and an unauthored table are the same bytes. `costs_bonus.json`
     has no Abyssal row and no Mortal row. `costs_xp.json` has no Abyssal row. Each
     absence sends the accessor to the model defaults, which are the Solar baseline.
-    The human ruled on 2026-09-11 that this is correct. This test records the ruling.
+    The human ruled that this is correct. This test records the ruling.
 
     ⚠ The discriminators are the neighbour splats. Lunar and Sidereal are Celestial
     Exalts, and both override the Essence rates. Thus the Abyssal absence is a choice

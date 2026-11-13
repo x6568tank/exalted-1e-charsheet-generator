@@ -246,13 +246,9 @@ _DOT_TRACK_RAISES = {
 }
 
 
-# The same four targets going down, for `lower_to`. Reductions take no ruleset (they
-# are priced at nothing and gated only by each trait's floor), which is why this is a
-# separate table rather than a direction flag on the one above.
-# Crafts and Colleges reduce too (human, 2026-07-31) — a usability escape hatch rather
-# than a printed rule, because undo is LIFO and cannot always reach a misclick. Their
-# lowerers need no ruleset either, so the whole table keeps one signature; `lower_college`
-# takes one only for its error message and is adapted here.
+# The reductions for `lower_to`. A reduction takes no ruleset: it costs nothing and
+# only the trait floor gates it. Crafts and Colleges reduce too (human's ruling).
+# `lower_college` takes a ruleset for its message only, and is adapted here.
 _DOT_TRACK_LOWERS = {
     "attributes": lambda c, key, reason: lower_attribute(c, AttributeName(key), reason),
     "abilities": lambda c, key, reason: lower_ability(c, AbilityName(key), reason),
@@ -478,10 +474,8 @@ def lower_willpower(character: Character, reason: str = "", *,
 def lower_craft(character: Character, focus: str, reason: str = "") -> XpEntry:
     """Reduce a per-focus Craft one dot, removing it entirely at 0.
 
-    Not a printed rule but a usability one (human, rules authority, 2026-07-31): undo
-    is LIFO and so cannot always reach a mistake, and "a misclick can always happen".
-    Like every reduction it refunds nothing — this is an escape hatch, not a refund
-    path, and `refund_to` remains the way to get experience back.
+    Not a printed rule (human's ruling): undo is LIFO and cannot always reach a
+    mistake. It refunds nothing. `refund_to` refunds XP.
     """
     _ensure_locked(character)
     cr = next((c for c in character.crafts if c.focus == focus), None)
@@ -646,10 +640,8 @@ def add_specialty(ruleset: RuleSet, character: Character, ability: AbilityName,
                   name: str) -> XpEntry:
     """Buy one specialty. Always worth 1 — a specialty is not a rated trait.
 
-    "You don't raise specialties, you just take the same one multiple times, and you
-    can only have 3 specialties per ability" (human, rules authority, 2026-07-31):
-    Melee with two Swords and one Parrying is legal and full. So duplicates are the
-    stacking mechanism, and the cap counts ROWS in an Ability, not distinct names.
+    A duplicate gives the stack. The cap of 3 counts ROWS in an Ability, not names
+    (human's ruling): two Swords and one Parrying fills Melee.
     """
     _ensure_locked(character)
     if not name.strip():

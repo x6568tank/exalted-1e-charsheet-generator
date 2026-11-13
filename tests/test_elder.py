@@ -1,7 +1,7 @@
 """Tests for engine.elder — Essence and trait ceilings, and the p.259 downtime
 calculator (Player's Guide pp.258-259).
 
-Human ruling 2026-08-06: Essence is XP-purchasable to the splat's ceiling (9 for an
+human's ruling: Essence is XP-purchasable to the splat's ceiling (9 for an
 Exalt, the Terrestrial-7 held), and Essence in turn lets Abilities and Attributes pass
 5. Both are tested through `advancement.raise_to`, the merged trait surface the UI
 actually calls, rather than through the per-dot `raise_*` alone: this build's
@@ -63,8 +63,8 @@ def _locked(xp: int = 500, *, exalt_type: str = "solar", essence: int = 5) -> Ch
 # --------------------------------------------------------------------------- #
 
 def test_young_character_gets_the_ordinary_ceilings():
-    """The regression guard: nothing about an ordinary sheet changes — the trait
-    ceiling is 5 at Essence 5, and a Solar's Essence ceiling is the flat 9."""
+    """An ordinary sheet does not change: the trait ceiling is 5 at Essence 5, and the
+    Solar Essence ceiling is the flat 9."""
     c = _locked()
     assert elder.trait_ceiling(c) == 5
     assert elder.essence_cap(_ruleset(), c) == (9, False)
@@ -109,7 +109,7 @@ def test_a_trait_may_not_pass_permanent_essence():
 
 
 def test_low_essence_never_lowers_the_ordinary_5():
-    """The human's ruling, 2026-07-31: the Essence ceiling binds only ABOVE 5. Read
+    """human's ruling: the Essence ceiling binds only ABOVE 5. Read
     literally it would cap an Essence 2 character's Melee at 2, which is nonsense."""
     rs, c = _ruleset(), _locked(essence=2)
     c.abilities[A.MELEE] = 4
@@ -225,10 +225,8 @@ async def test_the_sheet_builds_for_an_elder(user) -> None:
 
 
 def test_essence_rebuilds_the_whole_editor_body():
-    """A dot click normally redraws its own row. Essence must redraw everything: past 5
-    it is the ceiling on every Ability and Attribute track, so those rows' pip counts
-    are stale the moment it moves. Found in the browser (human, 2026-07-31) — Essence
-    went to 6 but the Ability tracks kept five pips until the tab was left and re-entered.
+    """A dot click on Essence redraws all rows: above 5 Essence is the ceiling of each
+    Ability and Attribute track, thus their pip counts change.
     """
     from exalted_builder.ui import editor
 
@@ -236,13 +234,11 @@ def test_essence_rebuilds_the_whole_editor_body():
 
 
 # --------------------------------------------------------------------------- #
-# The Merit override on the Essence dot row (2026-08-06 regression fix)
+# The Merit override on the Essence dot row
 # --------------------------------------------------------------------------- #
-# The dot row's `hi` is the splat ceiling UNLESS the calc's essence_cap_override lifts
-# it — Essence Mastery on a mortal (p.114), Awakened Essence on a God-Blooded. The buy
-# path is the UI gate here: raise_essence already honours the override, so a row that
-# omits it strands the player with one pip and no way to spend the XP. Count the row's
-# pip icons through the harness rather than asserting the engine (which never regressed).
+# The dot row `hi` is the splat ceiling UNLESS essence_cap_override lifts it: Essence
+# Mastery on a mortal (p.114), Awakened Essence on a God-Blooded. The row is the UI
+# gate of the buy path. Count the pip icons of the row through the harness.
 
 def _essence_pips(user) -> int:
     """The number of pip icons under the editor's Essence row — the `top` the dot track
@@ -296,7 +292,7 @@ async def test_a_plain_locked_mortal_stays_at_one_essence_pip(user) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# The p.259 downtime awards (2026-08-01)
+# The p.259 downtime awards
 # --------------------------------------------------------------------------- #
 # A CALCULATOR, not an enforcement. These pin the arithmetic and the two rulings the
 # page does not settle: how a downtime crossing an age band is rated, and what the
@@ -321,7 +317,7 @@ def test_a_downtime_inside_one_band_is_years_times_rate() -> None:
 
 
 def test_a_downtime_crossing_a_band_is_rated_year_by_year() -> None:
-    """The human's ruling, 2026-08-01: walk the years, do not flatten to either end.
+    """human's ruling: walk the years, do not flatten to either end.
     Age 90 + 40 years = 9 unpaid years to 99, then 31 paid at 5. A flat rate at the
     final age would have paid 200, at the starting age 0."""
     award = elder.downtime_award(90, 40)

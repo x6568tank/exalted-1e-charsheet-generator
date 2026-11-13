@@ -48,7 +48,7 @@ def test_db_barred_from_contacts_influence_followers(rs):
 
 def test_command_henchmen_and_reputation_are_dragon_blooded_backgrounds(rs):
     """These three, and Family with them, are printed in E:DB CH4's NEW BACKGROUNDS
-    (pp.158-160) — Dragon-Blooded content (human, rules authority, 2026-08-11). They
+    (pp.158-160) — Dragon-Blooded content (human's ruling). They
     shipped untagged and were therefore offered to every splat in the build, the same
     leak as Lookshy's Arsenal. A Solar's own Backgrounds section (core pp.141-148)
     prints none of them."""
@@ -84,11 +84,8 @@ def test_every_background_has_a_description(rs):
 
 
 def test_backgrounds_are_chosen_in_exactly_one_place():
-    """Backgrounds used to be picked on the chargen editor AND on the XP tab, in two
-    near-identical panels that drifted. They now live once, on the Advantages tab, which
-    carries both budget regimes. The described select is asserted there — and the two
-    old homes are asserted NOT to have grown one back, which is the half of this test
-    that will actually fail one day."""
+    """Backgrounds are on the Advantages tab only, with both budget regimes. The
+    described select is asserted there, and its absence on the editor and XP tab."""
     import inspect
     from exalted_builder.ui import advantages, editor
     assert "DescribedSelect(_opts_with(bg_names" in inspect.getsource(advantages)
@@ -99,8 +96,7 @@ def test_backgrounds_are_chosen_in_exactly_one_place():
             f"in ui/advantages.py")
 
 
-# The picker descriptions also print PERSISTENTLY under each row (2026-08-05), the way
-# the M&F rows print their rules text — a picked Background is no longer a bare row.
+# The descriptions also show PERSISTENTLY under each row, as the M&F rules text.
 # `/merits-backgrounds` holds Allies and Resources, both of which have descriptions.
 #
 # These tests are DELIBERATELY discriminating, and must stay so: the catalogue text also
@@ -135,9 +131,8 @@ async def test_a_picked_background_prints_its_catalogue_description(user) -> Non
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_picking_a_background_swaps_its_description_live(user) -> None:
-    """A pick swaps the blurb without rebuilding the panel — a rebuilt input eats every
-    keystroke after the first (the M&F filter bar's lesson), so the row's own select
-    refreshes only its own description.
+    """A pick swaps the description and does not rebuild the panel: a rebuilt input
+    loses each keystroke after the first.
 
     The row is found by its select's VALUE ("Allies"), not by position — `user.find`
     does not return elements in model/creation order, so `[0]` is not the first row."""
@@ -289,7 +284,7 @@ def test_an_untranscribed_splat_degrades_to_the_old_filter(rs):
 # --------------------------------------------------------------------------- #
 # Universal Backgrounds (BackgroundType.universal)
 # --------------------------------------------------------------------------- #
-# Human's ruling, 2026-08-11: "Cult is universal, as are any other backgrounds not in
+# human's ruling: "Cult is universal, as are any other backgrounds not in
 # specific splats if such exist." Cult is printed in Games of Divinity, which is not a
 # splat book, so no character-creation summary names it — and without the flag it was
 # visible only to the splats whose lists had not been transcribed yet, and would have
@@ -321,7 +316,7 @@ def test_no_background_ends_up_belonging_to_nobody(rs):
 
     NOTE this deliberately checks one direction only. The obvious mirror — "a
     universal Background appears in no splat's list" — is FALSE against the books:
-    Cult is marked universal on the human's ruling (2026-08-11) AND is named outright
+    Cult is marked universal on the human's ruling AND is named outright
     in the Lunar chargen summary. Being enumerated by one book does not stop a
     Background belonging to no book in particular, so `universal` and "listed
     somewhere" are independent, not exclusive."""
@@ -427,15 +422,12 @@ def test_the_god_blooded_are_offered_every_background_their_book_grants(rs):
 
 
 # --------------------------------------------------------------------------- #
-# Backgrounds that are genuinely REWORKED per splat, not merely repriced
+# Backgrounds that are REWORKED per splat, not only repriced
 # --------------------------------------------------------------------------- #
-# Two different differences, two different mechanisms:
+# Two mechanisms:
 #   * a MECHANICAL difference is a `BackgroundRule` on the budget row — the
 #     Dragon-Blooded x2, the Alchemical x3, the Abyssal budget tiers;
 #   * a TEXTUAL difference is a second BackgroundType with its own id.
-# Artifact and Manse used to do neither: one entry whose description was a pile of
-# per-splat parentheses and whose ladder was always the Solar one. The engine charged
-# a Dragon-Blooded the doubled rate while the sheet read them the Solar rungs.
 
 def test_a_reworked_background_shows_its_own_splats_rungs(rs):
     from exalted_builder.ui import view as viewmod
@@ -560,7 +552,7 @@ async def test_the_rung_follows_a_dot_track_click_at_chargen(user) -> None:
 # Borrowed ladders (BackgroundType.ladder_from)
 # --------------------------------------------------------------------------- #
 # The Mountain Folk book prints its ten shared Backgrounds as PROSE, with no dot-by-dot
-# breakdown (human, rules authority, 2026-08-12), so those rows showed a description and
+# breakdown (human's ruling), so those rows showed a description and
 # no rung where a Solar showed both. Their entries now point at the core entry's ladder.
 # The ruling is "point at the Solar ones"; it is NOT a same-name fallback — see the
 # Alchemical Artifact test below for why that distinction is load-bearing.
@@ -660,6 +652,6 @@ def test_the_storyteller_override_still_shows_every_books_version(rs):
     """The displacement must NOT reach `all_available`: there the ST asked for every
     book's version, and the seven differently-reworked Artifacts are the point —
     core, Illuminated, Dragon-Blooded, Abyssal, Alchemical, Mountain Folk and (since
-    2026-08-13, PG p.175-176) Dragon-Kings."""
+   , PG p.175-176) Dragon-Kings."""
     rows = rs.backgrounds_for("Solar", all_available=True)
     assert len([b for b in rows if b.name == "Artifact"]) == 7

@@ -12,8 +12,7 @@ splitter + detail pane), not the NiceGUI page's card stack. Tests address the ta
 the detail pane, never a card.
 
 ⚠ Controls are addressed by objectName (`houserule.<field>`), never by position in a
-`findChildren` list — a checkbox found by index is how a test passed a wrong assertion
-into existence on the Gear tab.
+`findChildren` list.
 """
 
 from pathlib import Path

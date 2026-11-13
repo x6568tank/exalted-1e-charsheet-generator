@@ -377,7 +377,7 @@ def _active(user, marker: str) -> bool:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_a_colour_picks_the_pen_from_select_and_the_eraser(create_user) -> None:
-    """The human, 2026-09-25: switching a colour switches to the pen. A drawing tool
+    """The human: switching a colour switches to the pen. A drawing tool
     that is active stays: a red rectangle is a reason to pick red."""
     _, _, table, [(player, _, _)] = await _campaign(create_user, "Ashes of Dawn")
     await player.open(chrome.table_url(table.id))
@@ -469,7 +469,7 @@ async def _ask(user, args: dict) -> None:
 @pytest.mark.nicegui_main_file(MAIN)
 @pytest.mark.parametrize("kind", ["text", "token"])
 async def test_the_ask_dialog_edits_an_existing_object(create_user, kind: str) -> None:
-    """Server review finding 8: an edit of an old text object lost its position."""
+    """An edit of an existing object keeps its position."""
     _, _, table, [(player, player_id, _)] = await _campaign(create_user, "Ashes of Dawn")
     board = TableBoard(_tables())
     old = (token("o1") if kind == "token" else

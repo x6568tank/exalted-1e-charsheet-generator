@@ -146,7 +146,7 @@ def test_the_bonus_point_table_is_the_printed_one(rs) -> None:
 
 def test_a_favored_specialty_is_two_dots_per_point(rs) -> None:
     """p.127 reads "Specialty | 1 (2 per 1 if in the Favored Ability)". Ruled as a
-    DISCOUNT (human, rules authority, 2026-08-01) — two specialties per point, running
+    DISCOUNT (human's ruling) — two specialties per point, running
     the same direction as the Ability line above it, which also gets cheaper when
     Favored. The other reading (2 points each) would have made Favored dearer."""
     assert rs.bonus_costs_for("Ghost").specialty == 1
@@ -347,7 +347,7 @@ def test_raising_a_virtue_WITH_XP_opens_a_passion_dot(rs) -> None:
     """⚠ THE test this whole area exists for, and the build's most-repeated bug shape.
 
     p.283: "Ghosts increase their Passions when they increase their Virtues. There is
-    no other way for these Traits to increase" — and the human confirmed (2026-08-01)
+    no other way for these Traits to increase" — and the human confirmed
     that this holds POST-LOCK. A pool wired into chargen only would pass every test
     above and silently stop tracking here, exactly as Callous's Willpower did.
 
@@ -825,7 +825,7 @@ async def test_the_editor_builds_for_the_mundane_dead(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_picker_gives_arcanoi_their_own_page(user) -> None:
-    """Human's call (2026-08-01): Arcanoi are their own Charms page, like Thaumaturgy,
+    """Human's call: Arcanoi are their own Charms page, like Thaumaturgy,
     not entries in a dropdown of Ability names. And the page must be REACHABLE — a
     group with no categories renders an empty canvas.
 
@@ -886,10 +886,8 @@ def test_the_foreign_charm_bar_survives_the_generalist_privilege(rs) -> None:
     """"Ghosts may not learn Exalted Charms" (E:Ab p.126) — no caste privilege and no
     house rule reopens it.
 
-    Found by preflight, not by the suite: the bar lived in `charm_matches_splat`, but
-    `charm_learnable_by_splat` falls THROUGH that to the p.127 generalist rule, so a
-    second route reached the same permission with the bar enforced on only one of
-    them. That is this build's most-repeated bug shape.
+    ⚠ Both routes apply the bar: `charm_matches_splat`, and `charm_learnable_by_splat`,
+    which continues to the p.127 generalist rule.
 
     The bar is NOT total — see the Terrestrial martial-arts exception below. This
     test is about the Charms it does cover, and about both routes agreeing.
@@ -1030,7 +1028,7 @@ def test_no_module_outside_merits_names_fighter_in_life() -> None:
 
 
 def test_ghosts_get_five_dragon_style_and_not_the_immaculate_paths(rs) -> None:
-    """The tagging correction of 2026-08-01, from the ghost side — and the reason it
+    """The tagging correction of, from the ghost side — and the reason it
     cost twice. p.234 gives ghosts "only Terrestrial styles":
 
       * **Five-Dragon Style is Terrestrial**, so a ghost may learn it. It had been
@@ -1056,7 +1054,7 @@ _SPIRIT_SIGHT = "dragonblooded.martial-arts.spirit-sight"
 
 
 def test_ghosts_are_barred_from_spirit_walking(rs) -> None:
-    """Human, rules authority, 2026-08-01. The same Charm the Essence Mastery Merit
+    """Human, rules authority. The same Charm the Essence Mastery Merit
     withholds from mortals, and for the same reason — it is what opens the Immaculate
     Dragon Paths.
 
@@ -1099,10 +1097,8 @@ def test_the_bar_is_splat_scoped_and_leaves_everyone_else_alone(rs) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# The 2026-08-01 browser click-through
+# UI decisions that must ask the engine
 # --------------------------------------------------------------------------- #
-# Two findings, both invisible to 1,684 passing tests, and both the same species: a
-# rule the ENGINE knows, in a UI decision that never asked it.
 
 def test_the_arcanoi_page_is_a_charm_tree_page(rs) -> None:
     """FOUND IN THE BROWSER: the Arcanoi tab rendered nothing at all.
@@ -1200,7 +1196,7 @@ def test_has_combos_tab_keeps_the_tab_for_a_charm_slot_splat(rs) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_a_ghost_gets_no_abilities_page(user) -> None:
-    """FOUND IN THE BROWSER (2026-08-01), the third of the same species: the Abilities
+    """FOUND IN THE BROWSER, the third of the same species: the Abilities
     page was offered to a ghost, who holds no Ability-keyed Charms at all.
 
     `GROUPS["abilities"]` was gated on `_all_categories` — truthy for a splat with
@@ -1238,16 +1234,12 @@ def test_every_picker_page_is_gated_on_its_own_group(rs) -> None:
 
 
 def test_the_charm_whose_field_name_lost_its_space(rs) -> None:
-    """p.244 prints "PrerequisiteCharms: Essence-DevouringGhost Touch" — the paste
-    dropped the space in the FIELD NAME and again inside the Charm name.
+    """p.244 prints "PrerequisiteCharms: Essence-DevouringGhost Touch": the paste
+    dropped the space in the FIELD NAME and inside the Charm name.
 
-    The human hand-corrected this in the JSON; a later re-extract silently overwrote
-    the fix, and I read the resulting drop from 50 prerequisites to 49 as the data
-    being stale rather than as the extractor being wrong. The parser now derives the
-    correction from source, so it survives a re-extract.
-
-    Both halves of the repair are asserted: the prerequisite is attached, AND the line
-    is gone from the description it had been swallowed into.
+    The parser corrects this from the source, thus a re-extract keeps it. Both halves
+    are asserted: the prerequisite is attached, AND the line is not in the
+    description.
     """
     c = rs.charms["ghost.essence-measuring-thief.feeding-the-lampreys-appetite"]
     assert [p for g in c.prerequisites for p in g] == [
@@ -1271,7 +1263,7 @@ def test_no_arcanos_description_swallowed_a_field_line(rs) -> None:
 def test_no_arcanos_name_capitalises_after_an_apostrophe(rs) -> None:
     """`str.title()` treats an apostrophe as a word boundary, so the ALL-CAPS source
     headings came out as "Lamprey'S Appetite". Five Arcanoi were affected (reported at
-    the browser, 2026-08-01).
+    the browser).
 
     Asserted over the whole catalogue rather than the five, and over both apostrophe
     characters — the paste uses the curly U+2019, so a check written against the ASCII

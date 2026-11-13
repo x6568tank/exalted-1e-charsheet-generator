@@ -8,8 +8,8 @@ the chargen purchase bar, and the corebook single-artifact default.
 `artifacts.X` throughout, which a same-named sibling would make ambiguous. The rating
 and soak MECHANICS live there; only legality lives here.
 
-⚠ Artifacts have THREE acquisition channels (decision 0017, amended 2026-08-13/14) and
-only the first is budgeted:
+⚠ Artifacts have THREE acquisition channels (decision 0017). Only the first is
+budgeted:
   1. the Artifact Background — pre-game, "to start the game owning" (core p.342);
   2. cash in play (M&C pp.122-125), barred at chargen;
   3. the Legendary Artifact 10-pt Merit — five plot devices printing "(ARTIFACT N/A)",
@@ -170,15 +170,8 @@ def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
     budgets = effective_budgets(ruleset, character)
     rule = artifacts.artifact_rule(budgets)
     rating = background_rating(character.backgrounds, artifacts.ARTIFACT_BACKGROUND)
-    # A splat with no Artifact rule at all (plain Solar, Lunar, Sidereal, Ghost,
-    # Godblooded, the Abyssal renegade who "uses the Artifact Background found in
-    # Chapter Four", p.131) falls back to the COREBOOK rule, which is not "no budget".
-    # Human ruling 2026-08-13: the corebook default is ONE artifact, rated no higher
-    # than the Background — every rung of the printed ladder describes a single item
-    # ("A useful item, a weapon or suit of armor"), and the splats that hand out
-    # several (DB, Dragon-Kings, Mountain Folk, Alchemical) are exactly the ones whose
-    # own ladder says so. This branch used to `return issues`, which meant a Solar
-    # could hold five daiklaves on Artifact 0 in silence.
+    # A splat with no Artifact rule (p.131) uses the COREBOOK rule, which is not "no
+    # budget": ONE artifact, rated no higher than the Background (human's ruling).
     if artifacts.uses_corebook_rule(rule):
         # …unless this splat DOES print a rule and the character simply has not reached
         # the row that carries it — a Mountain Folk with no Enlightenment chosen. See
@@ -240,13 +233,9 @@ def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
                             f"({rule.rating_per_dot} per dot, p.176); this character "
                             f"owns combined rating {combined}.",
                 ))
-            # Human ruling 2026-08-05 (via a 1e-experienced source): the doubled rule
-            # is "you get (Rating x 2) artifact dots to spread around, with no one
-            # artifact having a rating higher than (Background rating)". So a 4-dot
-            # artifact needs Artifact 4 even though the doubled budget would fit it.
-            # Applies to the doubled rule (DB/DK, rating_per_dot 2); Alchemical's
-            # "three dots per dot" is left to the combined cap, whose per-item shape
-            # this code does not have a source for.
+            # The doubled rule (DB/DK, rating_per_dot 2; human's ruling): no artifact
+            # is rated above the Background rating. The Alchemical rule has only the
+            # combined cap: no source gives a per-item limit.
             if rule.rating_per_dot == 2:
                 for item in items:
                     if item.rating > rating:
@@ -256,10 +245,8 @@ def check_artifacts(ruleset: RuleSet, character: Character) -> list[Issue]:
                                     f"above {rating} (p.176); {item.name} is "
                                     f"{item.rating}.",
                         ))
-                # Human correction 2026-08-05: only ONE artifact may be rated AT the
-                # Background rating (the flagship) — the rest are smaller. Artifact 5
-                # + [5,5] is two flagships and invalid; Artifact 5 + [4,1] is the
-                # intended shape (flagship plus smaller artifacts).
+                # Only ONE artifact can be rated AT the Background rating (human's
+                # ruling). Artifact 5 + [5,5] is illegal. Artifact 5 + [4,1] is legal.
                 if sum(1 for i in items if i.rating == rating) > 1:
                     issues.append(Issue(
                         code="artifact-two-flagships", where="Artifact",

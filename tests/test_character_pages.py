@@ -2,7 +2,7 @@
 
 PRODUCTION wiring: `tests/_auth_main.py` runs `server/main.build_server` and the
 login gate. Section 5 piece 4; `docs/plans/vtt.md` sections 9.2 to 9.4 and the
-rulings of 9.3a (2026-09-12).
+rulings of 9.3a.
 
 ⚠ `should_not_see` returns on the first check at which the text is absent. Each
 absence here follows a `should_see` of something that the same render draws.
@@ -107,7 +107,7 @@ async def test_new_character_opens_its_own_page(user: User) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_a_character_page_has_home_and_no_party_new_or_load(user: User) -> None:
-    """Party is hidden until P3 (ruled 2026-09-12). New and Load are on /home."""
+    """Party is hidden until P3 (human's ruling). New and Load are on /home."""
     await _sign_up(user, "Harmonious")
     user.find(marker="home-new").click()
 
@@ -175,7 +175,7 @@ async def test_only_the_lock_action_that_applies_is_shown(user: User) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_unlock_after_xp_warns_before_it_unlocks(user: User) -> None:
-    """Ruled 2026-09-12: unlock after XP is allowed, with a warning."""
+    """Ruled: unlock after XP is allowed, with a warning."""
     from exalted_builder.models.character import XpEntry
 
     user_id = await _sign_up(user, "Harmonious")
@@ -246,7 +246,7 @@ def _assert_no_custom_tab_drawn(user: User) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_a_forged_custom_tab_event_draws_no_library_on_a_draft(user: User) -> None:
-    """Server review finding 1: a draft leaked the path of the account's folder."""
+    """A forged "Custom" event on a draft does not show the account's folder."""
     await _sign_up(user, "Harmonious")
     await _new_character(user)
 
@@ -258,7 +258,7 @@ async def test_a_forged_custom_tab_event_draws_no_library_on_a_draft(user: User)
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_a_forged_custom_tab_event_draws_no_campaign_library(create_user) -> None:
-    """Server review finding 1: a player could edit the homebrew of the campaign."""
+    """A forged "Custom" event does not let a player edit the campaign homebrew."""
     st, player = create_user(), create_user()
     st_id = await _sign_up(st, "Storyteller")
     player_id = await _sign_up(player, "Player")
@@ -311,8 +311,8 @@ def _assert_solo_bindings(ctx: dict, player_id: int, solo_ctx: dict) -> None:
 @pytest.mark.parametrize("how", ["remove", "leave", "delete"])
 async def test_a_copy_out_of_its_campaign_loses_the_campaign_bindings(
         create_user, how: str) -> None:
-    """Server review finding 2: the context kept the folder and the RuleSet of the
-    campaign after the copy left it."""
+    """A copy that leaves its campaign loses the folder and the RuleSet of the
+    campaign."""
     player, player_id, st_id, table, copy, solo = await _player_with_a_copy(create_user)
     solo_ctx = await _open(player, solo)
     ctx = await _open(player, copy)
@@ -346,7 +346,7 @@ async def test_the_party_page_is_not_on_the_server(user: User) -> None:
 # Save, auto-save and download on a character page
 #
 # Moved here from test_hosted_save.py and test_session_destinations.py on
-# 2026-09-12, when the per-account builder they tested left the server. The
+#, when the per-account builder they tested left the server. The
 # properties are the same; the wiring is the production wiring again.
 # --------------------------------------------------------------------------- #
 
@@ -441,7 +441,7 @@ async def test_download_gives_the_character_and_keeps_the_save_target(user: User
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_a_character_page_takes_no_path_from_the_browser(user: User) -> None:
-    """🐞 Closed 2026-09-12 (`beda3ec`): a Load dialog that took a server path let
+    """🐞 Closed (`beda3ec`): a Load dialog that took a server path let
     a player open and auto-save over the save of another account. A character
     page has no Load at all; import is on /home, by upload."""
     await _sign_up(user, "Harmonious")

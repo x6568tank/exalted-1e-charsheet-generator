@@ -1,7 +1,7 @@
 """Adding a character from inside a campaign: `TableStore.bring` and the campaign
 drafts.
 
-Step 6b of `docs/plans/p3-tables.md` section 14 (ruled 2026-09-22):
+Step 6b of `docs/plans/p3-tables.md` section 14 (human's ruling):
 
   1. A member brings one of their locked bases: the join request, from the
      membership instead of the code.
@@ -248,7 +248,7 @@ def test_grant_and_unlock_refuse_a_draft(st, tables, store, table) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# The Storyteller's own character is approved at once (human, 2026-09-22)
+# The Storyteller's own character is approved at once (human's ruling)
 # --------------------------------------------------------------------------- #
 
 

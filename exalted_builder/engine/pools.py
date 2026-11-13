@@ -117,14 +117,9 @@ class PoolBreakdown:
 class SpecialtyOption:
     """One specialty as the calculator offers it: a NAME and the dice it is worth.
 
-    ⚠ Not a `Specialty` row, and that is the whole point. A specialty is an
-    INSTANCE, not a rated trait (ruling 2026-07-31) — `Character.specialties` holds
-    one row per instance, and the loader SPLITS a legacy `rating: 2` into two rows
-    of 1. "Characters may take the same specialty more than once to increase the
-    bonus" (p.134), so a swordsman who took Daiklaves twice rolls +2, not +1. That
-    only comes out right if the instances are summed by name — offering the raw rows
-    gives the player two identical entries worth one die each and silently
-    under-counts the pool.
+    ⚠ Not a `Specialty` row. A specialty is an INSTANCE, not a rated trait (human's
+    ruling): `Character.specialties` has one row per instance (p.134). This type sums
+    the instances by name: Daiklaves taken two times is one option worth +2.
     """
     ability: object                       # AbilityName
     name: str

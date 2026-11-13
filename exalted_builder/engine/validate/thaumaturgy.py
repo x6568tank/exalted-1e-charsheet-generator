@@ -8,9 +8,8 @@ issue functions.
 
 ⚠ Ghosts may HOLD thaumaturgy and may never USE it.
 
-⚠ The Science costs (5/7 BP, 7/current×6 XP) are the only values in the build with no
-printed page behind them — the tables omit Sciences entirely. Rates supplied by the
-human 2026-07-29; do not "correct" them from a book.
+⚠ The Science costs (5/7 BP, 7/current×6 XP) have no printed page (human's ruling).
+Do not "correct" them.
 
 ⚠ Every Storyteller toggle lives on `HouseRules`, including the two optional p.113
 chargen caps read here. Fields are marked TABLE-WIDE or PER-CHARACTER in comments only,
@@ -161,7 +160,7 @@ def magic_for_everyone_grant(ruleset: RuleSet, character: Character) -> int:
 
     0 unless the table has switched the rule on. Occult is read from the chargen
     source, so the allowance is fixed at creation — **raising Occult with XP does not
-    earn more free picks** (rules-authority call, human 2026-07-29). Post-lock that
+    earn more free picks** (human's ruling). Post-lock that
     happens for free: the snapshot holds chargen Occult.
     """
     if not chargen_house_rules(character).magic_for_everyone:

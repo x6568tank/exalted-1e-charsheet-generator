@@ -1,21 +1,15 @@
 """
 tests/test_merit_postlock.py — Merit legality after the lock.
 
-`merit_issues` used to be called from exactly one place, `validate_chargen`, while
-`buy_merit` / `gain_flaw` / `drop_merit` all work post-lock. Found by the preflight
-of 2026-08-17: the split made the phase visible, because `merit_issues` landed in
-the chargen-only module.
+`buy_merit` / `gain_flaw` / `drop_merit` work after the lock, thus the Merit gates must
+run there too. Two jobs, with different shapes:
 
-Two separate jobs, and they are not the same shape:
-
-  * **The buy path** must bar what it cannot undo. `tier_barred_exalt_types`,
-    `thaumaturges_only`, the trait prerequisites and the point limits were all
-    checked at chargen and not at purchase, and the tier was validated against the
-    GENERIC cost menu rather than the character's own.
-  * **The drift gates** must re-run post-lock as WARNINGS (human's ruling
-    2026-08-17). Three of the gates measure something that can change after the
-    purchase — an artifact lost, a Background dropped, a trait cursed down — and a
-    character then holds a benefit they no longer qualify for.
+  * **The buy path** must bar what it cannot undo: `tier_barred_exalt_types`,
+    `thaumaturges_only`, the trait prerequisites and the point limits. The tier is
+    checked against the character's own cost menu, not the generic one.
+  * **The drift gates** run after the lock as WARNINGS (human's ruling). Three gates
+    measure something that can change after the purchase — an artifact lost, a
+    Background dropped, a trait cursed down.
 
 ⚠ The frozen-choice gates (splat, caste, origin, tier) deliberately do NOT re-run.
 They cannot drift, so re-checking them post-lock only creates noise.
@@ -134,9 +128,7 @@ def test_a_repeat_cap_that_lapses_after_the_lock_is_warned_about(rs):
 
 
 def test_a_second_copy_is_no_longer_reported_as_an_illegal_repeat(rs):
-    """The regression the data fix exists to prevent. While `repeatable_by` was
-    empty, a second copy was refused as `merit-repeated` and the Occult cap could
-    never be the thing that bound — the printed rule was unreachable."""
+    """With `repeatable_by` set, a second copy is legal and the Occult cap binds."""
     c = _solar(abilities={AbilityName.OCCULT: 3},
                merits_flaws=[MP(merit_id=DIVINATION, detail="tea leaves"),
                              MP(merit_id=DIVINATION, detail="entrails")])
@@ -263,7 +255,7 @@ def test_buy_merit_prices_the_tier_against_the_characters_own_menu(rs):
 # --------------------------------------------------------------------------- #
 # The side resolution — one branch, both shells
 # --------------------------------------------------------------------------- #
-# Extracted from ui/advantages.py when the Qt Advantages tab was ported (2026-08-21):
+# Extracted from ui/advantages.py when the Qt Advantages tab was ported:
 # which of buy_merit / gain_flaw runs is what makes the XP positive or negative, so it
 # is a rules decision and may not be hand-copied into each widget.
 

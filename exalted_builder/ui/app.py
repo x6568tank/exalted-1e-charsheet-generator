@@ -72,13 +72,10 @@ def _trait_row(r: viewmod.TraitRow, dot_total: int = 5) -> None:
 
 
 def _content_mark(row) -> None:
-    """The provenance marker beside a Charm/spell name: homebrew from the user's
-    custom library, or an id that no longer resolves at all. Nothing is drawn for
-    ordinary printed content, which is the overwhelming majority of rows.
+    """Return the provenance marker for a Charm/spell name: homebrew from the custom
+    library, or an id that does not resolve. Printed content gets no marker.
 
-    Custom content must stay obvious at a glance on a sheet (human's requirement,
-    2026-07-29) — a Storyteller reading a player's sheet needs to see which Charms
-    are not in any book."""
+    Custom content must be visible at a glance on a sheet (human's ruling)."""
     if getattr(row, "missing", False):
         ui.label("⚠").classes("text-xs text-red-600").tooltip(
             f"'{row.name}' is not in the rule set — its definition is missing "
