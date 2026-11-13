@@ -110,14 +110,9 @@ Simplified Technical English, and it is less memorable. That is the cost, and it
 accepted here because this file must be exact. A commit message records reasons and
 history, thus it needs narrative.
 
-A docstring gives the input, the output, and the method that connects them. It gives
-nothing else. Put the reasons and the history in the commit message and in `docs/status/`.
-
-Keep three items in the code:
-
-1. Page citations.
-2. Warning marks that record a trap in the behavior.
-3. The contract of the function.
+A docstring gives the input, the output, and the method that connects them. Nothing else.
+Keep in addition: page citations, and ⚠ marks for behavioral traps.
+A field comment gives a citation, and one short clause only if the field name does not give the meaning.
 
 The full standard is in `docs/comment-standard.md`.
 

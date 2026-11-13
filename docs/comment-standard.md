@@ -1,78 +1,38 @@
-# 📝 The comment standard (human, 2026-08-17) — applies to ALL new code
+# Comment standard
 
-A docstring carries **input, output, and how it gets from one to the other. Nothing
-else.** No decision-making logs, no chain of thought, no dated narration of how the code
-reached its shape. *"Commit messages are fine to be wordy… we do want a log, but that
-shouldn't bloat the code."* Put the reasoning, the alternatives and the
-bugs-found-along-the-way in the commit message and `docs/status/`.
+Applies to all `*.py` files. Write comments and docstrings in Simplified Technical
+English (`CLAUDE.md` §6).
 
-Three things STAY: **page citations** ("core p.104", or a short undated "human's ruling"
-where no page exists); **⚠ records of behavioural traps** — *"those are important to
-anyone working on this"*, and a trap buried in narration should come OUT as an explicit
-⚠, not be deleted with it; and the contract itself.
+## Keep
 
-## The pass, and what is left of it
+- **Docstring:** the input, the output, and the method that connects them. Nothing else.
+- **Field comment:** a page citation. Add one short clause only if the name and the
+  default value do not give the meaning.
+- **Page citations:** `core p.104`, `PG pp.175-177`. If there is no page, write
+  `human's ruling`, with no date.
+- **⚠ traps:** a behavior that breaks if someone changes the code without knowing it. If
+  a trap is inside narration, rewrite it as a ⚠ line. Do not delete it.
 
-`engine/validate/` had this pass on 2026-08-17. Three days later, `ea0df0e` and
-`2833f682` (2026-08-20, "trimming down code comments" / "more comment cleanups") swept
-**`ui/`**, **`models/`** and **`engine/` outside validate** too — this was not recorded
-here at the time, which left this file claiming those three as untouched for two weeks.
-**Re-measured 2026-09-03** (docstring-lines / total-lines, all `*.py` under each dir):
-`ui/` 11%, `models/` 22%, `engine/` outside validate 26% — all down sharply from the
-24%/61%/38% this file used to cite, and a spot-check of the longest remaining
-docstrings (`models/adversary.py` at 49 lines, `engine/pools.py` at 35) found citations,
-⚠ traps and contract, not narration — length there tracks genuinely complex data
-shapes, not unpruned prose. Treat `ui/`, `models/` and `engine/` outside validate as
-**done**, not a backlog.
+## Delete
 
-**`qt/` had the pass on 2026-09-10** — all 18 files, ~3,400 prose lines.
+- Dates, session notes, bug history ("used to", "found when", "the human reported").
+- Reasons, alternatives, and design discussion. Put them in the commit message or in
+  `docs/decisions/`. If necessary, leave a one-line pointer.
+- Text that the default value already gives ("0 for every other splat", "unused by X").
+- "Mirrors X" cross-references. If the link is important, a test enforces it.
+- Book quotes when the code already holds the value. Keep a quote only if the exact
+  words decide the interpretation.
+- Text that restates the code.
 
-**`server/` had the pass on 2026-10-09** — 24 of 32 files touched, 9,614 lines. It was
-written to STE from the start, so the pass was small: 41 dated stamps → 0, every "Step N
-of the build order" / "Piece N adds" header (plan history) → a plain section citation, and
-three narrations turned into contracts or ⚠ (`session.py`'s "the defect this removes",
-`characters.homebrew_dir`'s past-tense bug). Density 19% → 19%, ⚠ 185 → 186, zero
-citations lost. `db.py`'s SQL `--` comments live in a string literal, so `prose_guard`
-reports CODE CHANGED there; verify it by stripping `--` lines from both revisions.
+## Verify a pass
 
-⚠ **The "done" above for `ui/`, `models/` and `engine/` is WRONG (found 2026-10-09).**
-Dated stamps left per package: `server/` 0, `qt/` 0, `ui/` 55, `models/` 34, `engine/`
-79, plus narration such as "Found 2026-08-28 by the first test…", "which is how it
-presented", "Moved verbatim out of … 2026-08-10". The 2026-09-03 check measured density
-and read the LONGEST DOCSTRINGS; the narration is in short inline comments, which that
-method cannot see. Grep for `20\d\d-\d\d-\d\d` before calling a package done. Those three
-packages are the real backlog.
+Run `tools/prose_guard.py <baseline-ref> <paths…>`. It strips the docstrings, compares
+the AST, and reports a lost page citation or ⚠. It also passes on a no-op, thus read the
+diff.
 
-What the pass actually removed was **not bulk**: docstring density went 13% → 13% and total
-prose 22% → 23% (the package grew 43 lines). It removed the three things the standard names
-and left everything else alone:
+⚠ The guard reports CODE CHANGED for comments inside string literals. Check these files
+by hand: `qt/theme.py` (`/* … */` in the QSS f-string) and `server/db.py` (`--` in SQL
+strings).
 
-* **Dated narration.** 52 `(human, 2026-08-21)`-style stamps became undated `(human's
-  ruling)`, which is the form this file asks for. Bug archaeology went with them — `layout.py`
-  carried "the *ghosty duplicate* the human reported against the Advantages spike (2026-08-21),
-  and before that `_clear_lay` in milestone 1"; the trap it wrapped ("`item.widget()` is None
-  for a `QLayout`") stayed.
-* **Meta-commentary about the rules themselves** — "that instruction was already in
-  `docs/plans/qt-port.md` and was not enough, which is why the shape is now a function",
-  "an exception that is written down is not drift".
-* **Non-STE prose** — em-dash chains, 40-word sentences, passive voice, "we"/"us".
-
-⚠ **The ⚠ count went 363 → 561.** That is the pass working as intended, not inflation: the
-standard says *a trap buried in narration should come OUT as an explicit ⚠*, and a third of
-the traps in `qt/` were buried in exactly that way. Page citations were held at 62 distinct,
-zero lost.
-
-⚠ **`theme.py` cannot be checked by `prose_guard.py`.** Its trap comments live inside the
-QSS f-string, so they are code to the AST and the guard reports CODE CHANGED. Verify that
-file by stripping `/* … */` from both revisions and comparing the rendered rule text
-instead. It is the only file in the package with comments inside a string literal.
-
-Use `prose_guard.py`'s method: strip all docstrings, compare the AST (byte-identical ⇒ no
-code changed), then assert no page citation and no ⚠ marker was lost.
-
-⚠ The guard proves *nothing was broken*. It cannot tell you the prose got better — it
-passes just as happily on a no-op. Read the diff.
-
-⚠ **Judge such a pass by what the prose IS, never by line count** — validate's only went
-35% → 34% and that was the correct outcome. A long docstring is not evidence of bloat by
-itself; check content before trimming.
+A package is done when this returns nothing:
+`grep -rE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' exalted_builder/<package> --include=*.py`
