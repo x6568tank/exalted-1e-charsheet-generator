@@ -1,6 +1,41 @@
-# Session handoff — 2026-10-10 (security review applied and deployed)
+# Session handoff — 2026-11-13 (second server review applied; next: comment pass)
 
 # 👉 YOU ARE HERE
+
+**Next: a full comment pass to the NEW standard.** The human overhauled
+`docs/comment-standard.md` and `CLAUDE.md` §6 on 2026-11-13 (the old one was "far too
+lenient"); those two edits are the human's and may still be uncommitted. Start with the
+code of `91143ce`, `ec83826`, `25e4fe5`: their tests' docstrings carry "Server review
+finding N" history and `table_board.py` has a reason/history comment on
+`MAX_TOKEN_INPUT_PIXELS`.
+
+**A second review of `server/` (2026-11-09, this laptop) is applied:**
+`docs/plans/server-review.md`. All but finding 7 (NiceGUI's per-request `_users` leak;
+upstream; a scheduled restart is the cheap answer) are fixed. The laptop did NOT have the
+October commits below when the review was written, so three findings overlapped them.
+🐞 **A deploy from a stale laptop overwrote the October fixes on the live server** for
+a few minutes (`4751e7c`); the push was refused, which is how it was found. Rebased onto
+`origin/main` and reconciled: the October `server/upload_limit.py` kept (the laptop's
+duplicate guard dropped; the handler check renamed `ui/upload_check.py`), the stricter
+`site.is_local_path` kept, the cap stays `MAX_CAMPAIGNS = 20` (the human confirmed 20
+over a same-day "5") with a single-statement count-and-insert. Lesson: `git fetch` and
+compare with `origin/main` BEFORE a deploy from a machine that has been idle.
+
+**Suite:** the full suite was NOT run after the rebase (the human's call). Affected
+tests: 219 passed (`test_upload_handlers`, `test_upload_limit`, `test_server_main`,
+`test_auth_gate`, `test_table_store`, `test_character_pages`, `test_account_page`,
+`test_page_revocation`). Before the rebase: 4476 + 1 skipped.
+
+**Deployed and pushed:** `25e4fe5`, 2026-11-13. Live check: a 14 MB POST to an upload
+route answers 413 "Upload too large." (the October guard's text).
+
+🖱 **Owed (display only):** the Custom tab is absent on a hosted character page; the
+board's text-object edit keeps its position; 6 wrong passwords on `/account` → the wait
+message. Plus the October list below.
+
+---
+
+# Previous: 2026-10-10 (security review applied and deployed)
 
 **The refactor pass is still the frame** (`docs/plans/refactor-pass.md`); this session
 interrupted it for security.
