@@ -68,10 +68,8 @@ from .models.rules import (
     MagicalMaterial,
     RollDefinition,
     MeritFlaw,
-    # Alias: `pathlib.Path` is already imported above, and the Dragon-King Path
-    # catalogue class collides with it. models.rules.py itself has no pathlib import,
-    # so the class is named `Path` there and aliased at every consumer that uses
-    # pathlib too — this is the only one today.
+    # Alias: `pathlib.Path` is imported above, and the Dragon-King Path class has the
+    # same name. Alias the class at each module that also uses pathlib.
     Path as DragonKingPath,
     SOLAR_EXALT,
     NatureType,

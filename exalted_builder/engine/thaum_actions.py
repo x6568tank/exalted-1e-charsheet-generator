@@ -198,9 +198,7 @@ def add_thaum_orientation(ruleset: RuleSet, character: Character, kind: str,
 
 def buy_custom_ritual(ruleset: RuleSet, character: Character, name: str, level: int,
                       orientation: Orientation) -> str:
-    """Author a ritual the catalogue does not hold. The book prints five and plainly
-    expects more to be written (p.148), so the catalogue is a seed — the
-    editable-custom-weapons precedent."""
+    """Author a ritual that the catalogue does not hold (p.148)."""
     name = (name or "").strip()
     if not name:
         _refuse("A custom ritual needs a name.")

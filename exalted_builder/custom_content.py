@@ -235,11 +235,11 @@ def _upsert(path: Path, row: dict, index: int) -> None:
 
 def save_charm(payload: dict, *, custom_dir: str | Path | None = None,
                reserved_ids: Optional[set[str]] = None) -> Charm:
-    """Create or replace one custom Charm. Returns the parsed Charm; raises
-    CustomContentError with a user-facing message if it will not do.
+    """Create or replace one custom Charm. Return the parsed Charm. Raise
+    CustomContentError with a message for the user if it is invalid.
 
-    Replacement keeps the id, which is the whole point — a character that owns the
-    Charm keeps owning it across an edit. Only a DELETE can orphan a reference.
+    ⚠ A replace keeps the id: a character that owns the Charm keeps it. Only a DELETE
+    orphans a reference.
     """
     charm = _validated(payload, Charm, reserved_ids)
     root = _dir(custom_dir)

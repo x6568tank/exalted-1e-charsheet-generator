@@ -102,7 +102,7 @@ class DescribedSelect(ui.select):
         for option, name in zip(self._props["options"], self._labels):
             text = self._descriptions.get(str(name), "")
             described.append({**option, "description": text} if text else option)
-        with self._props.suspend_updates():      # we are already inside an update
+        with self._props.suspend_updates():      # already inside an update
             self._props["options"] = described
 
 
@@ -758,8 +758,8 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                             _frozen(ui.select(origins, label="Origin",
                                       value=character.origin or next(iter(origins)),
                                       on_change=lambda e: set_origin(e.value)).classes(_field))
-                            # Second axis, and only for the origins that have one — see
-                            # _ORIGIN_UPBRINGINGS. Everything else renders exactly as before.
+                            # The upbringing, only for the origins that have one (see
+                            # _ORIGIN_UPBRINGINGS).
                             ups = upbringing_options(
                                 character.exalt_type, character.origin or next(iter(origins)))
                             if ups:
@@ -1049,7 +1049,7 @@ def build_editor(ruleset: RuleSet, character: Character, save_fn: SaveFn,
             with panel(f"Astrological Colleges ({b.college_dots} dots; ≥{b.college_min_own_house} "
                        f"in your Maiden's ★ house — have {own_dots}; ≤{b.college_cap_pre_bp} pre-bonus)"):
                 for idx, cr in enumerate(character.colleges):
-                    # guard an off-catalog id (old save) so the select never 500s
+                    # an off-catalogue id gets its own option, thus the select never fails
                     row_opts = (college_opts if cr.college_id in college_opts
                                 else {**college_opts, cr.college_id: cr.college_id})
                     with ui.row().classes("w-full items-center gap-2 no-wrap"):

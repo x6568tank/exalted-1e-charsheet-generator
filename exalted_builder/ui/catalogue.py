@@ -99,11 +99,8 @@ _DEFAULT_RENDER_CAP = 200
 
 
 def icon_for(tags: Sequence[str], default: str = "") -> str:
-    """The dialog icon for an entry with these tags, or `default` when none match.
-
-    Presentation only — an icon is never a discriminator. (The catalogue dialogs' own
-    scar: a "kind" flag anything on screen can edit turns into a broken row. An icon
-    derived from tags at render time cannot be edited into a lie.)"""
+    """Return the dialog icon for these tags, or `default` if none match. Display
+    only: an icon is never a discriminator."""
     have = {t.lower() for t in tags}
     for tag, icon in _ICON_BY_TAG:
         if tag in have:

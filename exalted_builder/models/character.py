@@ -30,7 +30,7 @@ from .rules import (AbilityName, AttributeName, Damage, Orientation,
                     VirtueName)
 
 
-# The capitalized Solar caste names of old saves, mapped to the caste ids.
+# The capitalized Solar caste names, mapped to the caste ids.
 _LEGACY_CASTE_IDS = {
     "Dawn": "dawn", "Zenith": "zenith", "Twilight": "twilight",
     "Night": "night", "Eclipse": "eclipse",

@@ -607,11 +607,9 @@ def build_play(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                     # "cumulative with temporary Resonance". Shown only where held.
                     perm_cap = derive.permanent_limit_cap(ruleset, character)
                     if perm_cap:
-                        # READ-ONLY here. Permanent Resonance is a permanent trait, not
-                        # play-state: it is gained and shed through the XP ledger so the
-                        # change has an audit trail, exactly as decision 0006 requires of
-                        # a curse. The tracker shows it because it is "cumulative with
-                        # temporary Resonance" and the ST needs the total at the table.
+                        # READ-ONLY here. Permanent Resonance changes through the XP
+                        # ledger (decision 0006). Shown because it adds to temporary
+                        # Resonance (p.41), and the ST needs the total.
                         ui.label(f"Permanent {lim}: {character.limit_permanent} "
                                  f"/ {perm_cap} (capped at Essence)").classes(
                             "text-xs mt-1")

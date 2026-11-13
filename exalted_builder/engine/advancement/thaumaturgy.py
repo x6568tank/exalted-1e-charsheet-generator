@@ -19,8 +19,8 @@ from ._base import AdvancementError, _commit, _ensure_locked
 # Not keyed to a splat. engine.costs applies the cost multiplier.
 
 def _thaum(character: Character) -> ThaumaturgyState:
-    """The character's ThaumaturgyState, creating it on first purchase. Character.
-    thaumaturgy stays None for anyone who never buys any, so old saves round-trip."""
+    """Return the ThaumaturgyState, created on the first purchase. It stays None if the
+    character buys none."""
     if character.thaumaturgy is None:
         character.thaumaturgy = ThaumaturgyState()
     return character.thaumaturgy

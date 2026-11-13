@@ -411,14 +411,12 @@ def shop_custom_kinds(character: Character) -> dict[str, str]:
 
 
 def service_rows(ruleset: RuleSet, character: Character) -> list[tuple]:
-    """The services price list, as `(category, name, dots, cash, notes, affordable)`
-    ordered by category then name.
+    """Return the services price list as `(category, name, dots, cash, notes,
+    affordable)`, by category then name.
 
-    ⚠ `GearType.cash` — the printed jade and silver equivalents — is the whole point of
-    this panel and its only read site. A name and a dot column alone is a PRICE list
-    showing no prices, which is the house bug; what makes a reference panel worth its
-    space is the information you cannot get anywhere else. Nothing computes from it:
-    M&C p.122 says outright the Resources ladder is not linear.
+    ⚠ `GearType.cash` (the printed jade and silver) is the reason for this panel and
+    its only read site. Nothing calculates from it: the Resources ladder is not linear
+    (M&C p.122).
     """
     services = [g for g in ruleset.gear_catalog.values() if g.kind == "service"]
     return [(g.category, g.name, g.resources_cost, g.cash, g.notes,

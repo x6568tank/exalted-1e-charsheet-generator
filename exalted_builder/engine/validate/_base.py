@@ -27,7 +27,7 @@ ATTRIBUTE_CATEGORIES: dict[str, tuple[AttributeName, ...]] = {
 
 
 def thaum_state(character: Character) -> ThaumaturgyState:
-    """The character's thaumaturgy, or an empty state where it is None (old saves)."""
+    """Return the thaumaturgy of the character, or an empty state for None."""
     return character.thaumaturgy or ThaumaturgyState()
 
 
@@ -99,18 +99,16 @@ def _chargen_source(character: Character):
 
 
 def effective_budgets(ruleset: RuleSet, character: Character):
-    """The splat's printed chargen budgets, adjusted by the trait-forfeit Merits and
-    Flaws the character holds (PG pp.35-36).
+    """Return the printed chargen budgets of the splat, adjusted by the held
+    trait-forfeit Merits and Flaws (PG pp.35-36).
 
-    Ability and Virtue dots come DOWN (Callous, Unskilled, Weak-Willed sell chargen
-    dots for bonus points); Background dots go UP (Heir Apparent's inheritance).
-    Returns a COPY — the printed budget in `data/` is unchanged, so a caller may diff
-    the two to show the player what was traded away.
+    Ability and Virtue dots go DOWN (Callous, Unskilled, Weak-Willed). Background dots
+    go UP (Heir Apparent). Returns a COPY: the `data/` budget does not change, and a
+    caller can compare the two.
 
-    ⚠ Diminished Attributes is NOT applied here. Attribute pools are matched to
-    categories by spend rather than declared, so that forfeit must come off the pool
-    its category actually receives, where the two are zipped.
-    `MeritEffects.forfeited_attribute_dots` carries it; nothing consumes it yet.
+    ⚠ Diminished Attributes is NOT applied here: the pools match categories by spend,
+    thus the forfeit comes off the pool that its category gets.
+    `MeritEffects.forfeited_attribute_dots` carries it. Nothing reads it yet.
     """
     b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
     effects = merits.merits_and_flaws_calc(ruleset, character)

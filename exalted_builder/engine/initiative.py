@@ -52,8 +52,8 @@ from ..models.rules import AttributeName, RuleSet
 from . import derive
 from .pools import PoolLine, weapon_minimum_shortfall
 
-# Shown with every rating. The 0008 mitigation in data form, exactly as
-# `pools.EXCLUDES` is: a surface that renders `total` must also render these.
+# Shown with each rating (the 0008 mitigation, as `pools.EXCLUDES`). A surface that
+# renders `total` must render these too.
 EXCLUDES: tuple[str, ...] = (
     "Charm effects (Speardancer Concentration adds Essence for the turn).",
     "Armour mobility and encumbrance — agility rolls only (p.332).",

@@ -305,8 +305,8 @@ def learn_submodule(ruleset: RuleSet, character: Character,
 
 
 def drop_submodule(character: Character, charm_id: str, key: str) -> str:
-    """Give back one chargen submodule. Post-lock the only refund is the XP log's
-    last-first undo on the Edit tab, exactly as for Charms and Combos."""
+    """Give back one chargen submodule. After the lock the only refund is the LIFO
+    undo on the Edit tab."""
     if character.chargen_locked:
         _refuse("That submodule was bought with XP — undo it on the Edit tab.")
     for i in range(len(character.submodules) - 1, -1, -1):

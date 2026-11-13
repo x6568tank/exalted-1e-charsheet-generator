@@ -55,10 +55,9 @@ def is_calling_charm(ruleset, character, charm) -> bool:
 
 
 def camp_min_abilities(ruleset, character) -> list:
-    """The Ability floors imposed by the character's training camp (p.89), unioned
-    into the chargen minimums exactly as the caste's own are. Suppressed by the same
-    `ignore_caste_min_abilities` switch, on the grounds that an origin declaring
-    itself free of required Ability scores means all of them."""
+    """Return the Ability floors of the training camp (p.89), added to the chargen
+    minimums as the caste floors are. `ignore_caste_min_abilities` suppresses them
+    too."""
     camp = camp_for(ruleset, character)
     return list(camp.required_min_abilities) if camp else []
 

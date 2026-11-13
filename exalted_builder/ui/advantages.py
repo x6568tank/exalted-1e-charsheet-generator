@@ -567,10 +567,8 @@ def build_advantages(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         header = f"Merits & Flaws (−{spent} BP"
         header += f", +{grant} from Flaws)" if grant else ")"
         with panel_card(pal, header):
-            # "Characters with more than 10 points of Flaws receive no bonus points for
-            # the excess" (PG p.17). Say so when it bites: the grant in the header is
-            # the CAPPED number, and a player who took 13 points of Flaws and sees "+10"
-            # has no way to tell the cap from a bug in our arithmetic.
+            # PG p.17: no bonus points for Flaw points above 10. Say so when it
+            # applies: the header shows the CAPPED grant.
             if eff.flaw_points_raw > eff.bonus_point_grant:
                 ui.label(viewmod.flaw_excess_note(
                     eff.flaw_points_raw, eff.bonus_point_grant)).classes("text-xs font-semibold text-amber-700")

@@ -311,9 +311,8 @@ def build_thaum_picker(ruleset: RuleSet, character: Character) -> ThaumPickerVie
                 if kind == "ritual" else (
                     costs.thaum_formula_xp(ruleset, character, 1) if in_play
                     else costs.thaum_formula_bp(ruleset, character, 1))
-            # Formulas carry no purchase gate: the source states one for Arts,
-            # aspects and rituals only, and inventing a Science-rating requirement
-            # here would be a rule we do not have. Do not add one.
+            # ⚠ Formulas have no purchase gate: the source gives one for Arts, aspects
+            # and rituals only. Do not add one.
             reason = (validate.thaum_ritual_locked_reason(
                 ruleset, character, obj.level, chargen=chargen)
                 if kind == "ritual" else "")

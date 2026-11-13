@@ -166,17 +166,14 @@ def _custom_content():
 def save_character(character: Character, path: str | os.PathLike, *,
                    embed_custom: bool = True,
                    custom_dir: str | os.PathLike | None = None) -> Path:
-    """Write `character` to `path` as JSON, atomically. Creates parent directories
-    if needed. Returns the path written.
+    """Write `character` to `path` as JSON, atomically. Create the parent
+    directories if needed. Return the path written.
 
-    Also refreshes the homebrew definitions the character carries (see
-    custom_content.embed_definitions), so a save handed to another player brings its
-    custom Charms with it. This happens HERE, at the single choke point, rather than
-    in each of the UI's save handlers — there are a dozen, and the one that got missed
-    would produce a save that silently loses homebrew.
+    Refresh the homebrew definitions that the character carries
+    (custom_content.embed_definitions), thus a shared save brings its custom Charms.
+    ⚠ Do it HERE, the one choke point, not in each UI save handler.
 
-    `embed_custom=False` writes the character exactly as it is, for the rare caller
-    that wants no filesystem read of the library.
+    `embed_custom=False` writes the character as it is, with no library read.
     """
     if embed_custom:
         _custom_content().embed_definitions(character, custom_dir=custom_dir)
@@ -185,15 +182,13 @@ def save_character(character: Character, path: str | os.PathLike, *,
 
 def load_character(path: str | os.PathLike, *, absorb_custom: bool = True,
                    custom_dir: str | os.PathLike | None = None) -> Character:
-    """Read and parse a Character from `path`. Propagates FileNotFoundError and
-    pydantic.ValidationError unchanged so callers can distinguish them.
+    """Read and parse a Character from `path`. FileNotFoundError and
+    pydantic.ValidationError propagate as they are.
 
-    Any homebrew definitions the save carries are absorbed into the local library
-    (see custom_content.absorb_definitions) so the Charms resolve on this machine.
-    Only ids the library lacks are written: the local copy always wins. A caller that
-    wants to TELL the user what was imported passes `absorb_custom=False` and calls
-    `custom_content.absorb_definitions` itself, which returns the ids it added — doing
-    it here first would leave nothing for it to report.
+    Absorb the homebrew definitions of the save into the local library
+    (custom_content.absorb_definitions). Only ids that the library lacks are written:
+    the local copy wins. To report the imported ids, pass `absorb_custom=False` and
+    call `custom_content.absorb_definitions`, which returns them.
     """
     text = Path(path).read_text(encoding="utf-8")
     character = character_from_json(text)
@@ -253,11 +248,9 @@ def save_party(party: Party, path: str | os.PathLike, *, embed_custom: bool = Tr
 
 def load_party(path: str | os.PathLike, *, absorb_custom: bool = True,
                custom_dir: str | os.PathLike | None = None) -> Party:
-    """Read and parse a Party from `path`. Propagates FileNotFoundError and
-    pydantic.ValidationError unchanged so callers can distinguish them.
-
-    Absorbs every member's homebrew, so a GM opening the table's party file gets the
-    whole group's custom content at once."""
+    """Read and parse a Party from `path`. FileNotFoundError and
+    pydantic.ValidationError propagate as they are. Absorb the homebrew of each
+    member."""
     party = party_from_json(Path(path).read_text(encoding="utf-8"))
     if absorb_custom:
         cc = _custom_content()

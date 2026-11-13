@@ -283,9 +283,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         state["circle"] = _spell_circles[0].value
     if _has_forms:
         GROUPS["forms"] = "Form Library"
-    # Thaumaturgy is cross-splat and unconditional: p.114 makes it available to every
-    # splat that ships today (the dead may hold but not use it, which the page says
-    # rather than hides; only the Fair Folk are barred, and they are not playable).
+    # Thaumaturgy is on each splat (p.114). The dead hold it and cannot use it. The
+    # Fair Folk are barred and not playable.
     GROUPS["thaum"] = "Thaumaturgy"
     # The Slot/Panoply manager, for a Charm-Slot splat or an Eclipse who crossed over.
     _has_panoply = refit.supports_refit(ruleset, character)
@@ -295,10 +294,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
     # Charms at all (PG pp.175-177). Shown only for a splat that ships paths.
     if ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing).path_dots > 0:
         GROUPS["paths"] = "Paths"
-    # The Elemental Powers page (Core p.296 + GoD p.56, PG p.68): a Charm-like
-    # catalogue open to Elemental-origin God-Blooded only — "descendents of elementals
-    # draw on the innate powers of their heritage". Every other origin/splat's tab bar
-    # is unchanged.
+    # The Elemental Powers page (Core p.296 + GoD p.56, PG p.68): Elemental-origin
+    # God-Blooded only.
     if validate.elemental_powers_available(ruleset, character):
         GROUPS["elemental"] = "Elemental Powers"
 
@@ -404,10 +401,9 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 ).classes("text-xs").style(
                     f"color:{'#b91c1c' if slots.over_personal else pal.accent}")
             else:
-                # Each Ox-Body and each Deadly Beastman Transformation purchase consumes a
-                # Charm pick from the shared pool, exactly as engine.validate prices them.
-                # They live on their own lists, so the count comes from the engine's
-                # canonical enumeration rather than from adding lists up here.
+                # Each Ox-Body and Deadly Beastman Transformation purchase uses a Charm
+                # pick from the shared pool. The count comes from the engine
+                # enumeration, not from a sum of lists here.
                 charm_picks = validate.charm_pick_count(ruleset, character)
                 noun = ruleset.exalt_for(character.exalt_type).charm_noun
                 ui.label(f"{noun}: {charm_picks} · Spells: {len(character.spells)}").classes(
@@ -538,8 +534,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                     ui.label(r.description).classes("text-xs text-gray-600")
                 if r.owned:
                     if in_play():
-                        # Post-lock the only refund is last-first undo on the Edit tab,
-                        # exactly as for Charms and Combos.
+                        # After the lock the only refund is the LIFO undo on the Edit
+                        # tab.
                         ui.label("Purchased.").classes("text-xs text-gray-500")
                     else:
                         ui.button("Remove", icon="remove",
@@ -1132,10 +1128,8 @@ def build_picker(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 _thaum_entries_ui(v, state["thaum_tab"][:-1])   # 'rituals' -> 'ritual'
 
             # ---- what has been bought -------------------------------------- #
-            # Straight off the engine's canonical enumeration, priced by it, so the
-            # free-grant zeroes shown here are the ones actually charged. Deliberately
-            # not recomputed from the rows above — that is the whole point of the
-            # enumeration existing.
+            # From the engine enumeration and its prices, thus the free grants shown
+            # are the ones charged. Do not recalculate from the rows above.
             if v.owned:
                 ui.separator()
                 with ui.row().classes("w-full items-baseline gap-2"):

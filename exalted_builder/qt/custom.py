@@ -398,10 +398,8 @@ class CustomPage(QWidget):
     def show_kind(self, kind: str) -> None:
         """Select the sub-tab for `kind` ("charm" / "spell" / "ritual" / "gear").
 
-        ⚠ The seam for anything that means "the Gear tab" rather than "tab 2".
-        `_KINDS` is display order and has already changed once — every caller that
-        addressed a sub-tab by POSITION pointed at the wrong kind the moment Rituals
-        went in between, which is the address-by-name lesson in its own file."""
+        ⚠ Address a sub-tab by kind through this method, never by POSITION: `_KINDS`
+        is display order, and it changes."""
         self.tabs.setCurrentIndex(_KINDS.index(kind))
 
     def _kind_changed(self, index: int) -> None:

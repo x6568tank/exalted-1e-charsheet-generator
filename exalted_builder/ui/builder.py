@@ -742,10 +742,8 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
     tab_bar.on_value_change(lambda e: _on_tab_change(e.value))
 
     def _sync_tabs() -> None:
-        """Show the tabs this character's stage has (`visible_tabs`); Play appears at
-        the lock, Combos disappears for a splat that builds neither. If the tab we are
-        on is the one that just disappeared, land on its counterpart rather than
-        rendering a tab that is no longer on the bar."""
+        """Show the tabs of this character's stage (`visible_tabs`). If the current
+        tab is gone, go to its counterpart."""
         locked = ctx["char"].chargen_locked
         combos = viewmod.has_combos_tab(ruleset, ctx["char"])
         shown = visible_tabs(locked, combos=combos, custom=has_custom)

@@ -92,11 +92,8 @@ def roll_detail(count: int, target_number: int, doubles_tens: bool,
 
 
 def roll_log_split(state: dict) -> tuple[Optional[RollEntry], list[RollEntry]]:
-    """In: the roller's state. Out: `(newest, older)` — the roll to keep on
-    screen and the ones behind the fold. `newest` is None on an empty log.
-
-    One function so the two shells cannot disagree about which line stays
-    visible, which is the whole point of the split.
+    """In: the roller state. Out: `(newest, older)` — the roll kept on screen and
+    the rolls behind the fold. `newest` is None on an empty log. Both shells use it.
     """
     log = state.get("log") or []
     return (log[0] if log else None), list(log[1:])

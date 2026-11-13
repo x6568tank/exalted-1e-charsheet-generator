@@ -250,20 +250,15 @@ def default_merit_tier(definition, exalt_type: str, caste: str) -> str:
 
 
 def ability_group_defs(ruleset: RuleSet, exalt_type: str) -> list[tuple[str, list[AbilityName]]]:
-    """How to lay the Ability roster out in columns, for the sheet and the editor.
+    """Return the column layout of the Ability roster, for the sheet and the editor.
 
-    Ability-caste splats (Solar, Dragon-Blooded, Abyssal) group by caste, which is
-    how their character sheets print. Lunars have no Caste Abilities at all and
-    "Abilities are not divided along caste lines" (The Lunars p.90), so their
-    castes carry `caste_attributes` instead and grouping by caste yields NOTHING.
-    Those splats fall back to `DEFAULT_ABILITY_GROUPS` (War / Life / Wisdom).
+    Ability-caste splats (Solar, Dragon-Blooded, Abyssal) group by caste. Lunars have
+    no Caste Abilities (The Lunars p.90) and use `DEFAULT_ABILITY_GROUPS` (War /
+    Life / Wisdom).
 
-    A splat whose castes list only PART of the roster falls back the same way. The
-    Dragon-Kings' four breeds each name three BREED abilities (12 total), but a DK
-    buys 25 dots across all 25 abilities (PG CH4) — grouping by breed would drop the
-    other 13 from the sheet and editor entirely. Solar/DB/Abyssal castes partition
-    the whole roster (5 × 5 = 25), so they keep their caste columns; the breed
-    abilities are still marked ● by the caste markers, exactly as a caste ability is."""
+    ⚠ A splat whose castes name only PART of the roster uses the default too: the
+    Dragon-King breeds name 12 abilities (PG CH4), and a breed grouping drops the
+    other 13. The caste markers (●) still mark the breed abilities."""
     groups = [(cd.label, list(cd.caste_abilities)) for cd in ruleset.castes.values()
               if cd.exalt_type == exalt_type and cd.caste_abilities]
     if groups and {a for _, abilities in groups for a in abilities} >= set(AbilityName):
@@ -600,12 +595,9 @@ def build_sheet_view(ruleset: RuleSet, character: Character) -> SheetView:
     _sections: dict[str, list[CharmRow]] = {}
 
     def _section_label(pick, charm) -> str:
-        """Which subsystem panel a charm pick belongs on — the same distinctions the
-        picker's tabs draw. Gifts are the Lunar DBT list, Ox-Body its own repeatable
-        purchase, Arcanoi are the Ghost/God-Blooded Virtue-keyed Charms (identified by
-        `min_virtue` AND a non-Spirit exalt_type, exactly as the picker does — the
-        spirit Charms are Virtue-keyed too but are a different class, not Arcanoi);
-        everything else is an ordinary Charm."""
+        """Return the subsystem panel of a Charm pick, as the picker tabs: Gifts (Lunar),
+        Ox-Body, Arcanoi (`min_virtue` AND an exalt_type that is not Spirit), else an
+        ordinary Charm."""
         if pick.source == "beastman_gifts":
             return "Gifts"
         if pick.source == "ox_body":

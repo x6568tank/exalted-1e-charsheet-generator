@@ -132,11 +132,9 @@ def _heritage_uses_origin(ruleset: RuleSet, character) -> bool:
 
 
 def _origin_options(ruleset: RuleSet, character) -> dict[str, str]:
-    """The Origin dropdown options for this character: the splat's origins, EXCEPT
-    the God-Blooded, whose origin is their HERITAGE's own axis — the Half-Caste's
-    parent Exalt type, the Fae-Blooded's Noble/Commoner — and appears only for that
-    heritage (a Ghost-Blooded never sees a meaningless Solar origin). Every other
-    splat's origins are unconditional, so they render exactly as before."""
+    """Return the Origin dropdown options: the origins of the splat, EXCEPT for the
+    God-Blooded, whose origin is the axis of the HERITAGE (Half-Caste parent,
+    Fae-Blooded Noble/Commoner) and shows only for that heritage."""
     if character.exalt_type == "God-Blooded":
         cd = ruleset.castes.get(character.caste)
         opts = cd.heritage_traits.origin_options if (

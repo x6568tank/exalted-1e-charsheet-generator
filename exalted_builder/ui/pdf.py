@@ -7,13 +7,11 @@ cannot turn the screen layout into a sheet (human's ruling).
 Three constraints, each load-bearing (docs/plans/print-pdf.md):
 
 1. `build_pdf` takes a `SheetView` and NOTHING else — no RuleSet, no Character, no
-   callbacks. That is the purity `app.render_sheet` already has, and it is what
-   lets the builder, the GM party screen and the tests share one renderer.
-2. This module must not import `nicegui`. It imports reportlab and `theme` (itself
-   pure). A test asserts it. That keeps the PDF export in the set of modules a
-   future PySide6 build carries over unchanged (docs/plans/qt-port.md).
-3. No game logic. Page geometry is presentation; everything mechanical was already
-   decided by the engine before `build_sheet_view` handed us this dataclass.
+   callbacks. The builder, the GM party screen and the tests share the renderer.
+2. This module must not import `nicegui`. It imports reportlab and `theme`. A test
+   asserts it (docs/plans/qt-port.md).
+3. No game logic. The engine decided each mechanical value before
+   `build_sheet_view`.
 
 ⚠ EVERY GLYPH IS DRAWN OR ASCII. reportlab's base-14 fonts are latin-1, so the
 marks the screen sheet leans on — the caste dot, the favoured star, the crossed
@@ -491,8 +489,7 @@ def _trait_panels(view: SheetView, groups, width: float, st, accent,
 
 def _advantage_panels(view: SheetView, width: float, st, accent, columns: int) -> list:
     """Backgrounds, artifacts, ghost Fetters/Passions, specialties, M&F, colleges
-    and thaumaturgy. Each is dropped entirely when empty, exactly as the screen
-    sheet drops it — an empty panel saying "—" on every sheet is worse than none."""
+    and thaumaturgy. Each is dropped when empty, as on the screen sheet."""
     pw = _panel_width(width, columns)
     out = []
 

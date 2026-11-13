@@ -155,8 +155,8 @@ def _cost_str(cost: CharmCost) -> str:
     if cost.willpower:
         parts.append(f"{cost.willpower}wp")
     if cost.health:
-        # The damage type is named only where a source (or a homebrew author) says
-        # so; unset renders "1hl" exactly as before, which is every printed Charm.
+        # The damage type shows only where a source or a homebrew author gives it.
+        # Unset gives "1hl".
         kind = DAMAGE_LABELS.get(cost.health_type, "") if cost.health_type else ""
         parts.append(f"{cost.health}hl {kind}".strip())
     return ", ".join(parts) if parts else "—"

@@ -533,8 +533,7 @@ CUSTOM_GEAR_KINDS: dict[str, tuple[str, str]] = {
 
 
 def custom_gear_summary(kind: str, entry) -> str:
-    """One line of stats for a library gear row, reusing the shop's own formatters so
-    a homebrew weapon reads exactly as it does in Buy."""
+    """Return one stat line for a library gear row, with the formatters of the shop."""
     if kind == "weapons":
         return catalog_weapon_summary(entry)
     if kind == "armor":
