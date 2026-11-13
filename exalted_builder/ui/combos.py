@@ -1,18 +1,15 @@
 """
 ui/combos.py — NiceGUI Combo builder.
 
-Assembles Combos from the character's *known* Charms (core pp.213-214). Each Combo
-names a set of instant-duration Charms used together in one turn; starting play
-with one costs bonus points equal to its number of Charms. Zero game logic here:
-the eligible-Charm pool and the per-Combo legality come from engine.validate via
-view.build_combo_view; this module only mutates the Character and renders.
+Builds Combos from the KNOWN Charms of the character (core pp.213-214): instant
+Charms used together in one turn. At chargen a Combo costs bonus points equal to its
+Charm count. No game logic: view.build_combo_view gives the eligible Charms and the
+legality (engine.validate).
 
-**Two modes, like the Charms tab.** At chargen a Combo is assembled in place —
-created empty, members added and removed, priced in bonus points. Once chargen is
-locked a Combo is *bought whole*: engine.advancement.add_combo prices it (Σ member
-min_ability, p.213), checks its legality and logs it in one go, so the in-play form
-composes the whole Combo first and buys it with one button. Bought Combos are then
-fixed — undo the purchase in the Edit tab's Experience card to take one back.
+**Two modes, as the Charms tab.** At chargen a Combo is assembled in place. After the
+lock a Combo is *bought whole*: engine.advancement.add_combo prices it (Σ member
+min_ability, p.213), checks it and logs it. A bought Combo is fixed. Undo the
+purchase on the Edit tab to remove it.
 
 Run:
     python -m exalted_builder.ui.combos [path/to/foo.character.json] [--show] [--port N]
@@ -114,12 +111,10 @@ def build_combos(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         readout.refresh()
 
     # ---- Arrays (Alchemical, p.89) ---------------------------------------- #
-    # An Array is the Charm-Slot splats' analogue of a Combo: it links Attribute-based
-    # Charms into a permanent pattern, priced 1 BP per Charm at chargen or Σ minimum
-    # Attribute ratings in XP, and cuts their combined installation cost to
-    # three-fourths. The two systems are mutually exclusive per splat (see
-    # view.uses_arrays), so this tab renders one or the other, never both.
-    # Wrappers, as above — see `engine/combo_actions.py`.
+    # The Combo of the Slot splats: Attribute-based Charms in a permanent link. 1 BP
+    # per Charm at chargen, or Σ minimum Attribute ratings in XP. It reduces the
+    # installation cost to 3/4. A splat has Combos or Arrays, never both
+    # (view.uses_arrays). Wrappers, as above (`engine/combo_actions.py`).
     def add_array(name: str) -> None:
         combo_actions.add_array(character, name)
         refresh()

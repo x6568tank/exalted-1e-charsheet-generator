@@ -1,25 +1,17 @@
 """
 ui/storyteller.py — the "ST Options" tab: the table's optional-rule switches.
 
-These are Storyteller choices, not character traits and not rulebook data, so they
-live on `Character.house_rules` (the `Character.play` precedent — an optional
-sub-document, so old saves load with it None). This tab is the only place they are
-edited.
+Storyteller choices, stored on `Character.house_rules`. This tab is the only
+editor of them.
 
-Two things make it different from every other editing tab:
+  * **The toggles are frozen at the lock.** They change chargen PRICES, thus the
+    tab is read-only after the lock and points to Unlock.
+  * **Scope.** Table-wide rules apply to the whole game. A per-character rule is
+    a permission for one character. `view.build_house_rules` gives the scope
+    labels.
 
-  * **The toggles are frozen at lock.** They change how chargen is PRICED, so
-    flipping one after the fact would retroactively re-price a locked chargen. The
-    tab therefore goes read-only once chargen is locked, and points at Unlock as
-    the way to change one — the same route as any other chargen correction.
-  * **Scope matters.** Table-wide rules apply to the whole game; the foreign-Charm
-    permission is granted to one character. The split is shown here so a future
-    party-wide "apply to all" control has something honest to key off. The scope
-    labels come from `view.build_house_rules`, not from this renderer.
-
-No game logic lives here: what each toggle means, whether it currently bites, and
-how much "Magic for Everyone" is granting all come from the engine through
-ui.view.
+No game logic: the meaning of each toggle, whether it applies now, and the "Magic
+for Everyone" grant come from the engine through ui.view.
 
 Run:
     python -m exalted_builder.ui.storyteller [path/to/foo.character.json]

@@ -1,27 +1,19 @@
 """
 ui/adversaries.py — the Storyteller's adversary roster, rendered on the party page.
 
-The other half of `/gm`: the extras, beasts and NPCs the GM is running *against*
-the party, beside the player characters they are fighting. Cards are the same
-shape as the character cards next to them — a compact stat readout with live
-trackers — but the entries behind them are `Adversary`, not `Character`, so
-there is no sheet, no builder button and no lock.
+The adversaries of `/gm`: the extras, beasts and NPCs against the party. The cards
+have the shape of the character cards, but the entries are `Adversary`, not
+`Character`: no sheet, no builder button, no lock.
 
-Scope, deliberately: a list, the printed stats, and primitive trackers. This is
-not a second character builder. Nothing here validates, prices or locks anything,
-because an adversary is never built to a budget.
+Scope: a list, the printed stats, and simple trackers. Not a second character
+builder. Nothing here validates, prices or locks.
 
-Two interactions carry the whole feature:
+  * **Add** — from a catalogue template, or blank. The copy is independent. The
+    catalogue row is never changed.
+  * **Duplicate** — five bandits from one row, each with its own health track.
 
-  * **Add** — from a catalogue template (a starting point the GM then edits) or
-    blank. The instant a template is instantiated the copy is independent; the
-    catalogue row is never written back to.
-  * **Duplicate** — five bandits off one row, each with its own health track.
-    Without it the GM is back to hand-copying, which is the thing this replaces.
-
-Every computed number comes from engine.adversaries; this module draws widgets and
-nothing else. The free-text trait/attack codec and the card's stat-line wording live
-outside the UI layer and are re-exported here — see the re-export block below.
+engine.adversaries gives each number. The trait/attack codec and the stat-line text
+are re-exported here (see the block below).
 """
 
 from __future__ import annotations
@@ -566,17 +558,12 @@ def roster_card(ruleset: RuleSet, party_of: Callable[[], Party], index: int,
 def build_roster(ruleset: RuleSet, catalog: dict[str, Adversary],
                  party_of: Callable[[], Party], pal: theme.Palette,
                  refresh: Callable[[], None]) -> None:
-    """Render the whole adversary section.
+    """Render the adversary section.
 
-    `party_of` is a callable rather than a Party so the section survives the page
-    swapping the bundle underneath it (New party / Load party), exactly as the
-    character grid does.
+    `party_of` is a callable, thus the section survives a New party / Load party.
 
-    `catalog` is passed in rather than read off the RuleSet on purpose. The
-    templates are book data, but they are not *rules*: they take no part in
-    prerequisite resolution or load-time link-checking, which is what a RuleSet
-    is for. Keeping them out also keeps models/rules/ from having to import the
-    character-domain Adversary, which would be a cycle."""
+    `catalog` is a parameter, not on the RuleSet: the templates are not rules, and
+    models/rules/ must not import the character-domain Adversary (a cycle)."""
     party = party_of()
 
     # ---- section ----------------------------------------------------------- #

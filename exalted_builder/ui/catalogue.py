@@ -1,19 +1,15 @@
-"""Catalogue picker dialogs — the browse-before-you-choose affordance.
+"""Catalogue picker dialogs.
 
-`catalogue_dialog` is the shared pop-up the "add" buttons open — artifacts, gear,
-Backgrounds, Hearthstones and Merits & Flaws: a filterable list of name + one-line
-summary, with the full description collapsible, plus a "Custom" row for free-text
-items. A row's own combobox (`DescribedSelect`) still edits it afterwards; the dialog
-is what lets a player read the catalogue BEFORE choosing.
+`catalogue_dialog` is the shared pop-up of the "add" buttons: artifacts, gear,
+Backgrounds, Hearthstones and Merits & Flaws. A filterable list of name + summary,
+the full description in an expansion, and a "Custom" row for free text. The row's
+combobox (`DescribedSelect`) still edits the row afterwards.
 
-Pure UI — no game logic, no validation. It reads whatever list the caller hands it
-(already filtered by availability/splat) and calls `on_pick(key)` when a row is clicked
-or `on_pick(None)` when Custom is chosen; the caller is responsible for appending to the
-character, exactly as its add button did before.
+No game logic, no validation. It shows the list that the caller gives (already
+filtered) and calls `on_pick(key)` for a row or `on_pick(None)` for Custom. The
+caller adds to the character.
 
-The "1-2 sentence summary" is a Tailwind `line-clamp-2` on the full text, not a separate
-authored field — no brittle sentence-splitting, and when the vision-model prose lands
-later the dialog shows it automatically.
+The summary is a Tailwind `line-clamp-2` on the full text, not a separate field.
 """
 
 from __future__ import annotations
@@ -91,18 +87,14 @@ _ICON_BY_TAG: tuple[tuple[str, str], ...] = (
 )
 
 
-# The default `render_cap` for a caller that asks to be capped without naming a
-# number. See `catalogue_dialog`.
+# The default `render_cap` for a caller that asks for a cap with no number. See
+# `catalogue_dialog`.
 #
-# ⚠ OPT-IN, never a default. Capping every caller silently truncated the artifact
-# shop — "Dragon Tear Tiara" sits past row 200 and stopped being offered, which
-# `test_artifacts_are_UNBUYABLE_at_chargen_and_buyable_in_play` caught. A dialog the
-# player scrolls must show everything; only the Charm-sized lists want the cap.
+# ⚠ OPT-IN, never a default. A dialog that the player scrolls must show each row; only
+# the Charm-sized lists use the cap.
 #
-# ⚠ NICEGUI-ONLY, and the Qt dialog not having one is not an oversight to correct. A
-# NiceGUI row is ~4 DOM elements pushed over a socket; a Qt row is one
-# QListWidgetItem, and `qt/catalogue.py` builds all 1,861 Charms in 23 ms and filters
-# them in 6. Capping there would hide rows for no gain.
+# ⚠ NICEGUI-ONLY. A Qt row is one QListWidgetItem, and `qt/catalogue.py` builds all
+# Charms quickly. Do not add a cap there.
 _DEFAULT_RENDER_CAP = 200
 
 
@@ -140,36 +132,29 @@ def catalogue_dialog(
     keep_open: bool = False,
     render_cap: int | None = None,
 ) -> None:
-    """Open a modal listing catalogue entries to choose from.
+    """Open a modal of catalogue entries to choose from.
 
-    `entries` is a list of ``(key, name, summary, full_or_none)``. `key` is what
-    `on_pick` receives — the catalogue id, or the name where ids don't exist; `name`
-    is the bold display label; `summary` is the clamped one-liner; `full` (when
-    present) is shown in a "Full description" expansion. Clicking a row calls
-    `on_pick(key)` and closes. The "Custom" row calls `on_pick(None)` and closes.
+    `entries` is a list of ``(key, name, summary, full_or_none)``. `on_pick` gets
+    `key`: the catalogue id, or the name where there is no id. `name` is the bold
+    label, `summary` the clamped line, `full` the "Full description" expansion. A
+    row click calls `on_pick(key)` and closes. The "Custom" row calls
+    `on_pick(None)` and closes.
 
-    The list is filtered live by a text input over name + summary + full.
+    A text input filters live over name + summary + full.
 
-    `icons` maps a key to a Material icon name (see `icon_for`, which derives one from
-    an entry's tags); `default_icon` covers the keys it omits. Both are optional — a
-    dialog that passes neither renders exactly as it did before.
+    `icons` maps a key to a Material icon name (see `icon_for`). `default_icon`
+    covers the other keys. Both are optional.
 
-    `keep_open` leaves the dialog up after a pick instead of closing it, for the
-    fields that take MANY entries — an adversary's Charm list is a dozen picks, and
-    a dozen reopens loses the filter each time. Each pick notifies instead, and a
-    Done button becomes the way out. Default False, so every existing caller behaves
-    exactly as it did.
+    `keep_open` keeps the dialog open after a pick, for a field with MANY entries.
+    Each pick notifies, and a Done button closes. Default False.
 
-    `render_cap` builds at most that many rows per open (True takes the default 200).
-    ⚠ Only for lists too big to render whole — the Charm catalogue is 1,861 rows at
-    ~4 elements each. It hides rows, so a caller whose user SCROLLS to find things
-    must not pass it; the filter and the chips still see every entry, so narrowing
-    always reaches what the cap hid.
+    `render_cap` builds at most that many rows per open (True gives 200).
+    ⚠ Only for lists too big to render whole (the Charm catalogue). It hides rows,
+    thus a caller whose user SCROLLS must not pass it. The filter and the chips see
+    each entry.
 
-    `dimmed` holds keys to render faded — gear the character cannot afford (core p.325).
-    They stay PICKABLE: the affordability of a purchase is the Storyteller's business,
-    the sheet is a tracker, and a character can be given what she could not buy. This is
-    a hint, never a gate; nothing here validates.
+    `dimmed` holds keys shown faded: gear the character cannot afford (core p.325).
+    They stay PICKABLE: a hint, never a gate.
     """
     _filter = {"text": "", "group": ""}
     _names = {e[0]: e[1] for e in entries}
@@ -262,13 +247,9 @@ def catalogue_dialog(
                     if full and len(full) > 160:
                         with ui.expansion("Full description", icon="article"
                                           ).classes("w-full"):
-                            # `whitespace-pre-line` because a `full` may be STRUCTURED,
-                            # not one paragraph: a Background's is the blurb followed by
-                            # its printed dot ladder, one rung per line. A plain label
-                            # collapses those newlines and runs six rungs together into
-                            # a wall of text. Blank lines inside the string survive too,
-                            # which is what separates the rungs; runs of spaces still
-                            # collapse, so ordinary prose entries are unaffected.
+                            # `whitespace-pre-line`: a `full` can be STRUCTURED (a
+                            # Background blurb and its ladder, one rung per line).
+                            # Blank lines survive. Runs of spaces still collapse.
                             ui.label(full).classes(
                                 "text-xs leading-relaxed whitespace-pre-line")
             if not shown:
@@ -284,13 +265,9 @@ def catalogue_dialog(
             _list.refresh()
 
         def _pick(key) -> None:
-            # Run on_pick BEFORE closing: close() fires the value-change handler that
-            # clears the dialog, deleting the slot this handler is running in. A pick
-            # callback that opens a nested dialog (the play Custom prompt) would raise
-            # "the parent element this slot belongs to has been deleted" if the close
-            # ran first. (The nested prompt itself must ALSO be built inside
-            # client.layout so its canary survives the outer's clear — see
-            # _custom_gain in ui/advantages.py.)
+            # ⚠ Run on_pick BEFORE closing: close() clears the dialog and deletes the
+            # slot of this handler. A nested dialog must also be built in
+            # client.layout (see _custom_gain in ui/advantages.py).
             on_pick(key)
             if keep_open:
                 # Nothing closes, so the pick needs its own acknowledgement — the

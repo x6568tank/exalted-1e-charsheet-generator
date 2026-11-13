@@ -133,32 +133,18 @@ UNKEYED_SUBTREE = "general"
 
 
 def virtue_split(ruleset: RuleSet, category: str) -> list[str]:
-    """Sub-category keys for a data category whose Charms span several Virtues.
+    """Return the sub-category keys of a category whose Charms span several Virtues.
 
-    The spirit Charms are the one such category: all but one sit under
-    'spirit_templates', each keyed to one of the four Virtues via `min_virtue`.
-    The picker presents them as four trees ('spirit_templates:compassion', ...)
-    so the Virtue structure is visible. For a spirit Charm the Virtue IS the
-    path.
+    The spirit Charms ('spirit_templates') are the one such category: one tree per
+    Virtue of `min_virtue` ('spirit_templates:compassion', ...).
 
-    Ghost Arcanoi deliberately never split, even where a path spans several
-    Virtues. For a ghost Arcanos the Virtue is a per-entry GATE, not an
-    organizing axis -- the book prints each art as one tree and its chains cross
-    Virtues freely (Soul Anchor, Temperance 2, roots the whole Conviction-keyed
-    body of Chains of the Ancient Monarchs). ⚠ A multi-Virtue path put through the
-    general rule below mis-splits into sparse per-Virtue trees with cross-tree
-    prereq edges; the E:Ab paths are single-Virtue and hide this, the Book of Bone
-    and Ebony ones do not. They render as one tree per art. Anything not
-    Virtue-keyed returns [].
+    ⚠ Ghost Arcanoi never split: there the Virtue is a gate on each entry, and the
+    printed chains cross Virtues (Book of Bone and Ebony). One tree per art. Not
+    Virtue-keyed: [].
 
-    A split category may also hold Charms that are NOT Virtue-keyed: the one such
-    spirit Charm is Terrestrial Circle Sorcery, whose printed minimums are
-    Essence 3 and Occult 5 and no Virtue at all (PG p.48). Those go in a final
-    ':general' sub-tree, because a per-Virtue split alone would drop them out of
-    every tree and out of the picker entirely -- present in the data, unbuyable
-    in the UI, which is exactly the dead-field shape this codebase keeps hitting.
-    Splitting a category is therefore only safe if it accounts for every Charm
-    in it."""
+    ⚠ A Charm of a split category with no Virtue (Terrestrial Circle Sorcery, PG
+    p.48) goes in a final ':general' sub-tree. Else it is in no tree and cannot be
+    bought. A split must account for each Charm of the category."""
     charms = [c for c in ruleset.charms.values() if c.category == category]
     if any(c.exalt_type == "Ghost" for c in charms):
         return []

@@ -53,10 +53,8 @@ _MARK_COLOR = {
 # --------------------------------------------------------------------------- #
 # Shared tracker widgets and mutations
 #
-# These are module-level (rather than closures over one character) so the GM
-# party page can render the same boxes for several characters at once. Each takes
-# the character to act on and an `on_change` callback for the caller's refresh —
-# nothing here knows which page it is drawing on, and none of it is game logic.
+# Module-level, thus the GM party page can draw the same boxes for several
+# characters. Each takes the character and an `on_change` callback. No game logic.
 # --------------------------------------------------------------------------- #
 
 # ⚠ The mutators are defined in `engine/play.py` and RE-EXPORTED here: `ui/gm.py`

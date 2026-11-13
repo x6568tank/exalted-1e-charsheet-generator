@@ -128,13 +128,10 @@ def source_label(source) -> str:
     """Return "<book> p.<page>" for a `Source`. Return "" if the book or the page is
     absent."""
     return f"{source.book} p.{source.page}" if source and source.book and source.page else ""
-# Casting time by circle: the turns spent shaping Essence before a spell of that
-# circle takes effect — 1/2/3 for the low/mid/top circle of each track. Sorcery is
-# core p.216 (Terrestrial 1, Celestial 2, Solar 3); necromancy casting times "parallel
-# sorcery" (Abyssal p.223), so Shadowlands 1, Labyrinth 2, Void 3. Shown as descriptive
-# flavour on the circle-granting initiation Charm (which unlocks that circle's spells),
-# NOT on each spell — some spells (rituals, summonings) state their own longer casting
-# time. Flavour text, NOT a play mechanic (actual play is out of scope).
+# Casting time by circle, in turns: 1/2/3 for the low/mid/top circle of each track
+# (core p.216; necromancy "parallel sorcery", Abyssal p.223). Shown as text on the
+# initiation Charm, not on each spell: some spells state their own time. Not a play
+# mechanic.
 _SHAPING_TURNS = {SpellCircle.TERRESTRIAL: 1, SpellCircle.CELESTIAL: 2, SpellCircle.SOLAR: 3,
                   SpellCircle.SHADOWLANDS: 1, SpellCircle.LABYRINTH: 2, SpellCircle.VOID: 3}
 def _charm_description(charm) -> str:

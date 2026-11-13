@@ -130,13 +130,10 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                   on_change=_on, **kwargs).classes("w-20").props("dense")
 
     def attune_controls(item) -> None:
-        """The commitment toggle, and which pool it comes out of.
+        """The commitment toggle, and its pool.
 
-        Offered ONLY when the item prints an attunement cost — an item that costs
-        nothing to attune has nothing to commit, and a checkbox on every mundane club
-        is noise. Nothing here auto-attunes: the flag is the player saying they are
-        committing the motes, which is what keeps this inside `engine/play.py`'s
-        dumb-tracker bar (see docs/plans/artifact-attunement.md).
+        Only for an item with an attunement cost. Nothing auto-attunes: the flag is the
+        player's statement (docs/plans/artifact-attunement.md).
         """
         if item.attunement <= 0:
             return
@@ -193,13 +190,9 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
     # NameError that NiceGUI logs and turns into an empty panel.
     @ui.refreshable
     def _artifacts_header() -> None:
-        """The budget line, its own refreshable so a rating edit updates it WITHOUT
-        rebuilding the panel. Rebuilding the body from inside the rating input's
-        on_change destroyed the widget mid-interaction — NiceGUI drops events that
-        target a deleted element (Client.handle_event), so a rapid second click
-        (5→4→5) was silently lost, the stored rating desynced from the number on
-        screen, and the two-flagships warning never came back. The header and the
-        readout are the only things a rating edit moves."""
+        """The budget line, in its own refreshable: a rating edit updates it WITHOUT a
+        panel rebuild. ⚠ A rebuild from the on_change of the rating input deletes the
+        widget, and NiceGUI drops a quick second click on a deleted element."""
         with ui.row().classes("w-full items-baseline gap-2"):
             ui.label(viewmod.artifacts_header(rs, character)).classes(
                 "text-sm font-bold tracking-widest").style(f"color:{pal.accent}")
@@ -210,18 +203,12 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                 ui.label(note).classes("text-xs text-gray-500"
                                        ).props('data-testid="art-bought"')
 
-    # The artifact catalogue, shared by the row editor and the panel's picker — hoisted
-    # so both can close over it. ⚠ A closure over a name defined in a function it no
-    # longer lives in is a NameError that NiceGUI reports as an EMPTY PANEL, not as a
-    # crash.
-    # Merit-gated plot devices join the list only once the character holds the Merit —
-    # `purchasable_artifacts` moves the OFFER with the permission, not just the bar.
+    # The artifact catalogue, for the row editor and the picker. ⚠ A closure over a
+    # name defined elsewhere is a NameError that NiceGUI shows as an EMPTY PANEL.
+    # Merit-gated items join the list when the Merit is held (`purchasable_artifacts`).
     #
-    # ⚠ A FUNCTION, not a value computed here. The list now depends on character state
-    # that changes on ANOTHER tab (taking or dropping the Legendary Artifact Merit), and
-    # this body runs once per page build — captured, it would be the stale-closure trap
-    # verbatim: a player takes the Merit, comes back, and the artifact she just paid ten
-    # bonus points for is not in the dropdown. Every call site recomputes.
+    # ⚠ A FUNCTION, not a value: the list depends on a Merit set on ANOTHER tab. A
+    # captured value is stale. Each call site recalculates.
     def _art_catalog() -> list:
         return artifactsmod.purchasable_artifacts(rs.artifact_catalog, character)
 
@@ -279,13 +266,10 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
             ui.button(icon="delete",
                       on_click=lambda e=None, idx=idx: remove_artifact(idx)
                       ).props("flat dense round")
-        # The catalogue description under the row, mirroring the Background rows:
-        # the dropdown tooltip made permanent. Refreshed by the row's own select
-        # WITHOUT rebuilding the panel (a rebuilt input eats every keystroke —
-        # the filter bar's lesson). A free-text name no catalogue entry covers
-        # gets nothing — the label just hides. `data-testid` is the one prop that
-        # distinguishes this label from the M&F rules-text labels, which share its
-        # styling classes.
+        # The catalogue description under the row, as on the Background rows. The
+        # row's select refreshes it WITHOUT a panel rebuild (a rebuilt input loses
+        # keystrokes). A free-text name gets nothing. `data-testid` tells it from the
+        # M&F rules-text labels.
         desc = ui.label("").classes("text-xs opacity-70 pl-1"
                                     ).props('data-testid="art-desc"')
 
@@ -312,37 +296,23 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
         _sync()
 
     def _artifacts_panel() -> None:
-        """The standalone artifacts — those that are neither weapon nor armour.
+        """The standalone artifacts: neither weapon nor armor (E:Ab p.131). Weapons and
+        armor keep their `artifact_rating` on the equipment rows and are counted in the
+        budget line only.
 
-        On the Advantages tab because artifacts are bought with the Artifact Background
-        and budgeted by it (E:Ab p.131), so the two belong under one eye. Weapons and
-        armour keep their own `artifact_rating` on the equipment surface and are NOT
-        editable here — they are only counted, in the budget line below.
+        ⚠ A pick GRANTS the gear stat line with `from_artifact`, thus the budget
+        counts the pair one time (`grant_gear`, `artifacts.artifact_items`).
 
-        ⚠ Counting alone does NOT stop a daiklave being entered twice — a number of
-        names exist in both catalogues, so a player who owns the artifact AND adds the
-        gear row to swing it is charged for two daiklaves. Picking an artifact GRANTS its
-        stat line, stamped with `from_artifact`, and the budget counts the pair once —
-        see `grant_gear` and `artifacts.artifact_items`.
+        One panel for both regimes: equipment is never XP-priced.
 
-        One panel, both regimes: an artifact is equipment, and equipment has never been
-        XP-priced or log-tracked on either side of the lock.
-
-        The name field is a combobox fed from `RuleSet.artifact_catalog`
-        (`data/artifacts.json`): picking a catalogue entry fills the name and autofills
-        the rating, and a typed off-catalogue name is free text that renames while
-        preserving the rating. Entering a gear item both here and on the equipment
-        surface counts it twice toward the budget — the same contract free text already
-        has; there is no cross-catalogue dedup.
+        The name field is a combobox from `RuleSet.artifact_catalog`
+        (`data/artifacts.json`). A pick sets the name and the rating. Free text
+        renames and keeps the rating.
         """
 
-        # The name combobox is fed from the catalogue (`data/artifacts.json`). Option
-        # labels stay plain names so `art.name` stores cleanly; the rating and
-        # description ride the option tooltip.
-        # Filtered to what Artifact dots actually buy: the Hearthstones in the same
-        # catalogue file come with the Manse Background, and picking one here would
-        # charge the p.131 Artifact budget for something Artifact never bought. They
-        # get their own picker on the Manse Background row instead.
+        # The name combobox, from the catalogue. Labels are plain names; the rating
+        # and description are in the tooltip. ⚠ Filtered to what Artifact dots buy:
+        # a Hearthstone comes with the Manse Background.
         with ui.card().classes(f"w-full p-3 {pal.card} gap-1"):
             _artifacts_header()
             # Artifact weapons and armour count against the same budget but are edited
@@ -641,15 +611,10 @@ def build_gear(ruleset: RuleSet, character: Character, save_fn: SaveFn,
                      ).classes("text-xs text-gray-500")
 
         with ui.row().classes("w-full gap-2 no-wrap items-start"):
-            # The other half of the same tables, and NOT inventory: upkeep, events,
-            # commissions and rentals. A character does not carry a month of stabling
-            # in her pack, so these are a price list she can consult — the same
-            # reference treatment the nocked arrow and the Great Geas panel get.
+            # Services: a price list, not inventory.
             #
-            # ⚠ `GearType.cash` (the printed jade and silver equivalents) is the whole
-            # point of this panel and its only read site. A name and a dot column alone
-            # is a PRICE list showing no prices — the house bug. What makes a reference
-            # panel worth its space is the information you cannot get anywhere else.
+            # ⚠ `GearType.cash` (the printed jade and silver) is the reason for this
+            # panel and its only read site. Without it the price list has no prices.
             with panel("Prices — services & upkeep").classes("flex-1"):
                 services = viewmod.service_rows(ruleset, character)
                 if services:

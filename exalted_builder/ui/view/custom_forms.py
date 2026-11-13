@@ -286,19 +286,15 @@ def custom_spell_payload(form: dict) -> dict:
 
 @dataclass(frozen=True)
 class CustomKind:
-    """One authorable library kind, as everything a shell needs to hold it: the form
-    round-trip, the three `custom_content` calls, and the RuleSet dict the loader
-    merges it into.
+    """One authorable library kind: the form round-trip, the three `custom_content`
+    calls, and the RuleSet dict that the loader merges it into.
 
-    ⚠ ONE table, read by both shells. The two Custom pages each carried their own
-    `charm if kind == "charm" else spell` ternary at a dozen sites — a shape that
-    treats "not a Charm" as a spell, so adding the third kind was a dozen chances to
-    forget one silently. A missing key raises here instead.
+    ⚠ ONE table, read by both shells. Do not branch on `kind == "charm"` in a
+    shell: "not a Charm" is not always a spell. A missing key raises here.
 
-    ⚠ GEAR is deliberately absent. Its four catalogues need a second key (which
-    catalogue), its models are frozen and tagged rather than flagged, and it has no
-    neutral blank row — `CUSTOM_GEAR_KINDS` and `build_custom_gear_library` are its
-    equivalents, and every `if kind == "gear"` branch in a shell is that difference.
+    ⚠ GEAR is absent by design: four catalogues, frozen tagged models, and no
+    neutral blank row. `CUSTOM_GEAR_KINDS` and `build_custom_gear_library` are its
+    equivalents.
     """
     key: str
     label: str                 # plural: the sub-tab caption

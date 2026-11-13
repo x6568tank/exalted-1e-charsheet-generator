@@ -114,18 +114,14 @@ def free_motes_note(play: PlayView) -> str:
 
 
 def spent_motes(play: PlayView, state) -> tuple[int, int]:
-    """The stored `(personal, peripheral)` spend, clamped to what the pools can now
-    hold. `state` is a `PlayState`; returns (0, 0) for None.
+    """Return the stored `(personal, peripheral)` spend, clamped to the pools now.
+    `state` is a `PlayState`. None gives (0, 0).
 
-    ⚠ Clamped ON READ and never written back. Attuning an artifact shrinks the maxima
-    under a spend that was legal a moment ago, and `play.set_motes` clamps to a cap its
-    caller hands it, so nothing else catches this. Writing the clamped value into the
-    save would make un-attuning lossy: the player would get a shorter pool AND lose the
-    motes they had spent from the longer one.
+    ⚠ Clamped ON READ, never written back: an attunement reduces the maxima, and a
+    written clamp makes un-attuning lose the spent motes.
 
-    ⚠ ONE helper rather than a clamp at each of the four `_mote_input` call sites
-    (ui/play, ui/gm, qt/play, qt/party). Four copies of a rule is how a fix lands on
-    three surfaces and the fourth keeps the bug.
+    ⚠ ONE helper for the four `_mote_input` sites (ui/play, ui/gm, qt/play,
+    qt/party). Do not clamp at each site.
     """
     if state is None:
         return 0, 0

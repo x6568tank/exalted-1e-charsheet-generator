@@ -1,26 +1,20 @@
 """
 ui/custom.py — the "Custom" page: author your own Charms, styles and spells.
 
-Three ways in, all landing in the same validate-then-write path so they cannot
-disagree about what is legal:
+Three ways in, all to the same validate-then-write path:
 
-  * the FORM — dropdowns for everything the models constrain (category, splat,
-    Charm type, circle), numbers for the minimums and costs, free text only where
-    the book itself is free-form;
-  * the JSON PANE — the same row as text. It fills as the form is edited (copy it
-    out to share a Charm), and a pasted row fills the form back in;
-  * UPLOAD — a `.json` file of one row or many, for importing a whole homebrew set.
+  * the FORM — dropdowns for each value that the models constrain, numbers for the
+    minimums and costs, free text only where the book is free-form;
+  * the JSON PANE — the same row as text. It follows the form, and a pasted row
+    fills the form;
+  * UPLOAD — a `.json` file of one or more rows.
 
-A Martial Arts style is not a separate thing to create: picking "New Martial Arts
-style…" in the category dropdown writes `martial_arts:<slug>`, and the picker
-derives its style groups from that string. So there is no Styles tab — the style
-exists the moment a Charm uses it.
+A Martial Arts style is not a separate object: "New Martial Arts style…" in the
+category dropdown writes `martial_arts:<slug>`, and the picker groups by that string.
 
-No game logic lives here. The form/payload shuffling is `view.custom_*`, validity
-is the pydantic models, the filesystem is `custom_content`, and the merge back into
-the live rule set is `rules_db.reload_custom_layer` — which updates the RuleSet
-every page already holds, so an authored Charm shows up in the picker without a
-restart.
+No game logic. The form/payload code is `view.custom_*`, validity is the pydantic
+models, the file system is `custom_content`, and `rules_db.reload_custom_layer`
+merges into the live RuleSet, thus a new Charm shows in the picker with no restart.
 
 Run:
     python -m exalted_builder.ui.custom
@@ -445,15 +439,13 @@ def _draw_graph(container_id: str, graph, pal) -> None:
 
 
 def _extra_requirements(form: dict, refresh) -> None:
-    """The repeatable "and also needs…" editor: any number of AND rows, each an OR
-    over Abilities or over Attributes.
+    """The repeatable "and also needs…" editor: AND rows, each an OR over Abilities or
+    over Attributes.
 
-    Separate from the primary `min_ability` above it, which is the gate derived from
-    the Charm's category and is what pricing and the Caste/Favoured discount key off.
-    These rows are pure requirements — adding one never makes a Charm cheaper.
+    Not the primary `min_ability`, which sets the price and the discount. These rows
+    are requirements only.
 
-    Re-rendered rather than bound, because changing a row's axis changes which trait
-    options its dropdown may offer.
+    Re-rendered, not bound: the axis of a row changes its trait options.
     """
     rows = form.setdefault("extra_reqs", [])
 
@@ -535,12 +527,8 @@ def _breadth_requirements(form: dict, refresh) -> None:
 
 
 def _advanced_fields(form: dict, bind, ruleset: RuleSet) -> None:
-    """Splat mechanics: the fields a homebrew Charm rarely needs, and that mean nothing
-    outside the splat that invented them. Collapsed by default so the common case — a
-    Charm with a category, a cost and a couple of minimums — stays a short form.
-
-    Everything here is written only when it differs from the model default, so an
-    ordinary Charm's JSON does not grow a dozen zeroes.
+    """Splat mechanics: fields that a homebrew Charm rarely needs. Collapsed by
+    default. A field is written only when it differs from the model default.
     """
     with ui.expansion("Advanced (splat mechanics)", icon="tune").classes("w-full"):
         with ui.column().classes("w-full gap-2 p-1"):

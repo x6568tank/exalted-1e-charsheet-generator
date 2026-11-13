@@ -1,22 +1,16 @@
 """
 ui/gm.py — the Storyteller's party page (GM mode).
 
-Several characters on screen at once as compact cards, each a live play-state
-tracker: health boxes, motes spent, temporary Willpower, Limit — the same widgets
-the Play tab uses (imported from ui/play.py, not reimplemented), plus the few
-permanent numbers worth having at the table (soak, Dodge, Essence). Each card
-carries free-text GM notes; the page carries session notes. The whole roster
-saves as one `.party.json` bundle embedding full character copies.
+Several characters as compact cards, each a play-state tracker (health, motes,
+temporary Willpower, Limit), with the widgets of the Play tab (from ui/play.py), and
+soak, Dodge and Essence. Each card has GM notes; the page has session notes. The
+roster saves as one `.party.json` with full character copies.
 
-Scope is deliberate: cards edit **play-state and notes only**. Permanent traits
-are read-only here — "Open in builder" points the normal builder at that party
-member instead. Since the roster holds the same Character object, builder edits
-land back in the party with no syncing, and there is never a second Cytoscape
-charm picker on the page.
+Cards edit **play state and notes only**. "Open in builder" opens the builder on the
+member: the roster holds the same Character object, thus builder edits need no sync.
 
-Play-state remains an isolated layer: nothing on this page enters chargen
-validation, the XP audit, or the permanent derivations. There is ZERO game logic
-here — every number shown comes from view.build_party_card_view.
+Nothing here enters chargen validation, the XP audit, or the permanent derivations.
+view.build_party_card_view gives each number.
 
 Run:
     python -m exalted_builder.ui.gm [path/to/foo.party.json] [--show] [--port N]
@@ -89,18 +83,13 @@ def _reference_panel(ruleset: RuleSet, pal: theme.Palette) -> None:
 def batch_roller_panel(pal: theme.Palette, state: dict, rows, on_roll) -> None:
     """The Storyteller's batch roll (decision 0019).
 
-    One editable dice count per roster row, one name for the batch, one press.
-    The log collapses to the batch's name; opening it shows each row's own line.
+    One editable dice count per roster row, one name for the batch, one press. The
+    log shows the batch name, and each row's line when opened.
 
-    ⚠ Read 0019 before changing this. Every count here is TYPED — nothing reads a
-    character's pool, and nothing may. With six rows on screen, filling them from
-    a named roll is the obvious convenience and is precisely what the decision
-    rejects: the app would be claiming to know what six sheets are rolling, and
-    "add their Charm dice" is the next ask. A row's name is the CHARACTER's,
-    which asserts nothing about a pool; a roll's name would.
+    ⚠ Read 0019 first. Each count is TYPED: nothing reads a pool of a character, and
+    nothing may. A row name is the CHARACTER name, never a roll name.
 
-    `on_roll` refreshes this panel alone — a roll must not rebuild the roster
-    above it, whose cards carry the GM's damage trackers.
+    `on_roll` refreshes this panel only: the roster above holds the damage trackers.
     """
     def _set(key, value) -> None:
         state[key] = value

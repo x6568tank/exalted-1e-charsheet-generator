@@ -1,11 +1,8 @@
 """
 ui/pdf.py — the printed character sheet, as a generated PDF.
 
-Why this exists rather than a print stylesheet: `Ctrl+P` on the Sheet tab prints
-the app's DOM — tinted cards, truncated flex rows, tab chrome — and no amount of
-`@media print` turns a screen layout into a sheet. The human tried it and rejected
-it. So this lays out a document designed for paper, from the same data the screen
-sheet renders from.
+A document designed for paper, from the data of the screen sheet. A print stylesheet
+cannot turn the screen layout into a sheet (human's ruling).
 
 Three constraints, each load-bearing (docs/plans/print-pdf.md):
 
@@ -48,13 +45,10 @@ from . import theme
 from .view import SheetView
 
 # --------------------------------------------------------------------------- #
-# What this renderer does NOT print, declared rather than merely absent.
+# What this renderer does NOT print, declared.
 #
-# tests/test_pdf.py walks dataclasses.fields(SheetView) and fails on any field
-# that is neither read below nor named here. That is deliberate: this project's
-# recurring bug is a field nothing reads, and on a PDF an unread field is simply
-# missing from the paper — the one failure mode nobody notices. A new splat that
-# adds a panel to the screen sheet now has to decide about the printed one too.
+# tests/test_pdf.py fails on each SheetView field that is neither read below nor named
+# here. A new screen panel must have a decision for paper too.
 # --------------------------------------------------------------------------- #
 
 #: Not on the printed sheet (human's ruling). `issues` and the four `xp_*` ledger
@@ -149,18 +143,13 @@ class _Mark(Flowable):
 
 
 class _HealthTrack(Flowable):
-    """The health track as real boxes with their penalties beneath, rather than
-    the screen sheet's run of text labels. Widths are measured per box so 'Incap'
-    does not overlap its neighbour.
+    """The health track as boxes with the penalties under them. Widths are measured
+    per box.
 
-    ⚠ It WRAPS. An Ox-Body Solar has nineteen levels and a Mountain Folk can have
-    more; a single-row track ran straight out of its panel and over the Virtues
-    beside it. The row count follows the width it is given, so nothing here
-    assumes seven boxes.
+    ⚠ It WRAPS: an Ox-Body Solar can have nineteen levels.
 
-    ⚠ `view.health` labels carry '★' for a Charm-granted level (view._health_label).
-    That glyph does not exist in a base-14 font, so it becomes '*' with a printed
-    legend — the mark means nothing if the sheet never says what it is.
+    ⚠ `view.health` labels use '★' for a Charm level (view._health_label). Base-14
+    fonts do not have it: it prints as '*', with a legend.
     """
 
     _BOX = 4.2 * mm
