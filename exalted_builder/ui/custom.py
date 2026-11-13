@@ -38,7 +38,7 @@ from nicegui import ui
 from .. import custom_content, rules_db
 from ..custom_content import CustomContentError
 from ..models.rules import AbilityName, CharmType, RuleSet, SpellCircle
-from . import theme, upload_limit
+from . import theme, upload_check
 from . import view as viewmod
 
 _PKG = Path(__file__).resolve().parents[1]
@@ -210,7 +210,7 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
             _apply_rows(rows, label="Paste")
 
     async def _upload(e) -> None:
-        refusal = upload_limit.too_large(e.file, MAX_IMPORT_BYTES)
+        refusal = upload_check.too_large(e.file, MAX_IMPORT_BYTES)
         if refusal is not None:
             ui.notify(refusal, type="negative")
             return

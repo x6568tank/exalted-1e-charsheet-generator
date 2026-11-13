@@ -1,8 +1,9 @@
 """
-ui/upload_limit.py — the size check that an upload handler does before it reads.
+ui/upload_check.py — the size check that an upload handler does before it reads.
 
 `ui.upload(max_file_size=...)` is a prop that only the browser applies. A request
 that a program makes skips it. Thus each handler checks the size again.
+`server/upload_limit.py` limits the whole request on the hosted server.
 """
 
 from __future__ import annotations

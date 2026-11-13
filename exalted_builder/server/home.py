@@ -39,7 +39,7 @@ from ..engine.house_rule_actions import apply_table_rules
 from ..models.character import Character, new_character_id
 from ..models.party import Party
 from ..ui import app as sheet_app
-from ..ui import builder, theme, upload_limit
+from ..ui import builder, theme, upload_check
 from ..ui.assets import cytoscape_head_html
 from ..ui import custom as custom_mod
 from ..ui import view as viewmod
@@ -60,7 +60,7 @@ character_url = chrome.character_url
 # 10 MB (server/quota.py), thus one import can never fill an account.
 #
 # The browser applies this limit through the `max-file-size` prop, and the handler
-# applies it again (`upload_limit.too_large`). `server/upload_guard.py` limits the
+# applies it again (`upload_check.too_large`). `server/upload_limit.py` limits the
 # request.
 MAX_IMPORT_BYTES = 2 * 1024 * 1024
 
@@ -213,7 +213,7 @@ def _build_home(store: CharacterStore, tables: TableStore, rulesets: Rulesets,
         ui.navigate.to(character_url(row.id))
 
     async def on_import(e) -> None:
-        refusal = upload_limit.too_large(e.file, MAX_IMPORT_BYTES)
+        refusal = upload_check.too_large(e.file, MAX_IMPORT_BYTES)
         if refusal is not None:
             ui.notify(refusal, type="negative")
             return

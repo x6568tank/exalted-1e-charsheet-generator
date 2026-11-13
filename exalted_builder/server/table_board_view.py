@@ -39,7 +39,7 @@ import secrets
 
 from nicegui import ui
 
-from ..ui import upload_limit
+from ..ui import upload_check
 from ..ui.assets import konva_source
 from .quota import QuotaExceeded
 from .table_board import (MAX_LABEL, MAX_TEXT, BoardState, TableBoard,
@@ -52,7 +52,7 @@ BOARD_JS = Path(__file__).with_name("board.js")
 
 # The largest upload that the picker accepts. The server encodes it again, and
 # the result has the cap `table_board.MAX_BACKGROUND_BYTES`. The browser and the
-# handler apply this limit. `server/upload_guard.py` limits the request.
+# handler apply this limit. `server/upload_limit.py` limits the request.
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 
 # The tools of the toolbar: key, icon, tooltip.
@@ -550,7 +550,7 @@ class BoardPanel:
         base = token_image_base(self.session.table_id)
 
         async def uploaded(e) -> None:
-            refusal = upload_limit.too_large(e.file, MAX_UPLOAD_BYTES)
+            refusal = upload_check.too_large(e.file, MAX_UPLOAD_BYTES)
             if refusal is not None:
                 ui.notify(refusal, type="warning")
                 return
@@ -614,7 +614,7 @@ class BoardPanel:
                       self.session.remove_background, "board-remove-background-confirm")
 
     async def _on_upload(self, e) -> None:
-        refusal = upload_limit.too_large(e.file, MAX_UPLOAD_BYTES)
+        refusal = upload_check.too_large(e.file, MAX_UPLOAD_BYTES)
         if refusal is not None:
             ui.notify(refusal, type="warning")
             return
