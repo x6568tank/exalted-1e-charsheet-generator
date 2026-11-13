@@ -13,21 +13,16 @@ from ._base import AdvancementError, _ensure_locked
 
 
 def mf_change_method(character: Character) -> str:
-    """Which Player's Guide p.17 method governs post-creation M&F changes for this
-    character's table. Only "experience" moves any XP."""
+    """Return the Player's Guide p.17 method of the table. Only "experience" moves XP."""
     return (character.house_rules.mf_change_method
             if character.house_rules is not None else "experience")
 
 
 def merit_change_xp(ruleset: RuleSet, character: Character, merit, tier: str = "",
                     *, taken_as: str = "", points: int = 0) -> int:
-    """XP a post-creation M&F change costs (positive) or pays (negative), under the
-    experience method: "If a character loses a Merit or gains a Flaw, she receives a
-    number of experience points equal to twice its bonus point value. If a character
-    gains a Merit or loses a Flaw, she must pay a like number" (PG p.17).
-
-    Returns 0 under the other two methods, which "do not cost or reward players after
-    character creation"."""
+    """Return the XP of a M&F change under the experience method (PG p.17): positive
+    to gain a Merit or lose a Flaw, negative to lose a Merit or gain a Flaw, 2x the
+    bonus-point value. 0 under the other two methods."""
     if mf_change_method(character) != "experience":
         return 0
     return costs.merit_cost(ruleset, character, merit, tier,
@@ -35,12 +30,9 @@ def merit_change_xp(ruleset: RuleSet, character: Character, merit, tier: str = "
 
 
 def _pay_or_owe(character: Character, target: str, detail: str, cost: int) -> XpEntry:
-    """Commit a Merit change, allowing it to go into debt rather than refusing.
-
-    Distinct from `_commit`, which REFUSES an unaffordable purchase. A Merit change is
-    not always the player's choice — a Flaw healed by someone else's Charm charges her
-    whether or not she can pay — so p.17 provides for a running balance instead. The
-    full cost is logged; `xp_available` goes negative and `xp_debt` reports it.
+    """Commit a Merit change. An unaffordable change goes into debt (p.17); `_commit`
+    refuses instead. The full cost is logged. `xp_available` goes negative and
+    `xp_debt` reports it.
     """
     entry = XpEntry(target=target, detail=detail, from_rating=None, to_rating=None,
                     cost=cost)
@@ -52,15 +44,13 @@ def _merit_purchase_gates(ruleset: RuleSet, character: Character, definition,
                           tier: str, points: int, taken_as: str) -> None:
     """Raise AdvancementError if this character may not take `definition` right now.
 
-    The gates `validate.merit_issues` applies at chargen that a POST-LOCK purchase
-    must also respect. They are re-asked here rather than shared with that function
-    because the two differ in kind: this refuses a purchase, that reports a holding.
+    The chargen gates of `validate.merit_issues` that an XP purchase must also meet.
+    Not shared: this refuses a purchase, that reports a holding.
 
     ⚠ Test the buy path, not the effect. A gate that runs at chargen only does
     nothing on an XP purchase (the house bug, type 1).
     """
-    # The tier menu THIS character prices on, not the generic one: a tier printed for
-    # another splat otherwise passes and then prices at nothing.
+    # The tier menu of THIS character, not the generic one.
     own_options = validate.merit_cost_options(definition, character.exalt_type,
                                               character.caste)
     if definition.cost_options and tier not in own_options:
@@ -84,8 +74,7 @@ def _merit_purchase_gates(ruleset: RuleSet, character: Character, definition,
                                                     character.backgrounds):
         want = " or ".join(f"{r.trait} {r.rating}" for r in group)
         raise AdvancementError(f"{definition.name} requires {want}.")
-    # Point limits keyed to a Background or a named artifact (Damaged Artifact,
-    # Known Anathema, Debt). Measured LIVE — the purchase is happening now.
+    # Point limits from a Background or an artifact, measured LIVE.
     value = validate.merit_points(definition, purchase, character.exalt_type,
                                   character.caste)
     for limit in definition.points_limits:
@@ -115,17 +104,11 @@ def _merit_purchase_gates(ruleset: RuleSet, character: Character, definition,
 def buy_merit(ruleset: RuleSet, character: Character, merit_id: str,
               *, tier: str = "", detail: str = "", arena: str = "",
               taken_as: str = "", points: int = 0) -> XpEntry:
-    """Gain a Merit after creation. Under the experience method this costs twice its
-    bonus-point value (PG p.17, and the same rate the mortal table gives on p.115);
-    under the other two methods it costs nothing, because they "do not cost or reward
-    players after character creation".
+    """Gain a Merit after creation: 2x its bonus-point value under the experience
+    method (PG p.17, p.115), else 0.
 
-    Flaws are not bought — a Flaw is GAINED (see `gain_flaw`), which pays the
-    character rather than charging her.
-
-    A `kind: "either"` entry (Mutation, Favor, Eternal Vow) may come through here, but
-    only when `taken_as="merit"` records that side as the player's choice: the side is
-    what decides whether this charges or pays, so it may never be defaulted here.
+    A Flaw is gained with `gain_flaw`. A `kind: "either"` entry comes here only with
+    `taken_as="merit"`: the side decides charge or pay, thus it is never defaulted.
     """
     _ensure_locked(character)
     definition = ruleset.merits_flaws.get(merit_id)
@@ -142,9 +125,7 @@ def buy_merit(ruleset: RuleSet, character: Character, merit_id: str,
     held = [p.merit_id for p in character.merits_flaws]
     if merit_id in held and not definition.repeatable_by:
         raise AdvancementError(f"{definition.name} is already held.")
-    # An origin-keyed repeat cap (Virtue Attunement: once for a commoner Fae-Blooded,
-    # twice for a noble, PG p.74) must hold on the buy path too, or a Commoner could
-    # buy a second copy with XP past what validate refuses.
+    # The origin repeat cap (PG p.74) applies on the buy path too.
     if character.origin in definition.max_purchases_by_origin:
         limit = definition.max_purchases_by_origin[character.origin]
         if held.count(merit_id) >= limit:
@@ -170,15 +151,11 @@ def buy_merit(ruleset: RuleSet, character: Character, merit_id: str,
 def gain_flaw(ruleset: RuleSet, character: Character, merit_id: str,
               *, tier: str = "", detail: str = "", arena: str = "",
               taken_as: str = "", points: int = 0) -> XpEntry:
-    """Take on a Flaw in play. Under the experience method this PAYS the character
-    twice its point value (a negative-cost log row); under the others it pays nothing.
+    """Take a Flaw in play. Under the experience method this PAYS 2x its value (a
+    negative-cost row), else 0.
 
-    The p.16 cap is deliberately NOT applied here — "characters with more than 10
-    points of Flaws receive no experience for the excess" is a total across all Flaws,
-    so it is enforced by engine.merits against the whole sheet, not per purchase.
-
-    As with `buy_merit`, a `kind: "either"` entry is admitted only when `taken_as`
-    records the choice explicitly — here, `"flaw"`.
+    An either-entry needs `taken_as="flaw"`. The Flaw cap (p.16, p.17) applies to the
+    total, below.
     """
     _ensure_locked(character)
     definition = ruleset.merits_flaws.get(merit_id)
@@ -194,15 +171,12 @@ def gain_flaw(ruleset: RuleSet, character: Character, merit_id: str,
 
     award = merit_change_xp(ruleset, character, definition, tier,
                             taken_as=taken_as, points=points)
-    # "Characters with more than 10 points of Flaws receive no experience for the
-    # excess" (PG p.17) — the same ceiling as chargen. Measured against the Flaws
-    # ALREADY held, so a Flaw that straddles the cap pays for its legal part only.
+    # PG p.17: no XP for Flaw points above 10, measured against the Flaws ALREADY held.
+    # A Flaw across the cap pays for its legal part only.
     if award:
         already = merits.flaw_points(ruleset, character)
         room = max(0, merits.FLAW_POINT_CAP - already)
-        # The point value being measured against the cap has to be the one this
-        # purchase actually carries — its side, its tier, its agreed points — or a
-        # two-sided or variable-cost Flaw is capped against a number it never had.
+        # Use the value of this purchase: its side, tier and agreed points.
         value = validate.merit_points(
             definition,
             MeritFlawPurchase(merit_id=merit_id, tier=tier, taken_as=taken_as,
@@ -221,18 +195,13 @@ def gain_flaw(ruleset: RuleSet, character: Character, merit_id: str,
 def gain_merit_or_flaw(ruleset: RuleSet, character: Character, merit_id: str,
                        *, tier: str = "", detail: str = "", arena: str = "",
                        taken_as: str = "", points: int = 0) -> XpEntry:
-    """Take on one catalogue entry in play, whichever side of the transaction it is.
+    """Take one catalogue entry in play, Merit or Flaw. Returns the `XpEntry` of
+    `buy_merit` or `gain_flaw`.
 
-    Input: the entry's id plus whatever the row records (tier, points, detail, arena,
-    and `taken_as` for a two-sided entry). Output: the `XpEntry` `buy_merit` or
-    `gain_flaw` logged. Mechanism: the ENTRY decides the direction — a Flaw pays the
-    character, a Merit charges her — so the side is read off the definition and only a
-    `kind: "either"` entry consults `taken_as`.
+    The entry decides the direction. Only a `kind: "either"` entry reads `taken_as`.
 
-    ⚠ Every shell needs this branch, and it is a rules decision, not layout: which of
-    the two engine calls runs is what makes the XP positive or negative. Both refusals
-    (no entry, and a two-sided entry with no side picked) are raised here so no widget
-    has to restate them."""
+    ⚠ A rules decision, not layout: each shell must call this. Both refusals (no
+    entry, no side for a two-sided entry) are raised here."""
     definition = ruleset.merits_flaws.get(merit_id)
     if definition is None:
         raise AdvancementError("Pick a Merit or Flaw first.")
@@ -258,21 +227,16 @@ def drop_merit(ruleset: RuleSet, character: Character, index: int) -> XpEntry | 
     # A player-authored "Custom" row has no XP value: a drop is a plain removal.
     # ⚠ The discriminator is the EMPTY merit_id, not custom_name.
     #
-    # Returns None and logs NOTHING: there is no XP to refund, and `undo_last` has no
-    # merits branch (pre-existing — real drops share the gap), so a cost-0 ledger row
-    # would sit on the LIFO stack and silently burn the player's NEXT undo on a no-op
-    # instead of reversing their last real purchase. A plain removal has no undoable
-    # side effect, so there is no entry to record.
+    # ⚠ Log NOTHING: `undo_last` has no merits branch, thus a cost-0 row would use up
+    # the player's NEXT undo on a no-op.
     if not purchase.merit_id:
         del character.merits_flaws[index]
         return None
     definition = ruleset.merits_flaws.get(purchase.merit_id)
     if definition is None:
         raise AdvancementError(f"Unknown Merit {purchase.merit_id!r}.")
-    # Anything that depends on it must go first, or the sheet is left inconsistent.
-    # Both directions: a Merit that names it as a prerequisite, and an elemental power
-    # whose `required_merits` names it (Core p.296 / GoD p.56, PG p.68 — Elemental
-    # Dominion gates every power, Primal Restoration gates Rejuvenation).
+    # Remove the dependants first: a Merit that requires it, and an elemental power
+    # whose `required_merits` names it (Core p.296 / GoD p.56, PG p.68).
     dependents = [d.name for d in ruleset.merits_flaws.values()
                   if definition.id in d.prerequisites
                   and any(p.merit_id == d.id for p in character.merits_flaws)]
@@ -285,24 +249,20 @@ def drop_merit(ruleset: RuleSet, character: Character, index: int) -> XpEntry | 
 
     value = merit_change_xp(ruleset, character, definition, purchase.tier,
                            taken_as=purchase.taken_as, points=purchase.points)
-    # The SIDE this purchase was taken on, not the catalogue's `kind` — buying off a
-    # two-sided entry held as a Flaw must charge, not pay.
+    # The SIDE of this purchase, not the catalogue `kind`.
     if validate.effective_merit_kind(definition, purchase) == "merit":
         entry = _commit_award(character, "merits", f"-{purchase.merit_id}", -value)
     else:
         entry = _pay_or_owe(character, "merits", f"-{purchase.merit_id}", value)
-    # Carry the removed purchase on the log row so `undo_last` can re-add it exactly
-    # (tier/taken_as/points/arena/detail are not recoverable from the id alone). A
-    # snapshot: the row owns its copy even though the live one is about to be deleted.
+    # A copy of the removed purchase on the log row, for `undo_last`.
     entry.removed_purchase = purchase.model_copy(deep=True)
     del character.merits_flaws[index]
     return entry
 
 
 def _commit_award(character: Character, target: str, detail: str, cost: int) -> XpEntry:
-    """Append a log row that PAYS the character (negative cost) with no affordability
-    check — there is nothing to afford. Kept separate from `_commit` so the ordinary
-    purchase path keeps its gate."""
+    """Append a log row that PAYS the character (negative cost). No affordability
+    check."""
     entry = XpEntry(target=target, detail=detail, from_rating=None, to_rating=None,
                     cost=cost)
     character.xp_log.append(entry)

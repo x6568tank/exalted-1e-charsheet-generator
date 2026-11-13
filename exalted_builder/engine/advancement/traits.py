@@ -23,25 +23,19 @@ from .undo import undo_last
 def raise_attribute(ruleset: RuleSet, character: Character, attr: AttributeName) -> XpEntry:
     _ensure_locked(character)
     frm = character.attributes[attr]
-    # A Merit or Flaw may move the ceiling for one named Attribute — Legendary
-    # Attribute explicitly applies "during character creation or after it".
+    # A Merit or Flaw can move the ceiling of one Attribute, at and after chargen.
     cap = merits.merits_and_flaws_calc(ruleset, character).attribute_caps.get(
         attr.value, _DOT_MAX)
-    # An elder's Attributes follow permanent Essence up past 5 (p.258). Whichever
-    # ceiling is HIGHER wins: both are permissions, and neither is written as a limit
-    # on the other, so a Legendary Attribute never holds an elder down and vice versa.
+    # p.258: Attributes follow permanent Essence above 5. The HIGHER of this and the
+    # Merit ceiling wins: both are permissions.
     cap = max(cap, elder.trait_ceiling(character, ruleset, domain="attribute"))
-    # A per-ORIGIN Attribute ceiling (the Unenlightened Mountain Folk's Intelligence
-    # 2, CH6 p.230) is a CEILING on one named Attribute that can only LOWER the cap,
-    # like the Dragon-King Essence gate just below.
+    # An origin ceiling (CH6 p.230) can only LOWER the cap.
     b = ruleset.budgets_for(character.exalt_type, character.origin, character.upbringing)
     origin_attr_cap = b.attribute_caps.get(attr.value)
     if origin_attr_cap:
         cap = min(cap, origin_attr_cap)
-    # The Dragon-King Essence gate (PG p.177 "Maximum Intelligence and Path Level")
-    # is a CEILING on Intelligence specifically — 1/3/5/6 at Essence 1/2/3-5/6 — so
-    # unlike the permission ceilings above, it can only LOWER the cap, and it binds
-    # post-lock too (the chargen check alone would let XP raise Intelligence past it).
+    # PG p.177: the Essence gate on Intelligence can only LOWER the cap. ⚠ It applies
+    # after the lock too.
     if attr == AttributeName.INTELLIGENCE:
         int_cap = b.intelligence_max_by_essence.get(character.essence_rating, 0)
         if int_cap:
@@ -68,9 +62,8 @@ def raise_ability(ruleset: RuleSet, character: Character, ability: AbilityName) 
 
 
 def learn_craft(ruleset: RuleSet, character: Character, focus: str) -> XpEntry:
-    """Begin a new per-focus Craft Ability at rating 1 (core p.136). Priced as a new
-    Ability (the flat 'new ability' cost, with the Caste/Favoured discount baked into
-    ability_step). Focus must be non-empty and not already owned."""
+    """Start a new Craft focus at rating 1 (core p.136). Priced as a new Ability
+    (ability_step). The focus must be non-empty and not owned."""
     _ensure_locked(character)
     focus = focus.strip()
     if not focus:
@@ -84,12 +77,12 @@ def learn_craft(ruleset: RuleSet, character: Character, focus: str) -> XpEntry:
 
 
 def raise_craft(ruleset: RuleSet, character: Character, focus: str) -> XpEntry:
-    """Raise an existing per-focus Craft Ability one dot, scaled like any Ability."""
+    """Raise an owned Craft focus one dot, scaled as an Ability."""
     _ensure_locked(character)
     cr = next((c for c in character.crafts if c.focus == focus), None)
     if cr is None:
         raise AdvancementError(f"No Craft ({focus}) to raise; learn it first.")
-    # A per-focus Craft IS an Ability (core p.136), so the elder ceiling reaches it.
+    # A Craft focus is an Ability (core p.136): the elder ceiling applies.
     cap = elder.trait_ceiling(character, ruleset, domain="ability")
     if cr.rating >= cap:
         raise AdvancementError(f"Craft ({focus}) is already at {cap}.")
@@ -100,8 +93,8 @@ def raise_craft(ruleset: RuleSet, character: Character, focus: str) -> XpEntry:
 
 
 def learn_college(ruleset: RuleSet, character: Character, college_id: str) -> XpEntry:
-    """Begin a new Astrological College at rating 1 (Sidereal, p.265). Flat new_college
-    cost. The id must be a real College and not already owned."""
+    """Start a new Astrological College at rating 1 (Sidereal, p.265). The id must be
+    a real College and not owned."""
     _ensure_locked(character)
     if college_id not in ruleset.colleges:
         raise AdvancementError(f"Unknown college {college_id!r}.")
@@ -114,11 +107,10 @@ def learn_college(ruleset: RuleSet, character: Character, college_id: str) -> Xp
 
 
 def raise_college(ruleset: RuleSet, character: Character, college_id: str) -> XpEntry:
-    """Raise an existing College one dot, scaled (current × 3, p.265).
+    """Raise an owned College one dot (current × 3, p.265).
 
-    NOT lifted by the elder ceiling: p.258 names "Abilities and Attributes", and a
-    College is neither — it is a rated Advantage with its own chargen pool. Held at
-    `_DOT_MAX` deliberately; do not "fix" it without a page saying otherwise."""
+    ⚠ The elder ceiling does NOT apply: p.258 names Abilities and Attributes only.
+    Held at `_DOT_MAX`."""
     _ensure_locked(character)
     cr = next((c for c in character.colleges if c.college_id == college_id), None)
     if cr is None:
@@ -134,14 +126,10 @@ def raise_college(ruleset: RuleSet, character: Character, college_id: str) -> Xp
 def raise_virtue(ruleset: RuleSet, character: Character, virtue: VirtueName) -> XpEntry:
     _ensure_locked(character)
     frm = character.virtues[virtue]
-    # True Paragon lets Virtues be raised to 6 "with bonus or experience points".
+    # True Paragon: Virtues to 6.
     mf_cap = merits.merits_and_flaws_calc(ruleset, character).virtue_cap
     cap = mf_cap if mf_cap is not None else _DOT_MAX
-    # The Dragon-King Essence-gated Virtue ceiling (PG p.177 row 6: at Essence 6 a
-    # Dragon King may raise Virtues to 6). A PERMISSION like the Merit's — the
-    # higher wins — because below Essence 6 the table is 5 (the default) and only
-    # row 6 exceeds it. Without this, `_DOT_MAX` (5) would make the Essence-6
-    # Virtue-6 unlock unreachable.
+    # PG p.177 row 6: Virtues to 6 at Essence 6. A permission: the higher wins.
     virt_cap = (ruleset.budgets_for(character.exalt_type, character.origin,
                                     character.upbringing)
                 .virtue_max_by_essence.get(character.essence_rating, 0))
@@ -156,14 +144,12 @@ def raise_virtue(ruleset: RuleSet, character: Character, virtue: VirtueName) -> 
 
 
 def raise_willpower(ruleset: RuleSet, character: Character) -> XpEntry:
-    """Raise permanent Willpower one dot (increments the purchased component; the
-    pinned Virtue component is untouched)."""
+    """Raise permanent Willpower one dot. Increments the purchased component only."""
     _ensure_locked(character)
     frm = derive.willpower(character, ruleset)
     if frm >= _WILLPOWER_MAX:
         raise AdvancementError(f"Willpower is already at {_WILLPOWER_MAX}.")
-    # An origin's HARD cap binds tighter than the universal 10 — Unenlightened
-    # Mountain Folk "can never have a permanent Willpower above 6" (CH6 p.230).
+    # The origin hard cap (CH6 p.230) binds before the universal 10.
     hard_cap = (ruleset.budgets_for(character.exalt_type, character.origin,
                                     character.upbringing).willpower_hard_cap)
     if hard_cap and frm >= hard_cap:
@@ -177,11 +163,8 @@ def raise_willpower(ruleset: RuleSet, character: Character) -> XpEntry:
 def raise_essence(ruleset: RuleSet, character: Character) -> XpEntry:
     _ensure_locked(character)
     frm = character.essence_rating
-    # The permanent-Essence ceiling is the splat's `essence_cap` (0 → the flat 9,
-    # p.258's chart max), then the p.258 Terrestrial-7 hold. Asked of engine.elder,
-    # never decided here. A Merit can override it — Essence Mastery takes a mortal
-    # from 1 to 3, "the limit of human potential" (PG p.114) — so the override is
-    # applied on top, and it names no Terrestrial hold.
+    # engine.elder gives the Essence ceiling. A Merit `essence_cap_override` applies
+    # on top (PG p.114).
     cap, terrestrial_limited = elder.essence_cap(ruleset, character)
     override = merits.merits_and_flaws_calc(ruleset, character).essence_cap_override
     if override is not None:
@@ -204,23 +187,17 @@ def raise_essence(ruleset: RuleSet, character: Character) -> XpEntry:
 # --------------------------------------------------------------------------- #
 # The merged trait surface (decision 0013)
 #
-# One dot track serves both sides of the lock: pre-lock a free setter, post-lock a
-# stepper. These two functions are what the post-lock half needs and the per-dot
-# `raise_*` above cannot express on their own. Neither adds a rule or a price — they
-# route to the functions above and read the log.
-# --------------------------------------------------------------------------- #
+# One dot track on both sides of the lock: before it a free setter, after it a
+# stepper. These functions route to the `raise_*` functions above and read the log.
+# They add no rule and no price.
+# ---------------------------------------------------------------------------- #
 
-# Log targets that ARE dot tracks in the editor, mapped to their per-dot raise. The
-# names match the `XpEntry.target` convention `undo_last` already partitions on, so
-# the UI names a trait the same way everywhere. Willpower is deliberately absent: it
-# is a number input, not a track, because decision 0005 pins its Virtue component and
-# only `willpower_purchased` moves. Crafts and Colleges are absent because they carry
-# a `detail` (the focus / college id) and are their own controls.
+# Log targets that are dot tracks, mapped to their per-dot raise. Names follow the
+# `XpEntry.target` convention. Willpower is absent: it is a number input (decision
+# 0005). Crafts and Colleges are absent: they carry a `detail`.
 def _step_craft(ruleset: RuleSet, character: Character, focus: str) -> XpEntry:
-    """One dot of a per-focus Craft, whichever side of 0 it starts on. A dot track
-    spans "not owned" and "owned at 1" as one gesture, but the engine prices those
-    differently (a new Ability vs a scaled raise), so the split lives here rather
-    than in the UI."""
+    """Add one dot to a Craft focus, from 0 or above. 0 -> 1 is a new Ability; above
+    it is a scaled raise."""
     known = any(cr.focus == focus for cr in character.crafts)
     return raise_craft(ruleset, character, focus) if known \
         else learn_craft(ruleset, character, focus)
@@ -232,9 +209,8 @@ def _step_college(ruleset: RuleSet, character: Character, college_id: str) -> Xp
         else learn_college(ruleset, character, college_id)
 
 
-# Callables take (ruleset, character, key, detail): `key` is the part of the target
-# after the dot (an Attribute/Ability/Virtue name), `detail` the XpEntry detail that
-# identifies WHICH craft or college. Most targets use one or the other, never both.
+# Callables take (ruleset, character, key, detail). `key` is the part of the target
+# after the dot. `detail` names the craft or college.
 _DOT_TRACK_RAISES = {
     "attributes": lambda rs, c, key, detail: raise_attribute(rs, c, AttributeName(key)),
     "abilities": lambda rs, c, key, detail: raise_ability(rs, c, AbilityName(key)),
@@ -266,7 +242,7 @@ def _lower_college_by_id(character: Character, college_id: str, reason: str) -> 
 
 
 def _dot_track_step(target: str):
-    """The per-dot raise for a log target, or None if that target is not a dot track."""
+    """Return the per-dot raise of a log target, or None if it is not a dot track."""
     domain, _, _key = target.partition(".")
     return _DOT_TRACK_RAISES.get(domain)
 
@@ -291,19 +267,14 @@ def _dot_track_rating(character: Character, target: str, detail: str = "") -> in
 
 
 def refundable_depth(character: Character, target: str, detail: str = "") -> int:
-    """How many rows at the TAIL of the XP log are consecutive *raises* of exactly
-    this target — i.e. how many dots of it `undo_last` could give back right now.
+    """Return how many rows at the TAIL of the XP log are consecutive raises of this
+    target: the dots that `undo_last` can give back now.
 
-    This is what greys the downward-click dialog's undo branch and caps its count. It
-    is emphatically NOT "how many dots of this trait were bought": undo is LIFO across
-    the whole log, so a raise buried under any other purchase is unreachable until
-    that purchase is unwound, and this returns 0 for it. Reading it as a per-trait
-    refund allowance is the misreading decision 0013 warns about.
+    ⚠ NOT the dots bought: undo is LIFO across the whole log (decision 0013). A raise
+    under any other purchase returns 0.
 
-    A REDUCTION at the tail stops the count. It shares the log with purchases but is
-    not one — it refunded nothing, so there is nothing above it to refund. Direction
-    (`to_rating > from_rating`) is what distinguishes them, not cost: a withheld-Charm
-    pick (Weak Essence) is a genuine purchase that also costs 0.
+    A REDUCTION at the tail stops the count. Direction (`to_rating > from_rating`)
+    tells them apart, not cost: a withheld-Charm pick also costs 0.
     """
     depth = 0
     for entry in reversed(character.xp_log):
@@ -319,22 +290,15 @@ def refundable_depth(character: Character, target: str, detail: str = "") -> int
 
 def raise_to(ruleset: RuleSet, character: Character, target: str,
              to_rating: int, detail: str = "") -> list[XpEntry]:
-    """Raise a dot-tracked trait to `to_rating`, one logged step per dot.
+    """Raise a dot-tracked trait to `to_rating`, one logged step per dot, through the
+    per-dot `raise_*`.
 
-    The stepper behind an upward click on a post-lock dot track. Every step goes
-    through the ordinary per-dot `raise_*`, so each dot is priced from the live rating
-    (the escalating `current x N`) and gated by the same caps — no pricing or rule
-    lives here.
+    **The whole click is validated before any of it commits.** A probe on a deep copy
+    runs the same functions. An illegal or unaffordable click raises with the
+    character unchanged.
 
-    **The whole click is validated before any of it commits.** A probe run against a
-    deep copy spends the identical functions, so an unaffordable or illegal click
-    raises with the character untouched rather than landing halfway up the track with
-    the XP gone. That is the failure mode this exists to prevent, and it is why the
-    UI can offer a multi-dot click at all.
-
-    Downward is not handled here — it is the dialog's job to choose between undo and
-    reduce, and silently refunding here would make that choice. A `to_rating` at or
-    below the current one returns [] and changes nothing.
+    Downward is not handled here: the dialog chooses undo or reduce. A `to_rating`
+    at or below the current one returns [].
     """
     _ensure_locked(character)
     step = _dot_track_step(target)
@@ -346,8 +310,7 @@ def raise_to(ruleset: RuleSet, character: Character, target: str,
     if steps <= 0:
         return []
 
-    # Probe first: same functions, throwaway character. Anything illegal or
-    # unaffordable raises here, before the real character has been touched.
+    # Probe first on a copy.
     probe = character.model_copy(deep=True)
     for _ in range(steps):
         step(ruleset, probe, key, detail)
@@ -357,13 +320,11 @@ def raise_to(ruleset: RuleSet, character: Character, target: str,
 
 def refund_to(ruleset: RuleSet, character: Character, target: str,
               to_rating: int, detail: str = "") -> list[XpEntry]:
-    """Give back dots of a trait by UNDOING the purchases that bought them — the
-    dialog's refund branch. XP comes back; the log rows go away.
+    """Give back dots of a trait by UNDOING their purchases. XP comes back and the log
+    rows go.
 
-    Bounded by `refundable_depth`, and that bound is a hard error rather than a
-    truncation: undo is LIFO across the whole log, so unwinding more rows than this
-    trait owns at the tail would silently reverse somebody else's purchase. A caller
-    that wants to go further is asking for a reduction, not a refund.
+    ⚠ Bounded by `refundable_depth`, as an error: more rows would reverse a different
+    purchase.
     """
     _ensure_locked(character)
     if _dot_track_step(target) is None:
@@ -381,13 +342,10 @@ def refund_to(ruleset: RuleSet, character: Character, target: str,
 
 def lower_to(character: Character, target: str, to_rating: int,
              reason: str = "", detail: str = "") -> list[XpEntry]:
-    """Reduce a trait by `curse` — the dialog's other branch. Free, refunds nothing,
-    one logged reduction per dot.
+    """Reduce a trait (a curse). Free, no refund, one logged reduction per dot.
 
-    Unlike `refund_to` this is NOT bounded by what was bought: a curse reaches chargen
-    dots too, and goes below the snapshot. The only floor is each trait's own.
-    Probe-validated like `raise_to`, so a click that runs past the floor is refused
-    whole rather than lowering as far as it can.
+    Not bounded by what was bought: a curse reaches chargen dots. The floor of each
+    trait is the only limit. Probe-validated as `raise_to`.
     """
     _ensure_locked(character)
     domain, _, key = target.partition(".")
@@ -398,8 +356,7 @@ def lower_to(character: Character, target: str, to_rating: int,
     if steps <= 0:
         return []
 
-    # Crafts and Colleges carry their identity in `detail`, not in the target; every
-    # other dot track is the other way round. One of the two is always empty.
+    # Crafts and Colleges use `detail`. The other tracks use the target.
     ident = detail or key
     probe = character.model_copy(deep=True)
     for _ in range(steps):
@@ -411,13 +368,10 @@ def lower_to(character: Character, target: str, to_rating: int,
 # --------------------------------------------------------------------------- #
 # Permanent reductions (curses, Charm costs, story effects)
 #
-# A reduction lowers a permanent trait *outside* the XP economy: it refunds NO XP
-# (cost 0) and is logged as an append-only row with to_rating < from_rating, so the
-# audit prices it at 0 and `undo_last` reverses it like any other row. These are
-# story-driven (a curse that saps Strength, a Charm with a permanent cost), so the
-# engine enforces only the floor — not any rules reason. The `reason` is free text
-# (stored on the row's detail) shown in the ledger. If a reduction drops an Ability
-# below a known Charm's requirement, the normal validate() surfaces that — by design.
+# A reduction lowers a permanent trait outside the XP economy: cost 0, logged with
+# to_rating < from_rating. `undo_last` reverses it. Only the floor is enforced. The
+# `reason` is free text on the row. validate() reports a Charm whose requirement is
+# then not met.
 # --------------------------------------------------------------------------- #
 
 def _log_reduction(character: Character, target: str, frm: int, to: int, reason: str) -> XpEntry:
@@ -455,15 +409,11 @@ def lower_virtue(character: Character, virtue: VirtueName, reason: str = "") -> 
 
 def lower_willpower(character: Character, reason: str = "", *,
                     ruleset: RuleSet | None = None) -> XpEntry:
-    """Reduce permanent Willpower one dot (a curse). Decrements the purchased
-    component, which may go negative — permanent Willpower = pinned Virtue component
-    + purchased, so a curse below the Virtue floor is represented as net-negative
-    purchased. Floored at a permanent Willpower of 1."""
+    """Reduce permanent Willpower one dot (a curse). The purchased component can go
+    negative (permanent = Virtue component + purchased). The floor is 1."""
     _ensure_locked(character)
-    # `ruleset` is optional to match its `lower_*` siblings, but OMITTING IT IS A BUG
-    # for any character holding a Flaw that moves Willpower — Weak-Willed sells dots,
-    # Callous keeps tracking the Virtues. Without it the "already at 1" guard tests the
-    # wrong number and the ledger records a reduction that never happened.
+    # ⚠ Pass `ruleset` for a character with Weak-Willed or Callous. Else the floor
+    # test reads the incorrect number.
     frm = derive.willpower(character, ruleset)
     if frm <= 1:
         raise AdvancementError("Willpower is already at 1 (the minimum).")
@@ -486,16 +436,14 @@ def lower_craft(character: Character, focus: str, reason: str = "") -> XpEntry:
         raise AdvancementError(f"Craft ({focus}) is already at 0.")
     cr.rating = frm - 1
     if cr.rating <= 0:
-        # A Craft IS its focus; rating 0 is not a state it has (learn_craft starts it
-        # at 1), so the row goes rather than lingering as an empty Ability.
+        # A Craft at 0 is removed.
         character.crafts.remove(cr)
     return _log_reduction(character, "crafts", frm, frm - 1, reason or focus)
 
 
 def lower_college(ruleset: RuleSet, character: Character, college_id: str,
                   reason: str = "") -> XpEntry:
-    """Reduce an Astrological College one dot, removing it entirely at 0. Same
-    reasoning as `lower_craft`."""
+    """Reduce an Astrological College one dot, removing it at 0. As `lower_craft`."""
     _ensure_locked(character)
     cr = next((c for c in character.colleges if c.college_id == college_id), None)
     if cr is None:
@@ -510,11 +458,9 @@ def lower_college(ruleset: RuleSet, character: Character, college_id: str,
 
 
 def learn_path(ruleset: RuleSet, character: Character, path_id: str) -> XpEntry:
-    """Begin a new Dragon-King Path at rating 1 (PG pp.175-177). Flat cost — 7 XP, or
-    6 for a Breed/Favoured Path (p.176). The id must be a real Path and not already
-    owned. The Essence gate (max rating 1 at Essence 1) never binds the first dot for
-    a playable Dragon King (they start at Essence 2+), but is checked for the same
-    reason every other gate is."""
+    """Start a new Dragon-King Path at rating 1 (PG pp.175-177): 7 XP, or 6 for a
+    Breed/Favoured Path (p.176). The id must be a real Path and not owned. The
+    Essence gate is checked."""
     _ensure_locked(character)
     if path_id not in ruleset.paths:
         raise AdvancementError(f"Unknown path {path_id!r}.")
@@ -531,12 +477,10 @@ def learn_path(ruleset: RuleSet, character: Character, path_id: str) -> XpEntry:
 
 
 def raise_path(ruleset: RuleSet, character: Character, path_id: str) -> XpEntry:
-    """Raise an existing Path one dot, scaled on the current rating (p.176: ×5, ×4
-    for a Breed/Favoured Path). Capped by the Essence gate (p.177: a Path may not
-    exceed 1/3/5/6 at Essence 1/2/3-5/6) — which is also the Path's whole ceiling,
-    since Essence 6 is the life cap and admits Path 6. Deliberately NOT lifted by the
-    trait ceiling: `elder.trait_ceiling` raises Abilities and Attributes, and a Path
-    is a rated Advantage with its own gate."""
+    """Raise an owned Path one dot (p.176: ×5, ×4 for Breed/Favoured), capped by the
+    Essence gate (p.177).
+
+    ⚠ `elder.trait_ceiling` does NOT apply: it covers Abilities and Attributes."""
     _ensure_locked(character)
     pr = next((p for p in character.paths if p.path_id == path_id), None)
     if pr is None:
@@ -554,8 +498,7 @@ def raise_path(ruleset: RuleSet, character: Character, path_id: str) -> XpEntry:
 
 def lower_path(ruleset: RuleSet, character: Character, path_id: str,
                reason: str = "") -> XpEntry:
-    """Reduce a Path one dot, removing it entirely at 0. Same reasoning as
-    `lower_craft`/`lower_college` (a usability escape hatch, not a printed rule)."""
+    """Reduce a Path one dot, removing it at 0. As `lower_craft`."""
     _ensure_locked(character)
     pr = next((p for p in character.paths if p.path_id == path_id), None)
     if pr is None:
@@ -570,7 +513,7 @@ def lower_path(ruleset: RuleSet, character: Character, path_id: str,
 
 
 def _step_path(ruleset: RuleSet, character: Character, path_id: str) -> XpEntry:
-    """One dot of a Path, whichever side of 0 it starts on (the dot-track split)."""
+    """Add one dot to a Path, from 0 or above."""
     known = any(p.path_id == path_id for p in character.paths)
     return raise_path(ruleset, character, path_id) if known \
         else learn_path(ruleset, character, path_id)
@@ -593,17 +536,8 @@ def lower_essence(character: Character, reason: str = "") -> XpEntry:
 # --------------------------------------------------------------------------- #
 # Permanent Resonance (Death's Taint, PG p.41)
 #
-# The Abyssal Curse's lasting half moves in BOTH directions, and the two directions
-# have different prices, which is why it needs its own pair of functions rather than
-# riding the curse path:
-#
-#   * GAINING a dot is a story event — "whenever the character's Resonance pool exceeds
-#     a rating of 10 … she gains a point of permanent Resonance" — and costs nothing.
-#   * SHEDDING one costs five experience points and a Harrowing.
-#
-# Both are logged, so the ledger is the audit trail for a permanent trait exactly as
-# decision 0006 requires. The Harrowing itself is a story requirement no engine can
-# check; see `XpEntry.training_complete` for the class of rule it belongs to.
+# Gaining a dot is a story event and costs nothing. Shedding a dot costs five XP and a
+# Harrowing. Both are logged (decision 0006). The Harrowing is not checked.
 # --------------------------------------------------------------------------- #
 
 def gain_permanent_resonance(ruleset: RuleSet, character: Character,

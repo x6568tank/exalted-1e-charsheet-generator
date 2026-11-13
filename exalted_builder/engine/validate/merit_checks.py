@@ -12,9 +12,8 @@ belongs in `engine/merits.py` with a new `MeritEffects` field instead.
 ⚠ Named `merit_checks`, not `merits`: the decision 0011 containment test keys on the
 path `engine/merits.py`. Do not add a second file named `merits.py`.
 
-⚠ `withheld_charm_credits` ships without its printed counterweight — Weak Essence's
-withheld Charms "still require the same training time", and training times are not
-modelled. The XP waiver is deliberately one-sided.
+⚠ `withheld_charm_credits` waives the XP. Weak Essence also requires training time,
+which is out of scope. The waiver is one-sided by design.
 """
 
 from __future__ import annotations
@@ -41,29 +40,27 @@ DRIFT_CODES = frozenset({
 
 def merit_issues(ruleset: RuleSet, character: Character, *,
                  post_lock: bool = False) -> list[Issue]:
-    """Legality of the character's Merits & Flaws (Player's Guide pp.120-122).
+    """Return the issues of the character's Merits & Flaws (Player's Guide
+    pp.120-122).
 
-    Structural only — an unknown id, a missing prerequisite, a variable-cost entry
+    Structural only: an unknown id, a missing prerequisite, a variable-cost entry
     with no valid tier, a repeat of a non-repeatable Merit, or a thaumaturges-only
-    entry on a character who holds no thaumaturgy. What a Merit DOES is never checked
-    here; that is engine.merits' job (decision 0011).
+    entry on a character with no thaumaturgy. engine.merits gives the effects
+    (decision 0011).
 
-    `post_lock=True` returns only the `DRIFT_CODES` subset, downgraded to warnings —
-    the same shape `background_issues(post_lock=True)` uses. The story can make this
-    state, thus it is not an error (human's ruling).
+    `post_lock=True` returns only the `DRIFT_CODES` subset, as warnings, as
+    `background_issues(post_lock=True)` does. The story can make this state (human's
+    ruling).
 
-    ⚠ Post-lock the gates read LIVE traits, not the snapshot. The snapshot holds the
-    values as they were AT the lock, so a snapshot read would re-check what was
-    already checked and never fire — the check would exist and do nothing.
+    ⚠ After the lock the gates read LIVE traits, not the snapshot. A snapshot read
+    repeats the chargen check and never fires.
 
     ⚠ The frozen-choice gates (splat, caste, origin, tier) are deliberately NOT in
     `DRIFT_CODES`. They cannot drift, so re-running them is noise.
     """
     issues: list[Issue] = []
     held: dict[str, int] = {}
-    # "THAUMATURGES ONLY" asks whether the character holds any thaumaturgy at all.
-    # Read through the snapshot at chargen so a locked sheet keeps the answer it was
-    # built with; LIVE post-lock, where the question is what is true NOW.
+    # "THAUMATURGES ONLY": the snapshot at chargen, LIVE after the lock.
     snap = None if post_lock else character.chargen_snapshot
     thaum = (snap.thaumaturgy or ThaumaturgyState()) if snap else thaum_state(character)
     has_thaum = bool(thaum.arts or thaum.sciences or thaum.rituals or thaum.formulas
@@ -93,8 +90,8 @@ def merit_issues(ruleset: RuleSet, character: Character, *,
                          f"{character.exalt_type}; open options are "
                          f"{', '.join(merit_tiers_available(definition, character.exalt_type, character.caste))}."),
             ))
-        # Against the menu THIS character prices on, not the generic one — a Sidereal
-        # recording Lucky at 4 would otherwise pass validation and be worth 0 points.
+    # The menu of THIS character, not the generic one. Else a Sidereal with Lucky at 4
+    # passes and is worth 0.
         own_options = merit_cost_options(definition, character.exalt_type, character.caste)
         if definition.cost_options and purchase.tier not in own_options:
             issues.append(Issue(
@@ -139,10 +136,8 @@ def merit_issues(ruleset: RuleSet, character: Character, *,
             points = merit_points(definition, purchase, character.exalt_type,
                                   character.caste)
             if limit.per_entry:
-                # The limit measures ONE named artifact, not the character's holdings.
-                # An unresolved key is reported rather than defaulted: choosing the
-                # best artifact on the character's behalf would make an illegal
-                # purchase legal without anyone deciding to.
+                # The limit measures ONE named artifact. ⚠ An unresolved key is
+                # reported, not defaulted: a default makes an illegal purchase legal.
                 item = artifacts.find_item(character, purchase.artifact_key)
                 if item is None:
                     issues.append(Issue(
@@ -182,10 +177,8 @@ def merit_issues(ruleset: RuleSet, character: Character, *,
                 code="merit-trait-prerequisite", where=definition.id,
                 message=f"{definition.name} requires {want}.",
             ))
-        # A structured `detail` (which Attribute category a forfeit comes from, which
-        # Attribute Legendary Attribute raises) is a CLOSED set. Unset or off-list, the
-        # effect silently does not happen — Legendary Attribute grants no cap at all,
-        # and a forfeit falls back to Physical. Reported rather than defaulted.
+        # A structured `detail` is a CLOSED set. Unset or off-list, the effect does not
+        # happen: report it, do not default it.
         choices = merits.detail_choices(definition)
         if choices and purchase.detail.strip().title() not in choices:
             issues.append(Issue(
@@ -211,9 +204,7 @@ def merit_issues(ruleset: RuleSet, character: Character, *,
                         f"character holds no Arts, Sciences, rituals or formulas.",
             ))
 
-    # What counts as held when an entry's `prerequisites` are checked. One entry may
-    # stand in for another — engine.merits decides which, because nothing outside that
-    # module may name a Merit id — so the two sets are unioned once, here.
+    # The ids held for `prerequisites`: held ids plus engine.merits substitutions.
     held_for_prereq = set(held) | set(
         merits.merits_and_flaws_calc(ruleset, character).prerequisites_satisfied)
 
@@ -224,8 +215,7 @@ def merit_issues(ruleset: RuleSet, character: Character, *,
                 code="merit-repeated", where=mid,
                 message=f"{definition.name} may only be taken once; found {count}.",
             ))
-        # A repeatable entry may still be capped by a trait — "characters may not
-        # purchase this Merit more times than their Occult rating" (PG p.24).
+        # A trait cap on repeats (PG p.24).
         if definition.max_purchases_from_trait:
             limit = trait_rating(character, definition.max_purchases_from_trait,
                                  backgrounds)
@@ -236,8 +226,7 @@ def merit_issues(ruleset: RuleSet, character: Character, *,
                             f"{definition.max_purchases_from_trait} "
                             f"({limit}); found {count}.",
                 ))
-        # ...or by origin — Virtue Attunement is once for a commoner Fae-Blooded,
-        # twice for a noble (PG p.74). An origin with no entry in the map is uncapped.
+        # An origin cap on repeats (PG p.74). An absent origin has no cap.
         if character.origin in definition.max_purchases_by_origin:
             limit = definition.max_purchases_by_origin[character.origin]
             if count > limit:
@@ -247,9 +236,7 @@ def merit_issues(ruleset: RuleSet, character: Character, *,
                             f"as a {character.origin}; found {count}.",
                 ))
         for pid in definition.prerequisites:
-            # ⚠ `held_for_prereq`, not `held`: one entry may stand in for another
-            # (Awakened Essence for the two mortal Essence-unlock Merits). Which ones
-            # is engine.merits' business — no Merit id is named here.
+            # ⚠ `held_for_prereq`, not `held`: engine.merits substitutions count.
             if pid not in held_for_prereq:
                 name = ruleset.merits_flaws[pid].name if pid in ruleset.merits_flaws else pid
                 issues.append(Issue(
@@ -257,8 +244,7 @@ def merit_issues(ruleset: RuleSet, character: Character, *,
                     message=f"{definition.name} requires {name}.",
                 ))
 
-    # Backgrounds a held entry caps or forbids (A6 — Innocuous' veiled tier, p.22).
-    # Asked of engine.merits, so no Merit id is named here.
+    # Backgrounds that a held entry caps or bars (A6, p.22), from engine.merits.
     effects = merits.merits_and_flaws_calc(ruleset, character)
     if effects.background_caps or effects.barred_backgrounds:
         for bg in backgrounds:
@@ -286,15 +272,11 @@ def merit_issues(ruleset: RuleSet, character: Character, *,
 
 
 def merit_bonus_point_cost(ruleset: RuleSet, character: Character) -> int:
-    """Bonus points SPENT on Merits. Flaws cost nothing to take — their point value is
-    a grant, accounted separately (see `MeritEffects.bonus_point_grant`), so only
-    `kind == "merit"` rows are charged here.
-
-    Every cost shape is resolved by `merit_points`, including the per-splat prices the
-    general chapter is full of — hence passing the character's Exalt type."""
+    """Return the bonus points SPENT on Merits. A Flaw is a grant
+    (`MeritEffects.bonus_point_grant`), thus only `kind == "merit"` rows count. Each
+    price comes from `merit_points`."""
     total = 0
-    # A Merit whose price another Merit changes (Holy Mien -> Priest). Asked of
-    # engine.merits, so no Merit id is ever named here.
+    # A price that a different Merit changes (Holy Mien -> Priest), from engine.merits.
     overrides = merits.merits_and_flaws_calc(ruleset, character).merit_cost_overrides
     for purchase in character.merits_flaws:
         definition = ruleset.merits_flaws.get(purchase.merit_id)
@@ -312,26 +294,18 @@ def merit_bonus_point_cost(ruleset: RuleSet, character: Character) -> int:
 
 
 def effective_merit_kind(definition, purchase) -> str:
-    """Whether THIS purchase counts as a Merit or a Flaw.
-
-    Fixed by the catalogue for the single-sided majority. A `kind: "either"` entry —
-    Mutation, Favor, Eternal Vow, each printed as "MERIT OR FLAW" — is the player's
-    choice, recorded on the purchase. An either-entry with no choice recorded defaults
-    to "merit" here so pricing never crashes; validate reports the missing choice
-    separately rather than letting it pass unnoticed."""
+    """Return "merit" or "flaw" for THIS purchase. The catalogue decides, except for a
+    `kind: "either"` entry, where the purchase records the choice. An either-entry
+    with no choice gives "merit" here, and validate reports the missing choice."""
     if definition.kind != "either":
         return definition.kind
     return purchase.taken_as if purchase.taken_as in ("merit", "flaw") else "merit"
 
 
 def merit_cost_options(definition, exalt_type: str = "", caste: str = "") -> dict[str, int]:
-    """The menu this character actually prices against — the ONE resolution order, so a
-    dropdown can never offer an option the pricer will not honour.
-
-    Caste outranks splat outranks the generic table, exactly as `merit_points` reads
-    them. Lucky is why this is not just `definition.cost_options`: it is "1- TO 5-PT.
-    MERIT, 1- TO 3-PT. FOR SIDEREALS", and reading the generic table offered a Sidereal
-    a 4- and 5-point option that priced at 0 — visible in the dropdown, worth nothing.
+    """Return the menu that this character prices against. Caste, then splat, then
+    the generic table, as `merit_points` reads them. A dropdown that uses it never
+    offers an option that prices at 0 (Lucky for a Sidereal).
     """
     by_caste = definition.cost_options_by_caste.get(caste or "")
     if by_caste:
@@ -343,37 +317,28 @@ def merit_cost_options(definition, exalt_type: str = "", caste: str = "") -> dic
 
 
 def merit_tiers_available(definition, exalt_type: str, caste: str = "") -> tuple[str, ...]:
-    """The options of a menu-priced entry this splat may actually choose.
-
-    Two things narrow the menu. `tier_barred_exalt_types` is Prodigy's, barred to four
-    splats for the half that grants a Favored Ability while its "increased aptitude"
-    half stays open to exactly those splats. `merit_cost_options` is Lucky's, where the
-    splat gets a SHORTER menu rather than a differently-priced one. Returns () for an
-    entry with no menu at all — callers should treat that as "no tier to choose", not
-    as "nothing available".
+    """Return the menu options that this splat can choose: `merit_cost_options` minus
+    `tier_barred_exalt_types`. () = the entry has no menu.
     """
     return tuple(t for t in merit_cost_options(definition, exalt_type, caste)
                  if exalt_type not in definition.tier_barred_exalt_types.get(t, ()))
 
 
 def exalt_type_barred_from_tier(definition, exalt_type: str, tier: str) -> bool:
-    """Whether this splat is barred from one named option of a menu-priced entry."""
+    """Return True if this splat is barred from the option `tier`."""
     return exalt_type in definition.tier_barred_exalt_types.get(tier, ())
 
 
 def merit_available_to(definition, exalt_type: str, caste: str = "", *,
                        origin: str = "", starting_essence: int | None = None) -> bool:
-    """Whether the catalogue opens this entry to this character at all.
+    """Return True if the catalogue restrictions open this entry to the character:
+    splat allow-list, splat bar, caste bar, origin gate. Catalogue DATA only.
 
-    The printed restrictions only — splat allow-list, splat bar, caste bar, origin
-    gate — which are inert catalogue DATA rather than effects, so no Merit id is named
-    and `engine.merits` is not consulted. Prerequisites, tiers and "thaumaturges only"
-    are NOT checked here: those depend on the rest of the sheet and change as it is
-    built, so hiding an entry for them would make the dropdown flicker.
+    Prerequisites, tiers and "thaumaturges only" are NOT checked: they change as the
+    sheet is built, and the dropdown would flicker.
 
-    Shares its three conditions with the `merit-wrong-splat` / `merit-barred-splat` /
-    `merit-barred-caste` issues above, so a UI that filters on this can never offer
-    something validation would immediately reject.
+    Uses the same three conditions as the `merit-wrong-splat` / `merit-barred-splat` /
+    `merit-barred-caste` issues.
     """
     if definition.exalt_types and exalt_type not in definition.exalt_types:
         return False
@@ -383,14 +348,12 @@ def merit_available_to(definition, exalt_type: str, caste: str = "", *,
         return False
     if definition.required_origins and origin not in definition.required_origins:
         return False
-    # A splat-level floor on starting Essence. Optional because not every caller has
-    # the budgets to hand; when it is not supplied the entry is NOT hidden, so a
-    # missing argument can only ever be permissive — validation still reports it.
+    # A splat floor on starting Essence. Without `starting_essence` the entry is not
+    # hidden: validation still reports it.
     if (starting_essence is not None and definition.min_starting_essence
             and starting_essence < definition.min_starting_essence):
         return False
-    # Barred at every option of its own menu = barred outright. Derived rather than
-    # duplicated, so a per-tier bar can never disagree with the whole-entry one.
+    # Barred at each option of its menu = barred.
     if definition.cost_options and not merit_tiers_available(definition, exalt_type):
         return False
     return True
@@ -400,22 +363,16 @@ WITHHELD_CHARM_TARGET = "charms_withheld"
 
 
 def withheld_charm_credits(ruleset: RuleSet, character: Character) -> tuple[int, int]:
-    """(granted, remaining) chargen Charm picks banked for XP-free use after the lock.
-
-    Weak Essence lets a new Exalt "withhold up to five Charms in reserve … Withheld
-    Charms waive their experience cost" (p.41), since a character pinned at Essence 1
-    cannot qualify for enough Charms to spend a full budget.
+    """Return (granted, remaining) chargen Charm picks banked for XP-free use after
+    the lock (Weak Essence, p.41).
 
         granted = min(charm_credits_max, charm_count − picks taken)
 
-    stated against the splat's own budget rather than Solar's 10. Redemptions are
-    counted off the append-only XP log, so the pair reconciles with what was spent.
+    The splat budget applies. Redemptions are counted from the XP log.
 
-    ⚠ NOTHING new is stored — how many were withheld is derived from the unspent
-    remainder, which the snapshot already records.
+    ⚠ NOTHING new is stored: the snapshot holds the unspent remainder.
 
-    ⚠ Banking defers picks, it never adds them: this cannot yield more Charms than the
-    ordinary budget.
+    ⚠ Banking defers picks. It never adds them.
     """
     ceiling = merits.merits_and_flaws_calc(ruleset, character).charm_credits_max
     if not ceiling:
@@ -430,8 +387,7 @@ def withheld_charm_credits(ruleset: RuleSet, character: Character) -> tuple[int,
 def merit_points(definition, purchase, exalt_type: str = "", caste: str = "") -> int:
     if definition.variable_cost:
         return max(0, purchase.points)
-    # A two-sided entry may price each side differently (Eternal Vow: 3 as a Merit,
-    # 1 as a Flaw), and that outranks every other shape.
+    # A two-sided entry can price each side differently (Eternal Vow). This wins.
     if definition.cost_by_kind:
         side = effective_merit_kind(definition, purchase)
         if side in definition.cost_by_kind:
@@ -443,13 +399,9 @@ def merit_points(definition, purchase, exalt_type: str = "", caste: str = "") ->
 
 
 def pool_requires_unlocking(ruleset: RuleSet, character: Character) -> bool:
-    """Whether the splat's Essence pool exists only after a Merit unlocks it — the
-    God-Blooded's (Awakened Essence, PG p.66; the per-heritage formula sits on the
-    caste's heritage_traits, not on the ExaltDefinition) and the mortal's (Essence
-    Awareness / Essence Mastery). True exactly when the splat has no NATIVE pool and
-    some unlocked spec exists to replace the empty one. One read site, shared by the
-    chargen gate (magic_gate_issues) and the advancement-side refusals, so the two
-    cannot disagree about which splats are gated."""
+    """Return True if the splat has no NATIVE pool and a Merit-unlocked spec exists
+    (God-Blooded, PG p.66; mortals). magic_gate_issues and the advancement refusals
+    both use it."""
     exalt = ruleset.exalt_for(character.exalt_type)
     if exalt.essence.personal_essence_coeff or exalt.essence.personal_willpower_coeff:
         return False                       # a native pool needs no unlocking
