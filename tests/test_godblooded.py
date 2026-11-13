@@ -925,10 +925,8 @@ def test_no_other_splat_has_a_spell_bar(rs):
 # Ghost-Blooded and Abyssal Half-Caste. Conversely, only these heritages may learn
 # Shadowlands Circle Necromancy."
 #
-# Charm ACCESS alone does not express this. A Ghost-Blooded lands on necromancy by
-# accident — the Ghost catalogue holds no sorcery — but an Abyssal Half-Caste borrows
-# a catalogue holding BOTH, and a Solar Half-Caste's holds Shadowlands Necromancy.
-# Those two were live violations until the track bar was wired.
+# ⚠ Charm ACCESS alone does not express this: an Abyssal Half-Caste borrows a
+# catalogue with BOTH tracks, and a Solar Half-Caste's holds Shadowlands Necromancy.
 
 def _reachable_circles(rs, caste, origin=""):
     """The circles a heritage can actually be initiated into at its Essence cap of 3.

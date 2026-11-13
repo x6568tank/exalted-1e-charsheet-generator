@@ -214,15 +214,11 @@ def test_every_calling_charm_id_resolves(rs):
 
 
 def test_calling_charm_lists_are_complete_except_one_known_gap(rs):
-    """Five of the six Charms this origin's Callings referenced but `data/` lacked were
-    authored from the book's own Charms chapter (p.100-106), so the lists are now as
-    printed. Two counts are NOT ten, for two different reasons:
+    """The Calling Charm lists are as printed (p.100-106). Two counts are NOT ten:
 
-    * Itinerant — the page itself prints only NINE Calling Charms for it, on both p.91
-      and the p.93 summary. Not a gap.
-    * Deacon — still missing **Unshakable Bloodhound Technique**, which p.100 implies
-      was reprinted from a Caste Book but which does not appear in the chapter. It
-      needs a Caste Book page before it can be authored (see _ILLUMINATED_PENDING.md).
+    * Itinerant — the page prints only NINE Calling Charms (p.91, p.93). Not a gap.
+    * Deacon — **Unshakable Bloodhound Technique** is missing: p.100 implies a Caste
+      Book reprint, and that page is needed first (see _ILLUMINATED_PENDING.md).
     """
     counts = {c.id: len(c.charms) for c in rs.callings.values()}
     assert counts == {"exemplar": 10, "inquisitor": 10, "itinerant": 9,

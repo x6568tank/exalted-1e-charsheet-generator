@@ -41,16 +41,9 @@ async def test_play_tab_renders(user: User) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_equipment_is_editable_after_the_lock(user: User) -> None:
-    # Was `test_xp_tab_shows_reduce_card`. Trait reduction is no longer a card at all —
-    # it is the dot track's downward dialog (decision 0013), covered in
-    # test_advancement. What this route still usefully proves is that equipment, which
-    # is free on BOTH sides of the lock, survived the XP tab's deletion.
-    # The three per-kind panels were folded into the inventory rows, so
-    # what proves equipment survived the lock is the INVENTORY listing it and the row
-    # carrying an editor.
-    # CHAR_XP owns nothing, so there are no rows to expand — what proves the point is
-    # that the surface is LIVE after the lock: the inventory renders and the shop opens.
-    # (Equipment is free on both sides; it was never XP-priced.)
+    # Equipment is free on both sides of the lock. After the lock the inventory
+    # renders and the shop opens. (Trait reduction is the dot-track downward dialog,
+    # decision 0013, tested in test_advancement.)
     await user.open('/xp-gear')
     await user.should_see("Inventory")
     await user.should_see("Nothing owned yet")

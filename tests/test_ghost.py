@@ -693,15 +693,12 @@ def test_every_arcanos_carries_its_page(rs) -> None:
 
 
 def test_every_prerequisite_resolves_within_the_catalogue(rs) -> None:
-    """The loader already refuses a dangling reference, so this is really an
-    assertion about SHAPE.
+    """The loader refuses a dangling reference, thus this asserts the SHAPE.
 
-    **50 Charms carry prerequisites**, and getting to that number the honest way is the
-    whole story of this file. CH6 prints 49 well-formed "Prerequisite Charms:" lines
-    that are not "None" — plus ONE that the paste mangled into "PrerequisiteCharms:"
-    with the space dropped (p.244, Feeding the Lamprey's Appetite). A field name that
-    fails to match does not fail loudly: the line silently becomes description text and
-    the Charm loses its prerequisite. 49 was the WRONG answer, arrived at confidently.
+    **50 Charms carry prerequisites.** CH6 prints 49 well-formed "Prerequisite
+    Charms:" lines, plus ONE that the paste made "PrerequisiteCharms:" (p.244, Feeding
+    the Lamprey's Appetite). ⚠ A field name that does not match fails silently: the
+    line becomes description text and the Charm loses its prerequisite.
     """
     with_prereqs = [c for c in _abyssals_arcanoi(rs) if c.prerequisites]
     assert len(with_prereqs) == 50, "49 printed lines + the one with the dropped space"
@@ -1028,16 +1025,12 @@ def test_no_module_outside_merits_names_fighter_in_life() -> None:
 
 
 def test_ghosts_get_five_dragon_style_and_not_the_immaculate_paths(rs) -> None:
-    """The tagging correction of, from the ghost side — and the reason it
-    cost twice. p.234 gives ghosts "only Terrestrial styles":
+    """p.234 gives ghosts "only Terrestrial styles":
 
-      * **Five-Dragon Style is Terrestrial**, so a ghost may learn it. It had been
-        tagged Celestial-only, which denied it to them.
-      * **The five Immaculate Dragon Paths are Celestial**, so a ghost may not. They
-        had been tagged `open_to_all`, which handed all five over.
+      * **Five-Dragon Style is Terrestrial**, thus a ghost can learn it.
+      * **The five Immaculate Dragon Paths are Celestial**, thus a ghost cannot.
 
-    Mortals with Essence Mastery were wrong in both directions for the same reason;
-    their `bar_immaculate_charms` ruling was papering over half of it.
+    The same tags apply to mortals with Essence Mastery.
     """
     c = _ghost()
     five = [x for x in rs.charms.values() if x.category == "martial_arts:five-dragon"]
@@ -1147,16 +1140,11 @@ async def test_the_arcanoi_page_renders_its_categories(user) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_a_ghost_gets_no_combos_tab(user) -> None:
-    """FOUND IN THE BROWSER: the Combos tab appeared for a splat the engine already
-    refused every Combo for (E:Ab p.234).
+    """No Combos tab for a splat with no Combos (E:Ab p.234). `visible_tabs` asks the
+    splat. The tab bar is built only in `build_app`, thus this test uses it.
 
-    `visible_tabs` took only `locked` — it never asked whether the splat may have
-    Combos at all. The tab bar is assembled in `build_app` and nowhere else, so no
-    per-tab route could have caught this.
-
-    Asserted on the tab element's VISIBILITY rather than with `should_not_see`:
-    `set_visibility(False)` hides through CSS and leaves the element in the DOM, so a
-    text search still finds it and would pass whether the fix worked or not.
+    Asserted on the VISIBILITY of the tab: `set_visibility(False)` hides through CSS
+    and keeps the element in the DOM, thus a text search finds it either way.
     """
     from nicegui.elements.tabs import Tab
 

@@ -1,11 +1,8 @@
 """Render and interaction tests for the adversary roster (ui/adversaries.py).
 
-These exist for the bug class this build keeps hitting: a rule that IS
-implemented, sitting where it does not run. The engine tests in
-test_adversaries.py prove instantiate() copies and dodge stays nullable; these
-prove the PAGE actually calls them — that the roster renders at all, that the
-duplicate button really produces an independent tracker, and that a no-dodge
-beast says so on its card.
+The engine tests (test_adversaries.py) prove instantiate() and the nullable dodge.
+These prove that the PAGE calls them (the house bug): the roster renders, Duplicate
+gives an independent tracker, and a no-dodge beast says so on its card.
 
 Each test drives its own route with its own roster (see tests/_ui_main.py) and
 asserts through the rendered UI, never by reaching into the harness's globals.

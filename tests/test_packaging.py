@@ -1,21 +1,14 @@
-"""The declared package data must cover every data file on disk.
+"""The declared package data must cover each data file on disk.
 
-⚠ This test exists because of a real defect, found. `package-data` listed
-`data/*.json` and `data/charms/*.json` by name. `data/thaumaturgy/` was added later
-and was not added here, thus a pip-installed wheel had 189 of the 193 data files and
-no thaumaturgy at all.
+⚠ A directory missing from `package-data` gives a wheel without it, with no error:
+`rules_db` treats each thaumaturgy file as optional (`rules_db.py:790`). The frozen
+products copy the whole `data` directory, thus only a wheel or sdist (the hosting
+deployment) is affected.
 
-⚠ Nothing reported it. `rules_db` treats every thaumaturgy file as optional
-(`rules_db.py:790`), which is correct for a data set that has no thaumaturgy and is
-what makes an omission in the package silent. Thaumaturgy is on all sheets, thus the
-loss is not small.
-
-The frozen products were not affected: `pack/*.spec` copies the whole `data`
-directory. Only an installed wheel or sdist was, which is the deployment that
-hosting uses.
+⚠ The frozen products hide the defect: test the wheel globs.
 
 The test reads the globs from `pyproject.toml` and expands them the way setuptools
-does, thus it fails for a NEW uncovered directory and not only for the one above.
+does, thus it fails for each NEW uncovered directory.
 """
 
 import tomllib

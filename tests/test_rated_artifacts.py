@@ -812,10 +812,8 @@ def test_every_catalogue_icon_resolves_in_the_font_nicegui_actually_ships() -> N
 # of the Manse" (p.67). A Manse may be designed to yield several stones instead of one
 # (p.66), so the cap is on the TOTAL, not the count.
 #
-# ⚠ Every test here goes through `validate.validate` — the CALLER — and never calls
-# `check_hearthstones` directly. That is this project's most-repeated bug and the exact
-# shape the Backgrounds delegation shipped three times: nine tests reached past the
-# caller into the helper, so a rule that never ran in production passed all nine.
+# ⚠ Each test goes through `validate.validate`, the CALLER, never `check_hearthstones`
+# directly. A test of the helper passes for a rule that never runs (the house bug).
 # --------------------------------------------------------------------------- #
 
 def _with_manse(rs, exalt_type: str, name: str, rating: int, stones, **kw) -> Character:
@@ -955,19 +953,12 @@ def test_a_manse_with_no_stones_is_never_a_finding(rs) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_picking_a_hearthstone_records_its_rating(user) -> None:
-    """The pick must land STRUCTURALLY, with the stone's level.
+    """A pick lands STRUCTURALLY, with the level of the stone (S&S p.67), not in the
+    player-editable `note`.
 
-    The first cut appended the name to the row's free-text `note` and kept no rating,
-    so the S&S p.67 total was uncheckable — and `note` is bound to a text input that
-    rewrites it on every keystroke, so reading the names back out would have been the
-    catalogue-dialog discriminator bug over again: a rule switched on by state the
-    player can edit to switch it off.
-
-    ⚠ Asserted THROUGH THE UI rather than by importing `_ui_main`'s character: the
-    harness loads that file as its own module object, so an `from tests._ui_main import`
-    in the test binds a different instance and the assertion passes alone and fails in
-    the suite. The running total is the strongest thing to read anyway — it can only
-    say "4" if the pick recorded the stone's RATING, which is the whole point.
+    ⚠ Asserted THROUGH THE UI, not by importing `_ui_main`'s character: the harness
+    loads that file as its own module object, thus an import binds a different
+    instance. The running total can say "4" only if the pick recorded the RATING.
     """
     await user.open('/manse-pick')
     user.find(marker="hearthstone-picker").click()
@@ -1071,17 +1062,15 @@ def test_a_splat_whose_rule_lives_only_on_its_ORIGIN_rows_is_not_given_the_coreb
 
 
 def test_dragon_kings_read_their_OWN_artifact_entry_not_the_dragon_blooded_one(rs):
-    """PG p.175-176 prints a Dragon King Artifact Background — "Weapons and tools,
-    either vegetative, crystal or orichalcum" — whose changed-background footnote
-    borrows the Terrestrial RULE and says so ("See E:DB, p. 157 for details").
+    """PG p.175-176 prints a Dragon King Artifact Background ("Weapons and tools,
+    either vegetative, crystal or orichalcum"), with the Terrestrial RULE ("See E:DB,
+    p. 157 for details").
 
-    The build had `background.artifact-dragonblooded` in the Dragon-Kings catalogue,
-    so a Dragon King read the DB entry: House assignments, the Realm's arsenal. ⚠ The
-    RULE was right either way — PG gives them the same doubled shape — which is why
-    nothing caught it. Correct behaviour, borrowed mechanism.
+    ⚠ The Dragon-Kings catalogue must use its own entry, not the DB entry: the RULE
+    is the same, thus nothing else shows the difference.
 
-    The ladder is still the DB one, via `ladder_from`, because the page's own
-    cross-reference points there (human's ruling).
+    The ladder is the DB ladder, through `ladder_from`, as the page cross-reference
+    says (human's ruling).
     """
     entries = [b for b in rs.backgrounds_for("Dragon-Kings", "ancient")
                if b.name == "Artifact"]
@@ -1100,15 +1089,10 @@ def test_dragon_kings_read_their_OWN_artifact_entry_not_the_dragon_blooded_one(r
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_the_background_row_states_what_its_dots_BUY(user) -> None:
-    """The link that survived the split. The Artifacts panel moved to the Gear tab on
-   , so the cross-panel refresh hook that kept its header in step with the
-    Background rating is gone — two tabs render separately and there is nothing to
-    refresh. What replaced it is this note on the Background row itself, driven by the
-    same `_sync` the rung text uses.
+    """The Background row states what the Artifact Background buys. The Artifacts
+    panel is on the Gear tab, thus this note, driven by `_sync`, is the link.
 
-    ⚠ The rule is now stated on BOTH surfaces — dots here, budget there — which is
-    deliberate. A rating whose only visible consequence lives on another tab is how the
-    Artifact budget went unnoticed for a whole splat in the first place.
+    ⚠ The rule is stated on BOTH surfaces by design: dots here, budget there.
     """
     await user.open('/artifact-background-note')
     await user.should_see("buys 4 dot(s) of artifacts · 1 owned")
@@ -1185,25 +1169,20 @@ def test_gear_stat_line_matches_only_ARTIFACT_rated_gear(rs):
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_picking_an_artifact_weapon_grants_its_stat_line_ONCE(user) -> None:
-    """The BUY PATH, which is the only place the link is actually created — the engine
-    tests above build `from_artifact` by hand and so cannot see a UI that never sets it.
+    """The BUY PATH, the only place that creates the link. The engine tests set
+    `from_artifact` by hand and cannot see a UI that never sets it.
 
-    Asserted ENTIRELY on screen, in two ways that a first draft got wrong:
+    Asserted on screen:
 
-    * The header reading "1/1" IS the dedup. A granted row that counted as a second
-      artifact would say 2/1 and raise the corebook error, so this one string covers
-      the whole feature.
-    * The stat line is checked on the EDITOR route for the same character rather than
-      by importing the fixture: `from tests._ui_main import …` can bind a different
-      module instance than the one the harness loaded for the page, so the assertion
-      read a character nothing had mutated — it passed alone and failed in the suite.
+    * The header "1/1" IS the dedup. A granted row counted as a second artifact gives
+      2/1 and the corebook error.
+    * The stat line is checked on the EDITOR route for the same character, not by
+      importing the fixture: `from tests._ui_main import …` can bind a different module
+      instance.
 
-    The row is clicked by DISPATCHING to the name label itself. Two things make the
-    obvious `user.find("Reaver Daiklave").click()` wrong here: it also matches Grand
-    Daiklave, Reaver Daiklave and Hooked Daiklaves (and which one it lands on varies
-    with Python's per-run string hashing), and `find` matches an INPUT'S VALUE too — so
-    filtering the list first and then clicking the match clicks the filter box, leaving
-    the dialog open and the pick unmade, which is exactly how this failed.
+    ⚠ The row is clicked by DISPATCHING to its name label. `user.find("Reaver
+    Daiklave").click()` also matches other daiklaves (the choice changes with string
+    hashing), and `find` matches an INPUT VALUE too, thus it can click the filter box.
     """
     from nicegui import ui as _ui
     def _pick(name: str) -> None:
@@ -1388,22 +1367,13 @@ def test_two_artifact_backgrounds_buy_TWO_artifacts(rs):
 # --------------------------------------------------------------------------- #
 
 LEGENDARY = "mf.legendary-artifact"
-# All four `(ARTIFACT N/A)` entries in the build. The Xoanon (B&E p.104) had been
-# unauthorable since the sweep for exactly the reason the other two were,
-# and the human ruled it the same way.
+# The `(ARTIFACT N/A)` entries in the build: the Mantle of Brigid, the Sword of Ice,
+# the Xoanon (B&E p.104), the Iron Puzzle Box (Kingdom of Halta p.93) and the Eye of
+# Autochthon (Storyteller's Companion p.80), each a human's ruling.
 #
-# The Iron Puzzle Box (Kingdom of Halta p.93) joined them, on the same
-# ruling, when Group A of the content re-triage was read. ⚠ It is the standing proof
-# that "no `(ARTIFACT N/A)` entry remains unauthored" is a claim about the books READ
-# SO FAR, never about the game: a book nobody has extracted yet can hold a fifth. It
-# was held back for the human's call rather than authored on the pattern, because the
-# ruling had been given per-entry each time and a plot device charged to no budget is
-# not a decision to make on someone's behalf.
-# The **Eye of Autochthon** (Storyteller's Companion p.80) joined, and it is
-# the entry the whole channel was named after: the Legendary Artifact Merit's own text
-# cites "the Mantle of Brigid or the Eye of Autochthon" as its two examples, and the
-# artifact's own System paragraph says its active powers "may be summarized as 'plot
-# device.'" It arrived one book after the note above predicted a fifth would.
+# ⚠ "No `(ARTIFACT N/A)` entry is unauthored" is true for the books READ only. A new
+# book can hold another. Each one needs the human's ruling: do not author one on the
+# pattern.
 PLOT_DEVICES = ("Mantle of Brigid", "The Sword of Ice", "The Insidious Ebon Xoanon",
                 "Iron Puzzle Box", "Eye of Autochthon")
 

@@ -594,15 +594,12 @@ def _health_rows(page):
 
 
 def test_a_wrapped_health_track_keeps_one_pitch_across_its_rows(make_page, qtbot):
-    """⚠ A QHBoxLayout of fixed-size cells with NO trailing stretch spreads its
-    slack BETWEEN them. Only the last row got one, so a track that wrapped drew
-    its full rows justified across the panel and the short final row packed left
-    — the boxes visibly changed pitch mid-track.
+    """⚠ A QHBoxLayout of fixed-size cells with NO trailing stretch spreads its slack
+    BETWEEN them. Each row needs a stretch: else full rows are justified and the
+    short last row packs left.
 
-    Reproduces only above `_BOXES_PER_ROW` levels, which is why every fixture in
-    this file missed it and a real Ox-Body character found it on sight. This is a
-    GEOMETRY test for that reason: the defect is invisible to a widget-count or
-    text assertion, and passes against the bug it guards.
+    ⚠ It reproduces only above `_BOXES_PER_ROW` levels. A GEOMETRY test: a
+    widget-count or text assertion passes against the defect.
     """
     char = _solar()
     char.ox_body = [OxBodyPurchase(variant="v", health_levels=[2, 2, 2])] * 4

@@ -1,4 +1,4 @@
-"""Tests for docs/briefs-background-rules.md — enforcing the Background numeric rules.
+"""Tests for docs/briefs-background-rules.md — the Background numeric rules.
 
 R1  Sidereal Connections ≤ the Attribute total (chargen only)
 R2  Sidereal Celestial Manse ≤3 on BOTH sides, a PER-CHARACTER HouseRules toggle lifts it
@@ -6,15 +6,9 @@ R3  Mortals barred from Artifact/Manse (both origins, chargen only), ST toggle l
 R4  Mountain Folk Artifact ≤10 (both sides), one bonus point per dot above 5
 R5  the rating controls take their ceiling from the engine; only R2/R4 bind post-lock
 
-Which test pins which ruling is stated in each docstring. The R5 UI tests are the ones
-the two hardcoded 5s in ui/advantages.py were invisible to — an engine-only test cannot
-see a widget's `max`, which is why the ceilings survived this long.
-
-Every genuinely new rule test (R1-R4, and the MF half of R5) FAILS against the code
-before this brief: R1-R3 because the rules had no read site, R4 because the model
-capped BackgroundEntry.rating at 5 and the controls at 5. The guard tests (Solar still
-stops at 5; the chargen-only caps stay chargen-only) pass before and after — they pin
-the behaviour that must NOT move, which is the whole point of test #6 in the brief.
+Each docstring names its ruling. ⚠ The R5 UI tests read the widget `max`: an engine
+test cannot see a hardcoded ceiling in ui/advantages.py. The guard tests (Solar stops
+at 5; the chargen-only caps stay chargen-only) pin the behavior that must NOT move.
 """
 
 from pathlib import Path

@@ -98,15 +98,12 @@ async def test_the_wound_exempt_row_carries_no_wound_term(user: User) -> None:
 @pytest.mark.asyncio
 @pytest.mark.nicegui_main_file(MAIN)
 async def test_marking_damage_does_not_reset_the_chosen_weapon(user: User) -> None:
-    """The sidebar is rebuilt on every health click (it shares the tracker's
-    refreshable body), and a deepening wound is exactly what sends a player back to
-    it. State owned by the sidebar would drop the weapon on that click, so it lives
-    one level up in build_play — this is the binding for it.
+    """The weapon choice survives a health click. The sidebar rebuilds on each
+    health click, thus the state is in build_play, one level up.
 
-    The assertion is on the RENDERED row, not the Select's `value`: after a refresh
-    the Select fetched from the client is a stale one still carrying the old value,
-    so reading it passes either way. (It did — a negative control caught that before
-    this test was trusted.)
+    ⚠ Assert on the RENDERED row, not on the Select `value`: after a refresh the
+    Select from the client is stale and has the old value. A negative control proved
+    it.
     """
     await user.open('/pools-click')
     _weapon_select(user).set_value(0)

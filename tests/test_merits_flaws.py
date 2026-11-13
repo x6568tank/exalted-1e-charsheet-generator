@@ -1,14 +1,11 @@
 """Merits & Flaws — the Thaumaturgy slice (Player's Guide pp.120-122).
 
-Decision 0011: M&F return as ONE centralized calculation, never the per-file hooks
-that got them ripped out in June 2026. The load-bearing test in this module is
-`test_no_module_outside_engine_merits_names_a_merit_id` — it is what stops the old
-situation recreating itself.
+Decision 0011: M&F are ONE central calculation, never per-file hooks.
+`test_no_module_outside_engine_merits_names_a_merit_id` enforces it.
 
-These 11 Merits were authored first because they are the mortal magic-access set:
-Essence Awareness unlocks part of a mortal's Essence pool, Essence Mastery unlocks all
-of it and opens Terrestrial Martial Arts and Terrestrial sorcery. See
-docs/status/merits-flaws.md.
+These 11 Merits are the mortal magic-access set: Essence Awareness unlocks part of a
+mortal's Essence pool, Essence Mastery unlocks all of it and opens Terrestrial Martial
+Arts and Terrestrial sorcery. See docs/status/merits-flaws.md.
 """
 
 from pathlib import Path

@@ -1,28 +1,23 @@
 """Two browser sessions must not share one Character.
 
-✅ **These tests are LIVE.** They were written first, they failed
-on the tree of that day, and they carried `xfail(strict=True)` until
-`register_pages` resolved one context for each session. The XPASS was the gate,
-and the markers are deleted.
+✅ **These tests are LIVE.** `register_pages` resolves one context for each session.
 
 ⚠ Do not "fix" a failure here by changing an assertion. These tests describe the
 contract. A failure means two browsers share a Character again.
 
-⚠ The negative control, run: make `session_key` return a constant.
-Both tests go red again. Use that mutation, and not a reading of the code, to
-confirm that these tests still see the property they name. The copy rule they
-depend on has its own file, `tests/test_session_context_factory.py`.
+⚠ The negative control: make `session_key` return a constant. Both tests go red.
+Use that mutation, not a reading of the code, to confirm that these tests still see
+the property. The copy rule has its own file,
+`tests/test_session_context_factory.py`.
 
-This is phase P0 of `docs/plans/vtt.md`. The design is section 3.8 of
-`docs/plans/hosting-state-model.md`. The defect it removed is section 3.1 of the
-same file.
+Phase P0 of `docs/plans/vtt.md`. The design is section 3.8 of
+`docs/plans/hosting-state-model.md`. The defect it removed is section 3.1.
 
 ⚠ Read `test_the_harness_gives_two_independent_sessions` first. A shared harness
-client makes the other two tests fail for a reason that is not the defect, and a
-red run would then prove nothing. That test is the discriminator.
+client makes the other two tests fail for a reason that is not the defect. That test
+is the discriminator.
 
-The two tests cover two phases, because a rule that operates in one phase and not
-in the other is this project's usual defect ("the house bug"):
+The two tests cover two phases (the house bug):
 
 1. Two sessions on '/'.
 2. The '/gm' -> '/' navigation, which repoints `ctx["char"]` by reference and then

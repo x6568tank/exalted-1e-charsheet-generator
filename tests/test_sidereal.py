@@ -1,10 +1,7 @@
-"""Sidereal chargen — exercises the shipped Sidereal data (exalts.json Sidereal row,
-chargen_budgets/costs_bonus/costs_xp Sidereal rows, the 5 Maiden castes, the
-Astrological Colleges, and the full v0.7 Charm catalogue: 193 Charms across 24
-ability trees + Violet Bier of Sorrows + 3 Celestial-open Sidereal Martial Arts
-styles) against the ability-caste machinery. The 12-Charm pool the earlier
-foundation phase could not assert is now covered by
-test_sidereal_chargen_clean_with_full_charm_pool.
+"""Sidereal chargen: the Sidereal data (exalts.json, chargen_budgets / costs_bonus /
+costs_xp rows, the 5 Maiden castes, the Astrological Colleges, and the Charm
+catalogue: 193 Charms across 24 ability trees + Violet Bier of Sorrows + 3
+Celestial-open Sidereal Martial Arts styles) against the ability-caste machinery.
 
 Sources: The Sidereals p96-101 (Character Creation), Charms chapter (p.140-193);
 see [[sidereal-chargen-findings]].
@@ -497,19 +494,11 @@ def test_sidereal_ronin_may_take_no_martial_arts_forms(rs):
 
 
 def test_a_celestial_style_is_not_a_sidereal_martial_arts_form(rs):
-    """⚠ REGRESSION. The p.101 cap identified a "Sidereal Martial Arts
-    form" as any martial-arts Charm with a non-empty `open_to_tiers`. That is a
-    proxy for "Celestial-open", not for "Sidereal", and it matched 140 Charms across
-    TWELVE styles when only 41 across three are Sidereal MA — the five Immaculate
-    Dragon Paths, Celestial Monkey, Dreaming Pearl, Righteous Devil and Hungry Ghost
-    all counted against the cap.
+    """⚠ The p.101 cap uses `Charm.ma_tier`, not `open_to_tiers`. `open_to_tiers`
+    means "Celestial-open" and covers twelve styles. Only three are Sidereal MA.
 
-    The sharpest symptom: a RONIN, whose cap is 0, could not take a single Celestial
-    Monkey Charm — a style with no Sidereal connection whatsoever.
-
-    The discriminator is now `Charm.ma_tier`, projected from the style catalogue at
-    load. This test pins the distinction from the OTHER side of the cap, so a future
-    proxy that happens to satisfy the tests above cannot reintroduce it.
+    Example: a RONIN (cap 0) can take Celestial Monkey Charms. This test pins the
+    distinction from the other side of the cap.
     """
     celestial = [c.id for c in rs.charms.values()
                  if c.category == "martial_arts:celestial-monkey"][:4]

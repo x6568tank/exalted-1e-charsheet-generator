@@ -155,23 +155,16 @@ def test_authored_styles_carry_something_printed_and_an_attribution(ruleset):
 
 
 def test_the_worklist_is_down_to_one_documented_absence(ruleset):
-    """Phase 2 authored 17 of the 18. The one left is NOT pending work:
+    """One style has no entry, and that is NOT pending work:
 
-    * `enlightenment` — not a style at all but the Dragon Path initiation tree
-      (`ui/picker.py` says so), whose two Charms sit under the chapter's Spirit
-      Walking prose. Its one style-level rule, the Dragon Paths and Elements
-      sidebar, is carried by the five Dragon Path styles it gates.
+    * `enlightenment` — the Dragon Path initiation tree, not a style. Its
+      Dragon Paths and Elements sidebar is on the five Dragon Path styles it gates.
 
-    ⚠ `snake` and `hungry-ghost` were briefly recorded here as documented absences
-    too, on the strength of their OWN pages printing nothing. That was wrong, and
-    the way it was wrong is the lesson: **a style's rules need not be printed with
-    its Charms.** The Player's Guide p.200 `MARTIAL ARTS WEAPONS` table exists
-    specifically to supply form weapons for "some martial arts from early in the
-    game's publication history [that] are not explicitly associated with weapon
-    types" — Snake, Hungry Ghost and Five-Dragon among them. Checking the style's
-    own chapter is necessary and NOT sufficient.
+    ⚠ **A style's rules need not be printed with its Charms.** The Player's Guide
+    p.200 `MARTIAL ARTS WEAPONS` table gives form weapons for older styles (Snake,
+    Hungry Ghost, Five-Dragon). Check the own chapter AND that table.
 
-    Still pinned so the list can only shrink.
+    The list can only shrink.
     """
     missing = rules_db.unauthored_martial_arts_styles(ruleset)
     assert missing == ["martial_arts:enlightenment"]
@@ -211,15 +204,11 @@ def test_a_homebrew_only_style_is_not_reported_as_unauthored():
 # --------------------------------------------------------------------------- #
 
 def test_authored_preambles_match_the_printed_page():
-    """Every authored style's prose must actually come off its page. Guards the one
-    thing delegation and haste both break: a plausible paraphrase.
+    """The prose of each authored style comes from its page: no paraphrase.
 
-    ⚠ It can only check styles whose book has an extract in `images/_extracted/`,
-    and `images/` is gitignored, so which rows are checked is MACHINE-DEPENDENT —
-    the same deferral the M&F source-text test makes (CLAUDE.md, Status). Phase 2's
-    other eleven books are pure scans or text-layer PDFs under `sources/`, which is
-    gitignored too; they were read page by page instead, and the page is recorded in
-    each row's `source`.
+    ⚠ Only styles whose book has an extract in `images/_extracted/` are checked, and
+    `images/` is gitignored, thus the checked rows depend on the machine. The other
+    books were read page by page, and each row's `source` records the page.
     """
     import re
     extracts = {"Player's Guide": "Player's Guide.md", "Core": "Exalted Core.md"}
@@ -269,17 +258,12 @@ async def test_an_authored_style_shows_its_preamble_and_rules(user) -> None:
 
 @pytest.mark.nicegui_main_file("tests/_ui_main.py")
 async def test_an_unauthored_style_shows_no_empty_panel(user) -> None:
-    """The negative control, and the reason it is a separate route: three styles
-    has no entry at all, and an empty box above its tree would be worse than
-    nothing. `martial_arts:enlightenment` is that one — the Dragon Path initiation
-    tree, not a style — so the panel must not render at all.
+    """The negative control, on a separate route: `martial_arts:enlightenment` has no
+    entry (the initiation tree, not a style), thus no panel renders.
 
-    ⚠ This route has now gone stale TWICE in one session. It pointed at Tiger,
-    which Phase 2 authored; re-pointed at Snake, which the Player's Guide sweep
-    then authored. Both times it kept PASSING, because each newly-authored style
-    happened not to contain the literal string being asserted absent. A negative
-    control aimed at something that later becomes positive does not fail — it
-    silently stops testing anything. Re-point it, never relax the assertion."""
+    ⚠ A negative control aimed at something that later becomes positive keeps passing
+    and tests nothing. If its subject gets an entry, re-point it. Never relax the
+    assertion."""
     await user.open("/style-unauthored")
     await user.should_not_see("Righteous Devil Style")
     await user.should_not_see("Weapons and Armor")
@@ -311,18 +295,11 @@ def test_the_panel_heading_omits_an_absent_tier():
     """A style with no printed `Type:` must not render "Air Dragon Style — " with a
     dangling separator.
 
-    ⚠ **This is a SYNTHETIC fixture on purpose, and it is the fourth time this
-    session that a control lost its subject.** It began as a render route pointed at
-    Air Dragon, which gained a tier from the Player's Guide initiation sweep; it was
-    re-pointed at Ebon Shadow, which gained one from the human's ruling that all four
-    remaining styles are Celestial. **Every style in the catalogue now has a tier**,
-    so there is no real subject left — and a control aimed at nothing keeps passing
-    while testing nothing.
-
-    The tier-less path is still reachable: `MartialArtsStyle.tier` defaults to "",
-    homebrew styles have no catalogue entry at all, and the next book read may print
-    a style with no `Type:` line. So the branch is kept and tested against a
-    constructed StyleView, which cannot be authored out from under it.
+    ⚠ **A SYNTHETIC fixture by design.** Each style in the catalogue has a tier now,
+    thus no real subject exists. The tier-less path is still reachable:
+    `MartialArtsStyle.tier` defaults to "", a homebrew style has no entry, and a
+    later book can print a style with no `Type:` line. A constructed StyleView keeps
+    the subject.
     """
     from exalted_builder.ui.view import StyleView
     tierless = StyleView(name="Some Style", tier="", preamble="",
@@ -459,17 +436,11 @@ def test_snake_and_tiger_are_celestial_styles(ruleset):
 
 
 def test_no_second_style_label_generator_disagrees_with_the_authored_name(ruleset):
-    """⚠ FOUND IN THE CLICK-THROUGH. `view._style_label` was taught to
-    prefer the authored style name — and the picker's category DROPDOWN kept its own
-    independent generator, `picker._pretty`, which title-cased the slug. So the
-    preamble panel said "Mantis Style" while the dropdown above it said
-    "Praying-Mantis", on the same screen, for the same style.
+    """⚠ The category DROPDOWN uses `view._style_label`, the one label generator, as the
+    preamble panel does. Two generators gave "Mantis Style" and "Praying-Mantis" for
+    one style on one screen (decision 0011's shape).
 
-    Two implementations of one fact is the shape decision 0011 exists to prevent, and
-    a passing suite did not notice because each was tested on its own.
-
-    ⚠ `.title()` also never repaired the hyphen, so every multi-word slug was wrong:
-    "Charcoal-March-Of-Spiders", "Violet-Bier-Of-Sorrows".
+    ⚠ `.title()` does not repair the hyphen: "Charcoal-March-Of-Spiders".
     """
     from exalted_builder.ui import picker as pickermod
     import inspect

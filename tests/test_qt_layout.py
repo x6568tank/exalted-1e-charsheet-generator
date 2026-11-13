@@ -1,8 +1,6 @@
 """exalted_builder/qt/layout.py — the one teardown, tested where it lives.
 
-⚠ This helper exists because the same six-line loop was hand-written six times and the
-sixth was wrong. Its two halves are both non-obvious and both have shipped as bugs, so
-each gets a test that FAILS against the naive version:
+⚠ Each half has a test that FAILS against the naive version:
 
 * a widget-only sweep leaves nested layouts untouched (the "ghosty duplicate");
 * `deleteLater()` alone leaves the widget parented and painting until the event loop

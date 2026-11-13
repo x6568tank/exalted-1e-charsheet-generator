@@ -1,21 +1,14 @@
 """The per-session context registry — tier 2 of `hosting-state-model.md` section 3.4.
 
-This is the piece that makes two browsers edit two characters. `ui/builder.py`
-builds one `ctx` in `main()` and both routes close over it, so every connection
-shares one `Character` (section 3.1). The registry replaces that one dict with one
-dict per session.
-
-⚠ Nothing imports the registry yet. It is deliberately additive: the wiring is a
-later step, and `tests/test_session_isolation.py` stays `xfail` until it lands.
-These tests prove the registry's own behaviour, NOT that the app is isolated. Do
-not delete an xfail marker there on the strength of a green run here.
+The registry gives each session its own context dict, thus two browsers edit two
+characters (section 3.1). ⚠ These tests prove the registry's own behavior, NOT that the app is isolated.
 
 ⚠ The registry holds live `Character` objects, so it can never be JSON, so it can
 never be shared between processes. Section 3.4 records the consequence: run one
 worker. A test that assumes two registries stay in step is asserting a property
 this design does not have.
 
-The tests inject a clock. A sweep test that sleeps buys nothing and costs seconds.
+The tests inject a clock: no sleeps.
 """
 
 from __future__ import annotations

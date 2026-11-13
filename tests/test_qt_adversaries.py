@@ -1,17 +1,12 @@
 """The Adversaries tab of the native Party window (exalted_builder/qt/adversaries.py).
 
-Covers what the widget decides for itself: that the roster table shows damage at a
-glance (the column that replaces the webapp's card stack), that the four toolbar
-actions go through `engine.adversaries`, that a duplicate lands beside its original,
-and — the test this surface actually needs — that EVERY field of the model is both
-editable in the detail pane and readable off the roster.
+Covers what the widget decides: the roster table shows damage at a glance, the four
+toolbar actions go through `engine.adversaries`, a duplicate goes beside its original,
+and EACH field of the model is editable in the detail pane and readable on the roster.
 
-⚠ **The dead-field bug has already shipped here once**: `powers`, `combat_pool` and
-`cost_to_dematerialize` were authored into the catalogue, editable nowhere, and
-silently wiped whenever an entry was opened and saved. 1,777 tests were green over it.
+⚠ **A field that no widget edits is lost on save.**
 `test_every_stat_field_is_editable` walks `Adversary.model_fields` and DRIVES each
-widget rather than grepping the source, so a field wired to a widget that writes the
-wrong attribute fails too.
+widget, thus a widget that writes the incorrect attribute fails too.
 
 ⚠ Widgets are addressed by objectName (`adv.dodge`, `adv.attributes.strength`), never
 by position in a `findChildren` list — the pane is full of same-shaped spin boxes.

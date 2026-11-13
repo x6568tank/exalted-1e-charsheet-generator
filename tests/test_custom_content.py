@@ -978,18 +978,9 @@ def test_library_list_marks_a_rejected_row_invalid_with_its_reason(tmp_path):
 # --------------------------------------------------------------------------- #
 
 def test_health_type_is_unset_wherever_the_page_does_not_name_a_damage_type():
-    """`health_type` shipped with custom content as a homebrew-only field: every
-    printed Charm with a health cost just said "1 health level", so the field had to
-    default to unset and change nothing about how they read.
-
-    **That stopped being true.** Stolen Wax Discipline (E:Ab p.237) is
-    the first PRINTED Charm to name the type — "5 motes, one lethal health level" —
-    so the field gained a book-data consumer. Fertile Soul Endowment (Player's Guide
-    p.83, authored) is the second: "10 motes, 1 Willpower, 1 lethal health
-    level". The invariant that still holds, and the one worth testing, is the narrower
-    one: the field is set only where the page actually names a type, and unset
-    everywhere else — so this list grows as such Charms are authored, and the loop
-    below is the real assertion."""
+    """`health_type` is set only where the page names the type, and unset elsewhere.
+    Printed Charms that name it: Stolen Wax Discipline (E:Ab p.237) and Fertile Soul
+    Endowment (Player's Guide p.83). The list grows as such Charms are authored."""
     rs, _ = _shipped()
     with_health = [c for c in rs.charms.values() if c.cost.health]
     typed = [c for c in with_health if c.cost.health_type is not None]

@@ -1,9 +1,8 @@
 """Tests for the Mountain Folk splat — CH6, pp.214-293.
 
-The tenth splat, the fifth non-Exalt: the Jadeborn, Autochthon's underground
-children. Two deep mechanics no prior splat had:
+The Jadeborn. Two mechanics that no other splat has:
 
-  * the Enlightenment ORIGIN axis (Enlightened / Unenlightened), which rewrites
+  * the Enlightenment ORIGIN axis (Enlightened / Unenlightened), which changes
     nearly every chargen number — attribute pools 16/13/10 vs 8/4/3, a TWO-POOL
     Ability budget (favored + free dots), per-caste Background dots (13 Artisan /
     10 Enlightened undercaste / 6 Unenlightened), trait ceilings 7/6 vs Int-2/5,
@@ -13,18 +12,15 @@ children. Two deep mechanics no prior splat had:
     access rules (Unenlightened: own Caste Pattern + Foundation only; Enlightened:
     at most 3 from another caste's Pattern) and cross-pattern pricing (7 BP / 12 XP).
 
-The distinctive numbers are asserted one per keyed-table row, because a keyed row
-that does not exist falls back silently at another splat's prices —
-`adding-a-splat.md` trap #2.
+The numbers are asserted one per keyed-table row: a missing keyed row falls back to
+the prices of a different splat with no error (`adding-a-splat.md` trap #2).
 
-Rulings (human's ruling): the chargen "three of these dots" cap binds the 25
-free dots only, not the 10 favored dots; the Enlightened "no Attribute below 3" is
-a spend-to floor; the Artisan College "•• divided among Craft Abilities" is a
-group-sum floor; the Great Geas clause list is a reference panel, not engine
-enforcement. Combos are available (an artifact's "cannot be part of a Combo"
-implies Charm-users can combo). The Fivefold Embodiment colours are five separate
-Charms (per-variant external prerequisites the engine cannot express), so the
-"not more versions than permanent Essence" cap is display-noted, not enforced.
+Human's rulings: the chargen "three of these dots" cap binds the 25 free dots only;
+the Enlightened "no Attribute below 3" is a spend-to floor; the Artisan College "••
+divided among Craft Abilities" is a group-sum floor; the Great Geas is a reference
+panel, not enforced. Combos are available. The Fivefold Embodiment colors are five
+separate Charms, thus the "not more versions than permanent Essence" cap is a display
+note, not enforced.
 """
 
 from pathlib import Path

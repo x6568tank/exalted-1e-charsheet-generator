@@ -134,16 +134,13 @@ def test_no_test_patches_by_dotted_string() -> None:
     'exalted_builder' has no attribute 'qt'" — while the real module is still in
     `sys.modules` and every already-imported class still works.
 
-    ⚠ The failure is ORDERING-DEPENDENT, thus it is invisible. It appears only
-    when a main-file test sorts before the patching file. It cost a red full suite
-   : the one violation had sorted after every main-file test for
-    months, until a new test file landed at 'h'.
+    ⚠ The failure depends on the ORDER of the test files: it shows only when a
+    main-file test sorts before the patching file.
 
     Import the module and patch the object. See `tests/test_qt_shell.py`.
 
-    ⚠ ONE case over all the test files, not one for each. The rule is repo-wide and
-    the count of the test files is not a property worth 104 cases in the suite. The
-    message names each offending file and line, thus nothing is lost.
+    ⚠ ONE case over all the test files. The message names each offending file and
+    line.
     """
     offenders = [(path, line, target)
                  for path in sorted(_TESTS_DIR.glob("test_*.py"))

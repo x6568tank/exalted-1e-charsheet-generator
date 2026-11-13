@@ -228,22 +228,15 @@ def test_spells_load_with_expected_circle_counts():
     by_circle: dict = {}
     for s in rs.spells.values():
         by_circle[s.circle] = by_circle.get(s.circle, 0) + 1
-    # Three Sorcery circles (Terrestrial gained the Dragon-Blooded Sworn Brothers'
-    # Oath, p161) plus the three Necromancy circles authored in the Abyssal phase
-    # (Abyssal p224-229), plus the two Alchemical weaving circles — 23 Man-Machine
-    # and 15 God-Machine protocols (Autochthonians CH4).
-    # Caste Book: Twilight (p.74-77) adds 2 Terrestrial, 3 Celestial and 2 Solar.
-    # The Outcaste (p.93-95) adds 4 more Terrestrial, the pirates' sea spells.
-    #: the delegated spell batch added 151 — Book of Bone and Ebony
-    # (17 Labyrinth, 32 Shadowlands, 10 Void) and Savant and Sorcerer (51 Terrestrial,
-    # 32 Celestial, 9 Solar). Cleansing Solar Flames (B&E p.139, human-ruled attribution)
-    # brought Solar to 16 and the total to 244. See docs/status/spell-batch-notes.md.
-    #: the Book of Three Circles adds 48 — 31 Terrestrial (ch.2), 3 Celestial
-    # (ch.3) and 14 Solar (ch.4). ⚠ The fan spell index labels the ch.4 group "Adamant";
-    # the BOOK's chapter head reads "THE SOLAR CIRCLE" and the book wins. Read off the
-    # scanned pages directly (pdftoppm -r 110; PDF page = book page + 1). Where the two
-    # books print the same spell, Savant and Sorcerer wins (human's ruling), so the S&S
-    # copies were left untouched and only names absent from the build were authored.
+    # Spell counts by circle, with sources: core sorcery (and the Dragon-Blooded Sworn
+    # Brothers' Oath, p161); Abyssal necromancy (p224-229); Alchemical weaving
+    # (Autochthonians CH4); Caste Book: Twilight (p.74-77); The Outcaste (p.93-95);
+    # Book of Bone and Ebony; Savant and Sorcerer (Cleansing Solar Flames, B&E p.139:
+    # human's ruling); the Book of Three Circles (ch.2-4). See
+    # docs/status/spell-batch-notes.md.
+    # ⚠ The fan spell index labels the BoTC ch.4 group "Adamant". The book's chapter
+    # head reads "THE SOLAR CIRCLE", and the book wins. Where two books print one
+    # spell, Savant and Sorcerer wins (human's ruling).
     assert by_circle == {SpellCircle.TERRESTRIAL: 103,
                          SpellCircle.CELESTIAL: 49,
                          SpellCircle.SOLAR: 32,
@@ -902,15 +895,11 @@ def test_no_book_is_spelled_two_ways():
 
 
 def test_no_necromancy_spell_claims_the_corebook():
-    """The corebook prints sorcery and NO necromancy — the Circles were introduced in
-    *The Abyssals*, whose necromancy chapter is pp.224-229.
+    """The corebook prints sorcery and NO necromancy: the necromancy chapter is in
+    *The Abyssals* (pp.224-229).
 
-    ⚠ This is the same misattribution `docs/source-attribution.md` records for
-   , when all 233 Abyssal Charms carried `Core` with Abyssals page numbers.
-    That fix moved the CHARMS and missed the 23 necromancy SPELLS, which sat wrong for
-    another five days until the phase-2 book census surfaced them.
-    **When a misattribution is found, sweep every record type in that book, not the one
-    that reported it.**
+    ⚠ When a misattribution is found, check each record type of that book, not only
+    the type that showed it (`docs/source-attribution.md`).
     """
     import json as _json
 

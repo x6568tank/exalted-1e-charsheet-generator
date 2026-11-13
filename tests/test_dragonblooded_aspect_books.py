@@ -2,19 +2,14 @@
 
 Authored from `images/Dragonblooded/Aspects/<Air|Earth|Fire|Water|Wood>/CH 6 - *.md`,
 human-pasted text. 87 Charms: 80 keyed to Abilities and the 7 of Jade Mountain Style.
-Water's file is clean markdown; the other four are raw paste with drop-cap damage
-("P ILLAR OF MARBLE STANCE") and, in Air and Wood, fi/fl ligature damage.
 
-Two rules-authority calls are pinned here because they are the ones a later editor is
-most likely to "fix" wrongly:
+Two rulings that a later editor can "fix" incorrectly:
 
-  * `element` follows the ABILITY, never the chapter. Two Charms are printed in one
-    aspect's book but keyed to another aspect's Ability, and every one of the Charms
-    shipped before this landed derives element from the Ability.
-  * Jade Mountain Style is NOT Immaculate. The Earth book calls it "This
-    Terrestrial-level martial art ... similar in tone and yet far less powerful than
-    the Immaculate Earth Dragon Style", so it must not get the Immaculate BP/XP rates
-    or feed the single-elemental-tree chargen path.
+  * `element` follows the ABILITY, never the chapter. Two Charms are printed in the
+    book of one aspect but keyed to an Ability of a different aspect.
+  * Jade Mountain Style is NOT Immaculate (the Earth book: "far less powerful than the
+    Immaculate Earth Dragon Style"). It does not get the Immaculate BP/XP rates or the
+    single-elemental-tree chargen path.
 """
 
 from pathlib import Path

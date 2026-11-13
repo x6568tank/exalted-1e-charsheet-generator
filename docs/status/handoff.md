@@ -1,4 +1,4 @@
-# Session handoff — 2026-11-13 (comment pass, two sweeps)
+# Session handoff — 2026-11-13 (comment pass, two sweeps + leftovers)
 
 # 👉 YOU ARE HERE
 
@@ -15,9 +15,11 @@ every changed file against the pre-pass baseline `6f8cbfe` (the `p. 0` hit in
 * Sweep 2: the rest of `engine/`; in `ui/` every block of 6+ lines (editor, picker,
   Advantages, builder, Gear, catalogue, custom, the presenters); in `qt/` and `server/`
   the three blocks that still carried history.
-* **Not done:** short (<6-line) blocks in `ui/` were not each rewritten; `qt/` and
-  `server/` were STE already and got no full rewrite; test docstrings outside the
-  history pass are unchanged.
+* Leftovers pass: a phrase scan across all packages ("as before", "unchanged",
+  "precedent", "old saves", "exactly as", "today", "the whole point", "scar") and the
+  51 long test docstrings that still told history. Changed test files: 1602 passed.
+* **Still not done:** short blocks without those phrases are not each rewritten;
+  `qt/` and `server/` got no full rewrite (they were STE already).
 * ⚠ Tooling lesson: the line-range edits went wrong whenever a range came from a
   displayed listing instead of the source; the scripts that did the pass are in
   `/tmp/cp/` on this laptop only.

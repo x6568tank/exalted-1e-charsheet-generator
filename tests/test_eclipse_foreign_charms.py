@@ -14,13 +14,10 @@
     may not start the game knowing the Charms of other such beings without the
     Storyteller's permission."
 
-Modelled as data, not a caste check in code: `CasteDefinition.foreign_charms` +
-`foreign_charm_xp_multiplier`. That paid off — the Moonshadow half
-was three keys in castes.json and ZERO engine, UI or pricing changes; every
-Moonshadow test below reaches the same code paths as its Eclipse twin. The
-chargen half of the rule is `Character.house_rules.st_foreign_charms` (it moved
-onto HouseRules when the Storyteller options were gathered; a legacy top-level
-`st_foreign_charms` key is still migrated forward on load).
+Data, not a caste check in code: `CasteDefinition.foreign_charms` +
+`foreign_charm_xp_multiplier`. Each Moonshadow test reaches the code paths of its
+Eclipse twin. The chargen half is `Character.house_rules.st_foreign_charms` (a
+top-level `st_foreign_charms` key in a save is moved there on load).
 
 Rules-authority calls baked in here (see CLAUDE.md):
   * Full Caste/Favored treatment — the discount applies FIRST, then the doubling.

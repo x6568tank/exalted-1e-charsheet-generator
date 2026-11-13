@@ -1,13 +1,9 @@
-"""Alchemical chargen foundation: exercises the shipped Alchemical data
-(exalts.json, chargen_budgets.json, costs_bonus.json, the five Castes) and the
-new caste_favored Attribute-budget machinery Alchemicals use instead of the
-category-prioritized pools every other splat uses (Character Creation & Traits,
-p.58-64).
+"""Alchemical chargen foundation: the shipped Alchemical data (exalts.json,
+chargen_budgets.json, costs_bonus.json, the five Castes) and the caste_favored
+Attribute budget (Character Creation & Traits, p.58-64).
 
-Scope note: this is the chargen foundation only. The Charm Slot system
-(General/Dedicated slots) and the Alchemical Charm catalogue wait on the Charm
-rules chapter (p.88-91), which has not landed yet — so nothing here exercises
-Charms, and charm_min_caste_favored is deliberately 0 in the data.
+Scope: chargen only. The Charm Slot tests (p.88-91) are in other files. charm_min_caste_favored
+is 0 in the data by design.
 """
 
 from pathlib import Path

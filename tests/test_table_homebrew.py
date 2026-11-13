@@ -9,9 +9,8 @@ Step 7 of `docs/plans/p3-tables.md` section 14 (human's ruling):
     library and the Storyteller approves it; the Storyteller writes a row.
   * The campaign wins an id clash.
 
-⚠ The side door (found): each save of a copy took its carried rows from
-the library of the owner. Thus an edit at home changed the copy with no
-Storyteller.
+⚠ A save of a copy must not take its carried rows from the owner's library. Else an
+edit at home changes the copy with no Storyteller.
 """
 
 from __future__ import annotations

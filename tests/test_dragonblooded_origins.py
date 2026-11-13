@@ -495,16 +495,11 @@ def test_the_outcaste_backgrounds_are_in_the_autofill_catalog(rs):
 
 
 def test_lookshys_three_new_backgrounds_do_not_leak_to_every_splat(rs):
-    """The Outcaste p.66 introduces Arsenal, Retainers and Sorcery under a heading
-    that scopes them itself: "The following Backgrounds are most appropriate for
-    Lookshy characters. Storytellers ... are under no compulsion to allow characters
-    to take them unless the game is about Lookshy Dragon-Blooded."
+    """The Outcaste p.66 scopes Arsenal, Retainers and Sorcery to Lookshy ("most
+    appropriate for Lookshy characters").
 
-    All three shipped with no restriction at all and were offered to every splat in
-    the build — a Solar could take the Seventh Legion's armoury. They are scoped with
-    `origins` (an ALLOW-list) rather than `excluded_origins`, because an exclusion
-    list silently reopens them the next time a Dragon-Blooded origin is added, which
-    is how this happened in the first place."""
+    ⚠ Scoped with `origins` (an ALLOW-list), not `excluded_origins`: an exclusion list
+    opens them to each new Dragon-Blooded origin."""
     lookshy = {b.name for b in rs.backgrounds_for(DB, "lookshy")}
     assert "Arsenal" in lookshy
     # Arsenal is Lookshy's alone. Retainers and Sorcery are NOT — the core-backgrounds

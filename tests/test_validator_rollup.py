@@ -352,20 +352,14 @@ def _loads(fn, skip) -> list[tuple[str, int]]:
 def test_no_engine_function_reads_a_name_it_never_binds():
     """A per-FUNCTION undefined-name check over all of `engine/`.
 
-    Both bugs the `validate_chargen` decomposition hit were this one
-    shape: a section boundary swallowed an assignment (`mf_caps`, then `wp_total`)
-    into the extracted helper while the parent still read it. A whole-FILE check
-    cannot see either — the name IS defined in the file, just not in the function
-    that reads it — and neither can an import smoke test, since the NameError only
-    fires when that branch executes. Only the suite caught them, and only by running
-    the branch; this catches them statically.
+    A section boundary can move an assignment into an extracted helper while the
+    parent still reads it. A whole-FILE check cannot see it (the name is in the file),
+    and an import test cannot (the NameError fires only when the branch runs).
 
-    Scope handling is real rather than approximate: nested functions and lambdas own
-    their parameters and are checked separately against their enclosing scope, and
-    Python's function-wide (not block) scoping means an assignment anywhere in a body
-    binds for the whole body. Comprehensions are folded into the enclosing function,
-    which over-approximates what is bound — the safe direction for a guard that must
-    not cry wolf.
+    Nested functions and lambdas own their parameters and are checked against their
+    enclosing scope. An assignment anywhere in a body binds for the whole body
+    (function scope). Comprehensions fold into the enclosing function: an
+    over-approximation, the safe direction.
     """
     offenders: list[str] = []
     for path in sorted(_ENGINE.rglob("*.py")):
