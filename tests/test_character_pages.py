@@ -10,8 +10,11 @@ absence here follows a `should_see` of something that the same render draws.
 
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 from nicegui.elements.timer import Timer
+from nicegui import ui
 from nicegui.testing import User
 
 pytest.importorskip("bcrypt")
@@ -202,7 +205,131 @@ async def test_the_character_page_has_no_custom_tab(user: User) -> None:
 
     tabs = [e for e in user.client.elements.values()
             if type(e).__name__ == "Tab" and e.props.get("name") == "Custom"]
-    assert tabs and not tabs[0].visible
+    assert not tabs
+
+
+async def _fire_tab(user: User, name: str) -> None:
+    """Send the value event of the tab bar, as a browser can do for any tab name.
+    Wait until the page draws the tab, or until the bar goes back to Edit.
+
+    ⚠ This is the test. A visibility assertion passes against a tab that a
+    browser can still select. The handler runs after `_handle_event` returns,
+    thus an absence check without the wait passes against the defect.
+    """
+    (bar,) = [e for e in user.client.elements.values() if isinstance(e, ui.tabs)
+              and any(type(c).__name__ == "Tab" and c.props.get("name") == "Edit"
+                      for c in e.descendants())]
+    listeners = [(lid, li) for lid, li in bar._event_listeners.items()
+                 if li.type.replace("-", "").lower() == "update:modelvalue"]
+    assert listeners, "The tab bar has no value listener."
+    for listener_id, _ in listeners:
+        with user.client:
+            bar._handle_event({"id": bar.id, "listener_id": listener_id, "args": name})
+    for _ in range(50):
+        await asyncio.sleep(0.02)
+        if bar.value == "Edit" or "Custom content" in _texts(user):
+            return
+    raise AssertionError(f"The page did not settle: the bar shows {bar.value!r}.")
+
+
+def _texts(user: User) -> list[str]:
+    return [str(getattr(e, "text", "")) for e in user.client.elements.values()]
+
+
+def _assert_no_custom_tab_drawn(user: User) -> None:
+    texts = _texts(user)
+    assert "Custom content" not in texts, "The Custom tab is drawn."
+    assert "Identity" in texts, "The Edit tab is not drawn."
+    assert not [t for t in texts if str(state.ROOT) in t], "A server path is on the page."
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_forged_custom_tab_event_draws_no_library_on_a_draft(user: User) -> None:
+    """Server review finding 1: a draft leaked the path of the account's folder."""
+    await _sign_up(user, "Harmonious")
+    await _new_character(user)
+
+    await _fire_tab(user, "Custom")
+
+    _assert_no_custom_tab_drawn(user)
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_a_forged_custom_tab_event_draws_no_campaign_library(create_user) -> None:
+    """Server review finding 1: a player could edit the homebrew of the campaign."""
+    st, player = create_user(), create_user()
+    st_id = await _sign_up(st, "Storyteller")
+    player_id = await _sign_up(player, "Player")
+    tables = TableStore(db_path=state.DB, root=state.ROOT)
+    table = tables.create(st_id, "The Scarlet Gambit")
+    base = _store().create(player_id, _locked("Based"))
+    copy = tables.approve(st_id, tables.request(player_id, table.join_code, base.id).id)
+    assert copy is not None and copy.table_id == table.id
+
+    await player.open(home.character_url(copy.id))
+    await player.should_see("Identity")
+    await _fire_tab(player, "Custom")
+
+    _assert_no_custom_tab_drawn(player)
+
+
+async def _player_with_a_copy(create_user):
+    """An ST and a player whose copy is in the ST's campaign.
+
+    Return (player user, player id, st id, table, copy row, solo row). The solo row
+    is a draft of the player that is in no campaign.
+    """
+    st, player = create_user(), create_user()
+    st_id = await _sign_up(st, "Storyteller")
+    player_id = await _sign_up(player, "Player")
+    tables = TableStore(db_path=state.DB, root=state.ROOT)
+    table = tables.create(st_id, "The Scarlet Gambit")
+    base = _store().create(player_id, _locked("Based"))
+    copy = tables.approve(st_id, tables.request(player_id, table.join_code, base.id).id)
+    solo = _store().create(player_id, Character(id="x", name="Solo"))
+    return player, player_id, st_id, table, copy, solo
+
+
+async def _open(user: User, row) -> dict:
+    await user.open(home.character_url(row.id))
+    await user.should_see("Identity")
+    return state.REGISTRY.ctx_for(row.id)
+
+
+def _assert_solo_bindings(ctx: dict, player_id: int, solo_ctx: dict) -> None:
+    library = _store().custom_dir(player_id)
+    assert ctx["row"].table_id is None
+    assert ctx["custom_dir"] == library
+    assert ctx["library_dir"] == library
+    assert ctx["ruleset"] is solo_ctx["ruleset"], "The copy keeps the RuleSet of the campaign."
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+@pytest.mark.parametrize("how", ["remove", "leave", "delete"])
+async def test_a_copy_out_of_its_campaign_loses_the_campaign_bindings(
+        create_user, how: str) -> None:
+    """Server review finding 2: the context kept the folder and the RuleSet of the
+    campaign after the copy left it."""
+    player, player_id, st_id, table, copy, solo = await _player_with_a_copy(create_user)
+    solo_ctx = await _open(player, solo)
+    ctx = await _open(player, copy)
+    assert ctx["custom_dir"] != _store().custom_dir(player_id), "The probe is invalid."
+    held = ctx["char"]
+
+    tables = TableStore(db_path=state.DB, root=state.ROOT)
+    if how == "remove":
+        assert tables.remove(st_id, table.id, player_id)
+    elif how == "leave":
+        assert tables.leave(player_id, table.id)
+    else:
+        assert tables.delete(st_id, table.id)
+    ctx = await _open(player, copy)
+
+    _assert_solo_bindings(ctx, player_id, solo_ctx)
+    assert ctx["char"] is held, "The rebind replaced the Character that a page holds."
 
 
 @pytest.mark.asyncio

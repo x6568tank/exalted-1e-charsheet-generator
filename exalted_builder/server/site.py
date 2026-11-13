@@ -127,18 +127,20 @@ def _here() -> str:
 
 
 def is_local_path(path: str | None) -> bool:
-    """Return True if `path` is a path of this server and the browser reads it so.
+    """Return True if `path` is a path of this server, else False.
 
-    ⚠ An absolute URL sends the browser to any site. "//host" is an absolute URL too.
-    ⚠ The browser removes each tab, LF and CR from a URL before it parses it. Thus
-    "/<TAB>/host" becomes "//host". Refuse each control character.
+    ⚠ An absolute URL sends the browser to any site. "//host" is an absolute URL
+    too. A browser removes a tab and a newline from a URL, thus "/\t/host" is
+    "//host". Refuse each control character and each whitespace character. Refuse
+    the backslash, because a browser reads it as a slash.
     """
-    return bool(path) and path.startswith("/") and not path.startswith("//") \
-        and "\\" not in path and not any(ord(c) < 0x20 or ord(c) == 0x7f for c in path)
+    if not path or not path.startswith("/") or path.startswith("//"):
+        return False
+    return not any(c == "\\" or c.isspace() or not c.isprintable() for c in path)
 
 
 def _local(path: str) -> str:
-    """Return `path` if it is a path of this server. Return "/" in all other cases."""
+    """Return `path` if `is_local_path` accepts it. Return "/" in all other cases."""
     return path if is_local_path(path) else "/"
 
 

@@ -435,3 +435,22 @@ def test_the_theme_route_refuses_a_control_character_too(target: str) -> None:
 def test_a_path_of_this_server_is_kept(target: str) -> None:
     assert auth.safe_target(target) == target
     assert site.is_local_path(target) is True
+
+
+# A browser strips a tab and a newline from a URL, thus "/\t/host" is "//host".
+# Server review finding 3. Each control character and each whitespace is refused.
+_STRIPPED = ["/\t/elsewhere.example", "/\n/elsewhere.example", "/\r/elsewhere.example",
+             "/ /elsewhere.example", "/\x00/elsewhere.example", "/\x1f/elsewhere.example",
+             "/\x7f/elsewhere.example", "/\u00a0/elsewhere.example",
+             "/\u2028/elsewhere.example", "/home\t"]
+
+
+@pytest.mark.parametrize("target", _STRIPPED)
+def test_a_target_with_a_control_character_becomes_the_home_page(target: str) -> None:
+    assert auth.safe_target(target) == auth.HOME_PATH
+
+
+@pytest.mark.parametrize("target", _STRIPPED)
+def test_a_theme_return_path_with_a_control_character_becomes_the_front_page(
+        target: str) -> None:
+    assert site._local(target) == "/"

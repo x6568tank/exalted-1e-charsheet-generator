@@ -11,7 +11,8 @@ _TABS = ("Edit", "Gear", "Advantages", "Charms", "Combos", "Play", "ST",
          "Custom", "Sheet")
 
 
-def visible_tabs(locked: bool, *, combos: bool = True) -> tuple[str, ...]:
+def visible_tabs(locked: bool, *, combos: bool = True,
+                 custom: bool = True) -> tuple[str, ...]:
     """The tabs for a character at this stage of its life.
 
     **Edit is on the bar on BOTH sides of the lock** (decision 0013), as are Charms,
@@ -40,16 +41,21 @@ def visible_tabs(locked: bool, *, combos: bool = True) -> tuple[str, ...]:
     # the engine and this stays a pure function of two booleans.
     if not combos:
         hidden.add("Combos")
+    # ⚠ The hosted character page gives False. There the homebrew library belongs
+    # to the account or to the campaign, not to the character.
+    if not custom:
+        hidden.add("Custom")
     return tuple(t for t in _TABS if t not in hidden)
 
 
-def resolve_tab(name: str, locked: bool, *, combos: bool = True) -> str:
+def resolve_tab(name: str, locked: bool, *, combos: bool = True,
+                custom: bool = True) -> str:
     """`name`, or a sensible landing tab when locking/unlocking just hid it.
 
     Edit survives the lock now, so it is the answer in both directions — a player who
     locks while editing traits stays where they were, looking at the same dots, which
     is the point of the merge.
     """
-    if name in visible_tabs(locked, combos=combos):
+    if name in visible_tabs(locked, combos=combos, custom=custom):
         return name
     return "Edit"

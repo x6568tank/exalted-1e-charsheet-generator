@@ -47,6 +47,14 @@ def test_resolve_tab_leaves_a_still_visible_tab_alone():
     assert builder.resolve_tab("Sheet", locked=False) == "Sheet"
 
 
+def test_resolve_tab_refuses_custom_when_the_page_has_no_library():
+    """Server review finding 1: the hosted page sends a forged "Custom" here."""
+    for locked in (False, True):
+        assert "Custom" not in builder.visible_tabs(locked, custom=False)
+        assert builder.resolve_tab("Custom", locked, custom=False) == "Edit"
+        assert builder.resolve_tab("Custom", locked) == "Custom"
+
+
 def test_play_tab_is_locked_only():
     """The tracker overlays fill-state onto capacities the character does not have
     yet — every box moves while chargen is open, and marks made there mean nothing to

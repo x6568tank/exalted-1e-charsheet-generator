@@ -95,6 +95,20 @@ def register_character_pages(store: CharacterStore, rulesets: Rulesets,
     `/home`.
     """
 
+    def bindings(row: CharacterRow) -> dict:
+        """Return the context values that follow the campaign of `row`.
+
+        "custom_dir" is the folder from which a save copies the homebrew.
+        "library_dir" is the library that the Gear tab writes, and a campaign copy
+        has none: its homebrew comes through the Storyteller. "binding" records the
+        campaign and the draft tag that the values agree with.
+        """
+        return {"row": row,
+                "binding": (row.table_id, tables.draft_table(row.id)),
+                "custom_dir": store.homebrew_dir(row),
+                "library_dir": None if row.table_id else store.custom_dir(row.owner_id),
+                "ruleset": rulesets.for_row(row)}
+
     def factory(character_id: str) -> dict:
         row = store.row(character_id)
         if row is None:
@@ -113,17 +127,11 @@ def register_character_pages(store: CharacterStore, rulesets: Rulesets,
                     store.save(row, character)
                 except (QuotaExceeded, OSError):
                     pass
-        # "custom_dir" is the folder from which a save copies the homebrew.
-        # "library_dir" is the library that the Gear tab writes, and a campaign
-        # copy has none: its homebrew comes through the Storyteller.
         return {"char": character, "path": path, "dir": path.parent,
                 "home_dir": store.account_dir(row.owner_id),
-                "custom_dir": store.homebrew_dir(row),
-                "library_dir": None if row.table_id else store.custom_dir(row.owner_id),
                 "reload_library": lambda: rulesets.reload_account(row.owner_id),
-                "ruleset": rulesets.for_row(row),
                 "party": Party(id="party.new"), "party_path": None, "member": None,
-                "adversary_catalog": adversary_catalog, "row": row}
+                "adversary_catalog": adversary_catalog, **bindings(row)}
 
     sessions = SessionRegistry(factory=factory)
 
@@ -142,6 +150,11 @@ def register_character_pages(store: CharacterStore, rulesets: Rulesets,
             _not_found()
             return
         ctx = sessions.ctx_for(row.id)
+        # ⚠ A leave, a remove, a campaign delete or a sent draft changes the row
+        # after the context exists. Update the context in place: an open page and
+        # the table view hold this dict and its Character.
+        if ctx["binding"] != (row.table_id, tables.draft_table(row.id)):
+            ctx.update(bindings(row))
         if not row.is_copy and ctx["char"].chargen_locked:
             _build_base(store, sessions, row, ctx, user_id)
             return

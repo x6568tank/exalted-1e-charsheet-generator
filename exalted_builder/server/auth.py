@@ -235,9 +235,9 @@ def safe_target(target: str | None) -> str:
     """Return `target` if it is a path of this server. Return `HOME_PATH` in all
     other cases.
 
-    ⚠ The login page sends the browser to `redirect_to`. An absolute URL there
-    sends a player from this server to any site. "//host" is an absolute URL too.
-    An open path is refused, because `/logout` there logs the player out again.
+    ⚠ The login page sends the browser to `redirect_to`. `site.is_local_path`
+    refuses each target that a browser can read as an other site. An open path is
+    refused, because `/logout` there logs the player out again.
     """
     if not site.is_local_path(target) or target.split("?")[0] in OPEN_PATHS:
         return HOME_PATH

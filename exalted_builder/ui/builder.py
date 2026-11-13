@@ -341,7 +341,7 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
             st_mod.build_storyteller(
                 ruleset, char, tab_save, with_header=False,
                 in_campaign=in_campaign or campaign_draft is not None)
-        elif state["tab"] == "Custom":
+        elif state["tab"] == "Custom" and has_custom:
             # Rule-set editing, not character editing: it takes no Character and is
             # the one tab whose edits outlive the open save. It mutates `ruleset` in
             # place, so every other tab sees new homebrew without a restart.
@@ -740,9 +740,13 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
                  "Storyteller when you Finish & Lock.").classes(
             f"w-full text-sm px-3 py-1 rounded {_pal().card_soft}").mark(
             "draft-for-campaign")
+    # ⚠ On a hosted character page the homebrew library is on /home: it belongs to
+    # the account, or to the campaign. Do not build the Custom tab there. A hidden
+    # tab is not a gate: a browser can send its name in the value event.
+    has_custom = home_path is None
     with ui.tabs(value="Edit").classes("w-full") as tab_bar:
         tabs = {name: ui.tab(name, label=_LABELS.get(name, name), icon=_ICONS[name])
-                for name in _TABS}
+                for name in _TABS if has_custom or name != "Custom"}
     tab_bar.on_value_change(lambda e: _on_tab_change(e.value))
 
     def _sync_tabs() -> None:
@@ -752,13 +756,12 @@ def build_app(ruleset: RuleSet, character: Character, save_path: Path,
         rendering a tab that is no longer on the bar."""
         locked = ctx["char"].chargen_locked
         combos = viewmod.has_combos_tab(ruleset, ctx["char"])
-        for name in _TABS:
-            # ⚠ On a hosted character page the homebrew library is on /home: it
-            # belongs to the account, not to this character.
-            shown = name in visible_tabs(locked, combos=combos) and not (
-                name == "Custom" and home_path is not None)
-            tabs[name].set_visibility(shown)
-        state["tab"] = resolve_tab(state["tab"], locked, combos=combos)
+        shown = visible_tabs(locked, combos=combos, custom=has_custom)
+        for name, tab in tabs.items():
+            tab.set_visibility(name in shown)
+        # ⚠ This is the gate for a tab name that the browser sends.
+        state["tab"] = resolve_tab(state["tab"], locked, combos=combos,
+                                   custom=has_custom)
         if tab_bar.value != state["tab"]:
             state["syncing"] = True
             tab_bar.set_value(state["tab"])
