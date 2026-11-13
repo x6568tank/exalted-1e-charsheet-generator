@@ -39,7 +39,7 @@ from ..engine.house_rule_actions import apply_table_rules
 from ..models.character import Character, new_character_id
 from ..models.party import Party
 from ..ui import app as sheet_app
-from ..ui import builder, theme
+from ..ui import builder, theme, upload_limit
 from ..ui.assets import cytoscape_head_html
 from ..ui import custom as custom_mod
 from ..ui import view as viewmod
@@ -59,11 +59,9 @@ character_url = chrome.character_url
 # kilobytes; a file with a large homebrew library is more. The account quota is
 # 10 MB (server/quota.py), thus one import can never fill an account.
 #
-# ⚠ The browser applies this limit, not the server. `ui.upload` sets the Quasar
-# `max-file-size` prop, and the upload route of NiceGUI reads the whole body. Thus
-# this refuses the file that a person picks by mistake. It does not refuse a
-# request that a program makes. That request needs the client id of a page of the
-# account, thus a visitor with no login cannot make one.
+# The browser applies this limit through the `max-file-size` prop, and the handler
+# applies it again (`upload_limit.too_large`). `server/upload_guard.py` limits the
+# request.
 MAX_IMPORT_BYTES = 2 * 1024 * 1024
 
 
@@ -215,6 +213,10 @@ def _build_home(store: CharacterStore, tables: TableStore, rulesets: Rulesets,
         ui.navigate.to(character_url(row.id))
 
     async def on_import(e) -> None:
+        refusal = upload_limit.too_large(e.file, MAX_IMPORT_BYTES)
+        if refusal is not None:
+            ui.notify(refusal, type="negative")
+            return
         try:
             row, added = import_character(store, rulesets, user_id, await e.file.text())
         except Exception as ex:                     # noqa: BLE001 - surface any parse or write error

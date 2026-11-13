@@ -17,6 +17,7 @@ from . import accounts, auth, db, nav, site
 from .characters import CharacterStore
 from .session import SessionRegistry
 from .tables import TableStore
+from .throttle import LoginThrottle
 
 
 def _password(label: str, marker: str) -> ui.input:
@@ -35,12 +36,35 @@ def _say(label: ui.label, text: str, *, error: bool, note: bool = False) -> None
     label.classes(replace=f"q-mt-xs {tone}")
 
 
+async def _password_ok(db_path: Path, user_id: int, throttle: LoginThrottle,
+                       field: ui.input, message: ui.label) -> bool:
+    """Check the password in `field` against account `user_id`, through `throttle`.
+
+    Return True if it is correct. Else show the refusal in `message`, clear `field`,
+    and return False. The key is the username, thus the login page has the same count.
+    """
+    name = db.normalise_username(db.username_for(db_path, user_id) or "")
+    # ⚠ `begin` counts the attempt before the await. See server/throttle.py.
+    wait = throttle.begin(name)
+    if wait > 0:
+        text = auth.wait_text(wait)
+    elif await run.io_bound(db.password_matches, db_path, user_id, field.value or ""):
+        throttle.succeeded(name)
+        return True
+    else:
+        text = "The current password is wrong."
+    field.value = ""
+    _say(message, text, error=True)
+    return False
+
+
 def register_account_page(db_path: Path, characters: CharacterStore, tables: TableStore,
-                          sessions: SessionRegistry) -> None:
+                          sessions: SessionRegistry, throttle: LoginThrottle) -> None:
     """Register `/account` against the database at `db_path`.
 
     `sessions` is the character registry. The delete stops the open pages of the
-    characters of the account through it.
+    characters of the account through it. `throttle` limits the guesses at the
+    current password. ⚠ Give the instance of the login page.
     """
 
     @ui.page(nav.ACCOUNT_PATH, title="Account — Exalted 1e")
@@ -66,10 +90,10 @@ def register_account_page(db_path: Path, characters: CharacterStore, tables: Tab
                 _say(email_message, auth.NO_EMAIL_NOTE, error=False, note=True)
 
             async def save_email() -> None:
+                if not await _password_ok(db_path, user_id, throttle, email_password,
+                                          email_message):
+                    return
                 try:
-                    if not await run.io_bound(db.password_matches, db_path, user_id,
-                                              email_password.value or ""):
-                        raise db.AccountError("The current password is wrong.")
                     await run.io_bound(db.set_email, db_path, user_id, email.value or "")
                 except db.AccountError as exc:
                     _say(email_message, str(exc), error=True)
@@ -91,6 +115,9 @@ def register_account_page(db_path: Path, characters: CharacterStore, tables: Tab
                 _say(name_message, f"Changed. You log in as {username} now.", error=False)
 
             async def rename() -> None:
+                if not await _password_ok(db_path, user_id, throttle, name_password,
+                                          name_message):
+                    return
                 try:
                     name = await run.io_bound(db.rename_user, db_path, user_id,
                                               name_password.value or "",
@@ -116,6 +143,9 @@ def register_account_page(db_path: Path, characters: CharacterStore, tables: Tab
             async def change() -> None:
                 if (new.value or "") != (again.value or ""):
                     _say(password_message, "The two passwords are different.", error=True)
+                    return
+                if not await _password_ok(db_path, user_id, throttle, current,
+                                          password_message):
                     return
                 try:
                     await run.io_bound(db.change_password, db_path, user_id,
@@ -176,9 +206,8 @@ def register_account_page(db_path: Path, characters: CharacterStore, tables: Tab
             delete_message = _message()
 
             async def delete() -> None:
-                if not await run.io_bound(db.password_matches, db_path, user_id,
-                                          delete_password.value or ""):
-                    _say(delete_message, "The current password is wrong.", error=True)
+                if not await _password_ok(db_path, user_id, throttle, delete_password,
+                                          delete_message):
                     return
                 accounts.delete_account(user_id, characters=characters, tables=tables,
                                         sessions=sessions)

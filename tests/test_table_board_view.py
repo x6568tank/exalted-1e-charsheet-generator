@@ -11,6 +11,7 @@ JavaScript, thus the canvas is out of reach here. The click-through covers it.
 
 from __future__ import annotations
 
+import asyncio
 import io
 from pathlib import Path
 
@@ -141,9 +142,10 @@ def test_the_storyteller_clears_and_each_page_gets_the_board(pages, table) -> No
             "token_base": f"/table/{table.id}/board-token/"}
 
 
-def test_a_token_image_goes_on_a_token_and_reaches_each_page(pages) -> None:
+@pytest.mark.asyncio
+async def test_a_token_image_goes_on_a_token_and_reaches_each_page(pages) -> None:
     _, player, watcher = pages
-    image_id = player.session.add_token_image(png_bytes())
+    image_id = await player.session.add_token_image(png_bytes())
     assert [len(p.messages) for p in pages] == [0, 0, 0]  # An upload alone shows nothing.
 
     player.session.handle({"op": "put", "obj": token(image=image_id)})
@@ -152,18 +154,20 @@ def test_a_token_image_goes_on_a_token_and_reaches_each_page(pages) -> None:
         assert page.messages[-1]["obj"]["image"] == image_id
 
 
-def test_a_spectator_cannot_upload_a_token_image(pages) -> None:
+@pytest.mark.asyncio
+async def test_a_spectator_cannot_upload_a_token_image(pages) -> None:
     from exalted_builder.server.table_board import TableBoardError
 
     with pytest.raises(TableBoardError):
-        pages[2].session.add_token_image(png_bytes())
+        await pages[2].session.add_token_image(png_bytes())
 
 
-def test_a_background_reaches_each_page_with_its_address(pages, table) -> None:
+@pytest.mark.asyncio
+async def test_a_background_reaches_each_page_with_its_address(pages, table) -> None:
     st, player, _ = pages
     player.session.handle({"op": "put", "obj": token()})
 
-    st.session.set_background(png_bytes())
+    await st.session.set_background(png_bytes())
 
     for page in pages:
         assert page.messages[-1]["background"] == {
@@ -197,14 +201,16 @@ def test_a_spectator_is_refused_at_each_intent(pages) -> None:
     assert [len(p.messages) for p in (st, player)] == [1, 1]
 
 
-def test_a_player_cannot_clear_or_set_the_background(pages) -> None:
+@pytest.mark.asyncio
+async def test_a_player_cannot_clear_or_set_the_background(pages) -> None:
     from exalted_builder.server.table_board import TableBoardError
 
     _, player, _ = pages
-    for change in (player.session.clear, lambda: player.session.set_background(png_bytes()),
-                   player.session.remove_background):
+    for change in (player.session.clear, player.session.remove_background):
         with pytest.raises(TableBoardError):
             change()
+    with pytest.raises(TableBoardError):
+        await player.session.set_background(png_bytes())
 
 
 def test_sync_gives_the_board_to_the_one_page_that_asked(pages) -> None:
@@ -445,3 +451,66 @@ async def test_a_token_image_is_served_to_a_member_and_to_no_one_else(
     assert (await stranger.http_client.get(address)).status_code == 404
     assert (await player.http_client.get(
         f"/table/{table.id}/board-token/0123456789abcdef")).status_code == 404
+
+
+async def _ask(user, args: dict) -> None:
+    """Send an "ask" intent of the canvas to the page of `user`."""
+    from exalted_builder.server.table_board_view import BOARD_EVENT
+    layout = user.client.layout
+    for listener_id, listener in layout._event_listeners.items():
+        if listener.type == BOARD_EVENT:
+            with user.client:
+                layout._handle_event({"id": layout.id, "listener_id": listener_id,
+                                      "args": {"op": "ask"} | args})
+    await user.should_see(marker="board-ask-text")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+@pytest.mark.parametrize("kind", ["text", "token"])
+async def test_the_ask_dialog_edits_an_existing_object(create_user, kind: str) -> None:
+    """Server review finding 8: an edit of an old text object lost its position."""
+    _, _, table, [(player, player_id, _)] = await _campaign(create_user, "Ashes of Dawn")
+    board = TableBoard(_tables())
+    old = (token("o1") if kind == "token" else
+           {"kind": "text", "id": "o1", "x": 10, "y": 20, "size": 18,
+            "colour": "#aa3322", "text": "Old words"})
+    board.put(player_id, table.id, old)
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="board-stage")
+
+    await _ask(player, {"id": "o1"})
+    player.find(marker="board-ask-text").clear().type("New words")
+    player.find(marker="board-ask-ok").click()
+
+    field = "label" if kind == "token" else "text"
+    for _ in range(50):
+        (obj,) = board.state(player_id, table.id).objects
+        if obj[field] == "New words":
+            break
+        await asyncio.sleep(0.02)
+    assert obj[field] == "New words"
+    assert (obj["x"], obj["y"]) == (old["x"], old["y"])
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+@pytest.mark.parametrize("kind", ["text", "token"])
+async def test_the_ask_dialog_makes_a_new_object(create_user, kind: str) -> None:
+    _, _, table, [(player, player_id, _)] = await _campaign(create_user, "Ashes of Dawn")
+    board = TableBoard(_tables())
+    await player.open(chrome.table_url(table.id))
+    await player.should_see(marker="board-stage")
+
+    await _ask(player, {"kind": kind, "x": 5, "y": 6})
+    player.find(marker="board-ask-text").type("Fresh")
+    player.find(marker="board-ask-ok").click()
+
+    for _ in range(50):
+        objects = board.state(player_id, table.id).objects
+        if objects:
+            break
+        await asyncio.sleep(0.02)
+    (obj,) = objects
+    assert (obj["kind"], obj["x"], obj["y"]) == (kind, 5, 6)
+    assert obj["label" if kind == "token" else "text"] == "Fresh"

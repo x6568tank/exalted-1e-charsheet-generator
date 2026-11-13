@@ -111,6 +111,21 @@ def test_approval_adds_the_carried_homebrew(tables, store, table) -> None:
     assert _campaign_names(tables, table.id) == {"custom.fang": "Fang"}
 
 
+def test_a_failed_approval_adds_no_homebrew(tables, store, table) -> None:
+    """Server review finding 9: the player unlocks the base after the request. The
+    copy is refused, and the campaign must not keep the carried rows."""
+    _author(store.custom_dir(ALICE), _charm("custom.fang"))
+    base = _base(store, ALICE, "custom.fang")
+    request = tables.bring(ALICE, table.id, base)
+    row = store.owned(ALICE, base)
+    store.save(row, lifecycle.unlock_chargen(store.load(row)))
+
+    with pytest.raises(TableStoreError):
+        tables.approve(ST, request.id)
+
+    assert _campaign_names(tables, table.id) == {}
+
+
 def test_a_request_adds_nothing_before_the_approval(tables, store, table) -> None:
     _author(store.custom_dir(ALICE), _charm("custom.fang"))
     base = _base(store, ALICE, "custom.fang")

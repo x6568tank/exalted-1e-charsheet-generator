@@ -36,6 +36,7 @@ import io
 import json
 import logging
 from pathlib import Path
+import threading
 import time
 from typing import Annotated, Literal, Union
 
@@ -63,6 +64,12 @@ COORD_LIMIT = 20_000.0
 MAX_BACKGROUND_BYTES = 2 * 1024 * 1024
 MAX_SIDE = 4096
 MAX_INPUT_PIXELS = 40_000_000
+# Each member can upload a token image, thus its limit is lower. 16 MP takes a
+# phone photograph. A decode of 40 MP took ~310 MB.
+MAX_TOKEN_INPUT_PIXELS = 16_000_000
+# One decode at a time in the process. Parallel uploads then cannot each hold a
+# decoded image. ⚠ Do not take this lock on the event loop: call from a thread.
+_IMAGE_LOCK = threading.Lock()
 _INPUT_FORMATS = ("PNG", "JPEG", "WEBP", "GIF")
 
 # The image of a token: a square of `TOKEN_SIDE` pixels. The cap applies to the
@@ -438,7 +445,8 @@ class TableBoard:
         propagates.
         """
         self._require_player(user_id, table_id, spectating)
-        payload, _alpha = _encode_image(raw, square=TOKEN_SIDE, cap=MAX_TOKEN_BYTES)
+        payload, _alpha = _encode_image(raw, square=TOKEN_SIDE, cap=MAX_TOKEN_BYTES,
+                                        max_pixels=MAX_TOKEN_INPUT_PIXELS)
         image_id = hashlib.sha256(payload).hexdigest()[:16]
         path = self._token_path(table_id, image_id)
         if not path.is_file():
@@ -523,8 +531,11 @@ def image_mime(path: Path) -> str:
 
 
 def _encode_image(raw: bytes, *, cap: int, square: int | None = None,
-                  sized: bool = False):
+                  sized: bool = False, max_pixels: int | None = None):
     """Encode `raw` again. Return (bytes, alpha), and the size if `sized`.
+
+    Refuse an image of more than `max_pixels`, default `MAX_INPUT_PIXELS`. Hold
+    `_IMAGE_LOCK` during the work.
 
     With `square`, crop a centred square and scale it to `square` pixels. Else scale
     the image down to `MAX_SIDE` pixels on its longer side. Keep an image with
@@ -532,9 +543,17 @@ def _encode_image(raw: bytes, *, cap: int, square: int | None = None,
     `TableBoardError` for bytes that are not an image, too many pixels, or a result
     over `cap` bytes.
     """
+    limit = MAX_INPUT_PIXELS if max_pixels is None else max_pixels
+    with _IMAGE_LOCK:
+        return _encode_locked(raw, cap=cap, square=square, sized=sized, limit=limit)
+
+
+def _encode_locked(raw: bytes, *, cap: int, square: int | None, sized: bool,
+                   limit: int):
+    """Do the work of `_encode_image`. The caller holds `_IMAGE_LOCK`."""
     try:
         with Image.open(io.BytesIO(raw), formats=_INPUT_FORMATS) as image:
-            if image.width * image.height > MAX_INPUT_PIXELS:
+            if image.width * image.height > limit:
                 raise TableBoardError(
                     f"That image is too large: {image.width} x {image.height} pixels.")
             image = ImageOps.exif_transpose(image)

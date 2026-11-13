@@ -31,6 +31,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from functools import lru_cache
+import asyncio
 import json
 import logging
 from pathlib import Path
@@ -38,6 +39,7 @@ import secrets
 
 from nicegui import ui
 
+from ..ui import upload_limit
 from ..ui.assets import konva_source
 from .quota import QuotaExceeded
 from .table_board import (MAX_LABEL, MAX_TEXT, BoardState, TableBoard,
@@ -49,8 +51,8 @@ BOARD_EVENT = "exboard"
 BOARD_JS = Path(__file__).with_name("board.js")
 
 # The largest upload that the picker accepts. The server encodes it again, and
-# the result has the cap `table_board.MAX_BACKGROUND_BYTES`. ⚠ The browser applies
-# this limit (see `server/home.py` MAX_IMPORT_BYTES).
+# the result has the cap `table_board.MAX_BACKGROUND_BYTES`. The browser and the
+# handler apply this limit. `server/upload_guard.py` limits the request.
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 
 # The tools of the toolbar: key, icon, tooltip.
@@ -244,17 +246,25 @@ class BoardSession:
         if state.version != before:
             self._commit(state, {"op": "order", "ids": [o["id"] for o in state.objects]})
 
-    def add_token_image(self, raw: bytes) -> str:
+    async def add_token_image(self, raw: bytes) -> str:
         """Store an uploaded token image. Return its id. Nothing is broadcast: the
-        image shows when a token that uses it is put."""
-        return self.board.add_token_image(self.user_id, self.table_id, raw,
-                                          spectating=self.spectating())
+        image shows when a token that uses it is put.
+
+        ⚠ The image work runs in a thread. It holds a lock that the event loop
+        must not wait on.
+        """
+        return await asyncio.to_thread(self.board.add_token_image, self.user_id,
+                                       self.table_id, raw, spectating=self.spectating())
 
     def clear(self) -> None:
         self._publish(self.board.clear(self.user_id, self.table_id))
 
-    def set_background(self, raw: bytes) -> None:
-        self._publish(self.board.set_background(self.user_id, self.table_id, raw))
+    async def set_background(self, raw: bytes) -> None:
+        """Make `raw` the background, and give the board to each open page.
+        ⚠ The image work runs in a thread, as in `add_token_image`."""
+        state = await asyncio.to_thread(self.board.set_background, self.user_id,
+                                        self.table_id, raw)
+        self._publish(state)
 
     def remove_background(self) -> None:
         self._publish(self.board.remove_background(self.user_id, self.table_id))
@@ -513,12 +523,12 @@ class BoardPanel:
                     data = {"kind": "token", "id": new_object_id(),
                             "x": args.get("x"), "y": args.get("y"), "r": TOKEN_RADIUS,
                             "colour": self.colour, "label": text}
-                if kind == "token":
-                    data["image"] = image["id"]
                 else:
                     data = {"kind": "text", "id": new_object_id(),
                             "x": args.get("x"), "y": args.get("y"), "size": TEXT_SIZE,
                             "colour": self.colour, "text": text}
+                if kind == "token":
+                    data["image"] = image["id"]
                 dialog.close()
                 try:
                     self.session.put(data)
@@ -540,9 +550,13 @@ class BoardPanel:
         base = token_image_base(self.session.table_id)
 
         async def uploaded(e) -> None:
+            refusal = upload_limit.too_large(e.file, MAX_UPLOAD_BYTES)
+            if refusal is not None:
+                ui.notify(refusal, type="warning")
+                return
             raw = await e.file.read()
             try:
-                image["id"] = self.session.add_token_image(raw)
+                image["id"] = await self.session.add_token_image(raw)
             except (TableBoardError, QuotaExceeded) as exc:
                 ui.notify(str(exc), type="warning")
                 return
@@ -600,8 +614,12 @@ class BoardPanel:
                       self.session.remove_background, "board-remove-background-confirm")
 
     async def _on_upload(self, e) -> None:
+        refusal = upload_limit.too_large(e.file, MAX_UPLOAD_BYTES)
+        if refusal is not None:
+            ui.notify(refusal, type="warning")
+            return
         raw = await e.file.read()
         try:
-            self.session.set_background(raw)
+            await self.session.set_background(raw)
         except (TableBoardError, QuotaExceeded) as exc:
             ui.notify(str(exc), type="warning")

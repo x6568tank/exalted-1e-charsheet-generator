@@ -41,6 +41,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from . import config, db, site
 from .throttle import LoginThrottle
+from .upload_guard import UploadGuard
 
 # The paths that a visitor with no login can open. The icon is here because the
 # login page shows it. "/" and "/about" are the public front page and the About
@@ -263,9 +264,13 @@ class AuthGate(BaseHTTPMiddleware):
 
 
 def install_gate() -> None:
-    """Add `AuthGate` to the NiceGUI app. Do nothing if it is there."""
-    if not any(middleware.cls is AuthGate for middleware in app.user_middleware):
+    """Add `AuthGate` and `upload_guard.UploadGuard` to the NiceGUI app. Do not add
+    a middleware that is there."""
+    installed = {middleware.cls for middleware in app.user_middleware}
+    if AuthGate not in installed:
         app.add_middleware(AuthGate)
+    if UploadGuard not in installed:
+        app.add_middleware(UploadGuard)
 
 
 def wait_text(seconds: float) -> str:

@@ -245,3 +245,68 @@ async def test_another_device_shows_the_new_name(user: User) -> None:
     response = await user.http_client.get("/")
     assert "Logged in as Radiant" in response.text
     assert "Harmonious" not in response.text
+
+
+# ---- the throttle on the current password (server review finding 5) -------------- #
+
+# Each action: (the password field, the extra fields, the save button).
+_ACTIONS = {
+    "email": ("account-email-password", {"account-email": "jade@example.com"},
+              "account-email-save"),
+    "rename": ("account-username-password", {"account-username": "Radiant"},
+               "account-username-save"),
+    "password": ("account-current", {"account-new": NEW_PASSWORD,
+                                     "account-again": NEW_PASSWORD},
+                 "account-password-save"),
+    "delete": ("account-delete-password", {}, "account-delete"),
+}
+
+
+async def _attempt(user: User, action: str, password: str) -> None:
+    """Fill the form of `action` with `password` and press its button. Wait until
+    the page clears the password field, which it does at each refusal."""
+    field, extra, button = _ACTIONS[action]
+    for marker, value in extra.items():
+        user.find(marker=marker).clear().type(value)
+    user.find(marker=field).clear().type(password)
+    (box,) = user.find(marker=field).elements
+    user.find(marker=button).click()
+    for _ in range(100):
+        if not box.value:
+            return
+        await asyncio.sleep(0.02)
+    raise AssertionError("The page did not refuse the attempt.")
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+@pytest.mark.parametrize("action", sorted(_ACTIONS))
+async def test_guesses_at_the_current_password_are_throttled(user: User, action) -> None:
+    user_id = await _account(user)
+    for _ in range(5):
+        await _attempt(user, action, "wrong horse")
+    await user.should_see("The current password is wrong.")
+
+    await _attempt(user, action, state.PASSWORD)
+
+    await user.should_see("Too many failed attempts.")
+    assert db.username_for(state.DB, user_id) == "Harmonious"
+    assert db.email_for(state.DB, user_id) is None
+    assert db.authenticate(state.DB, "Harmonious", state.PASSWORD) == user_id
+
+
+@pytest.mark.asyncio
+@pytest.mark.nicegui_main_file(MAIN)
+async def test_the_account_page_and_the_login_share_one_count(create_user) -> None:
+    """A guesser cannot get five guesses here and five more at the login."""
+    owner, other = create_user(), create_user()
+    await _account(owner)
+    for _ in range(5):
+        await _attempt(owner, "email", "wrong horse")
+
+    await other.open("/login")
+    other.find(marker="login-username").type("Harmonious")
+    other.find(marker="login-password").type(state.PASSWORD)
+    other.find(marker="login-submit").click()
+
+    await other.should_see("Too many failed attempts.")

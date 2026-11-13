@@ -376,20 +376,21 @@ class TableStore:
         name = name.strip()
         if not name:
             raise TableStoreError("A campaign needs a name.")
-        with closing(db.connect(self.db_path)) as connection:
-            (count,) = connection.execute(
-                "SELECT COUNT(*) FROM tables WHERE storyteller_id = ?", (st_id,)).fetchone()
-        if count >= MAX_CAMPAIGNS:
-            raise TableStoreError(
-                f"You run at most {MAX_CAMPAIGNS} campaigns. Delete one to make another.")
         table_id = f"table.{secrets.token_hex(6)}"
         for _ in range(_CODE_TRIES):
             code = new_join_code()
             try:
                 with closing(db.connect(self.db_path)) as connection, connection:
-                    connection.execute(
+                    # ⚠ One statement for the count and the insert. Two parallel
+                    # creates then cannot both pass the limit.
+                    cursor = connection.execute(
                         "INSERT INTO tables (id, name, storyteller_id, join_code) "
-                        "VALUES (?, ?, ?, ?)", (table_id, name, st_id, code))
+                        "SELECT ?, ?, ?, ? WHERE (SELECT COUNT(*) FROM tables "
+                        "WHERE storyteller_id = ?) < ?",
+                        (table_id, name, st_id, code, st_id, MAX_CAMPAIGNS))
+                if cursor.rowcount == 0:
+                    raise TableStoreError(f"You run at most {MAX_CAMPAIGNS} campaigns. "
+                                          "Delete one to make another.")
                 break
             except sqlite3.IntegrityError:
                 continue
@@ -565,11 +566,6 @@ class TableStore:
         self._require_storyteller(st_id, request.table_id)
         copy = None
         if request.base_id is not None:
-            base = self._characters().owned(request.user_id, request.base_id)
-            if base is not None and custom_content.absorb_definitions(
-                    self._characters().load(base),
-                    custom_dir=self.homebrew_dir(request.table_id)):
-                self.homebrew_changed(request.table_id)
             try:
                 copy = self._characters().make_copy(
                     request.user_id, request.base_id, table_id=request.table_id,
@@ -577,6 +573,13 @@ class TableStore:
                         self.house_rules(request.table_id), character))
             except CharacterStoreError as exc:
                 raise TableStoreError(str(exc)) from exc
+            # ⚠ After the copy. A refused copy must add no homebrew. The save of the
+            # copy keeps the rows that it carries, thus the copy needs no second save.
+            base = self._characters().owned(request.user_id, request.base_id)
+            if base is not None and custom_content.absorb_definitions(
+                    self._characters().load(base),
+                    custom_dir=self.homebrew_dir(request.table_id)):
+                self.homebrew_changed(request.table_id)
             if request.user_id == st_id:
                 side = self.npc_sides(request.table_id).get(request.base_id)
                 if side is not None:

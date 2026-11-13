@@ -8,6 +8,8 @@ for each campaign, and no hidden layer. Decision 0020 fixes the scope.
 
 from __future__ import annotations
 
+import time
+
 import io
 import json
 from pathlib import Path
@@ -358,6 +360,45 @@ def test_an_image_with_too_many_pixels_is_refused_before_it_is_decoded(
     monkeypatch.setattr(table_board, "MAX_INPUT_PIXELS", 100)
     with pytest.raises(TableBoardError):
         board.set_background(ST, table.id, png_bytes((20, 20)))
+
+
+def test_a_token_image_has_a_lower_pixel_limit_than_a_background(
+        board: TableBoard, table, monkeypatch) -> None:
+    """Server review finding 4: each member can upload a token image."""
+    assert table_board.MAX_TOKEN_INPUT_PIXELS == 16_000_000 < table_board.MAX_INPUT_PIXELS
+    monkeypatch.setattr(table_board, "MAX_TOKEN_INPUT_PIXELS", 100)
+
+    with pytest.raises(TableBoardError, match="too large"):
+        board.add_token_image(PLAYER, table.id, png_bytes((20, 20)))
+    board.set_background(ST, table.id, png_bytes((20, 20)))
+
+
+def test_one_image_is_decoded_at_a_time(board: TableBoard, table, monkeypatch) -> None:
+    """Server review finding 4: parallel uploads must not each hold a decoded image."""
+    import threading
+
+    inside, peak, gate = [0], [0], threading.Lock()
+    real = table_board.ImageOps.exif_transpose
+
+    def slow(image):
+        with gate:
+            inside[0] += 1
+            peak[0] = max(peak[0], inside[0])
+        time.sleep(0.05)
+        with gate:
+            inside[0] -= 1
+        return real(image)
+
+    monkeypatch.setattr(table_board.ImageOps, "exif_transpose", slow)
+    threads = [threading.Thread(target=board.add_token_image,
+                                args=(PLAYER, table.id, png_bytes(colour=c)))
+               for c in ("red", "green", "blue", "white")]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert peak[0] == 1
 
 
 # --------------------------------------------------------------------------- #

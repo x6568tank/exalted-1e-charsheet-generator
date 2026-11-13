@@ -29,6 +29,7 @@ from ..server import (account_page, auth, characters, chrome, config, crawl, db,
                       upload_limit, wiki)
 from ..server.rulesets import Rulesets
 from ..server.session import SessionRegistry
+from ..server.throttle import LoginThrottle
 
 _DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
@@ -91,7 +92,9 @@ def build_server(session_root: Path | None = None,
     database = config.db_path() if db_path is None else db_path
     db.init_db(database)
     book = rules_db.load_ruleset(_DATA_DIR)
-    auth.register_auth_pages(database)
+    # ⚠ ONE throttle for the login page and the account page: one count per name.
+    login_throttle = LoginThrottle()
+    auth.register_auth_pages(database, login_throttle)
     public.register_public_pages()
     site.register_theme_route()
     wiki_book = rules_db.load_ruleset(_DATA_DIR)
@@ -107,7 +110,8 @@ def build_server(session_root: Path | None = None,
     catalog = rules_db.load_adversary_catalog(_DATA_DIR)
     sessions = home.register_character_pages(
         store, rulesets, auth.current_user_id, catalog, table_store)
-    account_page.register_account_page(database, store, table_store, sessions)
+    account_page.register_account_page(database, store, table_store, sessions,
+                                       login_throttle)
     # The table view writes YOU PLAY through the character registry.
     table_view.register_table_page(table_store, store, rulesets, sessions,
                                    auth.current_user_id, table_log.TableLog(table_store),

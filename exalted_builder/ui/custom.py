@@ -38,11 +38,14 @@ from nicegui import ui
 from .. import custom_content, rules_db
 from ..custom_content import CustomContentError
 from ..models.rules import AbilityName, CharmType, RuleSet, SpellCircle
-from . import theme
+from . import theme, upload_limit
 from . import view as viewmod
 
 _PKG = Path(__file__).resolve().parents[1]
 _DATA_DIR = _PKG / "data"
+
+# The largest homebrew file that the import control accepts.
+MAX_IMPORT_BYTES = 2 * 1024 * 1024
 
 # How many characters could be affected by a delete is unknowable from here (saves
 # live wherever the user put them), so the confirm dialog says what actually happens
@@ -207,6 +210,10 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
             _apply_rows(rows, label="Paste")
 
     async def _upload(e) -> None:
+        refusal = upload_limit.too_large(e.file, MAX_IMPORT_BYTES)
+        if refusal is not None:
+            ui.notify(refusal, type="negative")
+            return
         try:
             text = (await e.file.text())
         except Exception as exc:                    # noqa: BLE001 - surface read errors
@@ -344,8 +351,12 @@ def build_custom(ruleset: RuleSet, *, custom_dir: Path | None = None,
                 with ui.row().classes("w-full justify-between items-center gap-2"):
                     # Quasar's upload control draws a blue box with a progress
                     # readout. It stays hidden; the button opens its file picker.
-                    upload = ui.upload(on_upload=_upload, auto_upload=True) \
-                        .props("accept=.json").classes("hidden")
+                    upload = ui.upload(on_upload=_upload, auto_upload=True,
+                                       max_file_size=MAX_IMPORT_BYTES,
+                                       on_rejected=lambda: ui.notify(
+                                           "That file is too large.", type="warning")) \
+                        .props("accept=.json").classes("hidden").mark(
+                            "custom-import-upload")
                     ui.button("Import .json", icon="upload_file",
                               on_click=lambda: upload.run_method("pickFiles")) \
                         .props("flat dense").mark("custom-import")
